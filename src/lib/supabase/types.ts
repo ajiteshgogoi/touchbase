@@ -2,13 +2,16 @@ export interface Contact {
   id: string;
   user_id: string;
   name: string;
-  email?: string;
   phone?: string;
+  social_media_handle?: string;
   last_contacted: string | null;
   next_contact_due: string | null;
-  preferred_contact_method: 'email' | 'phone' | 'social' | null;
+  preferred_contact_method: 'phone' | 'social' | 'text' | null;
   notes: string | null;
   relationship_level: number;
+  contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
+  ai_last_suggestion: string | null;
+  ai_last_suggestion_date: string | null;
   created_at: string;
   updated_at: string;
 }

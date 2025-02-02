@@ -6,16 +6,18 @@ create table public.contacts (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid references auth.users not null,
     name text not null,
-    email text,
     phone text,
+    social_media_handle text,
     last_contacted timestamp with time zone,
     next_contact_due timestamp with time zone,
-    preferred_contact_method text check (preferred_contact_method in ('email', 'phone', 'social', null)),
+    preferred_contact_method text check (preferred_contact_method in ('phone', 'social', 'text', null)),
     notes text,
     relationship_level integer check (relationship_level between 1 and 5),
+    contact_frequency text check (contact_frequency in ('daily', 'weekly', 'monthly', 'quarterly', null)),
+    ai_last_suggestion text,
+    ai_last_suggestion_date timestamp with time zone,
     created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now(),
-    constraint proper_email check (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$' or email is null)
+    updated_at timestamp with time zone default now()
 );
 
 create table public.interactions (

@@ -7,26 +7,32 @@ import type { Contact } from '../../lib/supabase/types';
 
 interface ContactFormData {
   name: string;
-  email: string;
   phone: string;
-  preferred_contact_method: 'email' | 'phone' | 'social' | null;
+  social_media_handle: string;
+  preferred_contact_method: 'phone' | 'social' | 'text' | null;
   notes: string;
   relationship_level: number;
+  contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
   user_id: string;
   last_contacted: string | null;
   next_contact_due: string | null;
+  ai_last_suggestion: string | null;
+  ai_last_suggestion_date: string | null;
 }
 
 const initialFormData: ContactFormData = {
   name: '',
-  email: '',
   phone: '',
+  social_media_handle: '',
   preferred_contact_method: null,
   notes: '',
   relationship_level: 1,
+  contact_frequency: null,
   user_id: '',
   last_contacted: null,
   next_contact_due: null,
+  ai_last_suggestion: null,
+  ai_last_suggestion_date: null,
 };
 
 export const ContactForm = () => {
@@ -48,18 +54,21 @@ export const ContactForm = () => {
 
   useEffect(() => {
     if (contact) {
-      setFormData({
-        name: contact.name,
-        email: contact.email || '',
-        phone: contact.phone || '',
-        preferred_contact_method: contact.preferred_contact_method,
-        notes: contact.notes || '',
-        relationship_level: contact.relationship_level,
-        user_id: contact.user_id,
-        last_contacted: contact.last_contacted,
-        next_contact_due: contact.next_contact_due,
-      });
-    }
+    setFormData({
+      name: contact.name,
+      phone: contact.phone || '',
+      social_media_handle: contact.social_media_handle || '',
+      preferred_contact_method: contact.preferred_contact_method,
+      notes: contact.notes || '',
+      relationship_level: contact.relationship_level,
+      contact_frequency: contact.contact_frequency,
+      user_id: contact.user_id,
+      last_contacted: contact.last_contacted,
+      next_contact_due: contact.next_contact_due,
+      ai_last_suggestion: contact.ai_last_suggestion,
+      ai_last_suggestion_date: contact.ai_last_suggestion_date,
+    });
+  }
   }, [contact]);
 
   useEffect(() => {
@@ -133,19 +142,6 @@ export const ContactForm = () => {
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
-        />
-      </div>
-
-      <div>
         <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Phone
         </label>
@@ -154,6 +150,19 @@ export const ContactForm = () => {
           id="phone"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="social_media_handle" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Social Media Handle
+        </label>
+        <input
+          type="text"
+          id="social_media_handle"
+          value={formData.social_media_handle}
+          onChange={(e) => setFormData({ ...formData, social_media_handle: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
         />
       </div>
@@ -172,9 +181,30 @@ export const ContactForm = () => {
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
         >
           <option value="">No preference</option>
-          <option value="email">Email</option>
-          <option value="phone">Phone</option>
+          <option value="phone">Phone Call</option>
+          <option value="text">Text Message</option>
           <option value="social">Social Media</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="contact_frequency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Ideal Contact Frequency
+        </label>
+        <select
+          id="contact_frequency"
+          value={formData.contact_frequency || ''}
+          onChange={(e) => setFormData({
+            ...formData,
+            contact_frequency: e.target.value as ContactFormData['contact_frequency']
+          })}
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+        >
+          <option value="">Choose frequency</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
         </select>
       </div>
 
@@ -201,12 +231,24 @@ export const ContactForm = () => {
         <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Notes
         </label>
+        <div className="mb-2 text-sm text-gray-500">
+          Add personal details that can help maintain the relationship. For example:
+          <ul className="list-disc pl-5 mt-1">
+            <li>Their interests and hobbies</li>
+            <li>Important dates (birthdays, anniversaries)</li>
+            <li>Recent life events or achievements</li>
+            <li>Conversation preferences (topics they enjoy)</li>
+            <li>Shared memories or inside jokes</li>
+          </ul>
+          This information helps AI suggest personalized ways to maintain contact.
+        </div>
         <textarea
           id="notes"
           rows={4}
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+          placeholder="E.g., Loves hiking and photography. Birthday: March 15. Recently started a new job in tech."
         />
       </div>
 

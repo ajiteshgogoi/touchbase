@@ -6,10 +6,10 @@ import {
   UserPlusIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
-  EnvelopeIcon,
   ChatBubbleLeftIcon,
   TrashIcon,
   PencilSquareIcon,
+  ShareIcon,
 } from '@heroicons/react/24/outline';
 import type { Contact } from '../lib/supabase/types';
 import dayjs from 'dayjs';
@@ -43,10 +43,10 @@ export const Contacts = () => {
   };
 
   const filteredContacts = contacts
-    ?.filter(contact => 
+    ?.filter(contact =>
       contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.phone?.toLowerCase().includes(searchQuery.toLowerCase())
+      contact.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.social_media_handle?.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
       if (sortField === 'name') {
@@ -129,27 +129,42 @@ export const Contacts = () => {
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {contact.name}
                     </h3>
-                    <div className="mt-1 flex text-xs text-gray-500 dark:text-gray-400 space-x-4">
-                      {contact.email && (
-                        <span>{contact.email}</span>
-                      )}
-                      {contact.phone && (
-                        <span>{contact.phone}</span>
-                      )}
-                      <span>
-                        Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
-                      </span>
+                    <div className="mt-1 flex flex-col text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex space-x-4">
+                        {contact.phone && (
+                          <span className="flex items-center">
+                            <PhoneIcon className="h-3 w-3 mr-1" />
+                            {contact.phone}
+                          </span>
+                        )}
+                        {contact.social_media_handle && (
+                          <span className="flex items-center">
+                            <ShareIcon className="h-3 w-3 mr-1" />
+                            {contact.social_media_handle}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex space-x-4 mt-1">
+                        <span>
+                          Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
+                        </span>
+                        {contact.ai_last_suggestion && (
+                          <span className="text-primary-600">
+                            Suggestion: {contact.ai_last_suggestion}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300" title="Call">
                       <PhoneIcon className="h-5 w-5" />
                     </button>
-                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                      <EnvelopeIcon className="h-5 w-5" />
-                    </button>
-                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300" title="Text">
                       <ChatBubbleLeftIcon className="h-5 w-5" />
+                    </button>
+                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300" title="Social">
+                      <ShareIcon className="h-5 w-5" />
                     </button>
                     <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
                       <PencilSquareIcon className="h-5 w-5" />
