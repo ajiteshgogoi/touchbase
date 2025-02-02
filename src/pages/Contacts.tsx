@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
@@ -10,6 +11,7 @@ import {
   TrashIcon,
   PencilSquareIcon,
   ShareIcon,
+  ChevronUpDownIcon,
 } from '@heroicons/react/24/outline';
 import type { Contact } from '../lib/supabase/types';
 import dayjs from 'dayjs';
@@ -35,7 +37,6 @@ export const Contacts = () => {
     if (confirm('Are you sure you want to delete this contact?')) {
       try {
         await contactsService.deleteContact(contactId);
-        // React Query will automatically refetch the contacts list
       } catch (error) {
         console.error('Error deleting contact:', error);
       }
@@ -69,109 +70,127 @@ export const Contacts = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Contacts</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage your relationships and stay connected
+          </p>
+        </div>
         {canAddMore ? (
-          <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700">
+          <Link
+            to="/contacts/new"
+            className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+          >
             <UserPlusIcon className="h-5 w-5 mr-2" />
             Add Contact
-          </button>
+          </Link>
         ) : (
-          <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed">
+          <button className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
             Upgrade to add more contacts
           </button>
         )}
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white rounded-xl shadow-soft">
+        <div className="p-6 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Search contacts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <MagnifyingGlassIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+              <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search contacts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors"
+                />
+              </div>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <select
                 value={sortField}
                 onChange={(e) => setSortField(e.target.value as SortField)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600"
+                className="pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none"
               >
-                <option value="name">Name</option>
-                <option value="last_contacted">Last Contacted</option>
-                <option value="relationship_level">Relationship Level</option>
+                <option value="name">Sort by Name</option>
+                <option value="last_contacted">Sort by Last Contacted</option>
+                <option value="relationship_level">Sort by Relationship Level</option>
               </select>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                className="p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               >
-                {sortOrder === 'asc' ? '↑' : '↓'}
+                <ChevronUpDownIcon className="h-5 w-5 text-gray-500" />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="divide-y divide-gray-100">
           {isLoading ? (
-            <div className="p-6 text-center text-gray-500 dark:text-gray-400">Loading contacts...</div>
+            <div className="p-12 text-center text-gray-500">
+              <div className="animate-pulse">Loading contacts...</div>
+            </div>
           ) : filteredContacts?.length === 0 ? (
-            <div className="p-6 text-center text-gray-500 dark:text-gray-400">No contacts found</div>
+            <div className="p-12 text-center text-gray-500">
+              No contacts found
+            </div>
           ) : (
             filteredContacts?.map((contact) => (
-              <div key={contact.id} className="p-6">
-                <div className="flex items-center justify-between">
+              <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <h3 className="text-lg font-medium text-gray-900">
                       {contact.name}
                     </h3>
-                    <div className="mt-1 flex flex-col text-xs text-gray-500 dark:text-gray-400">
-                      <div className="flex space-x-4">
+                    <div className="mt-2 space-y-2">
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                         {contact.phone && (
                           <span className="flex items-center">
-                            <PhoneIcon className="h-3 w-3 mr-1" />
+                            <PhoneIcon className="h-4 w-4 mr-1.5 text-gray-400" />
                             {contact.phone}
                           </span>
                         )}
                         {contact.social_media_handle && (
                           <span className="flex items-center">
-                            <ShareIcon className="h-3 w-3 mr-1" />
+                            <ShareIcon className="h-4 w-4 mr-1.5 text-gray-400" />
                             {contact.social_media_handle}
                           </span>
                         )}
                       </div>
-                      <div className="flex space-x-4 mt-1">
-                        <span>
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <span className="text-gray-600">
                           Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
                         </span>
                         {contact.ai_last_suggestion && (
-                          <span className="text-primary-600">
+                          <span className="text-primary-500">
                             Suggestion: {contact.ai_last_suggestion}
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300" title="Call">
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors" title="Call">
                       <PhoneIcon className="h-5 w-5" />
                     </button>
-                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300" title="Text">
+                    <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors" title="Text">
                       <ChatBubbleLeftIcon className="h-5 w-5" />
                     </button>
-                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300" title="Social">
+                    <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors" title="Social">
                       <ShareIcon className="h-5 w-5" />
                     </button>
-                    <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                    <Link
+                      to={`/contacts/${contact.id}/edit`}
+                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                    >
                       <PencilSquareIcon className="h-5 w-5" />
-                    </button>
+                    </Link>
                     <button
                       onClick={() => handleDeleteContact(contact.id)}
-                      className="text-red-400 hover:text-red-500"
+                      className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete contact"
                     >
                       <TrashIcon className="h-5 w-5" />
                     </button>

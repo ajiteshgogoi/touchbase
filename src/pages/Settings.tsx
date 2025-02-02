@@ -5,6 +5,7 @@ import { useStore } from '../stores/useStore';
 import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
 import { supabase } from '../lib/supabase/client';
 import type { UserPreferences } from '../lib/supabase/types';
+import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface NotificationSettings {
   notification_enabled: boolean;
@@ -13,12 +14,12 @@ interface NotificationSettings {
 }
 
 export const Settings = () => {
-  const { user, isPremium, darkMode, setDarkMode } = useStore();
+  const { user, isPremium } = useStore();
   const [selectedPlan, setSelectedPlan] = useState(isPremium ? 'premium' : 'free');
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: true,
     reminder_frequency: 'weekly',
-    theme: darkMode ? 'dark' : 'light'
+    theme: 'light'
   });
 
   const { data: preferences } = useQuery({
@@ -87,95 +88,99 @@ export const Settings = () => {
     updatePreferencesMutation.mutate(updated);
   };
 
-  const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
-    const newTheme = theme === 'system' 
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      : theme;
-    
-    setDarkMode(newTheme === 'dark');
-    handleNotificationChange({ theme });
-  };
-
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Settings</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <p className="mt-2 text-gray-600">
           Manage your account preferences and subscription
         </p>
       </div>
 
       {/* Subscription Plans */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+      <div className="bg-white rounded-xl shadow-soft p-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
           Subscription Plan
         </h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-8">
           {SUBSCRIPTION_PLANS.map((plan) => (
             <div
               key={plan.id}
-              className={`border rounded-lg p-6 ${
+              className={`relative bg-white rounded-xl p-6 transition-all ${
                 selectedPlan === plan.id
-                  ? 'border-primary-500 ring-2 ring-primary-500'
-                  : 'border-gray-200 dark:border-gray-700'
+                  ? 'border-2 border-primary-400 shadow-soft'
+                  : 'border border-gray-200 hover:border-primary-200 shadow-sm hover:shadow-soft'
               }`}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  {plan.name.charAt(0).toUpperCase() + plan.name.slice(1)}
-                </h3>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${plan.price}/mo
+              {plan.id === 'premium' && (
+                <span className="absolute -top-3 -right-3 bg-accent-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  Recommended
                 </span>
+              )}
+              <div className="flex flex-col h-full">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {plan.name.charAt(0).toUpperCase() + plan.name.slice(1)}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {plan.id === 'free' ? 'Basic features' : 'All premium features'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-gray-900">
+                      ${plan.price}
+                    </span>
+                    <span className="text-gray-600">/mo</span>
+                  </div>
+                </div>
+                <ul className="space-y-4 mb-8 flex-grow">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <CheckIcon className="h-5 w-5 text-primary-500 mt-0.5 mr-3 flex-shrink-0" />
+                      <span className="text-gray-600">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                {plan.id === 'premium' && !isPremium && (
+                  <PayPalButtons
+                    createSubscription={(data, actions) => {
+                      return actions.subscription.create({
+                        'plan_id': 'P-XXXXXXXXXXXX' // Replace with your PayPal plan ID
+                      });
+                    }}
+                    onApprove={(data, actions) => {
+                      console.log('Subscription approved:', data);
+                      return Promise.resolve();
+                    }}
+                  />
+                )}
+                {plan.id === 'premium' && isPremium && (
+                  <button
+                    onClick={handleCancelSubscription}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel Subscription
+                  </button>
+                )}
               </div>
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-center text-gray-600 dark:text-gray-400">
-                    <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              {plan.id === 'premium' && !isPremium && (
-                <PayPalButtons
-                  createSubscription={(data, actions) => {
-                    return actions.subscription.create({
-                      'plan_id': 'P-XXXXXXXXXXXX' // Replace with your PayPal plan ID
-                    });
-                  }}
-                  onApprove={(data, actions) => {
-                    console.log('Subscription approved:', data);
-                    return Promise.resolve();
-                  }}
-                />
-              )}
-              {plan.id === 'premium' && isPremium && (
-                <button
-                  onClick={handleCancelSubscription}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  Cancel Subscription
-                </button>
-              )}
             </div>
           ))}
         </div>
       </div>
 
       {/* Notification Settings */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          Notification Settings
+      <div className="bg-white rounded-xl shadow-soft p-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          Notification Preferences
         </h2>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-gray-700 dark:text-gray-300 font-medium">
+              <label className="text-gray-900 font-medium">
                 Notifications
               </label>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-600 mt-1">
                 Enable or disable all notifications
               </p>
             </div>
@@ -188,39 +193,27 @@ export const Settings = () => {
                   notification_enabled: e.target.checked
                 })}
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
             </label>
           </div>
 
           <div>
-            <label className="block text-gray-700 dark:text-gray-300 font-medium">
+            <label className="block text-gray-900 font-medium">
               Reminder Frequency
             </label>
+            <p className="text-sm text-gray-600 mt-1 mb-2">
+              How often would you like to receive contact reminders?
+            </p>
             <select
               value={notificationSettings.reminder_frequency}
               onChange={(e) => handleNotificationChange({
                 reminder_frequency: e.target.value as NotificationSettings['reminder_frequency']
               })}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+              className="block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 transition-colors"
             >
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-gray-700 dark:text-gray-300 font-medium">
-              Theme
-            </label>
-            <select
-              value={notificationSettings.theme}
-              onChange={(e) => handleThemeChange(e.target.value as NotificationSettings['theme'])}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System</option>
             </select>
           </div>
         </div>
