@@ -61,33 +61,50 @@ export const QuickInteraction = ({
     
     setIsSubmitting(true);
     try {
-      // First update the contact's last_contacted date
-      await contactsService.updateContact(contactId, {
-        last_contacted: selectedDate.toISOString()
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be logged in to log interactions');
 
-      // Then add the interaction
-      await contactsService.addInteraction({
-        contact_id: contactId,
-        type,
-        date: selectedDate.toISOString(),
-        notes: notes || null,
-        sentiment
-      });
+      try {
+        // First add the interaction
+        await contactsService.addInteraction({
+          contact_id: contactId,
+          user_id: user.id,
+          type,
+          date: selectedDate.toISOString(),
+          notes: notes || null,
+          sentiment
+        });
+
+        // If interaction is added successfully, update the contact's last_contacted date
+        await contactsService.updateContact(contactId, {
+          last_contacted: selectedDate.toISOString()
+        });
+      } catch (error) {
+        console.error('Database operation failed:', error);
+        throw error; // Re-throw to be caught by outer catch block
+      }
 
       onSuccess?.();
       onClose();
     } catch (error) {
-      let message = 'Failed to log interaction';
+      // Handle various error types
       if (error instanceof Error) {
-        console.error('Error details:', error);
-        // Extract Supabase error message if available
-        const supabaseError = error as { message?: string; details?: string };
-        message = supabaseError.details || supabaseError.message || message;
+        const supabaseError = error as { message?: string; details?: string; code?: string };
+        console.error('Error details:', {
+          message: supabaseError.message,
+          details: supabaseError.details,
+          code: supabaseError.code
+        });
+        
+        if (supabaseError.code === '42501') {
+          alert('Authentication error. Please try logging out and back in.');
+        } else {
+          alert(supabaseError.message || 'Failed to log interaction');
+        }
       } else {
         console.error('Unknown error:', error);
+        alert('An unexpected error occurred. Please try again.');
       }
-      alert(message);
     } finally {
       setIsSubmitting(false);
     }

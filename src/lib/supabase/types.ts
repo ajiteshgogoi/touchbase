@@ -18,6 +18,7 @@ export interface Contact {
 
 export interface Interaction {
   id: string;
+  user_id: string;
   contact_id: string;
   type: 'call' | 'message' | 'social' | 'meeting' | 'other';
   date: string;
