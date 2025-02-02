@@ -39,17 +39,19 @@ const DashboardMetrics = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-center">
-          <div className="p-3 bg-primary-50 rounded-lg">
-            <UserGroupIcon className="h-8 w-8 text-primary-500" />
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">Total Contacts</p>
-            <p className="text-2xl font-semibold text-gray-900">{metrics.totalContacts}</p>
+      <Link to="/contacts" className="block">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-center">
+            <div className="p-3 bg-primary-50 rounded-lg">
+              <UserGroupIcon className="h-8 w-8 text-primary-500" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Total Contacts</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.totalContacts}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </Link>
 
       <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow">
         <div className="flex items-center">
