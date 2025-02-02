@@ -8,6 +8,20 @@ interface SubscriptionPlan {
   features: string[];
 }
 
+// Define default free plan constant
+const FREE_PLAN: SubscriptionPlan = {
+  id: 'free',
+  name: 'free',
+  price: 0,
+  contactLimit: 5,
+  features: [
+    'Up to 5 contacts',
+    'Basic reminder system',
+    'Email notifications',
+    'Contact history'
+  ]
+};
+
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: 'free',
@@ -46,10 +60,14 @@ interface SubscriptionStatus {
 export const paymentService = {
   async createPayPalSubscription(planId: string): Promise<string> {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session');
+
       const response = await fetch('/api/create-subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ planId }),
       });
@@ -72,7 +90,7 @@ export const paymentService = {
       if (!user) {
         return {
           isPremium: false,
-          currentPlan: SUBSCRIPTION_PLANS[0],
+          currentPlan: FREE_PLAN,
           validUntil: null
         };
       }
@@ -86,24 +104,29 @@ export const paymentService = {
       if (error || !subscription) {
         return {
           isPremium: false,
-          currentPlan: SUBSCRIPTION_PLANS[0],
+          currentPlan: FREE_PLAN,
           validUntil: null
         };
       }
 
-      const isPremium = subscription.plan_id === 'premium' && 
+      const currentPlan = SUBSCRIPTION_PLANS.find(plan =>
+        plan.id === subscription.plan_id
+      ) ?? FREE_PLAN;
+
+      const isPremium = currentPlan.id === 'premium' &&
+        subscription.valid_until &&
         new Date(subscription.valid_until) > new Date();
 
       return {
         isPremium,
-        currentPlan: SUBSCRIPTION_PLANS.find(plan => plan.id === subscription.plan_id) || SUBSCRIPTION_PLANS[0],
+        currentPlan,
         validUntil: subscription.valid_until
       };
     } catch (error) {
       console.error('Error getting subscription status:', error);
       return {
         isPremium: false,
-        currentPlan: SUBSCRIPTION_PLANS[0],
+        currentPlan: FREE_PLAN,
         validUntil: null
       };
     }
