@@ -1,56 +1,27 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body {
-  background-color: rgb(249 250 251); /* bg-gray-50 */
-  color: rgb(17 24 39); /* text-gray-900 */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
 }
 
-.btn-primary {
-  padding: 0.5rem 1rem; /* px-4 py-2 */
-  background-color: rgb(79 70 229); /* bg-primary-600 */
-  color: white;
-  border-radius: 0.5rem; /* rounded-lg */
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors;
+  }
 
-.btn-primary:hover {
-  background-color: rgb(67 56 202); /* bg-primary-700 */
-}
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  }
 
-.btn-secondary {
-  padding: 0.5rem 1rem; /* px-4 py-2 */
-  background-color: rgb(229 231 235); /* bg-gray-200 */
-  color: rgb(31 41 55); /* text-gray-800 */
-  border-radius: 0.5rem; /* rounded-lg */
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.btn-secondary:hover {
-  background-color: rgb(209 213 219); /* bg-gray-300 */
-}
-
-.input-field {
-  width: 100%;
-  padding: 0.5rem 0.75rem; /* px-3 py-2 */
-  border: 1px solid rgb(209 213 219); /* border border-gray-300 */
-  border-radius: 0.5rem; /* rounded-lg */
-}
-
-.input-field:focus {
-  outline: none;
-  border-color: transparent;
-  box-shadow: 0 0 0 2px rgb(99 102 241); /* ring-2 ring-primary-500 */
-}
-
-.card {
-  background-color: white;
-  border-radius: 0.5rem; /* rounded-lg */
-  padding: 1.5rem; /* p-6 */
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
 }
