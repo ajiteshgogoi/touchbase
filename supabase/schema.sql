@@ -1,0 +1,176 @@
+-- Enable necessary extensions
+create extension if not exists "uuid-ossp";
+
+-- Create tables with Row Level Security (RLS)
+create table public.contacts (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null,
+    name text not null,
+    email text,
+    phone text,
+    last_contacted timestamp with time zone,
+    next_contact_due timestamp with time zone,
+    preferred_contact_method text check (preferred_contact_method in ('email', 'phone', 'social', null)),
+    notes text,
+    relationship_level integer check (relationship_level between 1 and 5),
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+    constraint proper_email check (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$' or email is null)
+);
+
+create table public.interactions (
+    id uuid primary key default uuid_generate_v4(),
+    contact_id uuid references public.contacts on delete cascade not null,
+    user_id uuid references auth.users not null,
+    type text not null check (type in ('call', 'message', 'social', 'meeting', 'other')),
+    date timestamp with time zone default now(),
+    notes text,
+    sentiment text check (sentiment in ('positive', 'neutral', 'negative', null)),
+    created_at timestamp with time zone default now()
+);
+
+create table public.reminders (
+    id uuid primary key default uuid_generate_v4(),
+    contact_id uuid references public.contacts on delete cascade not null,
+    user_id uuid references auth.users not null,
+    type text not null check (type in ('message', 'call', 'meetup', 'other')),
+    due_date timestamp with time zone not null,
+    description text,
+    is_completed boolean default false,
+    created_at timestamp with time zone default now()
+);
+
+create table public.user_preferences (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null unique,
+    notification_enabled boolean default true,
+    reminder_frequency text check (reminder_frequency in ('daily', 'weekly', 'monthly')) default 'weekly',
+    theme text check (theme in ('light', 'dark', 'system')) default 'system',
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
+);
+
+create table public.subscriptions (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null unique,
+    plan_id text not null check (plan_id in ('free', 'premium')),
+    status text not null check (status in ('active', 'canceled', 'expired')),
+    paypal_subscription_id text unique,
+    valid_until timestamp with time zone not null,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
+);
+
+-- Create indexes
+create index contacts_user_id_idx on public.contacts(user_id);
+create index contacts_last_contacted_idx on public.contacts(last_contacted);
+create index contacts_next_contact_due_idx on public.contacts(next_contact_due);
+create index interactions_contact_id_idx on public.interactions(contact_id);
+create index interactions_user_id_idx on public.interactions(user_id);
+create index interactions_date_idx on public.interactions(date);
+create index reminders_contact_id_idx on public.reminders(contact_id);
+create index reminders_user_id_idx on public.reminders(user_id);
+create index reminders_due_date_idx on public.reminders(due_date);
+
+-- Enable Row Level Security
+alter table public.contacts enable row level security;
+alter table public.interactions enable row level security;
+alter table public.reminders enable row level security;
+alter table public.user_preferences enable row level security;
+alter table public.subscriptions enable row level security;
+
+-- Create policies
+create policy "Users can view their own contacts"
+    on public.contacts for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own contacts"
+    on public.contacts for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own contacts"
+    on public.contacts for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Users can delete their own contacts"
+    on public.contacts for delete
+    using (auth.uid() = user_id);
+
+create policy "Users can view their own interactions"
+    on public.interactions for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own interactions"
+    on public.interactions for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own interactions"
+    on public.interactions for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Users can delete their own interactions"
+    on public.interactions for delete
+    using (auth.uid() = user_id);
+
+create policy "Users can view their own reminders"
+    on public.reminders for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own reminders"
+    on public.reminders for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own reminders"
+    on public.reminders for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Users can delete their own reminders"
+    on public.reminders for delete
+    using (auth.uid() = user_id);
+
+create policy "Users can view their own preferences"
+    on public.user_preferences for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own preferences"
+    on public.user_preferences for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own preferences"
+    on public.user_preferences for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Users can view their own subscription"
+    on public.subscriptions for select
+    using (auth.uid() = user_id);
+
+-- Create functions
+create or replace function public.handle_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$;
+
+-- Create triggers
+create trigger handle_contacts_updated_at
+    before update on public.contacts
+    for each row
+    execute function public.handle_updated_at();
+
+create trigger handle_user_preferences_updated_at
+    before update on public.user_preferences
+    for each row
+    execute function public.handle_updated_at();
+
+create trigger handle_subscriptions_updated_at
+    before update on public.subscriptions
+    for each row
+    execute function public.handle_updated_at();
