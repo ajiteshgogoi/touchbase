@@ -189,24 +189,10 @@ export const Contacts = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
-                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                      title="Log a call"
+                      className="px-3 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                      title="Log an interaction"
                     >
-                      <PhoneIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'message' })}
-                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                      title="Log a message"
-                    >
-                      <ChatBubbleLeftIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'social' })}
-                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                      title="Log social interaction"
-                    >
-                      <ShareIcon className="h-5 w-5" />
+                      Log Interaction
                     </button>
                     <Link
                       to={`/contacts/${contact.id}/edit`}
