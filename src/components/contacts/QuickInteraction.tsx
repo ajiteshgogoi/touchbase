@@ -45,26 +45,32 @@ export const QuickInteraction = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
     try {
-      await contactsService.addInteraction({
-        contact_id: contactId,
-        type,
-        date: selectedDate.toISOString(),
-        notes: notes || null,
-        sentiment
-      });
-      
-      // Also update the last_contacted date for the contact
-      await contactsService.updateContact(contactId, {
-        last_contacted: selectedDate.toISOString()
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be logged in to log interactions');
+
+      // Add the interaction and update last contacted
+      await Promise.all([
+        contactsService.addInteraction({
+          contact_id: contactId,
+          type,
+          date: selectedDate.toISOString(),
+          notes: notes || null,
+          sentiment
+        }),
+        contactsService.updateContact(contactId, {
+          last_contacted: selectedDate.toISOString()
+        })
+      ]);
 
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error('Error logging interaction:', error);
-      alert('Failed to log interaction');
+      alert(error instanceof Error ? error.message : 'Failed to log interaction');
     } finally {
       setIsSubmitting(false);
     }
@@ -140,7 +146,7 @@ export const QuickInteraction = ({
                         key={label}
                         onClick={() => setSelectedDate(value)}
                         className={`px-4 py-2 text-sm font-medium rounded-lg ${
-                          selectedDate.isSame(value)
+                          selectedDate.unix() === value.unix()
                             ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
                             : 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100'
                         }`}
