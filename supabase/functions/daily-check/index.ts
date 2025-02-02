@@ -1,9 +1,12 @@
-// Follow this setup guide to integrate the Deno runtime into your project:
-// https://deno.land/manual/getting_started/setup_your_environment
+// @ts-ignore
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-ignore
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
+// @ts-ignore
+import axiod from "https://deno.land/x/axiod@0.26.0/mod.ts";
 
-import { serve } from "std/http/server.ts";
-import { createClient } from "@supabase/supabase-js";
-import { default as axiod } from "axiod/mod.ts";
+// Declare Deno global to satisfy TypeScript.
+declare const Deno: any;
 
 const GROQ_API_URL = 'https://api.groq.com/v1/chat/completions';
 const corsHeaders = {
@@ -58,6 +61,9 @@ serve(async (req: Request) => {
       }
     );
 
+    // Compute current time for comparison.
+    const now = new Date().toISOString();
+
     // Get all contacts that need attention
     const { data: contacts, error: contactsError } = await supabaseClient
       .from('contacts')
@@ -74,7 +80,7 @@ serve(async (req: Request) => {
           sentiment
         )
       `)
-      .or('next_contact_due.is.null,next_contact_due.lte.now()');
+      .or(`next_contact_due.is.null,next_contact_due.lte.${now}`);
 
     if (contactsError) throw contactsError;
     if (!contacts || contacts.length === 0) {
@@ -90,7 +96,17 @@ serve(async (req: Request) => {
     // Process each contact
     const processResults = await Promise.all(contacts.map(async (contact: Contact) => {
       try {
-        // Generate AI suggestions using Groq
+        // Build user message without nested template literals.
+        const userMessage =
+          "Generate personalized interaction suggestions for this contact:\n" +
+          "Name: " + contact.name + "\n" +
+          "Last contacted: " + (contact.last_contacted || "Never") + "\n" +
+          "Preferred method: " + (contact.preferred_contact_method || "Not specified") + "\n" +
+          "Relationship level: " + contact.relationship_level + "/5\n" +
+          "Recent interactions: " + ((contact.interactions || [])
+            .map(i => i.type + " (" + (i.sentiment || "neutral") + ")")
+            .join(', ') || "None");
+
         const groqResponse = await axiod.post(
           GROQ_API_URL,
           {
@@ -102,15 +118,7 @@ serve(async (req: Request) => {
               },
               {
                 role: 'user',
-                content: `Generate personalized interaction suggestions for this contact:
-                  Name: ${contact.name}
-                  Last contacted: ${contact.last_contacted || 'Never'}
-                  Preferred method: ${contact.preferred_contact_method || 'Not specified'}
-                  Relationship level: ${contact.relationship_level}/5
-                  Recent interactions: ${(contact.interactions || []).map(i => 
-                    `${i.type} (${i.sentiment || 'neutral'})`
-                  ).join(', ') || 'None'}
-                `
+                content: userMessage
               }
             ],
             temperature: 0.7,
@@ -124,7 +132,11 @@ serve(async (req: Request) => {
           }
         );
 
-        if (!groqResponse.data?.choices?.[0]?.message?.content) {
+        if (!groqResponse.data ||
+            !groqResponse.data.choices ||
+            !groqResponse.data.choices[0] ||
+            !groqResponse.data.choices[0].message ||
+            !groqResponse.data.choices[0].message.content) {
           throw new Error('Invalid response from Groq API');
         }
 
@@ -132,15 +144,16 @@ serve(async (req: Request) => {
 
         // Calculate next contact due date based on relationship level
         const daysUntilNext: Record<number, number> = {
-          1: 90, // Every 3 months
-          2: 60, // Every 2 months
-          3: 30, // Monthly
-          4: 14, // Every 2 weeks
-          5: 7,  // Weekly
+          1: 90,
+          2: 60,
+          3: 30,
+          4: 14,
+          5: 7
         };
 
         const nextContactDue = new Date();
-        nextContactDue.setDate(nextContactDue.getDate() + (daysUntilNext[contact.relationship_level] || 30));
+        const interval = daysUntilNext[contact.relationship_level] || 30;
+        nextContactDue.setDate(nextContactDue.getDate() + interval);
 
         // Update contact with next due date and create reminder
         const [updateResult, reminderResult] = await Promise.all([
@@ -150,7 +163,6 @@ serve(async (req: Request) => {
               next_contact_due: nextContactDue.toISOString()
             })
             .eq('id', contact.id),
-          
           supabaseClient
             .from('reminders')
             .insert({
@@ -169,7 +181,7 @@ serve(async (req: Request) => {
           contactId: contact.id,
           status: 'success'
         };
-      } catch (error) {
+      } catch (error: any) {
         return {
           contactId: contact.id,
           status: 'error',
@@ -188,7 +200,7 @@ serve(async (req: Request) => {
         status: 200,
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     return new Response(
       JSON.stringify({ error: error.message }),
       {
