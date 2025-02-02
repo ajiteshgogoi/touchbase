@@ -41,7 +41,14 @@ export const Navbar = () => {
             {user ? (
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => signOut()}
+                  onClick={async () => {
+                    try {
+                      await signOut();
+                    } catch (error) {
+                      console.error('Failed to sign out:', error);
+                      // You could add a toast notification here if you have one
+                    }
+                  }}
                   className="bg-white hover:bg-primary-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 transition-all duration-200 ease-in-out hover:shadow-soft border border-gray-100"
                 >
                   Sign Out

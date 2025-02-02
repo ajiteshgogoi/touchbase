@@ -40,6 +40,8 @@ export const signOut = async () => {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    // After successful sign out, refresh the page to clear any stored state
+    window.location.href = '/login';
   } catch (error) {
     console.error('Error signing out:', error);
     throw error;
