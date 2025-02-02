@@ -1,8 +1,12 @@
 {
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
   "compilerOptions": {
     "allowJs": true,
-    "lib": ["deno.window"],
-    "strict": true
+    "lib": ["deno.window", "deno.ns", "dom"],
+    "strict": true,
+    "types": ["./types.d.ts"]
   },
   "lint": {
     "files": {
@@ -23,9 +27,5 @@
       "singleQuote": true
     }
   },
-  "imports": {
-    "std/": "https://deno.land/std@0.168.0/",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
-    "axiod/": "https://deno.land/x/axiod/"
-  }
+  "importMap": "import_map.json"
 }
