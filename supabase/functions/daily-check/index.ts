@@ -25,8 +25,14 @@ interface Contact {
   user_id: string;
   name: string;
   last_contacted: string | null;
-  preferred_contact_method: string | null;
+  next_contact_due: string | null;
+  preferred_contact_method: 'phone' | 'social' | 'text' | null;
+  notes: string | null;
   relationship_level: 1 | 2 | 3 | 4 | 5;
+  social_media_handle: string | null;
+  contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
+  ai_last_suggestion: string | null;
+  ai_last_suggestion_date: string | null;
   interactions: Interaction[];
 }
 
@@ -96,16 +102,31 @@ serve(async (req: Request) => {
     // Process each contact
     const processResults = await Promise.all(contacts.map(async (contact: Contact) => {
       try {
-        // Build user message without nested template literals.
+        const timeSinceLastContact = contact.last_contacted
+          ? Math.floor((Date.now() - new Date(contact.last_contacted).getTime()) / (1000 * 60 * 60 * 24))
+          : null;
+
+        // Build user message with relationship-focused context
         const userMessage =
-          "Generate personalized interaction suggestions for this contact:\n" +
-          "Name: " + contact.name + "\n" +
-          "Last contacted: " + (contact.last_contacted || "Never") + "\n" +
-          "Preferred method: " + (contact.preferred_contact_method || "Not specified") + "\n" +
-          "Relationship level: " + contact.relationship_level + "/5\n" +
+          "Generate personalized interaction suggestions to strengthen this relationship:\n\n" +
+          "Contact Information:\n" +
+          "- Name: " + contact.name + "\n" +
+          "- Last contacted: " + (timeSinceLastContact ? timeSinceLastContact + " days ago" : "Never") + "\n" +
+          "- Preferred method: " + (contact.preferred_contact_method || "Not specified") + "\n" +
+          "- Ideal frequency: " + (contact.contact_frequency || "Not specified") + "\n" +
+          "- Social media: " + (contact.social_media_handle || "Not specified") + "\n" +
+          "- Relationship level: " + contact.relationship_level + "/5\n" +
+          "- Notes: " + (contact.notes || "None") + "\n\n" +
           "Recent interactions: " + ((contact.interactions || [])
             .map(i => i.type + " (" + (i.sentiment || "neutral") + ")")
-            .join(', ') || "None");
+            .join(', ') || "None") + "\n\n" +
+          "Consider these principles:\n" +
+          "1. Phone calls create stronger bonds than texts or social media\n" +
+          "2. Regular 'pebbling' (small interactions) helps maintain connection\n" +
+          "3. Match contact method to relationship level\n" +
+          "4. Use information from notes for personalization\n" +
+          "5. Vary contact methods to keep engagement fresh\n\n" +
+          "Provide specific, context-aware suggestions that will strengthen this relationship.";
 
         const groqResponse = await axiod.post(
           GROQ_API_URL,
@@ -142,25 +163,69 @@ serve(async (req: Request) => {
 
         const suggestions = groqResponse.data.choices[0].message.content;
 
-        // Calculate next contact due date based on relationship level
-        const daysUntilNext: Record<number, number> = {
-          1: 90,
-          2: 60,
-          3: 30,
-          4: 14,
-          5: 7
+        // Calculate next contact due date based on relationship level and contact frequency
+        const getNextContactDate = (level: 1 | 2 | 3 | 4 | 5, frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null) => {
+          // Base intervals in days
+          const baseIntervals: Record<number, number> = {
+            1: 90, // Acquaintance: ~3 months
+            2: 60, // Casual friend: ~2 months
+            3: 30, // Friend: ~1 month
+            4: 14, // Close friend: ~2 weeks
+            5: 7   // Very close: ~1 week
+          };
+
+          // Adjust based on specified frequency
+          if (frequency) {
+            const frequencyDays = {
+              'daily': 1,
+              'weekly': 7,
+              'monthly': 30,
+              'quarterly': 90
+            }[frequency];
+            
+            // Use the more frequent of the two options
+            return Math.min(baseIntervals[level], frequencyDays);
+          }
+
+          return baseIntervals[level];
         };
 
+        // Use type assertion since we know relationship_level is constrained in the schema
+        // Default to 1 if relationship_level is not in valid range
+        const relationshipLevel = (contact.relationship_level >= 1 && contact.relationship_level <= 5)
+          ? (contact.relationship_level as 1 | 2 | 3 | 4 | 5)
+          : 1;
+
+        const interval = getNextContactDate(
+          relationshipLevel,
+          contact.contact_frequency as 'daily' | 'weekly' | 'monthly' | 'quarterly' | null
+        );
         const nextContactDue = new Date();
-        const interval = daysUntilNext[contact.relationship_level] || 30;
         nextContactDue.setDate(nextContactDue.getDate() + interval);
 
-        // Update contact with next due date and create reminder
+        // Determine suggested contact method based on relationship level
+        const getSuggestedMethod = (level: number, preferred: string | null) => {
+          if (level >= 4) {
+            // For close relationships, prefer phone calls
+            return 'phone';
+          } else if (level >= 2) {
+            // For medium relationships, use preferred method or text
+            return preferred || 'text';
+          }
+          // For acquaintances, lighter touch methods are fine
+          return 'social';
+        };
+
+        const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method);
+
+        // Update contact with next due date, AI suggestion, and create reminder
         const [updateResult, reminderResult] = await Promise.all([
           supabaseClient
             .from('contacts')
             .update({
-              next_contact_due: nextContactDue.toISOString()
+              next_contact_due: nextContactDue.toISOString(),
+              ai_last_suggestion: suggestions,
+              ai_last_suggestion_date: new Date().toISOString()
             })
             .eq('id', contact.id),
           supabaseClient
@@ -168,7 +233,7 @@ serve(async (req: Request) => {
             .insert({
               contact_id: contact.id,
               user_id: contact.user_id,
-              type: contact.preferred_contact_method || 'other',
+              type: suggestedMethod,
               due_date: nextContactDue.toISOString(),
               description: suggestions
             })

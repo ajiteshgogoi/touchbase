@@ -23,20 +23,34 @@ export const aiService = {
     recentInteractions: Interaction[]
   ): Promise<SuggestionResponse> {
     try {
-      const prompt = `Given the following contact and their recent interactions, suggest personalized ways to keep in touch:
+      const timeSinceLastContact = contact.last_contacted
+        ? Math.floor((Date.now() - new Date(contact.last_contacted).getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+
+      const prompt = `Given the following contact and their recent interactions, suggest personalized ways to keep in touch that will strengthen the relationship:
       
-Contact:
+Contact Information:
 - Name: ${contact.name}
-- Last contacted: ${contact.last_contacted || 'Never'}
+- Last contacted: ${contact.last_contacted ? `${timeSinceLastContact} days ago` : 'Never'}
 - Preferred method: ${contact.preferred_contact_method || 'Not specified'}
+- Ideal frequency: ${contact.contact_frequency || 'Not specified'}
+- Social media: ${contact.social_media_handle || 'Not specified'}
 - Relationship level: ${contact.relationship_level}/5
+- Notes: ${contact.notes || 'None'}
 
 Recent interactions:
-${recentInteractions.map(interaction => 
+${recentInteractions.map(interaction =>
   `- ${interaction.date}: ${interaction.type} (${interaction.sentiment || 'neutral'})`
 ).join('\n')}
 
-Provide natural, context-aware suggestions for maintaining this relationship.`;
+Consider these relationship-strengthening principles:
+1. Phone calls create stronger bonds than texts or social media
+2. Regular 'pebbling' (small interactions like sharing memes) helps maintain connection
+3. Match contact method to relationship level (closer relationships benefit from more intimate communication)
+4. Use information from notes to personalize suggestions
+5. Vary contact methods to keep engagement fresh
+
+Provide 2-3 natural, context-aware suggestions for maintaining and strengthening this relationship, considering both the preferred contact method and opportunities for deeper connection.`;
 
       const response = await groqApi.post('/chat/completions', {
         model: 'mixtral-8x7b-32768',
