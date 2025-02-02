@@ -11,6 +11,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Contacts } from './pages/Contacts';
 import { Settings } from './pages/Settings';
 import { Login } from './components/auth/Login';
+import { AuthCallback } from './components/auth/AuthCallback';
 import { ContactForm } from './components/contacts/ContactForm';
 
 const queryClient = new QueryClient({
@@ -53,6 +54,7 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               
               {/* Protected Routes */}
               <Route
