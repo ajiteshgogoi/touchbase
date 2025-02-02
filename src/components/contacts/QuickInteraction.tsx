@@ -44,33 +44,50 @@ export const QuickInteraction = ({
   const [sentiment, setSentiment] = useState<Interaction['sentiment']>('neutral');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    // Check authentication when modal opens
+    if (isOpen) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) {
+          alert('You must be logged in to log interactions');
+          onClose();
+        }
+      });
+    }
+  }, [isOpen, onClose]);
+
   const handleSubmit = async () => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be logged in to log interactions');
+      // First update the contact's last_contacted date
+      await contactsService.updateContact(contactId, {
+        last_contacted: selectedDate.toISOString()
+      });
 
-      // Add the interaction and update last contacted
-      await Promise.all([
-        contactsService.addInteraction({
-          contact_id: contactId,
-          type,
-          date: selectedDate.toISOString(),
-          notes: notes || null,
-          sentiment
-        }),
-        contactsService.updateContact(contactId, {
-          last_contacted: selectedDate.toISOString()
-        })
-      ]);
+      // Then add the interaction
+      await contactsService.addInteraction({
+        contact_id: contactId,
+        type,
+        date: selectedDate.toISOString(),
+        notes: notes || null,
+        sentiment
+      });
 
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error('Error logging interaction:', error);
-      alert(error instanceof Error ? error.message : 'Failed to log interaction');
+      let message = 'Failed to log interaction';
+      if (error instanceof Error) {
+        console.error('Error details:', error);
+        // Extract Supabase error message if available
+        const supabaseError = error as { message?: string; details?: string };
+        message = supabaseError.details || supabaseError.message || message;
+      } else {
+        console.error('Unknown error:', error);
+      }
+      alert(message);
     } finally {
       setIsSubmitting(false);
     }

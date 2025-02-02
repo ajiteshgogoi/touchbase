@@ -35,7 +35,11 @@ export const Contacts = () => {
   } | null>(null);
 
   const refetchContacts = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ['contacts'] as const });
+    void queryClient.invalidateQueries({
+      queryKey: ['contacts'] as const,
+      exact: true,
+      refetchType: 'all'
+    });
   }, [queryClient]);
   const { isPremium } = useStore();
 
