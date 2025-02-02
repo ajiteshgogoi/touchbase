@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
 import {
@@ -13,7 +13,8 @@ import {
   ShareIcon,
   ChevronUpDownIcon,
 } from '@heroicons/react/24/outline';
-import type { Contact } from '../lib/supabase/types';
+import type { Contact, Interaction } from '../lib/supabase/types';
+import { QuickInteraction } from '../components/contacts/QuickInteraction';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -23,9 +24,19 @@ type SortField = 'name' | 'last_contacted' | 'relationship_level';
 type SortOrder = 'asc' | 'desc';
 
 export const Contacts = () => {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [quickInteraction, setQuickInteraction] = useState<{
+    isOpen: boolean;
+    contactId: string;
+    type: Interaction['type'];
+  } | null>(null);
+
+  const refetchContacts = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ['contacts'] as const });
+  }, [queryClient]);
   const { isPremium } = useStore();
 
   const { data: contacts, isLoading } = useQuery<Contact[]>({
@@ -172,13 +183,25 @@ export const Contacts = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors" title="Call">
+                    <button
+                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
+                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                      title="Log a call"
+                    >
                       <PhoneIcon className="h-5 w-5" />
                     </button>
-                    <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors" title="Text">
+                    <button
+                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'message' })}
+                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                      title="Log a message"
+                    >
                       <ChatBubbleLeftIcon className="h-5 w-5" />
                     </button>
-                    <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors" title="Social">
+                    <button
+                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'social' })}
+                      className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                      title="Log social interaction"
+                    >
                       <ShareIcon className="h-5 w-5" />
                     </button>
                     <Link
@@ -201,6 +224,15 @@ export const Contacts = () => {
           )}
         </div>
       </div>
+      {quickInteraction && (
+        <QuickInteraction
+          isOpen={quickInteraction.isOpen}
+          onClose={() => setQuickInteraction(null)}
+          contactId={quickInteraction.contactId}
+          defaultType={quickInteraction.type}
+          onSuccess={refetchContacts}
+        />
+      )}
     </div>
   );
 };
