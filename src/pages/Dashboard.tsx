@@ -9,6 +9,7 @@ import {
   PhoneIcon,
   EnvelopeIcon,
   UserGroupIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -39,32 +40,38 @@ const DashboardMetrics = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow">
         <div className="flex items-center">
-          <UserGroupIcon className="h-8 w-8 text-primary-600" />
+          <div className="p-3 bg-primary-50 rounded-lg">
+            <UserGroupIcon className="h-8 w-8 text-primary-500" />
+          </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Contacts</p>
-            <p className="text-2xl font-semibold text-gray-900 dark:text-white">{metrics.totalContacts}</p>
+            <p className="text-sm font-medium text-gray-600">Total Contacts</p>
+            <p className="text-2xl font-semibold text-gray-900">{metrics.totalContacts}</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow">
         <div className="flex items-center">
-          <BellIcon className="h-8 w-8 text-yellow-600" />
+          <div className="p-3 bg-accent-50 rounded-lg">
+            <BellIcon className="h-8 w-8 text-accent-500" />
+          </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Due Reminders</p>
-            <p className="text-2xl font-semibold text-gray-900 dark:text-white">{metrics.dueReminders}</p>
+            <p className="text-sm font-medium text-gray-600">Due Reminders</p>
+            <p className="text-2xl font-semibold text-gray-900">{metrics.dueReminders}</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow">
         <div className="flex items-center">
-          <BellIcon className="h-8 w-8 text-green-600" />
+          <div className="p-3 bg-primary-50 rounded-lg">
+            <CalendarIcon className="h-8 w-8 text-primary-500" />
+          </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Upcoming Reminders</p>
-            <p className="text-2xl font-semibold text-gray-900 dark:text-white">{metrics.upcomingReminders}</p>
+            <p className="text-sm font-medium text-gray-600">Upcoming Reminders</p>
+            <p className="text-2xl font-semibold text-gray-900">{metrics.upcomingReminders}</p>
           </div>
         </div>
       </div>
@@ -79,25 +86,25 @@ const RecentContacts = () => {
   });
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Recent Contacts</h3>
+    <div className="bg-white rounded-xl shadow-soft">
+      <div className="p-6 border-b border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900">Recent Contacts</h3>
       </div>
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="divide-y divide-gray-100">
         {contacts?.slice(0, 5).map((contact: Contact) => (
-          <div key={contact.id} className="p-6">
+          <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white">{contact.name}</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
+                <p className="text-sm text-gray-600 mt-1">
                   Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
                 </p>
               </div>
-              <div className="flex space-x-3">
-                <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+              <div className="flex space-x-4">
+                <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
                   <PhoneIcon className="h-5 w-5" />
                 </button>
-                <button className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+                <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
                   <EnvelopeIcon className="h-5 w-5" />
                 </button>
               </div>
@@ -105,12 +112,15 @@ const RecentContacts = () => {
           </div>
         ))}
       </div>
-      <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-6 border-t border-gray-100">
         <Link
           to="/contacts"
-          className="text-primary-600 hover:text-primary-500 text-sm font-medium"
+          className="inline-flex items-center text-primary-500 hover:text-primary-400 font-medium transition-colors"
         >
           View all contacts
+          <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
         </Link>
       </div>
     </div>
@@ -121,19 +131,19 @@ export const Dashboard = () => {
   const { user } = useStore();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-gray-900">
             Welcome back, {user?.user_metadata?.name || 'Friend'}!
           </h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Here's what's happening with your contacts
+          <p className="mt-2 text-gray-600">
+            Here's what's happening with your relationships
           </p>
         </div>
         <Link
           to="/contacts/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+          className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
         >
           <UserPlusIcon className="h-5 w-5 mr-2" />
           Add Contact

@@ -34,24 +34,33 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <div className="min-h-[80vh] flex items-center justify-center bg-gradient-to-br from-primary-50 to-white">
+      <div className="max-w-md w-full p-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-soft">
+        <div className="text-center space-y-3">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
             Welcome to TouchBase
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Stay connected with the people who matter
+          <p className="text-gray-600">
+            Nurture your relationships, strengthen your connections
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="mt-10 space-y-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white/80 text-gray-500">Sign in with</span>
+            </div>
+          </div>
+
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="w-full flex items-center justify-center px-6 py-3 border border-gray-200 rounded-lg text-base font-medium text-gray-700 bg-white hover:bg-primary-50 hover:border-primary-100 transition-all duration-200 shadow-soft hover:shadow-lg"
           >
             <svg
-              className="h-5 w-5 mr-2"
+              className="h-5 w-5 mr-3"
               viewBox="0 0 24 24"
               fill="currentColor"
             >
@@ -66,22 +75,33 @@ export const Login = () => {
           {import.meta.env.DEV && (
             <button
               onClick={handleDevLogin}
-              className="w-full px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md"
+              className="w-full px-6 py-3 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg transition-all duration-200 shadow-soft hover:shadow-lg"
             >
               Development Mode Login
             </button>
           )}
         </div>
 
-        <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          By continuing, you agree to our{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-500">
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-500">
-            Privacy Policy
-          </a>
+        <div className="mt-8 text-center">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex flex-col items-center">
+              <span className="px-4 bg-white/80 text-gray-500 text-sm">
+                By continuing, you agree to our
+              </span>
+              <div className="mt-2 space-x-1 text-sm">
+                <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
+                  Terms of Service
+                </a>
+                <span className="text-gray-500">and</span>
+                <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
+                  Privacy Policy
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
