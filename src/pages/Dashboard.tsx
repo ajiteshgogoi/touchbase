@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
@@ -6,14 +6,13 @@ import { useStore } from '../stores/useStore';
 import {
   UserPlusIcon,
   BellIcon,
-  PhoneIcon,
-  EnvelopeIcon,
   UserGroupIcon,
   CalendarIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import type { Contact, Reminder } from '../lib/supabase/types';
+import type { Contact, Reminder, Interaction } from '../lib/supabase/types';
+import { QuickInteraction } from '../components/contacts/QuickInteraction';
 
 dayjs.extend(relativeTime);
 
@@ -85,45 +84,60 @@ const RecentContacts = () => {
     queryFn: contactsService.getContacts
   });
 
+  const [quickInteraction, setQuickInteraction] = useState<{
+    isOpen: boolean;
+    contactId: string;
+    type: Interaction['type'];
+  } | null>(null);
+
   return (
-    <div className="bg-white rounded-xl shadow-soft">
-      <div className="p-6 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Contacts</h3>
-      </div>
-      <div className="divide-y divide-gray-100">
-        {contacts?.slice(0, 5).map((contact: Contact) => (
-          <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
-                </p>
-              </div>
-              <div className="flex space-x-4">
-                <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
-                  <PhoneIcon className="h-5 w-5" />
-                </button>
-                <button className="p-2 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors">
-                  <EnvelopeIcon className="h-5 w-5" />
+    <>
+      <div className="bg-white rounded-xl shadow-soft">
+        <div className="p-6 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Contacts</h3>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {contacts?.slice(0, 5).map((contact: Contact) => (
+            <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
+                  className="px-3 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                  title="Log an interaction"
+                >
+                  Log Interaction
                 </button>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        <div className="p-6 border-t border-gray-100">
+          <Link
+            to="/contacts"
+            className="inline-flex items-center text-primary-500 hover:text-primary-400 font-medium transition-colors"
+          >
+            View all contacts
+            <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </Link>
+        </div>
       </div>
-      <div className="p-6 border-t border-gray-100">
-        <Link
-          to="/contacts"
-          className="inline-flex items-center text-primary-500 hover:text-primary-400 font-medium transition-colors"
-        >
-          View all contacts
-          <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-          </svg>
-        </Link>
-      </div>
-    </div>
+      {quickInteraction && (
+        <QuickInteraction
+          isOpen={quickInteraction.isOpen}
+          onClose={() => setQuickInteraction(null)}
+          contactId={quickInteraction.contactId}
+          defaultType={quickInteraction.type}
+        />
+      )}
+    </>
   );
 };
 
