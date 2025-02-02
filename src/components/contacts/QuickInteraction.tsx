@@ -39,7 +39,7 @@ export const QuickInteraction = ({
   onSuccess
 }: QuickInteractionProps) => {
   const [type, setType] = useState<InteractionType>(defaultType);
-  const [selectedDate, setSelectedDate] = useState(getDateOptions()[0]?.value ?? dayjs());
+  const [selectedDate, setSelectedDate] = useState(() => getDateOptions()[0]?.value || dayjs());
   const [notes, setNotes] = useState('');
   const [sentiment, setSentiment] = useState<Interaction['sentiment']>('neutral');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -179,8 +179,9 @@ export const QuickInteraction = ({
                       <button
                         key={label}
                         onClick={() => setSelectedDate(value)}
+                        type="button"
                         className={`px-4 py-2 text-sm font-medium rounded-lg ${
-                          selectedDate.unix() === value.unix()
+                          selectedDate.format('YYYY-MM-DD HH:mm') === value.format('YYYY-MM-DD HH:mm')
                             ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
                             : 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100'
                         }`}
