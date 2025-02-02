@@ -29,7 +29,7 @@ const initialFormData: ContactFormData = {
   relationship_level: 1,
   contact_frequency: null,
   user_id: '',
-  last_contacted: null,
+  last_contacted: new Date().toISOString(),
   next_contact_due: null,
   ai_last_suggestion: null,
   ai_last_suggestion_date: null,
@@ -221,6 +221,22 @@ export const ContactForm = () => {
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="last_contacted" className="block text-sm font-medium text-gray-700">
+              Last Contacted
+            </label>
+            <input
+              type="datetime-local"
+              id="last_contacted"
+              value={formData.last_contacted ? new Date(formData.last_contacted).toISOString().slice(0, 16) : ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                last_contacted: e.target.value ? new Date(e.target.value).toISOString() : null
+              })}
+              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+            />
           </div>
 
           <div>
