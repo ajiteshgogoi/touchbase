@@ -12,7 +12,7 @@ export const Navbar = () => {
               to="/"
               className="flex items-center text-2xl font-extrabold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent hover:from-primary-500 hover:to-primary-300 transition-all"
             >
-              <img src="/icon.svg" alt="TouchBase" className="h-8 w-8 mr-1" />
+              <img src="/icon.svg" alt="TouchBase" className="h-8 w-8 mr-0.5" />
               TouchBase
             </Link>
           </div>

@@ -49,7 +49,7 @@ export const Login = () => {
             Welcome to TouchBase
           </h2>
           <p className="text-gray-600">
-            Nurture your relationships, strengthen your connections
+            Nurture your relationships. Strengthen your connections.
           </p>
         </div>
 
