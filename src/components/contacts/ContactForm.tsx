@@ -269,7 +269,7 @@ export const ContactForm = () => {
             />
             <div className="mt-2 flex justify-between text-sm text-gray-600">
               <span>Distant</span>
-              <span>Very Close</span>
+              <span>Close</span>
             </div>
           </div>
         </div>
