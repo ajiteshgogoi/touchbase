@@ -144,7 +144,13 @@ const RecentContacts = () => {
 };
 
 export const Dashboard = () => {
-  const { user } = useStore();
+  const { user, isPremium } = useStore();
+  const { data: contacts } = useQuery<Contact[]>({
+    queryKey: ['contacts'],
+    queryFn: contactsService.getContacts
+  });
+  const contactLimit = isPremium ? Infinity : 5;
+  const canAddMore = (contacts?.length || 0) < contactLimit;
 
   return (
     <div className="space-y-8">
@@ -157,13 +163,19 @@ export const Dashboard = () => {
             Here's what's happening with your relationships
           </p>
         </div>
-        <Link
-          to="/contacts/new"
-          className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
-        >
-          <UserPlusIcon className="h-5 w-5 mr-2" />
-          Add Contact
-        </Link>
+        {canAddMore ? (
+          <Link
+            to="/contacts/new"
+            className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+          >
+            <UserPlusIcon className="h-5 w-5 mr-2" />
+            Add Contact
+          </Link>
+        ) : (
+          <button className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+            Upgrade to add more contacts
+          </button>
+        )}
       </div>
 
       <DashboardMetrics />
