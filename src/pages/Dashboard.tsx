@@ -94,41 +94,46 @@ const RecentContacts = () => {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-soft">
-        <div className="p-6 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Contacts</h3>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Recent Contacts</h3>
+          <p className="mt-1 text-sm text-gray-600">
+            Your most recently added connections
+          </p>
         </div>
-        <div className="divide-y divide-gray-100">
-          {contacts?.slice(0, 5).map((contact: Contact) => (
-            <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
-                  </p>
+        <div className="bg-white rounded-xl shadow-soft">
+          <div className="divide-y divide-gray-100">
+            {contacts?.slice(0, 5).map((contact: Contact) => (
+              <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
+                    className="inline-flex items-center justify-center w-full sm:w-auto px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                    title="Log an interaction"
+                  >
+                    Log Interaction
+                  </button>
                 </div>
-                <button
-                  onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
-                  className="px-3 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
-                  title="Log an interaction"
-                >
-                  Log Interaction
-                </button>
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="p-6 border-t border-gray-100">
-          <Link
-            to="/contacts"
-            className="inline-flex items-center text-primary-500 hover:text-primary-400 font-medium transition-colors"
-          >
-            View all contacts
-            <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </Link>
+            ))}
+          </div>
+          <div className="p-6 border-t border-gray-100">
+            <Link
+              to="/contacts"
+              className="inline-flex items-center text-primary-500 hover:text-primary-400 font-medium transition-colors"
+            >
+              View all contacts
+              <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
       {quickInteraction && (
@@ -154,25 +159,25 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Welcome back, {user?.user_metadata?.name || 'Friend'}!
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-1 text-sm text-gray-600">
             Here's what's happening with your relationships
           </p>
         </div>
         {canAddMore ? (
           <Link
             to="/contacts/new"
-            className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
           >
             <UserPlusIcon className="h-5 w-5 mr-2" />
             Add Contact
           </Link>
         ) : (
-          <button className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+          <button className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
             Upgrade to add more contacts
           </button>
         )}
