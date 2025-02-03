@@ -33,33 +33,29 @@ export const aiService = {
         return { suggestions: [] };
       }
 
-      const prompt = `Given the following contact and their recent interactions, suggest personalized ways to keep in touch that will strengthen the relationship:
-      
-Contact Information:
-- Name: ${contact.name}
-- Last contacted: ${contact.last_contacted ? new Date(contact.last_contacted).toLocaleDateString() : 'Never'}
-- Preferred method: ${contact.preferred_contact_method || 'Not specified'}
-- Ideal frequency: ${contact.contact_frequency || 'Not specified'}
-- Social media: ${contact.social_media_handle || 'Not specified'}
-- Relationship level: ${contact.relationship_level}/5
-- Notes: ${contact.notes || 'None'}
+      const prompt = `Analyze this contact's profile and recent interactions to identify the SINGLE most impactful way to strengthen the relationship right now. Only provide a suggestion if you identify a clear opportunity based on:
 
-Recent interactions:
+${contact.notes ? `Personal Context: ${contact.notes}` : ''}
+Last Contact: ${contact.last_contacted ? new Date(contact.last_contacted).toLocaleDateString() : 'Never'}
+Preferred: ${contact.preferred_contact_method || 'Not specified'}
+Frequency: ${contact.contact_frequency || 'Not specified'}
+Social: ${contact.social_media_handle || 'Not specified'}
+Connection: ${contact.relationship_level}/5
+
+Recent Activity:
 ${recentInteractions.map(interaction =>
   `- ${interaction.date}: ${interaction.type} (${interaction.sentiment || 'neutral'})`
 ).join('\n')}
 
-Consider these relationship-strengthening principles:
-1. Phone calls create stronger bonds than texts or social media
-2. Regular 'pebbling' (small interactions like sharing memes) helps maintain connection
-3. Match contact method to relationship level (closer relationships benefit from more intimate communication)
-4. Use information from notes to personalize suggestions
-5. Vary contact methods to keep engagement fresh
+Rules:
+1. Only suggest an action if you're highly confident it will strengthen the relationship
+2. Must be specific to this person's context - no generic advice
+3. Must be actionable within the next 24-48 hours
+4. Avoid restating obvious relationship principles
+5. Avoid providing more than 2-3 concise, highly impactful suggestions
+6. If no clear opportunity exists, return an empty suggestion
 
-Provide 2-3 natural, context-aware suggestions for maintaining and strengthening this relationship. 
-Each suggestion should be on its own line starting with a bullet point (-). 
-Keep suggestions clear and concise. Provide only the most impactful suggestions. 
-Consider both the preferred contact method and opportunities for deeper connection.`;
+Format suggestion as: "- [type: call/message/social] Specific action"`;
 
       const response = await groqApi.post('/chat/completions', {
         model: 'llama-3.3-70b-versatile',
