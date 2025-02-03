@@ -56,7 +56,7 @@ Consider these relationship-strengthening principles:
 4. Use information from notes to personalize suggestions
 5. Vary contact methods to keep engagement fresh
 
-Provide 3-5 natural, context-aware suggestions for maintaining and strengthening this relationship. Each suggestion should be on its own line starting with a bullet point (-). Keep suggestions clear and concise. Consider both the preferred contact method and opportunities for deeper connection.`;
+Provide 2-3 natural, context-aware suggestions for maintaining and strengthening this relationship. Each suggestion should be on its own line starting with a bullet point (-). Keep suggestions clear and concise. Consider both the preferred contact method and opportunities for deeper connection.`;
 
       const response = await groqApi.post('/chat/completions', {
         model: 'llama-3.3-70b-versatile',
