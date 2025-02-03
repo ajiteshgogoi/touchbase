@@ -114,7 +114,7 @@ const RecentContacts = () => {
                   </div>
                   <button
                     onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
-                    className="inline-flex items-center justify-center w-full sm:w-auto px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
                     title="Log an interaction"
                   >
                     Log Interaction
