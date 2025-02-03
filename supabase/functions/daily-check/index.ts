@@ -124,40 +124,46 @@ serve(async (req: Request) => {
           "5. Vary contact methods to keep engagement fresh\n\n" +
           "Provide specific, context-aware suggestions that will strengthen this relationship.";
 
-        const groqResponse = await axiod.post(
-          GROQ_API_URL,
-          {
-            model: 'mixtral-8x7b-32768',
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a relationship manager assistant helping users maintain meaningful connections.'
-              },
-              {
-                role: 'user',
-                content: userMessage
+        let suggestions;
+        try {
+          console.log('Making Groq API request for contact:', contact.id);
+          const groqResponse = await axiod.post(
+            GROQ_API_URL,
+            {
+              model: 'mixtral-8x7b-32768',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You are a relationship manager assistant helping users maintain meaningful connections.'
+                },
+                {
+                  role: 'user',
+                  content: userMessage
+                }
+              ],
+              temperature: 0.7,
+              max_tokens: 250
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${groqApiKey}`,
+                'Content-Type': 'application/json'
               }
-            ],
-            temperature: 0.7,
-            max_tokens: 250
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${groqApiKey}`,
-              'Content-Type': 'application/json'
             }
+          );
+
+          console.log('Groq API response status:', groqResponse.status);
+          console.log('Groq API response:', JSON.stringify(groqResponse.data));
+
+          if (!groqResponse.data?.choices?.[0]?.message?.content) {
+            throw new Error('Invalid response structure from Groq API: ' + JSON.stringify(groqResponse.data));
           }
-        );
 
-        if (!groqResponse.data ||
-            !groqResponse.data.choices ||
-            !groqResponse.data.choices[0] ||
-            !groqResponse.data.choices[0].message ||
-            !groqResponse.data.choices[0].message.content) {
-          throw new Error('Invalid response from Groq API');
+          suggestions = groqResponse.data.choices[0].message.content;
+        } catch (groqError: any) {
+          console.error('Groq API error:', groqError);
+          throw new Error(`Groq API error: ${groqError.message || 'Unknown error'} - ${groqError.response?.data ? JSON.stringify(groqError.response.data) : 'No response data'}`);
         }
-
-        const suggestions = groqResponse.data.choices[0].message.content;
 
         // Calculate next contact due date based on relationship level and contact frequency
         const getNextContactDate = (level: 1 | 2 | 3 | 4 | 5, frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null) => {
@@ -243,10 +249,12 @@ serve(async (req: Request) => {
           status: 'success'
         };
       } catch (error: any) {
+        console.error('Error processing contact:', error);
         return {
           contactId: contact.id,
           status: 'error',
-          error: error.message
+          error: error.message || 'Unknown error',
+          details: JSON.stringify(error)
         };
       }
     }));
