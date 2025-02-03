@@ -1,15 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useStore } from '../../stores/useStore';
-import { signOut } from '../../lib/supabase/client';
-import {
-  UserCircleIcon,
-  BellIcon,
-  Cog6ToothIcon,
-} from '@heroicons/react/24/outline';
+import { BellIcon } from '@heroicons/react/24/outline';
+import { ProfileMenu } from './ProfileMenu';
 
 export const Navbar = () => {
-  const { user } = useStore();
-
   return (
     <nav className="bg-white/80 backdrop-blur-sm shadow-soft sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,51 +16,14 @@ export const Navbar = () => {
             </Link>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3">
             <Link
               to="/notifications"
-              className="p-2.5 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out hover:shadow-soft"
+              className="p-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out hover:shadow-soft"
             >
               <BellIcon className="h-5 w-5" />
             </Link>
-
-            <Link
-              to="/settings"
-              className="p-2.5 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out hover:shadow-soft"
-            >
-              <Cog6ToothIcon className="h-5 w-5" />
-            </Link>
-
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={async () => {
-                    try {
-                      await signOut();
-                    } catch (error) {
-                      console.error('Failed to sign out:', error);
-                      // You could add a toast notification here if you have one
-                    }
-                  }}
-                  className="bg-white hover:bg-primary-50 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 transition-all duration-200 ease-in-out hover:shadow-soft border border-gray-100"
-                >
-                  Sign Out
-                </button>
-                <Link
-                  to="/profile"
-                  className="p-1 rounded-full hover:bg-primary-50 transition-all duration-200 ease-in-out"
-                >
-                  <UserCircleIcon className="h-8 w-8 text-primary-500 hover:text-primary-400" />
-                </Link>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="bg-primary-500 hover:bg-primary-400 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out"
-              >
-                Sign In
-              </Link>
-            )}
+            <ProfileMenu />
           </div>
         </div>
       </div>
