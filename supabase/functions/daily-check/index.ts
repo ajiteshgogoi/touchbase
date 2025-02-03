@@ -30,7 +30,7 @@ interface Contact {
   notes: string | null;
   relationship_level: 1 | 2 | 3 | 4 | 5;
   social_media_handle: string | null;
-  contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
+  contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
   interactions: Interaction[];
@@ -166,7 +166,7 @@ serve(async (req: Request) => {
         }
 
         // Calculate next contact due date based on relationship level and contact frequency
-        const getNextContactDate = (level: 1 | 2 | 3 | 4 | 5, frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null) => {
+        const getNextContactDate = (level: 1 | 2 | 3 | 4 | 5, frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null) => {
           // Base intervals in days
           const baseIntervals: Record<number, number> = {
             1: 90, // Acquaintance: ~3 months
@@ -181,6 +181,7 @@ serve(async (req: Request) => {
             const frequencyDays = {
               'daily': 1,
               'weekly': 7,
+              'fortnightly': 14,
               'monthly': 30,
               'quarterly': 90
             }[frequency];

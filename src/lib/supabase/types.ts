@@ -9,7 +9,7 @@ export interface Contact {
   preferred_contact_method: 'call' | 'message' | 'social' | null;
   notes: string | null;
   relationship_level: number;
-  contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
+  contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
   created_at: string;

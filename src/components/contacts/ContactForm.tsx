@@ -12,7 +12,7 @@ interface ContactFormData {
   preferred_contact_method: 'call' | 'message' | 'social' | null;
   notes: string;
   relationship_level: number;
-  contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
+  contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   user_id: string;
   last_contacted: string | null; // Format: YYYY-MM-DDThh:mm in local timezone
   next_contact_due: string | null;
@@ -227,6 +227,7 @@ export const ContactForm = () => {
               <option value="">Choose frequency</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
+              <option value="fortnightly">Fortnightly</option>
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
             </select>
