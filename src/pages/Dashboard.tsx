@@ -8,6 +8,8 @@ import {
   BellIcon,
   UserGroupIcon,
   CalendarIcon,
+  PhoneIcon,
+  ShareIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -103,16 +105,58 @@ const RecentContacts = () => {
         </div>
         <div className="bg-white rounded-xl shadow-soft">
           <div className="divide-y divide-gray-100">
-            {contacts?.slice(0, 5).map((contact: Contact) => (
+            {contacts?.slice(0, 3).map((contact: Contact) => (
               <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
+                    </div>
+                    <div className="mt-3 space-y-2.5">
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        {contact.phone && (
+                          <span className="inline-flex items-center">
+                            <PhoneIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{contact.phone}</span>
+                          </span>
+                        )}
+                        {contact.social_media_handle && (
+                          <span className="inline-flex items-center">
+                            <ShareIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{contact.social_media_handle}</span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <span className="text-gray-600">
+                          Last contacted: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
+                        </span>
+                        <span className="text-gray-600">
+                          Next contact due: {contact.next_contact_due ? dayjs(contact.next_contact_due).fromNow() : 'Not set'}
+                        </span>
+                        <span className="text-gray-600 inline-flex items-center gap-1.5">
+                          Closeness:{" "}<div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ${
+                            contact.relationship_level === 1 ? 'bg-red-400' :
+                            contact.relationship_level === 2 ? 'bg-[#f87171]' :
+                            contact.relationship_level === 3 ? 'bg-[#fbbf24]' :
+                            contact.relationship_level === 4 ? 'bg-[#34d399]' :
+                            'bg-green-400'
+                          }`}></div>
+                        </span>
+                        {contact.contact_frequency && (
+                          <span className="text-gray-600">
+                            Frequency: {contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)}
+                          </span>
+                        )}
+                        {contact.ai_last_suggestion && (
+                          <span className="text-primary-500">
+                            Suggestion: {contact.ai_last_suggestion}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center sm:self-start">
+                  <div className="flex items-center sm:self-start mt-3 sm:mt-0">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
