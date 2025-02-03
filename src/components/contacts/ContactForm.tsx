@@ -250,10 +250,7 @@ export const ContactForm = () => {
               max="5"
               value={formData.relationship_level}
               onChange={(e) => setFormData({ ...formData, relationship_level: parseInt(e.target.value) })}
-              className="mt-3 block w-full [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-red-400 [&::-webkit-slider-runnable-track]:to-green-400 [&::-moz-range-track]:bg-gradient-to-r [&::-moz-range-track]:from-red-400 [&::-moz-range-track]:to-green-400"
-              style={{
-                accentColor: `hsl(${(formData.relationship_level - 1) * 30}, 100%, 45%)`
-              }}
+              className="mt-3 block w-full [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-red-400 [&::-webkit-slider-runnable-track]:to-green-400 [&::-webkit-slider-runnable-track]:rounded-xl [&::-moz-range-track]:bg-gradient-to-r [&::-moz-range-track]:from-red-400 [&::-moz-range-track]:to-green-400 [&::-moz-range-track]:rounded-xl accent-gray-600"
             />
             <div className="mt-2 flex justify-between text-sm text-gray-600">
               <span>Distant</span>
