@@ -44,7 +44,7 @@ function App() {
   const { setUser, setIsLoading, setIsPremium } = useStore();
 
   // Separate premium status check
-  const checkPremiumStatus = async (userId: string) => {
+  const checkPremiumStatus = async () => {
     try {
       const status = await paymentService.getSubscriptionStatus();
       setIsPremium(status.isPremium);
@@ -70,7 +70,7 @@ function App() {
         
         // Check premium status in background if user exists
         if (session?.user) {
-          checkPremiumStatus(session.user.id);
+          checkPremiumStatus();
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -97,7 +97,7 @@ function App() {
 
         // Handle premium status separately
         if (session?.user) {
-          checkPremiumStatus(session.user.id);
+          checkPremiumStatus();
         } else {
           setIsPremium(false);
         }
