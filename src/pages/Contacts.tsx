@@ -158,7 +158,7 @@ export const Contacts = () => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-semibold text-gray-900">
                         {contact.name}
                       </h3>
                       <div className="flex flex-wrap gap-2">
@@ -194,15 +194,15 @@ export const Contacts = () => {
                       </div>
                       <div className="flex flex-wrap gap-4 text-sm">
                         <span>
-                          <span className="text-gray-700">Last contacted:</span>{' '}
+                          <span className="text-gray-700 font-medium">Last contacted:</span>{' '}
                           <span className="text-gray-600">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
                         </span>
                         <span>
-                          <span className="text-gray-700">Next contact due:</span>{' '}
+                          <span className="text-gray-700 font-medium">Next contact due:</span>{' '}
                           <span className="text-gray-600">{contact.next_contact_due ? dayjs(contact.next_contact_due).fromNow() : 'Not set'}</span>
                         </span>
                         <span className="inline-flex items-baseline">
-                          <span className="text-gray-700">Closeness:</span> <div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ml-1.5 translate-y-[0.5px] ${
+                          <span className="text-gray-700 font-medium">Closeness:</span> <div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ml-1.5 translate-y-[0.5px] ${
                             contact.relationship_level === 1 ? 'bg-red-400' :
                             contact.relationship_level === 2 ? 'bg-[#f87171]' :
                             contact.relationship_level === 3 ? 'bg-[#fbbf24]' :
@@ -212,13 +212,16 @@ export const Contacts = () => {
                         </span>
                         {contact.contact_frequency && (
                           <span>
-                            <span className="text-gray-700">Frequency:</span>{' '}
+                            <span className="text-gray-700 font-medium">Frequency:</span>{' '}
                             <span className="text-gray-600">{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)}</span>
                           </span>
                         )}
                         {contact.ai_last_suggestion && (
-                          <span className="text-primary-500">
-                            Suggestion: {contact.ai_last_suggestion}
+                          <span>
+                            <span className="text-gray-700 font-medium">Suggestion:</span>{' '}
+                            <span className="text-primary-500 whitespace-pre-line">
+                              {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                            </span>
                           </span>
                         )}
                       </div>
