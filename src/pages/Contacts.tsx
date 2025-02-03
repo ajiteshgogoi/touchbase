@@ -192,8 +192,19 @@ export const Contacts = () => {
                       </div>
                       <div className="flex flex-wrap gap-4 text-sm">
                         <span className="text-gray-600">
-                          Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
+                          Last contacted: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
                         </span>
+                        <span className="text-gray-600">
+                          Next contact due: {contact.next_contact_due ? dayjs(contact.next_contact_due).fromNow() : 'Not set'}
+                        </span>
+                        <span className="text-gray-600">
+                          Relationship: Level {contact.relationship_level || 1}
+                        </span>
+                        {contact.contact_frequency && (
+                          <span className="text-gray-600">
+                            Frequency: {contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)}
+                          </span>
+                        )}
                         {contact.ai_last_suggestion && (
                           <span className="text-primary-500">
                             Suggestion: {contact.ai_last_suggestion}
