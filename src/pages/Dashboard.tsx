@@ -153,7 +153,7 @@ const RecentContacts = () => {
                         )}
                         {contact.ai_last_suggestion && (
                           <span>
-                            <span className="text-gray-700 font-medium">Suggestion:</span>{' '}
+                            <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
                             <span className="text-primary-500 whitespace-pre-line">
                               {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
                             </span>
