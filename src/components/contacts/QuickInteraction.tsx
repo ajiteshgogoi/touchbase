@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect, useLayoutEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { supabase } from '../../lib/supabase/client';
 import { XMarkIcon } from '@heroicons/react/24/outline';
@@ -55,6 +55,23 @@ export const QuickInteraction = ({
       });
     }
   }, [isOpen, onClose]);
+
+  useLayoutEffect(() => {
+    if (isOpen) {
+      // Save current scroll position and lock body scroll
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // Restore scroll position and unlock body scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
@@ -119,7 +136,7 @@ export const QuickInteraction = ({
 
   return (
     <Transition show={isOpen} as={Fragment}>
-      <Dialog onClose={onClose} className="relative z-[100]">
+      <Dialog onClose={onClose} className="relative z-[100]" style={{ position: 'fixed', inset: 0 }}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -129,7 +146,7 @@ export const QuickInteraction = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/30" />
+          <div className="fixed inset-0 bg-black/30" style={{ isolation: 'isolate' }} />
         </Transition.Child>
 
         <div className="fixed inset-0 flex items-center justify-center p-4">

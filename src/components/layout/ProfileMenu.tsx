@@ -28,7 +28,7 @@ export const ProfileMenu = () => {
   }
 
   return (
-    <Menu as="div" className="relative inline-block text-left">
+    <Menu as="div" className="relative inline-block text-left" style={{ isolation: 'isolate' }}>
       <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out">
         <UserCircleIcon className="h-6 w-6" />
         <ChevronDownIcon className="h-4 w-4" />
