@@ -21,6 +21,17 @@ interface ContactFormData {
   missed_interactions: number;
 }
 
+// Validation functions
+const isValidPhoneNumber = (phone: string) => {
+  // Matches formats: +1234567890, 123-456-7890, (123) 456-7890, 1234567890
+  const phoneRegex = /^(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
+  return phoneRegex.test(phone.trim());
+};
+
+const isValidSocialHandle = (handle: string) => {
+  return handle === '' || handle.startsWith('@');
+};
+
 const formatLocalDateTime = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -54,6 +65,10 @@ export const ContactForm = () => {
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
+  });
+  const [errors, setErrors] = useState({
+    phone: '',
+    social_media_handle: '',
   });
   const isEditMode = Boolean(id);
 
@@ -118,6 +133,23 @@ export const ContactForm = () => {
       return;
     }
 
+    // Validate phone and social media handle if they are provided
+    if (formData.phone && !isValidPhoneNumber(formData.phone)) {
+      setErrors(prev => ({
+        ...prev,
+        phone: 'Please enter a valid phone number (e.g., 123-456-7890)'
+      }));
+      return;
+    }
+
+    if (formData.social_media_handle && !isValidSocialHandle(formData.social_media_handle)) {
+      setErrors(prev => ({
+        ...prev,
+        social_media_handle: 'Social media handle must start with @'
+      }));
+      return;
+    }
+
     try {
       if (isEditMode && id) {
         await updateMutation.mutateAsync({ id, updates: formData });
@@ -167,10 +199,24 @@ export const ContactForm = () => {
                 type="tel"
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, phone: value });
+                  if (value && !isValidPhoneNumber(value)) {
+                    setErrors(prev => ({
+                      ...prev,
+                      phone: 'Please enter a valid phone number (e.g., 123-456-7890)'
+                    }));
+                  } else {
+                    setErrors(prev => ({ ...prev, phone: '' }));
+                  }
+                }}
                 className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
                 placeholder="Enter phone number"
               />
+              {errors.phone && (
+                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+              )}
             </div>
 
             <div>
@@ -181,10 +227,24 @@ export const ContactForm = () => {
                 type="text"
                 id="social_media_handle"
                 value={formData.social_media_handle}
-                onChange={(e) => setFormData({ ...formData, social_media_handle: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, social_media_handle: value });
+                  if (value && !isValidSocialHandle(value)) {
+                    setErrors(prev => ({
+                      ...prev,
+                      social_media_handle: 'Social media handle must start with @'
+                    }));
+                  } else {
+                    setErrors(prev => ({ ...prev, social_media_handle: '' }));
+                  }
+                }}
                 className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
                 placeholder="@username"
               />
+              {errors.social_media_handle && (
+                <p className="mt-1 text-sm text-red-600">{errors.social_media_handle}</p>
+              )}
             </div>
           </div>
         </div>
