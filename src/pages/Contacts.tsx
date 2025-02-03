@@ -122,7 +122,7 @@ export const Contacts = () => {
               </div>
             </div>
             <div className="relative flex gap-3">
-              <div className="w-full min-w-[200px] max-w-xs">
+              <div className="w-full min-w-[160px] max-w-[180px]">
                 <select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value as SortField)}
