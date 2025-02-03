@@ -208,14 +208,14 @@ serve(async (req: Request) => {
         // Determine suggested contact method based on relationship level
         const getSuggestedMethod = (level: number, preferred: string | null) => {
           if (level >= 4) {
-            // For close relationships, prefer phone calls
-            return 'phone';
+            // For close relationships, prefer calls
+            return 'call';
           } else if (level >= 2) {
-            // For medium relationships, use preferred method or text
-            return preferred || 'text';
+            // For medium relationships, use preferred method or message
+            return preferred === 'phone' ? 'call' : (preferred || 'message');
           }
           // For acquaintances, lighter touch methods are fine
-          return 'social';
+          return 'message';
         };
 
         const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method);

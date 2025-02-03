@@ -53,7 +53,7 @@ Consider these relationship-strengthening principles:
 Provide 2-3 natural, context-aware suggestions for maintaining and strengthening this relationship, considering both the preferred contact method and opportunities for deeper connection.`;
 
       const response = await groqApi.post('/chat/completions', {
-        model: 'mixtral-8x7b-32768',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
