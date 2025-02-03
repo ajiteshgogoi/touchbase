@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { Contact, Interaction } from '../lib/supabase/types';
 
 const groqApi = axios.create({
-  baseURL: 'https://api.groq.com/v1',
+  baseURL: 'https://api.groq.com/openai/v1/chat/completions',
   headers: {
     'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
     'Content-Type': 'application/json'
