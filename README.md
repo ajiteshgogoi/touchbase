@@ -88,6 +88,37 @@ npm run build
 
 This will generate optimized production files in the `dist` directory.
 
+### Deploying to Vercel
+
+1. Create a new project on [Vercel](https://vercel.com)
+2. Connect your GitHub repository
+3. Configure the following environment variables in Vercel's project settings:
+
+Required Environment Variables:
+```
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_GROQ_API_KEY=your_groq_api_key
+VITE_PAYPAL_CLIENT_ID=your_paypal_client_id
+VITE_PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+VITE_PREMIUM_PLAN_ID=your_paypal_subscription_plan_id
+VITE_APP_NAME=TouchBase
+VITE_APP_URL=https://your-vercel-domain.vercel.app
+```
+
+Optional Environment Variables:
+```
+VITE_ANALYTICS_ID=your_analytics_id
+VITE_SENTRY_DSN=your_sentry_dsn
+VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
+VITE_NOTIFICATION_SERVER_URL=your_notification_server_url
+```
+
+4. Deploy command and settings are automatically configured by the `vercel.json` file
+5. Click "Deploy" to start the deployment process
+
+Note: The app uses Vite's SPA routing, which is handled by the `vercel.json` configuration. All routes will be redirected to `index.html`, allowing the client-side router to handle navigation.
+
 ## Contributing
 
 1. Fork the repository
