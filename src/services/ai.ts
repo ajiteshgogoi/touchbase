@@ -63,7 +63,7 @@ Provide 2-3 natural, context-aware suggestions for maintaining and strengthening
         messages: [
           {
             role: 'system',
-            content: 'You are a relationship manager assistant helping users maintain meaningful connections.'
+            content: 'You are a proficient relationship manager assistant helping users maintain meaningful connections.'
           },
           {
             role: 'user',
