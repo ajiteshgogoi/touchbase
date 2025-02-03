@@ -119,7 +119,7 @@ export const QuickInteraction = ({
 
   return (
     <Transition show={isOpen} as={Fragment}>
-      <Dialog onClose={onClose} className="relative z-50">
+      <Dialog onClose={onClose} className="relative z-[100]">
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

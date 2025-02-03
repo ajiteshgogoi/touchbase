@@ -121,19 +121,21 @@ export const Contacts = () => {
                 />
               </div>
             </div>
-            <div className="flex gap-3">
-              <select
-                value={sortField}
-                onChange={(e) => setSortField(e.target.value as SortField)}
-                className="pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none"
-              >
-                <option value="name">Sort by Name</option>
-                <option value="last_contacted">Sort by Last Contacted</option>
-                <option value="relationship_level">Sort by Relationship Closeness</option>
-              </select>
+            <div className="relative flex gap-3">
+              <div className="w-full min-w-[200px] max-w-xs">
+                <select
+                  value={sortField}
+                  onChange={(e) => setSortField(e.target.value as SortField)}
+                  className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none bg-white"
+                >
+                  <option value="name">Sort by Name</option>
+                  <option value="last_contacted">Sort by Last Contacted</option>
+                  <option value="relationship_level">Sort by Relationship Closeness</option>
+                </select>
+              </div>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                className="flex-shrink-0 p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               >
                 <ChevronUpDownIcon className="h-5 w-5 text-gray-500" />
               </button>
