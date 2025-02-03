@@ -14,4 +14,5 @@ jobs:
       - name: Trigger Daily Check Function
         run: |
           curl -i --request POST \
-          --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/daily-check'
+          --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/daily-check' \
+          --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}'
