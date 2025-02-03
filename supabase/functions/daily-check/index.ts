@@ -8,7 +8,7 @@ import axiod from "https://deno.land/x/axiod@0.26.0/mod.ts";
 // Declare Deno global to satisfy TypeScript.
 declare const Deno: any;
 
-const GROQ_API_URL = 'https://api.groq.com/v1/chat/completions';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
