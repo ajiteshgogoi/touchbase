@@ -63,8 +63,12 @@ serve(async (req: Request) => {
       }
     );
 
-    // Compute current time for comparison.
-    const now = new Date().toISOString();
+    // Get tomorrow's date range
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowEnd = new Date(tomorrow);
+    tomorrowEnd.setHours(23, 59, 59, 999);
 
     // Get all contacts that need attention
     const { data: contacts, error: contactsError } = await supabaseClient
@@ -76,13 +80,17 @@ serve(async (req: Request) => {
         last_contacted,
         preferred_contact_method,
         relationship_level,
+        contact_frequency,
+        social_media_handle,
+        notes,
         interactions (
           type,
           date,
           sentiment
         )
       `)
-      .or(`next_contact_due.is.null,next_contact_due.lte.${now}`);
+      .gte('next_contact_due', tomorrow.toISOString())
+      .lte('next_contact_due', tomorrowEnd.toISOString());
 
     if (contactsError) throw contactsError;
     if (!contacts || contacts.length === 0) {

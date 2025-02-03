@@ -23,15 +23,21 @@ export const aiService = {
     recentInteractions: Interaction[]
   ): Promise<SuggestionResponse> {
     try {
-      const timeSinceLastContact = contact.last_contacted
-        ? Math.floor((Date.now() - new Date(contact.last_contacted).getTime()) / (1000 * 60 * 60 * 24))
-        : null;
+      // Only generate suggestions if the contact is due tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      const nextContactDue = contact.next_contact_due ? new Date(contact.next_contact_due) : null;
+      if (!nextContactDue || nextContactDue.getTime() !== tomorrow.getTime()) {
+        return { suggestions: [] };
+      }
 
       const prompt = `Given the following contact and their recent interactions, suggest personalized ways to keep in touch that will strengthen the relationship:
       
 Contact Information:
 - Name: ${contact.name}
-- Last contacted: ${contact.last_contacted ? `${timeSinceLastContact} days ago` : 'Never'}
+- Last contacted: ${contact.last_contacted ? new Date(contact.last_contacted).toLocaleDateString() : 'Never'}
 - Preferred method: ${contact.preferred_contact_method || 'Not specified'}
 - Ideal frequency: ${contact.contact_frequency || 'Not specified'}
 - Social media: ${contact.social_media_handle || 'Not specified'}
