@@ -43,27 +43,23 @@ serve(async (req: Request) => {
       return new Response('ok', { headers: corsHeaders });
     }
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing Authorization header');
-    }
-
-    // Create Supabase client
+    // Create Supabase client with service role key
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const groqApiKey = Deno.env.get('GROQ_API_KEY');
 
-    if (!supabaseUrl || !supabaseAnonKey || !groqApiKey) {
+    if (!supabaseUrl || !supabaseServiceKey || !groqApiKey) {
       throw new Error('Missing required environment variables');
     }
 
     const supabaseClient = createClient(
       supabaseUrl,
-      supabaseAnonKey,
+      supabaseServiceKey,
       {
-        global: {
-          headers: { Authorization: authHeader },
-        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
       }
     );
 
