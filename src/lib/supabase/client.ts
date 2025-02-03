@@ -38,12 +38,22 @@ export const signInWithGoogle = async () => {
 
 export const signOut = async () => {
   try {
-    const { error } = await supabase.auth.signOut();
+    // Clear any stored state first
+    localStorage.removeItem('supabase.auth.token');
+    sessionStorage.removeItem('supabase.auth.token');
+    
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut({
+      scope: 'global' // Sign out from all sessions
+    });
+    
     if (error) throw error;
-    // After successful sign out, refresh the page to clear any stored state
+    
+    // Reset application state
     window.location.href = '/login';
   } catch (error) {
     console.error('Error signing out:', error);
-    throw error;
+    // Force reload even on error to ensure clean state
+    window.location.href = '/login';
   }
 };
