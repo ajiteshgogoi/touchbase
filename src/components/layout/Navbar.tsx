@@ -10,10 +10,12 @@ export const Navbar = () => {
           <div className="flex">
             <Link
               to="/"
-              className="flex items-center text-2xl font-extrabold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent hover:from-primary-500 hover:to-primary-300 transition-all"
+              className="flex items-center text-2xl font-extrabold group"
             >
-              <img src="/icon.svg" alt="TouchBase" className="h-8 w-8 mr-0.5" />
-              TouchBase
+              <div className="flex items-center bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-500 group-hover:to-primary-300 transition-all">
+                <img src="/icon.svg" alt="TouchBase" className="h-8 w-8 mr-0.5 [filter:brightness(0)_saturate(100%)_invert(21%)_sepia(90%)_saturate(1966%)_hue-rotate(212deg)_brightness(97%)_contrast(101%)] group-hover:[filter:brightness(0)_saturate(100%)_invert(37%)_sepia(60%)_saturate(1730%)_hue-rotate(211deg)_brightness(100%)_contrast(101%)]" />
+                <span className="bg-clip-text text-transparent">TouchBase</span>
+              </div>
             </Link>
           </div>
 
