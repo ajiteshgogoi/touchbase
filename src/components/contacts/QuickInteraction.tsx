@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { supabase } from '../../lib/supabase/client';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
-import type { Interaction } from '../../lib/supabase/types';
+import type { Contact, Interaction } from '../../lib/supabase/types';
 import dayjs from 'dayjs';
 
 type InteractionType = Interaction['type'];
@@ -65,6 +65,10 @@ export const QuickInteraction = ({
       if (!user) throw new Error('You must be logged in to log interactions');
 
       try {
+        // Get current contact data to calculate next contact due date
+        const contact = await contactsService.getContact(contactId);
+        if (!contact) throw new Error('Contact not found');
+
         // First add the interaction
         await contactsService.addInteraction({
           contact_id: contactId,
@@ -75,9 +79,12 @@ export const QuickInteraction = ({
           sentiment
         });
 
-        // If interaction is added successfully, update the contact's last_contacted date
+        // Update contact with last_contacted and next_contact_due
+        const lastContactedDate = selectedDate.toISOString();
         await contactsService.updateContact(contactId, {
-          last_contacted: selectedDate.toISOString()
+          last_contacted: lastContactedDate,
+          // updateContact will automatically calculate next_contact_due based on
+          // the contact's relationship_level and contact_frequency
         });
       } catch (error) {
         console.error('Database operation failed:', error);
