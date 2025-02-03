@@ -129,7 +129,7 @@ export const Contacts = () => {
               >
                 <option value="name">Sort by Name</option>
                 <option value="last_contacted">Sort by Last Contacted</option>
-                <option value="relationship_level">Sort by Relationship Level</option>
+                <option value="relationship_level">Sort by Relationship Closeness</option>
               </select>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -198,7 +198,7 @@ export const Contacts = () => {
                           Next contact due: {contact.next_contact_due ? dayjs(contact.next_contact_due).fromNow() : 'Not set'}
                         </span>
                         <span className="text-gray-600 inline-flex items-center gap-1.5">
-                          Relationship:{" "}<div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ${
+                          Closeness:{" "}<div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ${
                             contact.relationship_level === 1 ? 'bg-red-400' :
                             contact.relationship_level === 2 ? 'bg-[#f87171]' :
                             contact.relationship_level === 3 ? 'bg-[#fbbf24]' :

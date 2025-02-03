@@ -252,7 +252,7 @@ export const ContactForm = () => {
 
           <div>
             <label htmlFor="relationship_level" className="block text-sm font-medium text-gray-700">
-              Relationship Level
+              Relationship Closeness
             </label>
             <input
               type="range"
