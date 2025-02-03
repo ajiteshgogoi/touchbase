@@ -5,7 +5,8 @@ import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
-import { getCurrentUser } from './lib/supabase/client';
+import { supabase } from './lib/supabase/client';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 // Page Imports
 import { Dashboard } from './pages/Dashboard';
@@ -25,21 +26,57 @@ const queryClient = new QueryClient({
 });
 
 const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useStore();
+  const { user, isLoading } = useStore();
+  
+  // While checking auth status, show a loading indicator
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-gray-600">
+          Loading...
+        </div>
+      </div>
+    );
+  }
+  
   return user ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 function App() {
-  const { setUser } = useStore();
+  const { setUser, setIsLoading } = useStore();
 
   useEffect(() => {
-    const initializeUser = async () => {
-      const user = await getCurrentUser();
-      setUser(user);
+    const initializeAuth = async () => {
+      try {
+        console.log('Initializing auth...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+        } else {
+          console.log('Initial session:', session?.user?.email);
+          setUser(session?.user ?? null);
+        }
+      } catch (error) {
+        console.error('Failed to get initial session:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    initializeUser();
-  }, [setUser]);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      setUser(session?.user ?? null);
+    });
+
+    // Initialize auth
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [setUser, setIsLoading]);
 
   return (
     <QueryClientProvider client={queryClient}>

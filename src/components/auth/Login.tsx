@@ -19,11 +19,12 @@ export const Login = () => {
     try {
       setIsLoading(true);
       setError(null);
+      console.log('Starting Google sign in...');
       await signInWithGoogle();
+      // Don't set isLoading to false here as we're going to redirect
     } catch (error) {
       console.error('Error signing in with Google:', error);
       setError('Failed to sign in with Google. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
