@@ -143,27 +143,31 @@ serve(async (req: Request) => {
           ? Math.floor((Date.now() - new Date(contact.last_contacted).getTime()) / (1000 * 60 * 60 * 24))
           : null;
 
-        // Build user message with relationship-focused context
-        const userMessage =
-          "Generate personalized interaction suggestions to strengthen this relationship:\n\n" +
-          "Contact Information:\n" +
-          "- Name: " + contact.name + "\n" +
-          "- Last contacted: " + (timeSinceLastContact ? timeSinceLastContact + " days ago" : "Never") + "\n" +
-          "- Preferred method: " + (contact.preferred_contact_method || "Not specified") + "\n" +
-          "- Ideal frequency: " + (contact.contact_frequency || "Not specified") + "\n" +
-          "- Social media: " + (contact.social_media_handle || "Not specified") + "\n" +
-          "- Relationship level: " + contact.relationship_level + "/5\n" +
-          "- Notes: " + (contact.notes || "None") + "\n\n" +
-          "Recent interactions: " + ((contact.interactions || [])
-            .map(i => i.type + " (" + (i.sentiment || "neutral") + ")")
-            .join(', ') || "None") + "\n\n" +
-          "Consider these principles:\n" +
-          "1. Calls create stronger bonds than messages or social media\n" +
-          "2. Regular 'pebbling' (small interactions) helps maintain connection\n" +
-          "3. Match contact method to relationship level\n" +
-          "4. Use information from notes for personalization\n" +
-          "5. Vary between call, message, and social media to keep engagement fresh\n\n" +
-          "Provide specific, context-aware suggestions that will strengthen this relationship.";
+        const userMessage = [
+          "Analyze this contact's information and provide 2-3 highly impactful suggestions to strengthen the relationship:",
+          "",
+          "Contact Details:",
+          `- Name: ${contact.name}`,
+          `- Last contacted: ${timeSinceLastContact ? timeSinceLastContact + " days ago" : "Never"}`,
+          `- Preferred method: ${contact.preferred_contact_method || "Not specified"}`,
+          `- Ideal frequency: ${contact.contact_frequency || "Not specified"}`,
+          `- Social media: ${contact.social_media_handle || "Not specified"}`,
+          `- Relationship level: ${contact.relationship_level}/5`,
+          `- Notes: ${contact.notes || "None"}`,
+          "",
+          "Recent Activity:",
+          `${(contact.interactions || []).map(i => `- ${i.type} (${i.sentiment || "neutral"})`).join('\n') || 'None'}`,
+          "",
+          "Rules for Suggestions:",
+          "1. Must be specific to their context and personal details - no generic advice",
+          "2. Must be actionable within 24-48 hours",
+          "3. Must clearly contribute to relationship growth",
+          "4. Each suggestion should start with \"[type: call/message/social]\"",
+          "5. Keep suggestions concise and impactful",
+          "6. If no clear opportunities exist, return no suggestions",
+          "",
+          "Provide ONLY the most impactful 2-3 suggestions, each on a new line starting with \"-\"."
+        ].join('\n');
 
         let suggestions;
         try {
@@ -171,7 +175,7 @@ serve(async (req: Request) => {
           const groqResponse = await axiod.post(
             GROQ_API_URL,
             {
-              model: 'mixtral-8x7b-32768',
+              model: 'llama-3.3-70b-versatile',
               messages: [
                 {
                   role: 'system',
