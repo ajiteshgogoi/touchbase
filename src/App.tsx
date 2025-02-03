@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
 import { supabase } from './lib/supabase/client';
+import { paymentService } from './services/payment';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 // Page Imports
@@ -43,19 +44,25 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
-  const { setUser, setIsLoading } = useStore();
+  const { setUser, setIsLoading, setIsPremium } = useStore();
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         console.log('Initializing auth...');
         const { data: { session }, error } = await supabase.auth.getSession();
-        
         if (error) {
           console.error('Error getting initial session:', error);
         } else {
           console.log('Initial session:', session?.user?.email);
           setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            const subscriptionStatus = await paymentService.getSubscriptionStatus();
+            setIsPremium(subscriptionStatus.isPremium);
+          } else {
+            setIsPremium(false);
+          }
         }
       } catch (error) {
         console.error('Failed to get initial session:', error);
@@ -65,9 +72,16 @@ function App() {
     };
 
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       console.log('Auth state changed:', event, session?.user?.email);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const subscriptionStatus = await paymentService.getSubscriptionStatus();
+        setIsPremium(subscriptionStatus.isPremium);
+      } else {
+        setIsPremium(false);
+      }
     });
 
     // Initialize auth
@@ -76,7 +90,7 @@ function App() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [setUser, setIsLoading]);
+  }, [setUser, setIsLoading, setIsPremium]);
 
   return (
     <QueryClientProvider client={queryClient}>
