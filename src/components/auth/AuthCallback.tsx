@@ -9,27 +9,50 @@ export const AuthCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      setIsLoading(true);
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        setIsLoading(true);
+        // Get the URL hash if present
+        const hash = window.location.hash;
         
-        if (sessionError) throw sessionError;
+        // First try to exchange the auth code for a session
+        const { data: { session }, error: authError } = await supabase.auth.getSession();
         
-        if (session?.user) {
-          setUser(session.user);
-          navigate('/', { replace: true });
-        } else {
-          navigate('/login', { replace: true });
+        if (authError) {
+          console.error('Auth error:', authError);
+          throw authError;
         }
+        
+        if (!session?.user) {
+          throw new Error('No user in session');
+        }
+        
+        // Successfully authenticated
+        console.log('Auth successful, setting user');
+        setUser(session.user);
+        
+        // Clear the hash if present
+        if (hash) {
+          window.location.hash = '';
+        }
+        
+        // Navigate to home
+        navigate('/', { replace: true });
       } catch (error) {
         console.error('Auth callback error:', error);
+        // On error, clear any partial auth state
+        setUser(null);
         navigate('/login', { replace: true });
       } finally {
         setIsLoading(false);
       }
     };
 
-    handleCallback();
+    // Only run if we're not already authenticated
+    if (!useStore.getState().user) {
+      handleCallback();
+    } else {
+      navigate('/', { replace: true });
+    }
   }, [navigate, setUser, setIsLoading]);
 
   return (
