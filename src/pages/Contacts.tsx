@@ -197,8 +197,14 @@ export const Contacts = () => {
                         <span className="text-gray-600">
                           Next contact due: {contact.next_contact_due ? dayjs(contact.next_contact_due).fromNow() : 'Not set'}
                         </span>
-                        <span className="text-gray-600">
-                          Relationship: Level {contact.relationship_level || 1}
+                        <span className="text-gray-600 inline-flex items-center gap-1.5">
+                          Relationship:{" "}<div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ${
+                            contact.relationship_level === 1 ? 'bg-red-400' :
+                            contact.relationship_level === 2 ? 'bg-[#f87171]' :
+                            contact.relationship_level === 3 ? 'bg-[#fbbf24]' :
+                            contact.relationship_level === 4 ? 'bg-[#34d399]' :
+                            'bg-green-400'
+                          }`}></div>
                         </span>
                         {contact.contact_frequency && (
                           <span className="text-gray-600">
