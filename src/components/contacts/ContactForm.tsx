@@ -14,11 +14,20 @@ interface ContactFormData {
   relationship_level: number;
   contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
   user_id: string;
-  last_contacted: string | null;
+  last_contacted: string | null; // Format: YYYY-MM-DDThh:mm in local timezone
   next_contact_due: string | null;
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
 }
+
+const formatLocalDateTime = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 
 const initialFormData: ContactFormData = {
   name: '',
@@ -29,7 +38,7 @@ const initialFormData: ContactFormData = {
   relationship_level: 1,
   contact_frequency: null,
   user_id: '',
-  last_contacted: new Date().toISOString(),
+  last_contacted: formatLocalDateTime(new Date()),
   next_contact_due: null,
   ai_last_suggestion: null,
   ai_last_suggestion_date: null,
@@ -230,12 +239,11 @@ export const ContactForm = () => {
             <input
               type="datetime-local"
               id="last_contacted"
-              value={formData.last_contacted ? new Date(formData.last_contacted).toLocaleString('sv-SE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(' ', 'T') : ''}
+              value={formData.last_contacted || ''}
               onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : null;
                 setFormData({
                   ...formData,
-                  last_contacted: date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString() : null
+                  last_contacted: e.target.value ? formatLocalDateTime(new Date(e.target.value)) : null
                 });
               }}
               className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
