@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import type { Contact, UserPreferences } from '../lib/supabase/types';
+import type { User } from '@supabase/supabase-js';
 
 interface StoreState {
-  user: any | null;
+  user: User | null;
   contacts: Contact[];
   isLoading: boolean;
   preferences: UserPreferences | null;
@@ -10,7 +11,7 @@ interface StoreState {
   searchQuery: string;
   contactFilter: 'all' | 'due' | 'overdue';
   darkMode: boolean;
-  setUser: (user: any | null) => void;
+  setUser: (user: User | null) => void;
   setContacts: (contacts: Contact[]) => void;
   setIsLoading: (isLoading: boolean) => void;
   setPreferences: (preferences: UserPreferences | null) => void;
@@ -23,7 +24,7 @@ interface StoreState {
 export const useStore = create<StoreState>((set) => ({
   user: null,
   contacts: [],
-  isLoading: true,
+  isLoading: false,
   preferences: null,
   isPremium: false,
   searchQuery: '',

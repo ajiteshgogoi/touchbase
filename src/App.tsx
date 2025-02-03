@@ -29,13 +29,10 @@ const queryClient = new QueryClient({
 const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useStore();
   
-  // While checking auth status, show a loading indicator
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-gray-600">
-          Loading...
-        </div>
+        <div className="animate-pulse text-gray-600">Loading...</div>
       </div>
     );
   }
@@ -47,101 +44,68 @@ function App() {
   const { setUser, setIsLoading, setIsPremium } = useStore();
 
   useEffect(() => {
-    let isSubscribed = true;
-    let loadingTimeout: NodeJS.Timeout;
+    let mounted = true;
 
+    // Initialize auth state
     const initializeAuth = async () => {
+      setIsLoading(true);
       try {
-        console.log('Initializing auth...');
-        // Set a timeout to prevent infinite loading
-        loadingTimeout = setTimeout(() => {
-          if (isSubscribed) {
-            console.log('Auth initialization timed out');
-            setIsLoading(false);
-            setUser(null);
-          }
-        }, 10000); // 10 second timeout
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
 
-        const { data: { session }, error } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
         
-        if (!isSubscribed) return;
-
-        if (error) {
-          console.error('Error getting initial session:', error);
-          setUser(null);
-        } else {
-          console.log('Initial session:', session?.user?.email);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            try {
-              const subscriptionStatus = await paymentService.getSubscriptionStatus();
-              if (isSubscribed) {
-                setIsPremium(subscriptionStatus.isPremium);
-              }
-            } catch (error) {
-              console.error('Error getting subscription status:', error);
-              if (isSubscribed) {
-                setIsPremium(false);
-              }
-            }
-          } else {
-            setIsPremium(false);
+        // Check premium status only if user is logged in
+        if (session?.user) {
+          const subscriptionStatus = await paymentService.getSubscriptionStatus();
+          if (mounted) {
+            setIsPremium(subscriptionStatus.isPremium);
           }
         }
       } catch (error) {
-        console.error('Failed to get initial session:', error);
-        if (isSubscribed) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
           setUser(null);
+          setIsPremium(false);
         }
       } finally {
-        if (isSubscribed) {
-          clearTimeout(loadingTimeout);
+        if (mounted) {
           setIsLoading(false);
         }
       }
     };
 
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (!isSubscribed) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event: AuthChangeEvent, session: Session | null) => {
+        if (!mounted) return;
 
-      // Handle loading state for specific auth events
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-        setIsLoading(true);
-      }
-
-      try {
+        // Update user state immediately
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const subscriptionStatus = await paymentService.getSubscriptionStatus();
-          if (isSubscribed) {
-            setIsPremium(subscriptionStatus.isPremium);
+
+        // Check premium status only for sign in/update events
+        if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+          try {
+            const subscriptionStatus = await paymentService.getSubscriptionStatus();
+            if (mounted) {
+              setIsPremium(subscriptionStatus.isPremium);
+            }
+          } catch (error) {
+            console.error('Error checking premium status:', error);
+            if (mounted) {
+              setIsPremium(false);
+            }
           }
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setIsPremium(false);
-        }
-      } catch (error) {
-        console.error('Error handling auth state change:', error);
-        if (isSubscribed) {
-          setIsPremium(false);
-        }
-      } finally {
-        if (isSubscribed) {
-          setIsLoading(false);
         }
       }
-    });
+    );
 
-    // Initialize auth
     initializeAuth();
 
     return () => {
-      isSubscribed = false;
-      clearTimeout(loadingTimeout);
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [setUser, setIsLoading, setIsPremium]);
