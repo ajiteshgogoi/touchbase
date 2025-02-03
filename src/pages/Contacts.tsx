@@ -227,8 +227,7 @@ export const Contacts = () => {
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
                       title="Log an interaction"
                     >
-                      <span className="sm:hidden">Log</span>
-                      <span className="hidden sm:inline">Log Interaction</span>
+                      Log Interaction
                     </button>
                   </div>
                 </div>
