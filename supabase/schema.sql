@@ -43,6 +43,14 @@ create table public.reminders (
     created_at timestamp with time zone default now()
 );
 
+create table public.contact_processing_logs (
+    id uuid primary key default uuid_generate_v4(),
+    contact_id uuid references public.contacts on delete cascade not null,
+    processing_date date not null,
+    created_at timestamp with time zone default now(),
+    constraint unique_contact_date unique (contact_id, processing_date)
+);
+
 create table public.user_preferences (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid references auth.users not null unique,
@@ -74,6 +82,8 @@ create index interactions_date_idx on public.interactions(date);
 create index reminders_contact_id_idx on public.reminders(contact_id);
 create index reminders_user_id_idx on public.reminders(user_id);
 create index reminders_due_date_idx on public.reminders(due_date);
+create index contact_processing_logs_date_idx on public.contact_processing_logs(processing_date);
+create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
 
 -- Enable Row Level Security
 alter table public.contacts enable row level security;
@@ -81,6 +91,7 @@ alter table public.interactions enable row level security;
 alter table public.reminders enable row level security;
 alter table public.user_preferences enable row level security;
 alter table public.subscriptions enable row level security;
+alter table public.contact_processing_logs enable row level security;
 
 -- Create policies
 create policy "Users can view their own contacts"

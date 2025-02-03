@@ -136,8 +136,31 @@ serve(async (req: Request) => {
       );
     }
 
-    // Process each contact
-    const processResults = await Promise.all(contacts.map(async (contact: Contact) => {
+    // Get already processed contacts for tomorrow
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]; // Get date only
+    const { data: processedContacts, error: processedError } = await supabaseClient
+      .from('contact_processing_logs')
+      .select('contact_id')
+      .eq('processing_date', tomorrowStr);
+
+    if (processedError) throw processedError;
+
+    // Filter out already processed contacts
+    const processedContactIds = new Set((processedContacts || []).map(p => p.contact_id));
+    const unprocessedContacts = contacts.filter(c => !processedContactIds.has(c.id));
+
+    if (!unprocessedContacts || unprocessedContacts.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'No unprocessed contacts need attention' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+
+    // Process each unprocessed contact
+    const processResults = await Promise.all(unprocessedContacts.map(async (contact: Contact) => {
       try {
         const timeSinceLastContact = contact.last_contacted
           ? Math.floor((Date.now() - new Date(contact.last_contacted).getTime()) / (1000 * 60 * 60 * 24))
@@ -292,8 +315,8 @@ serve(async (req: Request) => {
 
         const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method, missedCount);
 
-        // Update contact with next due date, AI suggestion, and create reminder
-        const [updateResult, reminderResult] = await Promise.all([
+        // Update contact with next due date, AI suggestion, create reminder, and log processing
+        const [updateResult, reminderResult, logResult] = await Promise.all([
           supabaseClient
             .from('contacts')
             .update({
@@ -310,11 +333,18 @@ serve(async (req: Request) => {
               type: suggestedMethod,
               due_date: nextContactDue.toISOString(),
               description: suggestions
+            }),
+          supabaseClient
+            .from('contact_processing_logs')
+            .insert({
+              contact_id: contact.id,
+              processing_date: tomorrowStr
             })
         ]);
 
         if (updateResult.error) throw updateResult.error;
         if (reminderResult.error) throw reminderResult.error;
+        if (logResult.error) throw logResult.error;
 
         return {
           contactId: contact.id,

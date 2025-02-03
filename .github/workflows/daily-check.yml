@@ -2,14 +2,15 @@ name: Daily Check
 
 on:
   schedule:
-    # Runs at 00:00 UTC (5:30 AM IST) every day
-    - cron: '0 0 * * *'
+    # Runs every 30 minutes
+    - cron: '*/30 * * * *'
   # Allow manual triggers for testing
   workflow_dispatch:
 
 jobs:
   trigger-daily-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 60  # 1 hour timeout
     steps:
       - name: Trigger Daily Check Function
         run: |
