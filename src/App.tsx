@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
+import { Toaster } from 'react-hot-toast';
 import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
 import { getCurrentUser } from './lib/supabase/client';
@@ -49,6 +50,16 @@ function App() {
           intent: 'subscription',
         }}
       >
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#333',
+              color: '#fff',
+            },
+          }}
+        />
         <BrowserRouter>
           <Layout>
             <Routes>

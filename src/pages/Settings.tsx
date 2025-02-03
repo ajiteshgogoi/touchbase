@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PayPalButtons } from '@paypal/react-paypal-js';
+import toast from 'react-hot-toast';
 import { useStore } from '../stores/useStore';
 import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
 import { supabase } from '../lib/supabase/client';
-import type { UserPreferences } from '../lib/supabase/types';
+import type { UserPreferences, Database } from '../lib/supabase/types';
 import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface NotificationSettings {
@@ -13,8 +14,11 @@ interface NotificationSettings {
   theme: 'light' | 'dark' | 'system';
 }
 
+type UserPreferencesUpsert = Database['public']['Tables']['user_preferences']['Insert'];
+
 export const Settings = () => {
   const { user, isPremium } = useStore();
+  const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState(isPremium ? 'premium' : 'free');
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: true,
@@ -23,18 +27,42 @@ export const Settings = () => {
   });
 
   const { data: preferences } = useQuery({
-    queryKey: ['preferences'],
+    queryKey: ['preferences', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
+
       const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No preferences found, create default
+          const defaultPreferences: UserPreferencesUpsert = {
+            user_id: user.id,
+            notification_enabled: true,
+            reminder_frequency: 'weekly',
+            theme: 'light'
+          };
+
+          const { data: newPrefs, error: insertError } = await supabase
+            .from('user_preferences')
+            .insert(defaultPreferences)
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          return newPrefs;
+        }
+        throw error;
+      }
       return data as UserPreferences;
-    }
+    },
+    enabled: !!user?.id,
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 
   useEffect(() => {
@@ -48,17 +76,41 @@ export const Settings = () => {
   }, [preferences]);
 
   const updatePreferencesMutation = useMutation({
-    mutationFn: async (newPreferences: Partial<UserPreferences>) => {
-      if (!user?.id) throw new Error('No user ID');
+    mutationFn: async (newSettings: NotificationSettings) => {
+      if (!user?.id || !preferences?.id) throw new Error('No user ID or preferences ID');
+
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
+          id: preferences.id, // Include the ID for update
           user_id: user.id,
-          ...newPreferences,
-          updated_at: new Date().toISOString()
+          notification_enabled: newSettings.notification_enabled,
+          reminder_frequency: newSettings.reminder_frequency,
+          theme: newSettings.theme
+        }, {
+          onConflict: 'id'
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['preferences', user?.id] });
+      toast.success('Settings updated');
+    },
+    onError: (error: any) => {
+      console.error('Update error:', error);
+      toast.error(error?.message || 'Failed to update settings');
+      // Revert the local state on error
+      if (preferences) {
+        setNotificationSettings({
+          notification_enabled: preferences.notification_enabled,
+          reminder_frequency: preferences.reminder_frequency,
+          theme: preferences.theme
+        });
+      }
     }
   });
 
@@ -84,9 +136,13 @@ export const Settings = () => {
 
   const handleNotificationChange = (newSettings: Partial<NotificationSettings>) => {
     const updated = { ...notificationSettings, ...newSettings };
-    setNotificationSettings(updated);
+    setNotificationSettings(updated); // Optimistically update UI
     updatePreferencesMutation.mutate(updated);
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
