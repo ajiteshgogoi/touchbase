@@ -4,10 +4,11 @@ import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 type ContactFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly';
 type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
 
-// Calculate next contact date based on relationship level and contact frequency
+// Calculate next contact date based on relationship level, contact frequency, and missed interactions
 const getNextContactDate = (
   level: RelationshipLevel,
-  frequency: ContactFrequency | null
+  frequency: ContactFrequency | null,
+  missedInteractions: number = 0
 ): Date => {
   // Base intervals in days
   const baseIntervals: Record<RelationshipLevel, number> = {
@@ -32,6 +33,14 @@ const getNextContactDate = (
     
     // Use the more frequent of the two options
     days = Math.min(days, frequencyDays[frequency]);
+  }
+
+  // Adjust interval based on missed interactions using exponential backoff
+  if (missedInteractions > 0) {
+    // Calculate reduced interval: divide by 2^missedInteractions
+    // But ensure it doesn't go below 1 day to avoid overwhelming
+    const reducedDays = Math.max(1, Math.floor(days / Math.pow(2, missedInteractions)));
+    days = reducedDays;
   }
 
   const nextDate = new Date();
@@ -72,7 +81,8 @@ export const contactsService = {
       .from('contacts')
       .insert({
         ...contact,
-        next_contact_due: nextContactDue
+        next_contact_due: nextContactDue,
+        missed_interactions: 0
       })
       .select()
       .single();
@@ -90,7 +100,8 @@ export const contactsService = {
       if (contact) {
         const level = (updates.relationship_level || contact.relationship_level) as RelationshipLevel;
         const frequency = (updates.contact_frequency || contact.contact_frequency) as ContactFrequency | null;
-        updatedFields.next_contact_due = getNextContactDate(level, frequency).toISOString();
+        const missedInteractions = contact.missed_interactions || 0;
+        updatedFields.next_contact_due = getNextContactDate(level, frequency, missedInteractions).toISOString();
       }
     }
 
@@ -126,14 +137,26 @@ export const contactsService = {
   },
 
   async addInteraction(interaction: Omit<Interaction, 'id' | 'created_at'>): Promise<Interaction> {
-    const { data, error } = await supabase
+    const { data: interactionData, error: interactionError } = await supabase
       .from('interactions')
       .insert(interaction)
       .select()
       .single();
     
-    if (error) throw error;
-    return data;
+    if (interactionError) throw interactionError;
+
+    // Reset missed_interactions counter since we had a successful interaction
+    const { error: updateError } = await supabase
+      .from('contacts')
+      .update({
+        missed_interactions: 0,
+        last_contacted: new Date().toISOString()
+      })
+      .eq('id', interaction.contact_id);
+
+    if (updateError) throw updateError;
+    
+    return interactionData;
   },
 
   async getReminders(contactId?: string): Promise<Reminder[]> {
@@ -181,6 +204,29 @@ export const contactsService = {
       .delete()
       .eq('id', id);
     
+    if (error) throw error;
+  },
+
+  // New method to handle missed interaction
+  async handleMissedInteraction(contactId: string): Promise<void> {
+    const contact = await this.getContact(contactId);
+    if (!contact) throw new Error('Contact not found');
+
+    const newMissedCount = (contact.missed_interactions || 0) + 1;
+    const nextContactDue = getNextContactDate(
+      contact.relationship_level as RelationshipLevel,
+      contact.contact_frequency as ContactFrequency | null,
+      newMissedCount
+    );
+
+    const { error } = await supabase
+      .from('contacts')
+      .update({
+        missed_interactions: newMissedCount,
+        next_contact_due: nextContactDue.toISOString()
+      })
+      .eq('id', contactId);
+
     if (error) throw error;
   }
 };

@@ -12,6 +12,7 @@ export interface Contact {
   contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
+  missed_interactions: number;
   created_at: string;
   updated_at: string;
 }

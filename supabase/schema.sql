@@ -16,6 +16,7 @@ create table public.contacts (
     contact_frequency text check (contact_frequency in ('daily', 'weekly', 'fortnightly', 'monthly', 'quarterly', null)),
     ai_last_suggestion text,
     ai_last_suggestion_date timestamp with time zone,
+    missed_interactions integer default 0,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );

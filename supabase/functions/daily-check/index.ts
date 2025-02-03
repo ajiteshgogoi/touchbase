@@ -33,6 +33,7 @@ interface Contact {
   contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
+  missed_interactions: number;
   interactions: Interaction[];
 }
 
@@ -63,14 +64,45 @@ serve(async (req: Request) => {
       }
     );
 
-    // Get tomorrow's date range
-    const tomorrow = new Date();
+    // Get today's date range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(today);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Tomorrow's date range for new reminders
+    const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
     const tomorrowEnd = new Date(tomorrow);
     tomorrowEnd.setHours(23, 59, 59, 999);
 
-    // Get all contacts that need attention
+    // First, handle missed interactions from today
+    const { data: missedContacts, error: missedError } = await supabaseClient
+      .from('contacts')
+      .select(`
+        id,
+        missed_interactions,
+        relationship_level,
+        contact_frequency
+      `)
+      .gte('next_contact_due', today.toISOString())
+      .lte('next_contact_due', todayEnd.toISOString());
+
+    if (missedError) throw missedError;
+
+    // Update missed_interactions counter for contacts that were due today
+    if (missedContacts && missedContacts.length > 0) {
+      await Promise.all(missedContacts.map(async (contact) => {
+        await supabaseClient
+          .from('contacts')
+          .update({
+            missed_interactions: (contact.missed_interactions || 0) + 1
+          })
+          .eq('id', contact.id);
+      }));
+    }
+
+    // Get all contacts that need attention tomorrow
     const { data: contacts, error: contactsError } = await supabaseClient
       .from('contacts')
       .select(`
@@ -83,6 +115,7 @@ serve(async (req: Request) => {
         contact_frequency,
         social_media_handle,
         notes,
+        missed_interactions,
         interactions (
           type,
           date,
@@ -174,7 +207,11 @@ serve(async (req: Request) => {
         }
 
         // Calculate next contact due date based on relationship level and contact frequency
-        const getNextContactDate = (level: 1 | 2 | 3 | 4 | 5, frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null) => {
+        const getNextContactDate = (
+          level: 1 | 2 | 3 | 4 | 5,
+          frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null,
+          missedInteractions: number = 0
+        ) => {
           // Base intervals in days
           const baseIntervals: Record<number, number> = {
             1: 90, // Acquaintance: ~3 months
@@ -183,6 +220,9 @@ serve(async (req: Request) => {
             4: 14, // Close friend: ~2 weeks
             5: 7   // Very close: ~1 week
           };
+
+          // Get base interval
+          let days = baseIntervals[level];
 
           // Adjust based on specified frequency
           if (frequency) {
@@ -195,10 +235,17 @@ serve(async (req: Request) => {
             }[frequency];
             
             // Use the more frequent of the two options
-            return Math.min(baseIntervals[level], frequencyDays);
+            days = Math.min(baseIntervals[level], frequencyDays);
           }
 
-          return baseIntervals[level];
+          // If there are missed interactions, reduce the interval
+          if (missedInteractions > 0) {
+            // Calculate reduced interval: divide by 2^missedInteractions
+            // But ensure it doesn't go below 1 day to avoid overwhelming
+            days = Math.max(1, Math.floor(days / Math.pow(2, missedInteractions)));
+          }
+
+          return days;
         };
 
         // Use type assertion since we know relationship_level is constrained in the schema
@@ -207,15 +254,27 @@ serve(async (req: Request) => {
           ? (contact.relationship_level as 1 | 2 | 3 | 4 | 5)
           : 1;
 
+        const missedCount = contact.missed_interactions || 0;
         const interval = getNextContactDate(
           relationshipLevel,
-          contact.contact_frequency as 'daily' | 'weekly' | 'monthly' | 'quarterly' | null
+          contact.contact_frequency as 'daily' | 'weekly' | 'monthly' | 'quarterly' | null,
+          missedCount
         );
         const nextContactDue = new Date();
         nextContactDue.setDate(nextContactDue.getDate() + interval);
 
-        // Determine suggested contact method based on relationship level
-        const getSuggestedMethod = (level: number, preferred: string | null) => {
+        // Determine suggested contact method based on relationship level and missed interactions
+        const getSuggestedMethod = (level: number, preferred: string | null, missedInteractions: number) => {
+          // If we've missed multiple interactions, escalate the contact method
+          if (missedInteractions >= 3) {
+            // After 3 misses, prefer calls for more direct contact
+            return 'call';
+          } else if (missedInteractions >= 2) {
+            // After 2 misses, if they prefer messages/social, try calls
+            return preferred === 'call' ? 'call' : 'message';
+          }
+
+          // Regular logic for contact method
           if (level >= 4) {
             // For close relationships, prefer calls
             return 'call';
@@ -227,7 +286,7 @@ serve(async (req: Request) => {
           return 'message';
         };
 
-        const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method);
+        const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method, missedCount);
 
         // Update contact with next due date, AI suggestion, and create reminder
         const [updateResult, reminderResult] = await Promise.all([

@@ -18,6 +18,7 @@ interface ContactFormData {
   next_contact_due: string | null;
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
+  missed_interactions: number;
 }
 
 const formatLocalDateTime = (date: Date) => {
@@ -42,6 +43,7 @@ const initialFormData: ContactFormData = {
   next_contact_due: null,
   ai_last_suggestion: null,
   ai_last_suggestion_date: null,
+  missed_interactions: 0,
 };
 
 export const ContactForm = () => {
@@ -76,6 +78,7 @@ export const ContactForm = () => {
         next_contact_due: contact.next_contact_due,
         ai_last_suggestion: contact.ai_last_suggestion,
         ai_last_suggestion_date: contact.ai_last_suggestion_date,
+        missed_interactions: contact.missed_interactions,
       });
     }
   }, [contact]);
