@@ -43,24 +43,34 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   const { setUser, setIsLoading, setIsPremium } = useStore();
 
+  // Separate premium status check
+  const checkPremiumStatus = async (userId: string) => {
+    try {
+      const status = await paymentService.getSubscriptionStatus();
+      setIsPremium(status.isPremium);
+    } catch (error) {
+      console.error('Error checking premium status:', error);
+      setIsPremium(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     // Initialize auth state
     const initializeAuth = async () => {
-      setIsLoading(true);
       try {
+        setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (!mounted) return;
-
+        
+        // Set user immediately
         setUser(session?.user ?? null);
         
-        // Check premium status only if user is logged in
+        // Check premium status in background if user exists
         if (session?.user) {
-          const subscriptionStatus = await paymentService.getSubscriptionStatus();
-          if (mounted) {
-            setIsPremium(subscriptionStatus.isPremium);
-          }
+          checkPremiumStatus(session.user.id);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -80,28 +90,21 @@ function App() {
       async (event: AuthChangeEvent, session: Session | null) => {
         if (!mounted) return;
 
+        console.log('Auth state changed:', event);
+        
         // Update user state immediately
         setUser(session?.user ?? null);
 
-        // Check premium status only for sign in/update events
-        if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-          try {
-            const subscriptionStatus = await paymentService.getSubscriptionStatus();
-            if (mounted) {
-              setIsPremium(subscriptionStatus.isPremium);
-            }
-          } catch (error) {
-            console.error('Error checking premium status:', error);
-            if (mounted) {
-              setIsPremium(false);
-            }
-          }
-        } else if (event === 'SIGNED_OUT') {
+        // Handle premium status separately
+        if (session?.user) {
+          checkPremiumStatus(session.user.id);
+        } else {
           setIsPremium(false);
         }
       }
     );
 
+    // Initialize auth immediately
     initializeAuth();
 
     return () => {

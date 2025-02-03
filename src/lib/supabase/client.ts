@@ -8,12 +8,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<Database>(
+  supabaseUrl, 
+  supabaseAnonKey,
+  {
+    auth: {
+      persistSession: true, // Keep the session alive between page refreshes
+      autoRefreshToken: true, // Automatically refresh the token before it expires
+      detectSessionInUrl: true, // Required for OAuth sign-in
+      storage: localStorage // Use localStorage for session persistence
+    }
+  }
+);
 
 export const getCurrentUser = async () => {
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
+    if (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
     return user;
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -26,9 +40,14 @@ export const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${import.meta.env.VITE_APP_URL}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline', // This requests a refresh token from Google
+          prompt: 'consent' // This ensures we always get a refresh token
+        }
       },
     });
+    
     if (error) throw error;
   } catch (error) {
     console.error('Error signing in with Google:', error);
@@ -38,22 +57,17 @@ export const signInWithGoogle = async () => {
 
 export const signOut = async () => {
   try {
-    // Clear any stored state first
-    localStorage.removeItem('supabase.auth.token');
-    sessionStorage.removeItem('supabase.auth.token');
-    
-    // Sign out from Supabase
-    const { error } = await supabase.auth.signOut({
-      scope: 'global' // Sign out from all sessions
-    });
-    
+    const { error } = await supabase.auth.signOut();
     if (error) throw error;
     
-    // Reset application state
+    // Give a moment for Supabase to complete the signout
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Redirect to login page
     window.location.href = '/login';
   } catch (error) {
     console.error('Error signing out:', error);
-    // Force reload even on error to ensure clean state
+    // Force reload to clear any stale state
     window.location.href = '/login';
   }
 };
