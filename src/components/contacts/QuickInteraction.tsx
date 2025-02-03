@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { supabase } from '../../lib/supabase/client';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
-import type { Contact, Interaction } from '../../lib/supabase/types';
+import type { Interaction } from '../../lib/supabase/types';
 import dayjs from 'dayjs';
 
 type InteractionType = Interaction['type'];

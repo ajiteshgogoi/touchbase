@@ -19,7 +19,7 @@ type UserPreferencesUpsert = Database['public']['Tables']['user_preferences']['I
 export const Settings = () => {
   const { user, isPremium } = useStore();
   const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState(isPremium ? 'premium' : 'free');
+  const [selectedPlan] = useState(isPremium ? 'premium' : 'free');
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: true,
     reminder_frequency: 'weekly',
@@ -114,15 +114,6 @@ export const Settings = () => {
     }
   });
 
-  const handleSubscribe = async () => {
-    try {
-      const subscriptionId = await paymentService.createPayPalSubscription(selectedPlan);
-      // Subscription created, handle success
-    } catch (error) {
-      console.error('Subscription error:', error);
-    }
-  };
-
   const handleCancelSubscription = async () => {
     if (!confirm('Are you sure you want to cancel your subscription?')) return;
     
@@ -200,13 +191,13 @@ export const Settings = () => {
                 </ul>
                 {plan.id === 'premium' && !isPremium && (
                   <PayPalButtons
-                    createSubscription={(data, actions) => {
+                    createSubscription={(_, actions) => {
                       return actions.subscription.create({
                         'plan_id': 'P-XXXXXXXXXXXX' // Replace with your PayPal plan ID
                       });
                     }}
-                    onApprove={(data, actions) => {
-                      console.log('Subscription approved:', data);
+                    onApprove={() => {
+                      console.log('Subscription approved');
                       return Promise.resolve();
                     }}
                   />

@@ -7,7 +7,6 @@ import {
   UserPlusIcon,
   MagnifyingGlassIcon,
   PhoneIcon,
-  ChatBubbleLeftIcon,
   TrashIcon,
   PencilSquareIcon,
   ShareIcon,

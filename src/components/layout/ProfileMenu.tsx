@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
-import { UserCircleIcon, BellIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../../stores/useStore';
 import { signOut } from '../../lib/supabase/client';
 
