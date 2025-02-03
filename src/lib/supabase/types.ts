@@ -6,7 +6,7 @@ export interface Contact {
   social_media_handle?: string;
   last_contacted: string | null;
   next_contact_due: string | null;
-  preferred_contact_method: 'phone' | 'social' | 'text' | null;
+  preferred_contact_method: 'call' | 'message' | 'social' | null;
   notes: string | null;
   relationship_level: number;
   contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
@@ -20,7 +20,7 @@ export interface Interaction {
   id: string;
   user_id: string;
   contact_id: string;
-  type: 'call' | 'message' | 'social' | 'meeting' | 'other';
+  type: 'call' | 'message' | 'social' | 'meeting';
   date: string;
   notes: string | null;
   sentiment: 'positive' | 'neutral' | 'negative' | null;
@@ -31,7 +31,7 @@ export interface Reminder {
   id: string;
   contact_id: string;
   due_date: string;
-  type: 'message' | 'call' | 'meetup' | 'other';
+  type: 'call' | 'message' | 'social';
   description: string | null;
   is_completed: boolean;
   created_at: string;

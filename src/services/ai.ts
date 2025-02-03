@@ -11,7 +11,7 @@ const groqApi = axios.create({
 
 interface SuggestionResponse {
   suggestions: Array<{
-    type: 'call' | 'message' | 'social' | 'meeting';
+    type: 'call' | 'message' | 'social';
     description: string;
     urgency: 'low' | 'medium' | 'high';
   }>;
@@ -75,7 +75,6 @@ Provide 2-3 natural, context-aware suggestions for maintaining and strengthening
         .map((suggestion: string) => {
           const type = suggestion.toLowerCase().includes('call') ? 'call'
             : suggestion.toLowerCase().includes('message') ? 'message'
-            : suggestion.toLowerCase().includes('meet') ? 'meeting'
             : 'social';
           
           const urgency = suggestion.toLowerCase().includes('soon') || suggestion.toLowerCase().includes('important')

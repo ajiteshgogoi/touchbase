@@ -9,7 +9,7 @@ interface ContactFormData {
   name: string;
   phone: string;
   social_media_handle: string;
-  preferred_contact_method: 'phone' | 'social' | 'text' | null;
+  preferred_contact_method: 'call' | 'message' | 'social' | null;
   notes: string;
   relationship_level: number;
   contact_frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | null;
@@ -205,8 +205,8 @@ export const ContactForm = () => {
               className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
             >
               <option value="">No preference</option>
-              <option value="phone">Phone Call</option>
-              <option value="text">Text Message</option>
+              <option value="call">Call</option>
+              <option value="message">Message</option>
               <option value="social">Social Media</option>
             </select>
           </div>

@@ -26,7 +26,7 @@ interface Contact {
   name: string;
   last_contacted: string | null;
   next_contact_due: string | null;
-  preferred_contact_method: 'phone' | 'social' | 'text' | null;
+  preferred_contact_method: 'call' | 'message' | 'social' | null;
   notes: string | null;
   relationship_level: 1 | 2 | 3 | 4 | 5;
   social_media_handle: string | null;
@@ -117,11 +117,11 @@ serve(async (req: Request) => {
             .map(i => i.type + " (" + (i.sentiment || "neutral") + ")")
             .join(', ') || "None") + "\n\n" +
           "Consider these principles:\n" +
-          "1. Phone calls create stronger bonds than texts or social media\n" +
+          "1. Calls create stronger bonds than messages or social media\n" +
           "2. Regular 'pebbling' (small interactions) helps maintain connection\n" +
           "3. Match contact method to relationship level\n" +
           "4. Use information from notes for personalization\n" +
-          "5. Vary contact methods to keep engagement fresh\n\n" +
+          "5. Vary between call, message, and social media to keep engagement fresh\n\n" +
           "Provide specific, context-aware suggestions that will strengthen this relationship.";
 
         let suggestions;
@@ -212,7 +212,7 @@ serve(async (req: Request) => {
             return 'call';
           } else if (level >= 2) {
             // For medium relationships, use preferred method or message
-            return preferred === 'phone' ? 'call' : (preferred || 'message');
+            return preferred || 'message';
           }
           // For acquaintances, lighter touch methods are fine
           return 'message';
