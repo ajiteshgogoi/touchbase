@@ -100,7 +100,7 @@ export const Contacts = () => {
             Add Contact
           </Link>
         ) : (
-          <button className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+          <button className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
             Upgrade to add more contacts
           </button>
         )}

@@ -105,20 +105,22 @@ const RecentContacts = () => {
           <div className="divide-y divide-gray-100">
             {contacts?.slice(0, 5).map((contact: Contact) => (
               <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="min-w-0 flex-1">
                     <h4 className="text-base font-medium text-gray-900">{contact.name}</h4>
                     <p className="text-sm text-gray-600 mt-1">
                       Last contact: {contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
-                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
-                    title="Log an interaction"
-                  >
-                    Log Interaction
-                  </button>
+                  <div className="flex items-center sm:self-start">
+                    <button
+                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                      title="Log an interaction"
+                    >
+                      Log Interaction
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
