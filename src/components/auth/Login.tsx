@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../../lib/supabase/client';
 import { useStore } from '../../stores/useStore';
+import type { User } from '@supabase/supabase-js';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -31,13 +32,21 @@ export const Login = () => {
 
   const handleDevLogin = () => {
     if (import.meta.env.DEV) {
-      setUser({
+      const mockUser: User = {
         id: 'dev-user',
+        app_metadata: {},
+        user_metadata: { name: 'Dev User' },
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        confirmed_at: new Date().toISOString(),
         email: 'dev@example.com',
-        user_metadata: {
-          name: 'Dev User',
-        },
-      });
+        email_confirmed_at: new Date().toISOString(),
+        phone: undefined,
+        last_sign_in_at: new Date().toISOString(),
+        role: 'authenticated',
+        updated_at: new Date().toISOString()
+      };
+      setUser(mockUser);
     }
   };
 
