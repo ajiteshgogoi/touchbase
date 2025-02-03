@@ -137,7 +137,7 @@ export const ContactForm = () => {
     if (formData.phone && !isValidPhoneNumber(formData.phone)) {
       setErrors(prev => ({
         ...prev,
-        phone: 'Please enter a valid phone number (e.g., 123-456-7890)'
+        phone: 'Please enter a valid phone number (e.g., +91-9999955555)'
       }));
       return;
     }
