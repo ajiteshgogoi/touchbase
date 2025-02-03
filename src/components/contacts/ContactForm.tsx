@@ -282,7 +282,7 @@ export const ContactForm = () => {
         <div>
           <div className="mb-4 p-4 bg-primary-50 rounded-lg">
             <p className="text-sm text-gray-600 mb-2">
-              Add personal details that can help maintain the relationship. This will help our AI provide you with personalised recommendations.
+              Add details that can help maintain the relationship. This will help our AI provide you with personalised recommendations.
               Examples:
             </p>
             <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
