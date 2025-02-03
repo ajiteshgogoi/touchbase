@@ -40,7 +40,7 @@ export const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${import.meta.env.VITE_APP_URL}/auth/callback`,
         queryParams: {
           access_type: 'offline', // This requests a refresh token from Google
           prompt: 'consent' // This ensures we always get a refresh token
