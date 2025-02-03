@@ -230,11 +230,14 @@ export const ContactForm = () => {
             <input
               type="datetime-local"
               id="last_contacted"
-              value={formData.last_contacted ? new Date(formData.last_contacted).toISOString().slice(0, 16) : ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                last_contacted: e.target.value ? new Date(e.target.value).toISOString() : null
-              })}
+              value={formData.last_contacted ? new Date(formData.last_contacted).toLocaleString('sv-SE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(' ', 'T') : ''}
+              onChange={(e) => {
+                const date = e.target.value ? new Date(e.target.value) : null;
+                setFormData({
+                  ...formData,
+                  last_contacted: date ? new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString() : null
+                });
+              }}
               className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
             />
           </div>
