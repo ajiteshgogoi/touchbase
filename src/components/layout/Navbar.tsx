@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { BellIcon } from '@heroicons/react/24/outline';
 import { ProfileMenu } from './ProfileMenu';
 
 export const Navbar = () => {
@@ -25,13 +24,7 @@ export const Navbar = () => {
             </Link>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <Link
-              to="/notifications"
-              className="p-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out hover:shadow-soft"
-            >
-              <BellIcon className="h-5 w-5" />
-            </Link>
+          <div className="flex items-center">
             <ProfileMenu />
           </div>
         </div>
