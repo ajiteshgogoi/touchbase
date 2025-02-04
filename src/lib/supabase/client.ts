@@ -35,22 +35,17 @@ export const getCurrentUser = async () => {
   }
 };
 
-export const signInWithGoogle = async () => {
+export const signInWithGoogleIdToken = async (idToken: string) => {
   try {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
-      options: {
-        redirectTo: `${import.meta.env.VITE_APP_URL}/auth/callback`,
-        queryParams: {
-          access_type: 'offline', // This requests a refresh token from Google //
-          prompt: 'consent' // This ensures we always get a refresh token
-        }
-      },
+      token: idToken
     });
     
     if (error) throw error;
+    return data;
   } catch (error) {
-    console.error('Error signing in with Google:', error);
+    console.error('Error signing in with Google ID token:', error);
     throw error;
   }
 };

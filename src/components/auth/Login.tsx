@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithGoogle } from '../../lib/supabase/client';
+import { useGoogleLogin } from '@react-oauth/google';
+import { signInWithGoogleIdToken } from '../../lib/supabase/client';
 import { useStore } from '../../stores/useStore';
 import type { User } from '@supabase/supabase-js';
 
@@ -16,19 +17,37 @@ export const Login = () => {
     }
   }, [user, navigate]);
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      console.log('Starting Google sign in...');
-      await signInWithGoogle();
-      // Don't set isLoading to false here as we're going to redirect
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
+  const login = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        console.log('Starting Google sign in...');
+        
+        // Get ID token from Google response
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${response.access_token}` },
+        });
+        const userInfo = await res.json();
+        
+        // Sign in to Supabase with ID token
+        const { user } = await signInWithGoogleIdToken(userInfo.sub);
+        if (user) {
+          setUser(user);
+          navigate('/', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error signing in with Google:', error);
+        setError('Failed to sign in with Google. Please try again.');
+        setIsLoading(false);
+      }
+    },
+    onError: (error) => {
+      console.error('Google OAuth error:', error);
       setError('Failed to sign in with Google. Please try again.');
       setIsLoading(false);
-    }
-  };
+    },
+  });
 
   const handleDevLogin = () => {
     if (import.meta.env.DEV) {
@@ -101,7 +120,7 @@ export const Login = () => {
         )}
 <div className="flex flex-col items-center gap-6 w-full">
   <button
-    onClick={handleGoogleLogin}
+    onClick={() => login()}
     disabled={isLoading}
     className="w-full flex items-center justify-center px-8 py-4 rounded-lg text-base font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
