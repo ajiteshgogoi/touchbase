@@ -4,28 +4,65 @@ on:
   schedule:
     # Runs every 30 minutes
     - cron: '*/30 * * * *'
-  # Allow manual triggers for testing
+  # Allow manual triggers only by repo owner
   workflow_dispatch:
 
 jobs:
   trigger-push-notifications:
+    # Only run if it's the original repo and either scheduled or triggered by owner
+    if: |
+      github.repository == 'ajiteshgogoi/touchbase' &&
+      (github.event_name == 'schedule' || github.actor == 'ajiteshgogoi')
     runs-on: ubuntu-latest
     timeout-minutes: 60  # 1 hour timeout
+    env:
+      SUPABASE_URL: https://*****.supabase.co
     steps:
+      - name: Verify Repository
+        run: |
+          if [ "$GITHUB_REPOSITORY" != "ajiteshgogoi/touchbase" ]; then
+            echo "Unauthorized repository"
+            exit 1
+          fi
+
       - name: Get all user IDs
         id: get-users
         run: |
-          USERS=$(curl --request GET \
-            --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
-            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}')
-          echo "users=$USERS" >> $GITHUB_OUTPUT
+          echo "Fetching user IDs..."
+          RESPONSE=$(curl -s --request GET \
+            --url "$SUPABASE_URL/functions/v1/users" \
+            --header "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}")
+          
+          # Validate response before processing
+          if ! echo "$RESPONSE" | jq empty 2>/dev/null; then
+            echo "Invalid response format"
+            exit 1
+          fi
+          
+          # Store user IDs securely without exposing them in logs
+          echo "users=$(echo $RESPONSE | jq -c '.')" >> $GITHUB_OUTPUT
+          echo "Successfully retrieved user data"
 
       - name: Trigger Notifications for Each User
         run: |
-          for USER_ID in $(echo "${{ steps.get-users.outputs.users }}" | jq -r '.[]'); do
-            curl --request POST \
-              --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
-              --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
-              --header 'Content-Type: application/json' \
-              --data "{\"userId\": \"$USER_ID\"}"
+          # Process users securely
+          echo "Processing notifications..."
+          echo "${{ steps.get-users.outputs.users }}" | jq -r '.[]' | while read -r USER_ID; do
+            # Mask user ID in logs
+            MASKED_ID="${USER_ID:0:4}...${USER_ID: -4}"
+            echo "Processing user: $MASKED_ID"
+            
+            OUTPUT=$(curl -s --request POST \
+              --url "$SUPABASE_URL/functions/v1/push-notifications" \
+              --header "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+              --header "Content-Type: application/json" \
+              --data "{\"userId\": \"$USER_ID\"}" \
+              2>&1) || true
+            
+            # Only show success/error status without sensitive details
+            if [ $? -eq 0 ]; then
+              echo "Notification processed for $MASKED_ID"
+            else
+              echo "Failed to process notification for $MASKED_ID"
+            fi
           done
