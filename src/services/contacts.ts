@@ -47,18 +47,28 @@ const getNextContactDate = (
     days = reducedDays;
   }
 
-  // Calculate next date from reference date
-  const nextDate = new Date(referenceDate);
-  nextDate.setDate(nextDate.getDate() + days);
+  // Helper to strip time and normalize to start of day
+  const normalizeDate = (date: Date): Date => {
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    return normalized;
+  };
 
-  // If calculated date is in the past, recalculate from current date
-  const now = new Date();
-  if (nextDate <= now) {
-    nextDate.setTime(now.getTime());
+  // Get normalized reference and current dates
+  const normalizedRef = normalizeDate(referenceDate);
+  const normalizedNow = normalizeDate(new Date());
+
+  // Calculate initial next date from reference
+  const nextDate = new Date(normalizedRef);
+  nextDate.setDate(nextDate.getDate() + days);
+  
+  // If calculated date would be in the past, use current date as base instead
+  if (normalizeDate(nextDate) <= normalizedNow) {
+    nextDate.setTime(normalizedNow.getTime());
     nextDate.setDate(nextDate.getDate() + days);
   }
 
-  return nextDate;
+  return normalizeDate(nextDate);
 };
 
 export const contactsService = {
