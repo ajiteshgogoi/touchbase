@@ -45,9 +45,9 @@ const DashboardMetrics = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <Link to="/contacts" className="block">
-        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
-          <div className="flex items-center">
+      <Link to="/contacts" className="flex">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
+          <div className="flex items-center w-full">
             <div className="p-3 bg-primary-50 rounded-lg">
               <UserGroupIcon className="h-8 w-8 text-primary-500" />
             </div>
@@ -59,9 +59,9 @@ const DashboardMetrics = () => {
         </div>
       </Link>
 
-      <Link to="/reminders" className="block">
-        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
-          <div className="flex items-center">
+      <Link to="/reminders" className="flex">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
+          <div className="flex items-center w-full">
             <div className="p-3 bg-yellow-50 rounded-lg">
               <CalendarIcon className="h-8 w-8 text-yellow-500" />
             </div>
@@ -73,9 +73,9 @@ const DashboardMetrics = () => {
         </div>
       </Link>
 
-      <Link to="/reminders" className="block">
-        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
-          <div className="flex items-center">
+      <Link to="/reminders" className="flex">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
+          <div className="flex items-center w-full">
             <div className="p-3 bg-primary-50 rounded-lg">
               <CalendarIcon className="h-8 w-8 text-primary-500" />
             </div>
