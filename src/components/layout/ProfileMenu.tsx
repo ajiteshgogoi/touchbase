@@ -2,12 +2,11 @@ import { Fragment, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
 import { UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useGoogleLogin } from '@react-oauth/google';
 import { useStore } from '../../stores/useStore';
-import { signInWithGoogleIdToken, signOut } from '../../lib/supabase/client';
+import { signInWithGoogle, signOut } from '../../lib/supabase/client';
 
 export const ProfileMenu = () => {
-  const { user, setUser } = useStore();
+  const { user } = useStore();
 
   const handleSignOut = async () => {
     try {
@@ -19,35 +18,14 @@ export const ProfileMenu = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const login = useGoogleLogin({
-    onSuccess: async (response) => {
-      try {
-        setIsLoading(true);
-        
-        // Get ID token from Google response
-        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${response.access_token}` },
-        });
-        const userInfo = await res.json();
-        
-        // Sign in to Supabase with ID token
-        const { user } = await signInWithGoogleIdToken(userInfo.sub);
-        if (user) {
-          setUser(user);
-        }
-      } catch (error) {
-        console.error('Error signing in with Google:', error);
-        setIsLoading(false);
-      }
-    },
-    onError: (error) => {
-      console.error('Google OAuth error:', error);
+  const handleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
       setIsLoading(false);
     }
-  });
-
-  const handleSignIn = () => {
-    login();
   };
 
   if (!user) {
