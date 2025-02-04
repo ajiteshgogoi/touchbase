@@ -11,24 +11,37 @@ export const AuthCallback = () => {
     const handleAuthCallback = async () => {
       setIsLoading(true);
       try {
-        // Get authorization code from URL query parameters
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
+        const error = params.get('error');
+        
+        if (error) {
+          console.error('Google OAuth error:', error);
+          throw new Error(`Google OAuth error: ${error}`);
+        }
         
         if (!code) {
+          console.error('No code in URL:', window.location.search);
           throw new Error('No authorization code received from Google');
         }
 
+        console.log('Received authorization code, exchanging for tokens...');
         const { session } = await handleCallback(code);
+        console.log('Got session:', session);
 
         if (session?.user) {
+          console.log('Setting user and navigating to dashboard...');
           setUser(session.user);
           navigate('/', { replace: true });
         } else {
+          console.error('No user in session:', session);
           throw new Error('No user session found after authentication');
         }
       } catch (error) {
         console.error('Auth callback error:', error);
+        // Show error message to user
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        alert(`Authentication failed: ${errorMessage}`);
         navigate('/login', { replace: true });
       } finally {
         setIsLoading(false);
