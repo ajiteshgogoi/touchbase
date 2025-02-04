@@ -11,9 +11,10 @@ export const AuthCallback = () => {
     const handleAuthCallback = async () => {
       setIsLoading(true);
       try {
-        const idToken = new URLSearchParams(window.location.hash.substring(1))
-          .get('id_token');
-
+        // Get tokens from URL fragment
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        const idToken = params.get('id_token');
+        
         if (!idToken) {
           throw new Error('No ID token received from Google');
         }
