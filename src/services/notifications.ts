@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-const NOTIFICATION_SERVER_URL = import.meta.env.VITE_NOTIFICATION_SERVER_URL;
 
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
