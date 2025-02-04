@@ -178,8 +178,10 @@ serve(async (req: Request) => {
           `- Relationship level: ${contact.relationship_level}/5`,
           `- Notes: ${contact.notes || "None"}`,
           "",
-          "Recent Activity:",
-          `${(contact.interactions || []).map(i => `- ${i.type} (${i.sentiment || "neutral"})`).join('\n') || 'None'}`,
+          "Recent Activity (chronological):",
+          `${(contact.interactions || [])
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .map(i => `- ${new Date(i.date).toLocaleDateString()}: ${i.type} (${i.sentiment || "neutral"})${i.notes ? `\n  Notes: ${i.notes}` : ''}`).join('\n') || 'None'}`,
           "",
           "Rules for Suggestions:",
           "1. Must be specific to their context and personal details — no generic advice",
@@ -304,7 +306,7 @@ serve(async (req: Request) => {
         const missedCount = contact.missed_interactions || 0;
         const interval = getNextContactDate(
           relationshipLevel,
-          contact.contact_frequency as 'daily' | 'weekly' | 'monthly' | 'quarterly' | null,
+          contact.contact_frequency as 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null,
           missedCount
         );
         const nextContactDue = new Date();
