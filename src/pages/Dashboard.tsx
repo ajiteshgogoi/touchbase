@@ -30,15 +30,21 @@ const DashboardMetrics = () => {
     queryFn: () => contactsService.getReminders()
   });
 
+  const today = dayjs();
   const metrics = {
     totalContacts: contacts?.length || 0,
-    upcomingReminders: reminders?.filter((r: Reminder) =>
-      dayjs(r.due_date).isAfter(dayjs())
-    ).length || 0,
+    dueToday: reminders?.filter((r: Reminder) => {
+      const dueDate = dayjs(r.due_date);
+      return dueDate.isSame(today, 'day');
+    }).length || 0,
+    upcomingReminders: reminders?.filter((r: Reminder) => {
+      const dueDate = dayjs(r.due_date);
+      return dueDate.isAfter(today, 'day');
+    }).length || 0,
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <Link to="/contacts" className="block">
         <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
           <div className="flex items-center">
@@ -48,6 +54,20 @@ const DashboardMetrics = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Contacts</p>
               <p className="text-2xl font-semibold text-gray-900">{metrics.totalContacts}</p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      <Link to="/reminders" className="block">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-center">
+            <div className="p-3 bg-yellow-50 rounded-lg">
+              <CalendarIcon className="h-8 w-8 text-yellow-500" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Due Today</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.dueToday}</p>
             </div>
           </div>
         </div>

@@ -29,9 +29,16 @@ export const Reminders = () => {
     return acc;
   }, {} as Record<string, Contact>) || {};
 
-  const upcomingReminders = reminders?.filter((r: Reminder) =>
-    dayjs(r.due_date).isAfter(dayjs())
-  ) || [];
+  const today = dayjs();
+  const dueTodayReminders = reminders?.filter((r: Reminder) => {
+    const dueDate = dayjs(r.due_date);
+    return dueDate.isSame(today, 'day');
+  }) || [];
+
+  const upcomingReminders = reminders?.filter((r: Reminder) => {
+    const dueDate = dayjs(r.due_date);
+    return dueDate.isAfter(today, 'day');
+  }) || [];
 
   return (
     <>
@@ -43,61 +50,123 @@ export const Reminders = () => {
           </p>
         </div>
 
-        <div className="w-full">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 bg-primary-50 rounded-lg">
-              <CalendarIcon className="h-5 w-5 text-primary-500" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Due Today Column */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-yellow-50 rounded-lg">
+                <CalendarIcon className="h-5 w-5 text-yellow-500" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Due Today</h2>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Upcoming Reminders</h2>
-          </div>
-          <div className="space-y-4">
-            {upcomingReminders.length === 0 ? (
-              <p className="text-sm text-gray-600">No upcoming reminders!</p>
-            ) : (
-              upcomingReminders.map((reminder) => (
-                <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="space-y-2.5">
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <span>
-                            <span className="text-gray-700 font-medium">Contact due:</span>{' '}
-                            <span className="text-gray-600">{dayjs(reminder.due_date).fromNow()}</span>
-                          </span>
-                        </div>
-                        {reminder.description && (
+            <div className="space-y-4">
+              {dueTodayReminders.length === 0 ? (
+                <p className="text-sm text-gray-600">No reminders due today!</p>
+              ) : (
+                dueTodayReminders.map((reminder) => (
+                  <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="space-y-2.5">
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
+                          </div>
                           <div className="flex flex-wrap gap-4 text-sm">
                             <span>
-                              <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                              <span className="text-gray-600 whitespace-pre-line">
-                                {reminder.description}
-                              </span>
+                              <span className="text-gray-700 font-medium">Contact due:</span>{' '}
+                              <span className="text-gray-600">{dayjs(reminder.due_date).fromNow()}</span>
                             </span>
                           </div>
-                        )}
+                          {reminder.description && (
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span>
+                                <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
+                                <span className="text-gray-600 whitespace-pre-line">
+                                  {reminder.description}
+                                </span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center sm:self-start">
+                        <button
+                          onClick={() => setQuickInteraction({
+                            isOpen: true,
+                            contactId: reminder.contact_id,
+                            contactName: contactsMap[reminder.contact_id]?.name || 'Unknown',
+                            type: reminder.type
+                          })}
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                          title="Log an interaction"
+                        >
+                          Log Interaction
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center sm:self-start">
-                      <button
-                        onClick={() => setQuickInteraction({
-                          isOpen: true,
-                          contactId: reminder.contact_id,
-                          contactName: contactsMap[reminder.contact_id]?.name || 'Unknown',
-                          type: reminder.type
-                        })}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
-                        title="Log an interaction"
-                      >
-                        Log Interaction
-                      </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Upcoming Reminders Column */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <CalendarIcon className="h-5 w-5 text-primary-500" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Upcoming Reminders</h2>
+            </div>
+            <div className="space-y-4">
+              {upcomingReminders.length === 0 ? (
+                <p className="text-sm text-gray-600">No upcoming reminders!</p>
+              ) : (
+                upcomingReminders.map((reminder) => (
+                  <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="space-y-2.5">
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <span>
+                              <span className="text-gray-700 font-medium">Contact due:</span>{' '}
+                              <span className="text-gray-600">{dayjs(reminder.due_date).fromNow()}</span>
+                            </span>
+                          </div>
+                          {reminder.description && (
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span>
+                                <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
+                                <span className="text-gray-600 whitespace-pre-line">
+                                  {reminder.description}
+                                </span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center sm:self-start">
+                        <button
+                          onClick={() => setQuickInteraction({
+                            isOpen: true,
+                            contactId: reminder.contact_id,
+                            contactName: contactsMap[reminder.contact_id]?.name || 'Unknown',
+                            type: reminder.type
+                          })}
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                          title="Log an interaction"
+                        >
+                          Log Interaction
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
