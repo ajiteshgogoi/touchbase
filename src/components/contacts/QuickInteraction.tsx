@@ -60,19 +60,22 @@ export const QuickInteraction = ({
 
   useLayoutEffect(() => {
     if (isOpen) {
-      // Lock scroll on both document and body
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
+      // Calculate scrollbar width
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+      
+      // Add modal-open class to body
+      document.body.classList.add('modal-open');
     } else {
-      // Restore scroll on both document and body
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
+      // Remove modal-open class and reset scrollbar width
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.setProperty('--scrollbar-width', '0px');
     }
 
-    // Cleanup on unmount
     return () => {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
+      // Cleanup
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.setProperty('--scrollbar-width', '0px');
     };
   }, [isOpen]);
 

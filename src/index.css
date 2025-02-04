@@ -1,3 +1,14 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+/* Prevent layout shift when modal opens */
+.modal-open {
+  overflow: hidden;
+  padding-right: var(--scrollbar-width);
+}
+
+/* Ensure consistent scrollbar width */
+:root {
+  --scrollbar-width: 0px;
+}
