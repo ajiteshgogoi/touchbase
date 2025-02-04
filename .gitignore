@@ -23,6 +23,7 @@ ARCHITECTURE.md
 **/supabase/.branches
 **/supabase/.temp
 .supabase/
+**/supabase/functions/**/secrets.json
 
 # TypeScript
 *.tsbuildinfo
