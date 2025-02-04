@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
 import {
@@ -10,6 +10,8 @@ import {
   CalendarIcon,
   PhoneIcon,
   ShareIcon,
+  PencilSquareIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -87,10 +89,34 @@ const DashboardMetrics = () => {
 };
 
 const RecentContacts = () => {
+  const queryClient = useQueryClient();
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts
   });
+
+  const handleDeleteContact = async (contactId: string) => {
+    if (confirm('Are you sure you want to delete this contact?')) {
+      try {
+        await contactsService.deleteContact(contactId);
+        // Invalidate both contacts and reminders queries
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ['contacts'],
+            exact: true,
+            refetchType: 'all'
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['reminders'],
+            exact: true,
+            refetchType: 'all'
+          })
+        ]);
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+      }
+    }
+  };
 
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
@@ -116,6 +142,22 @@ const RecentContacts = () => {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <h4 className="text-base font-semibold text-gray-900">{contact.name}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          to={`/contacts/${contact.id}/edit`}
+                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                          title="Edit contact"
+                        >
+                          <PencilSquareIcon className="h-4 w-4" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteContact(contact.id)}
+                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete contact"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                     <div className="mt-3 space-y-2.5">
                       <div className="flex flex-wrap gap-4 text-sm text-gray-600">

@@ -31,6 +31,7 @@ export const Contacts = () => {
     isOpen: boolean;
     contactId: string;
     type: Interaction['type'];
+    contactName: string;
   } | null>(null);
 
   const refetchContacts = useCallback(() => {
@@ -51,6 +52,19 @@ export const Contacts = () => {
     if (confirm('Are you sure you want to delete this contact?')) {
       try {
         await contactsService.deleteContact(contactId);
+        // Invalidate both contacts and reminders queries
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ['contacts'],
+            exact: true,
+            refetchType: 'all'
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['reminders'],
+            exact: true,
+            refetchType: 'all'
+          })
+        ]);
       } catch (error) {
         console.error('Error deleting contact:', error);
       }
@@ -165,6 +179,7 @@ export const Contacts = () => {
                         <Link
                           to={`/contacts/${contact.id}/edit`}
                           className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                          title="Edit contact"
                         >
                           <PencilSquareIcon className="h-4 w-4" />
                         </Link>
@@ -229,7 +244,7 @@ export const Contacts = () => {
                   </div>
                   <div className="flex items-center sm:self-start mt-3 sm:mt-0">
                     <button
-                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
+                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
                       title="Log an interaction"
                     >
@@ -247,6 +262,7 @@ export const Contacts = () => {
           isOpen={quickInteraction.isOpen}
           onClose={() => setQuickInteraction(null)}
           contactId={quickInteraction.contactId}
+          contactName={quickInteraction.contactName}
           defaultType={quickInteraction.type}
           onSuccess={refetchContacts}
         />

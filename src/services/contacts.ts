@@ -117,12 +117,29 @@ export const contactsService = {
   },
 
   async deleteContact(id: string): Promise<void> {
-    const { error } = await supabase
+    // Delete all interactions for this contact
+    const { error: interactionsError } = await supabase
+      .from('interactions')
+      .delete()
+      .eq('contact_id', id);
+    
+    if (interactionsError) throw interactionsError;
+
+    // Delete all reminders for this contact
+    const { error: remindersError } = await supabase
+      .from('reminders')
+      .delete()
+      .eq('contact_id', id);
+    
+    if (remindersError) throw remindersError;
+
+    // Finally delete the contact
+    const { error: contactError } = await supabase
       .from('contacts')
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (contactError) throw contactError;
   },
 
   async getInteractions(contactId: string): Promise<Interaction[]> {
