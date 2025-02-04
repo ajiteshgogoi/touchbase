@@ -20,6 +20,7 @@ export const Reminders = () => {
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
     contactId: string;
+    contactName: string;
     type: Interaction['type'];
   } | null>(null);
 
@@ -70,7 +71,12 @@ export const Reminders = () => {
           </div>
           <div className="flex items-center sm:self-start">
             <button
-              onClick={() => setQuickInteraction({ isOpen: true, contactId: reminder.contact_id, type: reminder.type })}
+              onClick={() => setQuickInteraction({
+                isOpen: true,
+                contactId: reminder.contact_id,
+                contactName: contact?.name || 'Unknown',
+                type: reminder.type
+              })}
               className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
               title="Log an interaction"
             >
@@ -135,6 +141,7 @@ export const Reminders = () => {
           isOpen={quickInteraction.isOpen}
           onClose={() => setQuickInteraction(null)}
           contactId={quickInteraction.contactId}
+          contactName={quickInteraction.contactName}
           defaultType={quickInteraction.type}
         />
       )}

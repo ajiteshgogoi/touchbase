@@ -95,6 +95,7 @@ const RecentContacts = () => {
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
     contactId: string;
+    contactName: string;
     type: Interaction['type'];
   } | null>(null);
 
@@ -168,7 +169,12 @@ const RecentContacts = () => {
                   </div>
                   <div className="flex items-center sm:self-start mt-3 sm:mt-0">
                     <button
-                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call' })}
+                      onClick={() => setQuickInteraction({
+                        isOpen: true,
+                        contactId: contact.id,
+                        contactName: contact.name,
+                        type: 'call'
+                      })}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
                       title="Log an interaction"
                     >
@@ -197,6 +203,7 @@ const RecentContacts = () => {
           isOpen={quickInteraction.isOpen}
           onClose={() => setQuickInteraction(null)}
           contactId={quickInteraction.contactId}
+          contactName={quickInteraction.contactName}
           defaultType={quickInteraction.type}
         />
       )}

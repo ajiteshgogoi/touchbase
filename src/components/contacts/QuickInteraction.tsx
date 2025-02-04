@@ -12,6 +12,7 @@ interface QuickInteractionProps {
   isOpen: boolean;
   onClose: () => void;
   contactId: string;
+  contactName: string;
   defaultType?: InteractionType;
   onSuccess?: () => void;
 }
@@ -35,6 +36,7 @@ export const QuickInteraction = ({
   isOpen,
   onClose,
   contactId,
+  contactName,
   defaultType = 'call',
   onSuccess
 }: QuickInteractionProps) => {
@@ -162,7 +164,7 @@ export const QuickInteraction = ({
             <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
                 <Dialog.Title className="text-lg font-medium">
-                  Log Interaction
+                  Log Interaction for <span className="text-primary-500">{contactName}</span>
                 </Dialog.Title>
                 <button
                   onClick={onClose}
