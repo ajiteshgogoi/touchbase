@@ -189,7 +189,7 @@ serve(async (req: Request) => {
           "5. Keep suggestions concise and impactful",
           "6. If no clear opportunities exist, return no suggestions",
           "",
-          "Provide ONLY the most impactful 2-3 suggestions, each on a new line starting with \"-\"."
+          "Provide ONLY the most impactful 1-2 suggestions, each on a new line starting with \"-\"."
         ].join('\n');
 
         let suggestions;
