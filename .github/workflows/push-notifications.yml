@@ -1,0 +1,31 @@
+name: Push Notifications
+
+on:
+  schedule:
+    # Runs every 30 minutes
+    - cron: '*/30 * * * *'
+  # Allow manual triggers for testing
+  workflow_dispatch:
+
+jobs:
+  trigger-push-notifications:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # 1 hour timeout
+    steps:
+      - name: Get all user IDs
+        id: get-users
+        run: |
+          USERS=$(curl -i --request GET \
+            --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
+            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}')
+          echo "users=$USERS" >> $GITHUB_OUTPUT
+
+      - name: Trigger Notifications for Each User
+        run: |
+          for USER_ID in $(echo "${{ steps.get-users.outputs.users }}" | jq -r '.[]'); do
+            curl -i --request POST \
+              --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
+              --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
+              --header 'Content-Type: application/json' \
+              --data "{\"userId\": \"$USER_ID\"}"
+          done
