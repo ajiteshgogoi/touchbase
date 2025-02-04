@@ -29,12 +29,12 @@ export const Reminders = () => {
     return acc;
   }, {} as Record<string, Contact>) || {};
 
-  const dueReminders = reminders?.filter((r: Reminder) => 
-    !r.is_completed && dayjs(r.due_date).isBefore(dayjs())
+  const dueReminders = reminders?.filter((r: Reminder) =>
+    dayjs(r.due_date).isBefore(dayjs())
   ) || [];
 
-  const upcomingReminders = reminders?.filter((r: Reminder) => 
-    !r.is_completed && dayjs(r.due_date).isAfter(dayjs())
+  const upcomingReminders = reminders?.filter((r: Reminder) =>
+    dayjs(r.due_date).isAfter(dayjs())
   ) || [];
 
   const ReminderCard = ({ reminder }: { reminder: Reminder }) => {

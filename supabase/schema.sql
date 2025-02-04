@@ -39,7 +39,6 @@ create table public.reminders (
     type text not null check (type in ('call', 'message', 'social')),
     due_date timestamp with time zone not null,
     description text,
-    is_completed boolean default false,
     created_at timestamp with time zone default now()
 );
 

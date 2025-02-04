@@ -34,7 +34,6 @@ export interface Reminder {
   due_date: string;
   type: 'call' | 'message' | 'social';
   description: string | null;
-  is_completed: boolean;
   created_at: string;
 }
 

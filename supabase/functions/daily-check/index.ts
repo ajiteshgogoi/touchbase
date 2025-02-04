@@ -325,15 +325,16 @@ serve(async (req: Request) => {
               ai_last_suggestion_date: new Date().toISOString()
             })
             .eq('id', contact.id),
-          supabaseClient
-            .from('reminders')
-            .insert({
-              contact_id: contact.id,
-              user_id: contact.user_id,
-              type: suggestedMethod,
-              due_date: nextContactDue.toISOString(),
-              description: suggestions
-            }),
+          // Delete existing reminders for this contact before creating new one
+          supabaseClient.from('reminders').delete().eq('contact_id', contact.id),
+          // Then create new reminder
+          supabaseClient.from('reminders').insert({
+            contact_id: contact.id,
+            user_id: contact.user_id,
+            type: suggestedMethod,
+            due_date: nextContactDue.toISOString(),
+            description: suggestions
+          }),
           supabaseClient
             .from('contact_processing_logs')
             .insert({

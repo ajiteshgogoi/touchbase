@@ -176,6 +176,15 @@ export const contactsService = {
   },
 
   async addReminder(reminder: Omit<Reminder, 'id' | 'created_at'>): Promise<Reminder> {
+    // Delete any existing reminders for this contact
+    const { error: deleteError } = await supabase
+      .from('reminders')
+      .delete()
+      .eq('contact_id', reminder.contact_id);
+    
+    if (deleteError) throw deleteError;
+
+    // Create the new reminder
     const { data, error } = await supabase
       .from('reminders')
       .insert(reminder)

@@ -31,11 +31,11 @@ const DashboardMetrics = () => {
 
   const metrics = {
     totalContacts: contacts?.length || 0,
-    dueReminders: reminders?.filter((r: Reminder) => 
-      !r.is_completed && dayjs(r.due_date).isBefore(dayjs())
+    dueReminders: reminders?.filter((r: Reminder) =>
+      dayjs(r.due_date).isBefore(dayjs())
     ).length || 0,
-    upcomingReminders: reminders?.filter((r: Reminder) => 
-      !r.is_completed && dayjs(r.due_date).isAfter(dayjs())
+    upcomingReminders: reminders?.filter((r: Reminder) =>
+      dayjs(r.due_date).isAfter(dayjs())
     ).length || 0,
   };
 
