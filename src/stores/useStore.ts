@@ -9,7 +9,7 @@ interface StoreState {
   preferences: UserPreferences | null;
   isPremium: boolean;
   searchQuery: string;
-  contactFilter: 'all' | 'due' | 'overdue';
+  contactFilter: 'all' | 'due';
   darkMode: boolean;
   setUser: (user: User | null) => void;
   setContacts: (contacts: Contact[]) => void;
@@ -17,7 +17,7 @@ interface StoreState {
   setPreferences: (preferences: UserPreferences | null) => void;
   setIsPremium: (isPremium: boolean) => void;
   setSearchQuery: (query: string) => void;
-  setContactFilter: (filter: 'all' | 'due' | 'overdue') => void;
+  setContactFilter: (filter: 'all' | 'due') => void;
   setDarkMode: (darkMode: boolean) => void;
 }
 
