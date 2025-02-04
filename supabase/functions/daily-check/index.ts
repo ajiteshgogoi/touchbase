@@ -192,45 +192,65 @@ serve(async (req: Request) => {
           "Provide ONLY the most impactful 1-2 suggestions, each on a new line starting with \"•\""
         ].join('\n');
 
+        // Check subscription status
+        const { data: subscription, error: subError } = await supabaseClient
+          .from('subscriptions')
+          .select('plan_id, valid_until')
+          .eq('user_id', contact.user_id)
+          .single();
+
+        if (subError) {
+          console.error('Error fetching subscription:', subError);
+          throw subError;
+        }
+
+        const isPremium = subscription?.plan_id === 'premium' &&
+          subscription.valid_until &&
+          new Date(subscription.valid_until) > new Date();
+
         let suggestions;
-        try {
-          console.log('Making Groq API request for contact:', contact.id);
-          const groqResponse = await axiod.post(
-            GROQ_API_URL,
-            {
-              model: 'llama-3.3-70b-versatile',
-              messages: [
-                {
-                  role: 'system',
-                  content: 'You are a relationship manager assistant helping users maintain meaningful connections.'
-                },
-                {
-                  role: 'user',
-                  content: userMessage
+        if (isPremium) {
+          try {
+            console.log('Making Groq API request for contact:', contact.id);
+            const groqResponse = await axiod.post(
+              GROQ_API_URL,
+              {
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are a relationship manager assistant helping users maintain meaningful connections.'
+                  },
+                  {
+                    role: 'user',
+                    content: userMessage
+                  }
+                ],
+                temperature: 0.7,
+                max_tokens: 250
+              },
+              {
+                headers: {
+                  'Authorization': `Bearer ${groqApiKey}`,
+                  'Content-Type': 'application/json'
                 }
-              ],
-              temperature: 0.7,
-              max_tokens: 250
-            },
-            {
-              headers: {
-                'Authorization': `Bearer ${groqApiKey}`,
-                'Content-Type': 'application/json'
               }
+            );
+
+            console.log('Groq API response status:', groqResponse.status);
+            console.log('Groq API response:', JSON.stringify(groqResponse.data));
+
+            if (!groqResponse.data?.choices?.[0]?.message?.content) {
+              throw new Error('Invalid response structure from Groq API: ' + JSON.stringify(groqResponse.data));
             }
-          );
 
-          console.log('Groq API response status:', groqResponse.status);
-          console.log('Groq API response:', JSON.stringify(groqResponse.data));
-
-          if (!groqResponse.data?.choices?.[0]?.message?.content) {
-            throw new Error('Invalid response structure from Groq API: ' + JSON.stringify(groqResponse.data));
+            suggestions = groqResponse.data.choices[0].message.content;
+          } catch (groqError: any) {
+            console.error('Groq API error:', groqError);
+            throw new Error(`Groq API error: ${groqError.message || 'Unknown error'} - ${groqError.response?.data ? JSON.stringify(groqError.response.data) : 'No response data'}`);
           }
-
-          suggestions = groqResponse.data.choices[0].message.content;
-        } catch (groqError: any) {
-          console.error('Groq API error:', groqError);
-          throw new Error(`Groq API error: ${groqError.message || 'Unknown error'} - ${groqError.response?.data ? JSON.stringify(groqError.response.data) : 'No response data'}`);
+        } else {
+          suggestions = '<div class="bg-yellow-50 p-3 rounded-lg"><strong>Important:</strong> Upgrade to premium to get advanced AI suggestions!</div>';
         }
 
         // Calculate next contact due date based on relationship level and contact frequency
