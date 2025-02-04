@@ -1,4 +1,9 @@
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import {
+  UserPlusIcon,
+  ChatBubbleLeftRightIcon,
+  BellIcon,
+  LightBulbIcon
+} from '@heroicons/react/24/outline';
 
 export const Help = () => {
   return (
@@ -15,7 +20,7 @@ export const Help = () => {
         <div className="bg-white rounded-xl shadow-soft p-6">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-primary-50 rounded-lg">
-              <QuestionMarkCircleIcon className="h-6 w-6 text-primary-500" />
+              <UserPlusIcon className="h-6 w-6 text-primary-500" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Adding Contacts</h2>
@@ -38,7 +43,7 @@ export const Help = () => {
         <div className="bg-white rounded-xl shadow-soft p-6">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-primary-50 rounded-lg">
-              <QuestionMarkCircleIcon className="h-6 w-6 text-primary-500" />
+              <ChatBubbleLeftRightIcon className="h-6 w-6 text-primary-500" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Logging Interactions</h2>
@@ -63,7 +68,7 @@ export const Help = () => {
         <div className="bg-white rounded-xl shadow-soft p-6">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-primary-50 rounded-lg">
-              <QuestionMarkCircleIcon className="h-6 w-6 text-primary-500" />
+              <BellIcon className="h-6 w-6 text-primary-500" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Enabling Notifications</h2>
@@ -88,7 +93,7 @@ export const Help = () => {
         <div className="bg-white rounded-xl shadow-soft p-6">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-primary-50 rounded-lg">
-              <QuestionMarkCircleIcon className="h-6 w-6 text-primary-500" />
+              <LightBulbIcon className="h-6 w-6 text-primary-500" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Tips for Success</h2>
