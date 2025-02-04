@@ -80,6 +80,14 @@ create table public.subscriptions (
     updated_at timestamp with time zone default now()
 );
 
+create table public.notification_history (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null,
+    notification_type text not null check (notification_type in ('morning', 'afternoon', 'evening')),
+    sent_at timestamp with time zone not null,
+    created_at timestamp with time zone default now()
+);
+
 -- Create indexes
 create index contacts_user_id_idx on public.contacts(user_id);
 create index contacts_last_contacted_idx on public.contacts(last_contacted);
@@ -93,6 +101,7 @@ create index reminders_due_date_idx on public.reminders(due_date);
 create index contact_processing_logs_date_idx on public.contact_processing_logs(processing_date);
 create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
 create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id);
+create index notification_history_user_time_idx on public.notification_history(user_id, sent_at);
 
 -- Enable Row Level Security
 alter table public.contacts enable row level security;
@@ -102,6 +111,7 @@ alter table public.user_preferences enable row level security;
 alter table public.subscriptions enable row level security;
 alter table public.contact_processing_logs enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.notification_history enable row level security;
 
 -- Create policies
 create policy "Users can view their own contacts"
@@ -188,6 +198,14 @@ create policy "Users can update their own push subscriptions"
 create policy "Users can delete their own push subscriptions"
     on public.push_subscriptions for delete
     using (auth.uid() = user_id);
+
+create policy "Users can view their own notification history"
+    on public.notification_history for select
+    using (auth.uid() = user_id);
+
+create policy "Service role can insert notification history"
+    on public.notification_history for insert
+    with check (true);
 
 -- Create functions
 create or replace function public.handle_updated_at()
