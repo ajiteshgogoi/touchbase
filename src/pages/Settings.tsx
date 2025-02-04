@@ -1,23 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-const TIMEZONES = [
-  'UTC',
-  'America/New_York',
-  'America/Chicago',
-  'America/Denver',
-  'America/Los_Angeles',
-  'America/Toronto',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Asia/Dubai',
-  'Asia/Kolkata',
-  'Asia/Singapore',
-  'Asia/Tokyo',
-  'Australia/Sydney',
-  'Pacific/Auckland'
-];
+import moment from 'moment-timezone';
+
+const TIMEZONES = moment.tz.names();
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import toast from 'react-hot-toast';
 import { useStore } from '../stores/useStore';
@@ -44,6 +30,12 @@ export const Settings = () => {
     theme: 'light',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   });
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter timezones based on search
+  const filteredTimezones = TIMEZONES.filter(zone =>
+    zone.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const { data: preferences } = useQuery({
     queryKey: ['preferences', user?.id],
@@ -287,14 +279,22 @@ export const Settings = () => {
             <p className="text-sm text-gray-600 mt-1">
               Set your timezone for daily notifications
             </p>
+            <input
+              type="text"
+              className="mt-2 block w-full rounded-t-md border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
+              placeholder="Search timezone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <select
-              className="mt-2 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
+              className="block w-full rounded-b-md border-t-0 border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
               value={notificationSettings.timezone}
               onChange={(e) => handleNotificationChange({
                 timezone: e.target.value
               })}
+              size={5}
             >
-              {TIMEZONES.map((zone: string) => (
+              {filteredTimezones.map((zone: string) => (
                 <option key={zone} value={zone}>
                   {zone.replace(/_/g, ' ')}
                 </option>
