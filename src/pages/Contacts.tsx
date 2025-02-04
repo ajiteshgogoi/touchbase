@@ -9,9 +9,9 @@ import {
   PhoneIcon,
   TrashIcon,
   PencilSquareIcon,
-  ShareIcon,
   ChevronUpDownIcon,
 } from '@heroicons/react/24/outline';
+import { AtSymbolIcon } from '@heroicons/react/24/outline';
 import type { Contact, Interaction } from '../lib/supabase/types';
 import { QuickInteraction } from '../components/contacts/QuickInteraction';
 import dayjs from 'dayjs';
@@ -196,14 +196,14 @@ export const Contacts = () => {
                       <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                         {contact.phone && (
                           <span className="inline-flex items-center">
-                            <PhoneIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                            <span className="truncate">{contact.phone}</span>
+                            <PhoneIcon className="h-4 w-4 mr-1.5 text-blue-500 flex-shrink-0" />
+                            <span className="truncate leading-5">{contact.phone}</span>
                           </span>
                         )}
                         {contact.social_media_handle && (
                           <span className="inline-flex items-center">
-                            <ShareIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                            <span className="truncate">{contact.social_media_handle}</span>
+                            <AtSymbolIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                            <span className="truncate leading-5">{contact.social_media_handle}</span>
                           </span>
                         )}
                       </div>

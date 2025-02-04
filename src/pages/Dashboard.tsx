@@ -9,7 +9,7 @@ import {
   UserGroupIcon,
   CalendarIcon,
   PhoneIcon,
-  ShareIcon,
+  AtSymbolIcon,
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
@@ -163,14 +163,14 @@ const RecentContacts = () => {
                       <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                         {contact.phone && (
                           <span className="inline-flex items-center">
-                            <PhoneIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                            <span className="truncate">{contact.phone}</span>
+                            <PhoneIcon className="h-4 w-4 mr-1.5 text-blue-500 flex-shrink-0" />
+                            <span className="truncate leading-5">{contact.phone}</span>
                           </span>
                         )}
                         {contact.social_media_handle && (
                           <span className="inline-flex items-center">
-                            <ShareIcon className="h-4 w-4 mr-1.5 text-gray-400 flex-shrink-0" />
-                            <span className="truncate">{contact.social_media_handle}</span>
+                            <AtSymbolIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                            <span className="truncate leading-5">{contact.social_media_handle}</span>
                           </span>
                         )}
                       </div>
