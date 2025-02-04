@@ -15,7 +15,7 @@ jobs:
       - name: Get all user IDs
         id: get-users
         run: |
-          USERS=$(curl -i --request GET \
+          USERS=$(curl --request GET \
             --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
             --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}')
           echo "users=$USERS" >> $GITHUB_OUTPUT
@@ -23,7 +23,7 @@ jobs:
       - name: Trigger Notifications for Each User
         run: |
           for USER_ID in $(echo "${{ steps.get-users.outputs.users }}" | jq -r '.[]'); do
-            curl -i --request POST \
+            curl --request POST \
               --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
               --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
               --header 'Content-Type: application/json' \
