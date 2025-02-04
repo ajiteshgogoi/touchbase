@@ -117,7 +117,7 @@ const RecentContacts = () => {
           </p>
         </div>
         <div className="bg-white rounded-xl shadow-soft">
-          <div className="divide-y divide-gray-100">
+          <div className="p-4 space-y-4">
             {contacts?.slice(0, 3).map((contact: Contact) => (
               <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">

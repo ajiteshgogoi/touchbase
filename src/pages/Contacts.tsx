@@ -157,7 +157,7 @@ export const Contacts = () => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="p-4 space-y-4">
           {isLoading ? (
             <div className="p-12 text-center text-gray-500">
               <div className="animate-pulse">Loading contacts...</div>
