@@ -7,6 +7,7 @@ import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
 import { supabase } from './lib/supabase/client';
 import { paymentService } from './services/payment';
+import { notificationService } from './services/notifications';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 // Page Imports
@@ -58,7 +59,7 @@ function App() {
   useEffect(() => {
     let mounted = true;
 
-    // Initialize auth state
+    // Initialize auth state and app settings
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
@@ -69,8 +70,50 @@ function App() {
         // Set user immediately
         setUser(session?.user ?? null);
         
-        // Check premium status in background if user exists
+        // If user exists, initialize notifications and check settings
         if (session?.user) {
+          // Initialize notification service
+          await notificationService.initialize();
+          
+          // Check notification permission and update preferences if needed
+          const hasPermission = await notificationService.checkPermission();
+          
+          // Get current timezone
+          const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          
+          // Update user preferences
+          const { data: prefs } = await supabase
+            .from('user_preferences')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (prefs) {
+            // Update preferences if timezone changed or notifications granted
+            if (prefs.timezone !== currentTimezone || (hasPermission && !prefs.notification_enabled)) {
+              await supabase
+                .from('user_preferences')
+                .upsert({
+                  id: prefs.id,
+                  user_id: session.user.id,
+                  notification_enabled: hasPermission,
+                  timezone: currentTimezone,
+                  theme: prefs.theme
+                });
+            }
+          } else {
+            // Create initial preferences
+            await supabase
+              .from('user_preferences')
+              .insert({
+                user_id: session.user.id,
+                notification_enabled: hasPermission,
+                timezone: currentTimezone,
+                theme: 'light'
+              });
+          }
+          
+          // Check premium status
           checkPremiumStatus();
         }
       } catch (error) {
@@ -96,8 +139,30 @@ function App() {
         // Update user state immediately
         setUser(session?.user ?? null);
 
-        // Handle premium status separately
+        // Handle user state changes
         if (session?.user) {
+          if (event === 'SIGNED_IN') {
+            // Initialize notification service
+            await notificationService.initialize();
+            
+            // Check notification permission and get timezone
+            const hasPermission = await notificationService.checkPermission();
+            const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // Update preferences on sign in
+            await supabase
+              .from('user_preferences')
+              .upsert({
+                user_id: session.user.id,
+                notification_enabled: hasPermission,
+                timezone: currentTimezone,
+                theme: 'light'
+              }, {
+                onConflict: 'user_id'
+              });
+          }
+          
+          // Always check premium status for authenticated users
           checkPremiumStatus();
         } else {
           setIsPremium(false);
