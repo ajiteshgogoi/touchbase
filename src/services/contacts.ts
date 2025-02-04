@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase/client';
 import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 
-type ContactFrequency = 'daily' | 'weekly' | 'monthly' | 'quarterly';
+type ContactFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
 type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
 
 // Calculate next contact date based on relationship level, contact frequency, and missed interactions
@@ -27,6 +27,7 @@ const getNextContactDate = (
     const frequencyDays: Record<ContactFrequency, number> = {
       daily: 1,
       weekly: 7,
+      fortnightly: 14,
       monthly: 30,
       quarterly: 90
     };
