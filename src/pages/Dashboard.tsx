@@ -55,29 +55,33 @@ const DashboardMetrics = () => {
         </div>
       </Link>
 
-      <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-center">
-          <div className="p-3 bg-accent-50 rounded-lg">
-            <BellIcon className="h-8 w-8 text-accent-500" />
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">Due Reminders</p>
-            <p className="text-2xl font-semibold text-gray-900">{metrics.dueReminders}</p>
+      <Link to="/reminders" className="block">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-center">
+            <div className="p-3 bg-accent-50 rounded-lg">
+              <BellIcon className="h-8 w-8 text-accent-500" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Due Reminders</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.dueReminders}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </Link>
 
-      <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-center">
-          <div className="p-3 bg-primary-50 rounded-lg">
-            <CalendarIcon className="h-8 w-8 text-primary-500" />
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">Upcoming Reminders</p>
-            <p className="text-2xl font-semibold text-gray-900">{metrics.upcomingReminders}</p>
+      <Link to="/reminders" className="block">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-center">
+            <div className="p-3 bg-primary-50 rounded-lg">
+              <CalendarIcon className="h-8 w-8 text-primary-500" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Upcoming Reminders</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.upcomingReminders}</p>
+            </div>
           </div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 };

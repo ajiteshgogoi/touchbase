@@ -13,6 +13,7 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { Dashboard } from './pages/Dashboard';
 import { Contacts } from './pages/Contacts';
 import { Settings } from './pages/Settings';
+import { Reminders } from './pages/Reminders';
 import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { ContactForm } from './components/contacts/ContactForm';
@@ -172,6 +173,15 @@ function App() {
                 element={
                   <AuthenticatedRoute>
                     <ContactForm />
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route
+                path="/reminders"
+                element={
+                  <AuthenticatedRoute>
+                    <Reminders />
                   </AuthenticatedRoute>
                 }
               />
