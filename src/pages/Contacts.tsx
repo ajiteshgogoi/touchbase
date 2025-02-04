@@ -196,7 +196,7 @@ export const Contacts = () => {
                       <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                         {contact.phone && (
                           <span className="inline-flex items-center">
-                            <PhoneIcon className="h-4 w-4 mr-1.5 text-blue-500 flex-shrink-0" />
+                            <PhoneIcon className="h-4 w-4 mr-1.5 text-green-500 flex-shrink-0" />
                             <span className="truncate leading-5">{contact.phone}</span>
                           </span>
                         )}
