@@ -51,37 +51,59 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-8">
-      <div className="text-center space-y-3">
-        <h2 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-12 px-4">
+      <div className="text-center space-y-4 max-w-2xl">
+        <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
           Welcome to TouchBase
         </h2>
-        <p className="text-xl text-gray-600">
-          Stay connected with the people who matter most.
+        <p className="text-2xl text-gray-600">
+          Your intelligent relationship management companion
         </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 text-left">
+          <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
+            <div className="text-primary-500 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800">Smart Management</h3>
+            <p className="text-gray-600">Track relationships and interactions with custom closeness levels</p>
+          </div>
+          
+          <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
+            <div className="text-primary-500 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800">Smart Reminders</h3>
+            <p className="text-gray-600">Get timely notifications to maintain meaningful connections</p>
+          </div>
+          
+          <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
+            <div className="text-primary-500 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800">AI Powered</h3>
+            <p className="text-gray-600">Get personalized interaction suggestions based on your history</p>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-md w-full p-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-soft">
-        <div className="space-y-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white/80 text-gray-500">Sign in</span>
-            </div>
+      <div className="bg-gradient-to-b from-white/50 to-white/30 backdrop-blur-sm px-12 py-10 rounded-2xl shadow-soft max-w-sm">
+        {error && (
+          <div className="mb-4 p-3 text-sm text-red-700 bg-red-50 rounded-lg" role="alert">
+            {error}
           </div>
-
-          {error && (
-            <div className="mb-4 p-3 text-sm text-red-700 bg-red-50 rounded-lg" role="alert">
-              {error}
-            </div>
-          )}
-          
-          <button
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center px-6 py-3 border border-gray-200 rounded-lg text-base font-medium text-gray-700 bg-white hover:bg-primary-50 hover:border-primary-100 transition-all duration-200 shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        )}
+<div className="flex flex-col items-center gap-6 w-full">
+  <button
+    onClick={handleGoogleLogin}
+    disabled={isLoading}
+    className="w-full flex items-center justify-center px-8 py-4 border border-gray-200 rounded-2xl text-base font-medium text-gray-700 bg-white hover:bg-primary-50 hover:border-primary-100 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <svg
@@ -131,27 +153,16 @@ export const Login = () => {
           )}
         </div>
 
-        <div className="mt-8 text-center">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex flex-col items-center">
-              <span className="px-4 bg-white/80 text-gray-500 text-sm">
-                By continuing, you agree to our
-              </span>
-              <div className="mt-2 space-x-1 text-sm">
-                <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
-                  Terms of Service
-                </a>
-                <span className="text-gray-500">and</span>
-                <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
-                  Privacy Policy
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+        <p className="text-sm text-gray-500 text-center mt-6">
+          By continuing, you agree to our{' '}
+          <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
+            Privacy Policy
+          </a>
+        </p>
       </div>
     </div>
   );
