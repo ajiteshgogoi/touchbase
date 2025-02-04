@@ -1,25 +1,30 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase/client';
 import { useStore } from '../../stores/useStore';
+import { handleCallback } from '../../lib/auth/google';
 
 export const AuthCallback = () => {
   const navigate = useNavigate();
   const { setUser, setIsLoading } = useStore();
 
   useEffect(() => {
-    const handleCallback = async () => {
+    const handleAuthCallback = async () => {
       setIsLoading(true);
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) throw sessionError;
-        
+        const idToken = new URLSearchParams(window.location.hash.substring(1))
+          .get('id_token');
+
+        if (!idToken) {
+          throw new Error('No ID token received from Google');
+        }
+
+        const { session } = await handleCallback(idToken);
+
         if (session?.user) {
           setUser(session.user);
           navigate('/', { replace: true });
         } else {
-          navigate('/login', { replace: true });
+          throw new Error('No user session found after authentication');
         }
       } catch (error) {
         console.error('Auth callback error:', error);
@@ -29,7 +34,7 @@ export const AuthCallback = () => {
       }
     };
 
-    handleCallback();
+    handleAuthCallback();
   }, [navigate, setUser, setIsLoading]);
 
   return (
