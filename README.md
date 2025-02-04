@@ -1,137 +1,50 @@
 # TouchBase
 
-TouchBase is a Progressive Web App that helps you maintain meaningful connections with your network. Stay in touch with friends, family, and colleagues through smart reminders and interaction tracking.
+TouchBase is an intelligent relationship management tool that helps you maintain meaningful connections with your network. It provides smart reminders and interaction tracking to ensure you stay in touch with the people who matter most.
 
-## Features
+💙 **[Try TouchBase](https://touchbasepro.vercel.app/)**
 
-- 👥 Contact Management
-  - Track personal and professional relationships
-  - Set custom interaction frequencies
-  - Record notes and preferences for each contact
+## Key Features
 
-- 🔔 Smart Reminders
-  - Get notified when it's time to reach out
-  - AI-powered suggestions for meaningful interactions
-  - Customize reminder frequency per contact
+- **Smart Contact Management**: Track relationships with custom closeness levels
+- **Interaction Tracking**: Log calls, messages and meetings with detailed notes
+- **Intelligent Reminders**: Get notified when it's time to reconnect
+- **Contact Frequency**: Set preferred contact intervals for each relationship
+- **Push Notifications**: Never miss an important interaction
+- **AI Suggestions**: Get personalised interaction suggestions based on your history
+- **Mobile-First Design**: Access your network from any device
 
-- 📱 Multi-Platform
-  - Progressive Web App (PWA) for desktop and mobile
-  - Works offline
-  - Cross-device synchronization
+## How It Works
 
-- 🎯 Relationship Insights
-  - Track interaction history
-  - Monitor relationship health
-  - Get personalized suggestions for strengthening connections
+1. **Add Contacts**: 
+   - Import or manually add contacts
+   - Set relationship levels and preferred contact frequency
+   - Add notes and interaction preferences
 
-- 🔒 Privacy & Security
-  - End-to-end encryption
-  - Google authentication
-  - Self-hosted option available
+2. **Track Interactions**:
+   - Log calls, messages and meetings
+   - Add notes and context for each interaction
+   - View interaction history and patterns
 
-## Tech Stack
+3. **Stay Connected**:
+   - Receive smart reminders based on contact frequency
+   - Get push notifications for due interactions
+   - View upcoming reminders on your dashboard
 
-- Frontend:
-  - React with TypeScript
-  - Tailwind CSS for styling
-  - React Query for data fetching
-  - Zustand for state management
+## Technical Stack
 
-- Backend:
-  - Supabase for database and authentication
-  - Groq API for AI suggestions
-  - PayPal for payments
+- Frontend: React, TypeScript, TailwindCSS
+- Backend: Supabase
+- Storage: PostgreSQL
+- Processing: Supabase Edge Functions
+- Push Notifications: Web Push API
 
-## Getting Started
+## Support
 
-### Prerequisites
+For bugs or feedback, please contact ajiteshgogoi@gmail.com.
 
-- Node.js 18+
-- npm or yarn
-- Supabase account
-- PayPal developer account
-- Groq API key
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/touchbase.git
-cd touchbase
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env` file:
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_GROQ_API_KEY=your_groq_api_key
-VITE_PAYPAL_CLIENT_ID=your_paypal_client_id
-```
-
-4. Start the development server:
-```bash
-npm run dev
-```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Building for Production
-
-```bash
-npm run build
-```
-
-This will generate optimized production files in the `dist` directory.
-
-### Deploying to Vercel
-
-1. Create a new project on [Vercel](https://vercel.com)
-2. Connect your GitHub repository
-3. Configure the following environment variables in Vercel's project settings:
-
-Required Environment Variables:
-```
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_GROQ_API_KEY=your_groq_api_key
-VITE_PAYPAL_CLIENT_ID=your_paypal_client_id
-VITE_PAYPAL_CLIENT_SECRET=your_paypal_client_secret
-VITE_PREMIUM_PLAN_ID=your_paypal_subscription_plan_id
-VITE_APP_NAME=TouchBase
-VITE_APP_URL=https://your-vercel-domain.vercel.app
-```
-
-Optional Environment Variables:
-```
-VITE_ANALYTICS_ID=your_analytics_id
-VITE_SENTRY_DSN=your_sentry_dsn
-VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
-VITE_NOTIFICATION_SERVER_URL=your_notification_server_url
-```
-
-4. Deploy command and settings are automatically configured by the `vercel.json` file
-5. Click "Deploy" to start the deployment process
-
-Note: The app uses Vite's SPA routing, which is handled by the `vercel.json` configuration. All routes will be redirected to `index.html`, allowing the client-side router to handle navigation.
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit your changes: `git commit -m 'Add some AmazingFeature'`
-4. Push to the branch: `git push origin feature/AmazingFeature`
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Icons from [Heroicons](https://heroicons.com)
-- UI components inspired by [Tailwind UI](https://tailwindui.com)
+<p align="left">
+  <a href="https://ko-fi.com/gogoi">
+    <img src="https://img.shields.io/badge/Buy_Me_A_Coffee-Support_Development-FFDD00?style=for-the-badge&logo=ko-fi&logoColor=black" alt="Buy Me A Coffee" />
+  </a>
+</p>
