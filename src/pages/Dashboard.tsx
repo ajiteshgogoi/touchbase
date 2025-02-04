@@ -109,7 +109,7 @@ const RecentContacts = () => {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
           <h3 className="text-xl font-bold text-gray-900">Recent Contacts</h3>
           <p className="mt-1 text-sm text-gray-600">
@@ -119,11 +119,11 @@ const RecentContacts = () => {
         <div className="bg-white rounded-xl shadow-soft">
           <div className="divide-y divide-gray-100">
             {contacts?.slice(0, 3).map((contact: Contact) => (
-              <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{contact.name}</h3>
+                      <h3 className="text-lg font-semibold text-primary-500">{contact.name}</h3>
                       <div className="flex flex-wrap gap-2">
                         <Link
                           to={`/contacts/${contact.id}/edit`}

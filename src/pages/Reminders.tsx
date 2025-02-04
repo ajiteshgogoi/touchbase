@@ -60,7 +60,7 @@ export const Reminders = () => {
                     <div className="min-w-0 flex-1">
                       <div className="space-y-2.5">
                         <div className="flex flex-wrap gap-4 text-sm">
-                          <span className="text-lg font-semibold text-gray-900">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
+                          <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm">
                           <span>

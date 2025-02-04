@@ -79,7 +79,7 @@ export const Contacts = () => {
     )
     .sort((a, b) => {
       if (sortField === 'name') {
-        return sortOrder === 'asc' 
+        return sortOrder === 'asc'
           ? a.name.localeCompare(b.name)
           : b.name.localeCompare(a.name);
       }
@@ -157,7 +157,7 @@ export const Contacts = () => {
           </div>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="space-y-4">
           {isLoading ? (
             <div className="p-12 text-center text-gray-500">
               <div className="animate-pulse">Loading contacts...</div>
@@ -168,11 +168,11 @@ export const Contacts = () => {
             </div>
           ) : (
             filteredContacts?.map((contact) => (
-              <div key={contact.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-primary-500">
                         {contact.name}
                       </h3>
                       <div className="flex flex-wrap gap-2">
