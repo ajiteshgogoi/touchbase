@@ -53,10 +53,10 @@ export const Login = () => {
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-12 px-4">
       <div className="text-center space-y-4 max-w-2xl">
-        <h2 className="text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+        <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
           Welcome to TouchBase
         </h2>
-        <p className="text-2xl text-gray-600">
+        <p className="text-xl sm:text-2xl text-gray-600">
           Your intelligent relationship management companion
         </p>
         
