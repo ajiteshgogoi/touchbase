@@ -14,7 +14,7 @@ export const Layout = ({ children }: LayoutProps) => {
           {children}
         </div>
       </main>
-      <footer className="text-center pt-2 pb-4 text-gray-600 text-sm">
+      <footer className="text-center pt-2 pb-5 text-gray-600 text-sm">
         © {new Date().getFullYear()}{' '}
         <a
           href="https://ajiteshgogoi.com/"
