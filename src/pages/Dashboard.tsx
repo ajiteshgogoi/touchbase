@@ -176,7 +176,7 @@ const RecentContacts = () => {
                         </span>
                         {contact.contact_frequency && (
                           <span>
-                            <span className="text-gray-700 font-medium">Frequency:</span>{' '}
+                            <span className="text-gray-700 font-medium">Preferred frequency:</span>{' '}
                             <span className="text-gray-600">{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)}</span>
                           </span>
                         )}
