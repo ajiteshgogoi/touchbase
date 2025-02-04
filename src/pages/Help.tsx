@@ -110,7 +110,7 @@ export const Help = () => {
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-600 pt-4">
-          For bugs or feedback, please contact ajiteshgogoi@gmail.com
+          For bugs or feedback, please contact <a href="mailto:ajiteshgogoi@gmail.com" className="text-primary-500 hover:text-primary-600">ajiteshgogoi@gmail.com</a>
         </div>
       </div>
     </div>

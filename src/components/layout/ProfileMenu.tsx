@@ -84,6 +84,18 @@ export const ProfileMenu = () => {
             <Menu.Item>
               {({ active }) => (
                 <Link
+                  to="/help"
+                  className={`${
+                    active ? 'bg-primary-50 text-primary-600' : 'text-gray-700'
+                  } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                >
+                  How to Use
+                </Link>
+              )}
+            </Menu.Item>
+            <Menu.Item>
+              {({ active }) => (
+                <Link
                   to="/settings"
                   className={`${
                     active ? 'bg-primary-50 text-primary-600' : 'text-gray-700'
