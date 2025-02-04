@@ -37,7 +37,7 @@ export const Reminders = () => {
 
   const upcomingReminders = reminders?.filter((r: Reminder) => {
     const dueDate = dayjs(r.due_date);
-    return dueDate.isAfter(today, 'day');
+    return dueDate.isAfter(today) && !dueDate.isSame(today, 'day');
   }) || [];
 
   return (
@@ -57,11 +57,11 @@ export const Reminders = () => {
               <div className="p-2 bg-yellow-50 rounded-lg">
                 <CalendarIcon className="h-5 w-5 text-yellow-500" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900">Due Today</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Interactions Due Today</h2>
             </div>
             <div className="space-y-4">
               {dueTodayReminders.length === 0 ? (
-                <p className="text-sm text-gray-600">No reminders due today!</p>
+                <p className="text-sm text-gray-600">No interactions due today!</p>
               ) : (
                 dueTodayReminders.map((reminder) => (
                   <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">

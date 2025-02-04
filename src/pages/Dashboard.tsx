@@ -39,7 +39,7 @@ const DashboardMetrics = () => {
     }).length || 0,
     upcomingReminders: reminders?.filter((r: Reminder) => {
       const dueDate = dayjs(r.due_date);
-      return dueDate.isAfter(today, 'day');
+      return dueDate.isAfter(today) && !dueDate.isSame(today, 'day');
     }).length || 0,
   };
 
@@ -66,7 +66,7 @@ const DashboardMetrics = () => {
               <CalendarIcon className="h-8 w-8 text-yellow-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Due Today</p>
+              <p className="text-sm font-medium text-gray-600">Interactions Due Today</p>
               <p className="text-2xl font-semibold text-gray-900">{metrics.dueToday}</p>
             </div>
           </div>
