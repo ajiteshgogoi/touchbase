@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useStore } from '../stores/useStore';
 import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
 import { supabase } from '../lib/supabase/client';
+import { notificationService } from '../services/notifications';
 import type { UserPreferences, Database } from '../lib/supabase/types';
 import { CheckIcon } from '@heroicons/react/24/outline';
 
@@ -71,14 +72,30 @@ export const Settings = () => {
     }
   }, [preferences]);
 
+  useEffect(() => {
+    // Initialize notification service when component mounts
+    notificationService.initialize().catch(console.error);
+  }, []);
+
   const updatePreferencesMutation = useMutation({
     mutationFn: async (newSettings: NotificationSettings) => {
       if (!user?.id || !preferences?.id) throw new Error('No user ID or preferences ID');
 
+      // Handle notification permission
+      if (newSettings.notification_enabled) {
+        const hasPermission = await notificationService.checkPermission();
+        if (!hasPermission) {
+          throw new Error('Notification permission denied');
+        }
+        await notificationService.subscribeToPushNotifications(user.id);
+      } else {
+        await notificationService.unsubscribeFromPushNotifications(user.id);
+      }
+
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
-          id: preferences.id, // Include the ID for update
+          id: preferences.id,
           user_id: user.id,
           notification_enabled: newSettings.notification_enabled,
           theme: newSettings.theme
@@ -119,7 +136,7 @@ export const Settings = () => {
     }
   };
 
-  const handleNotificationChange = (newSettings: Partial<NotificationSettings>) => {
+  const handleNotificationChange = async (newSettings: Partial<NotificationSettings>) => {
     const updated = { ...notificationSettings, ...newSettings };
     setNotificationSettings(updated); // Optimistically update UI
     updatePreferencesMutation.mutate(updated);
@@ -222,7 +239,7 @@ export const Settings = () => {
                 Notifications
               </label>
               <p className="text-sm text-gray-600 mt-1">
-                Enable or disable push notifications
+                Get notified about your daily interactions
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">

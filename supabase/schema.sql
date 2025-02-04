@@ -39,6 +39,7 @@ create table public.reminders (
     type text not null check (type in ('call', 'message', 'social')),
     due_date timestamp with time zone not null,
     description text,
+    completed boolean default false,
     created_at timestamp with time zone default now()
 );
 
@@ -55,6 +56,15 @@ create table public.user_preferences (
     user_id uuid references auth.users not null unique,
     notification_enabled boolean default true,
     theme text check (theme in ('light', 'dark', 'system')) default 'system',
+    timezone text default 'UTC',
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
+);
+
+create table public.push_subscriptions (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null unique,
+    subscription jsonb not null,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
@@ -82,6 +92,7 @@ create index reminders_user_id_idx on public.reminders(user_id);
 create index reminders_due_date_idx on public.reminders(due_date);
 create index contact_processing_logs_date_idx on public.contact_processing_logs(processing_date);
 create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
+create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id);
 
 -- Enable Row Level Security
 alter table public.contacts enable row level security;
@@ -90,6 +101,7 @@ alter table public.reminders enable row level security;
 alter table public.user_preferences enable row level security;
 alter table public.subscriptions enable row level security;
 alter table public.contact_processing_logs enable row level security;
+alter table public.push_subscriptions enable row level security;
 
 -- Create policies
 create policy "Users can view their own contacts"
@@ -160,6 +172,23 @@ create policy "Users can view their own subscription"
     on public.subscriptions for select
     using (auth.uid() = user_id);
 
+create policy "Users can view their own push subscriptions"
+    on public.push_subscriptions for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own push subscriptions"
+    on public.push_subscriptions for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own push subscriptions"
+    on public.push_subscriptions for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Users can delete their own push subscriptions"
+    on public.push_subscriptions for delete
+    using (auth.uid() = user_id);
+
 -- Create functions
 create or replace function public.handle_updated_at()
 returns trigger
@@ -184,5 +213,10 @@ create trigger handle_user_preferences_updated_at
 
 create trigger handle_subscriptions_updated_at
     before update on public.subscriptions
+    for each row
+    execute function public.handle_updated_at();
+
+create trigger handle_push_subscriptions_updated_at
+    before update on public.push_subscriptions
     for each row
     execute function public.handle_updated_at();
