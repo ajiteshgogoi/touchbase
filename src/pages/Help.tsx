@@ -18,12 +18,14 @@ export const Help = () => {
       <div className="space-y-6">
         {/* Adding Contacts */}
         <div className="bg-white rounded-xl shadow-soft p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-primary-50 rounded-lg">
-              <UserPlusIcon className="h-6 w-6 text-primary-500" />
-            </div>
-            <div>
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <UserPlusIcon className="h-6 w-6 text-primary-500" />
+              </div>
               <h2 className="text-lg font-semibold text-gray-900">Adding Contacts</h2>
+            </div>
+            <div className="w-full">
               <div className="mt-2 text-gray-600 space-y-2">
                 <p>To add a new contact:</p>
                 <ol className="list-decimal list-inside space-y-1 ml-4">
@@ -41,12 +43,14 @@ export const Help = () => {
 
         {/* Logging Interactions */}
         <div className="bg-white rounded-xl shadow-soft p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-primary-50 rounded-lg">
-              <ChatBubbleLeftRightIcon className="h-6 w-6 text-primary-500" />
-            </div>
-            <div>
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <ChatBubbleLeftRightIcon className="h-6 w-6 text-primary-500" />
+              </div>
               <h2 className="text-lg font-semibold text-gray-900">Logging Interactions</h2>
+            </div>
+            <div className="w-full">
               <div className="mt-2 text-gray-600 space-y-2">
                 <p>Easily log your interactions in one tap:</p>
                 <ol className="list-decimal list-inside space-y-1 ml-4">
@@ -66,12 +70,14 @@ export const Help = () => {
 
         {/* Notifications */}
         <div className="bg-white rounded-xl shadow-soft p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-primary-50 rounded-lg">
-              <BellIcon className="h-6 w-6 text-primary-500" />
-            </div>
-            <div>
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <BellIcon className="h-6 w-6 text-primary-500" />
+              </div>
               <h2 className="text-lg font-semibold text-gray-900">Enabling Notifications</h2>
+            </div>
+            <div className="w-full">
               <div className="mt-2 text-gray-600 space-y-2">
                 <p>Stay on top of your relationships with notifications:</p>
                 <ol className="list-decimal list-inside space-y-1 ml-4">
@@ -91,12 +97,14 @@ export const Help = () => {
 
         {/* General Tips */}
         <div className="bg-white rounded-xl shadow-soft p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-primary-50 rounded-lg">
-              <LightBulbIcon className="h-6 w-6 text-primary-500" />
-            </div>
-            <div>
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <LightBulbIcon className="h-6 w-6 text-primary-500" />
+              </div>
               <h2 className="text-lg font-semibold text-gray-900">Tips for Success</h2>
+            </div>
+            <div className="w-full">
               <div className="mt-2 text-gray-600 space-y-2">
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>Set realistic contact frequencies based on your relationship with each person</li>
