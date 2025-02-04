@@ -52,7 +52,7 @@ const DashboardMetrics = () => {
               <UserGroupIcon className="h-8 w-8 text-primary-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Contacts</p>
+              <p className="text-sm font-medium text-gray-600">All Contacts</p>
               <p className="text-2xl font-semibold text-gray-900">{metrics.totalContacts}</p>
             </div>
           </div>
