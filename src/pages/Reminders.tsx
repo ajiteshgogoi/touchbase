@@ -43,7 +43,7 @@ export const Reminders = () => {
           </p>
         </div>
 
-        <div className="max-w-2xl">
+        <div className="w-full">
           <div className="flex items-center gap-2 mb-4">
             <div className="p-2 bg-primary-50 rounded-lg">
               <CalendarIcon className="h-5 w-5 text-primary-500" />
