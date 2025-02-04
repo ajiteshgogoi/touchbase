@@ -189,7 +189,7 @@ serve(async (req: Request) => {
           "5. Keep suggestions concise and impactful",
           "6. If no clear opportunities exist, return no suggestions",
           "",
-          "Provide ONLY the most impactful 1-2 suggestions, each on a new line starting with \"-\"."
+          "Provide ONLY the most impactful 1-2 suggestions, each on a new line starting with \"•\""
         ].join('\n');
 
         let suggestions;
@@ -260,7 +260,7 @@ serve(async (req: Request) => {
               'monthly': 30,
               'quarterly': 90
             }[frequency];
-            
+
             // Use the more frequent of the two options
             days = Math.min(baseIntervals[level], frequencyDays);
           }

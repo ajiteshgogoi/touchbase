@@ -60,22 +60,19 @@ export const Reminders = () => {
                     <div className="min-w-0 flex-1">
                       <div className="space-y-2.5">
                         <div className="flex flex-wrap gap-4 text-sm">
-                          <span>
-                            <span className="text-gray-700 font-medium">Contact:</span>{' '}
-                            <span className="text-gray-900">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
-                          </span>
+                          <span className="text-lg font-semibold text-gray-900">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm">
                           <span>
-                            <span className="text-gray-700 font-medium">Due:</span>{' '}
-                            <span className="text-gray-600">{dayjs(reminder.due_date).format('MMM D, YYYY')}</span>
+                            <span className="text-gray-700 font-medium">Contact due:</span>{' '}
+                            <span className="text-gray-600">{dayjs(reminder.due_date).fromNow()}</span>
                           </span>
                         </div>
                         {reminder.description && (
                           <div className="flex flex-wrap gap-4 text-sm">
                             <span>
                               <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                              <span className="text-primary-500 whitespace-pre-line">
+                              <span className="text-gray-600 whitespace-pre-line">
                                 {reminder.description}
                               </span>
                             </span>

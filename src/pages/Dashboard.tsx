@@ -123,7 +123,7 @@ const RecentContacts = () => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <h4 className="text-base font-semibold text-gray-900">{contact.name}</h4>
+                      <h3 className="text-lg font-semibold text-gray-900">{contact.name}</h3>
                       <div className="flex flex-wrap gap-2">
                         <Link
                           to={`/contacts/${contact.id}/edit`}
@@ -183,7 +183,7 @@ const RecentContacts = () => {
                         {contact.ai_last_suggestion && (
                           <span>
                             <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                            <span className="text-primary-500 whitespace-pre-line">
+                            <span className="text-gray-600 whitespace-pre-line">
                               {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
                             </span>
                           </span>
