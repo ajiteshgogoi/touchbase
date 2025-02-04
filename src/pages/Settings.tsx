@@ -1,5 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+const TIMEZONES = [
+  'UTC',
+  'America/New_York',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'America/Toronto',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Asia/Dubai',
+  'Asia/Kolkata',
+  'Asia/Singapore',
+  'Asia/Tokyo',
+  'Australia/Sydney',
+  'Pacific/Auckland'
+];
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import toast from 'react-hot-toast';
 import { useStore } from '../stores/useStore';
@@ -12,6 +30,7 @@ import { CheckIcon } from '@heroicons/react/24/outline';
 interface NotificationSettings {
   notification_enabled: boolean;
   theme: 'light' | 'dark' | 'system';
+  timezone: string;
 }
 
 type UserPreferencesUpsert = Database['public']['Tables']['user_preferences']['Insert'];
@@ -22,7 +41,8 @@ export const Settings = () => {
   const [selectedPlan] = useState(isPremium ? 'premium' : 'free');
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: true,
-    theme: 'light'
+    theme: 'light',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   });
 
   const { data: preferences } = useQuery({
@@ -42,7 +62,8 @@ export const Settings = () => {
           const defaultPreferences: UserPreferencesUpsert = {
             user_id: user.id,
             notification_enabled: true,
-            theme: 'light'
+            theme: 'light',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
           };
 
           const { data: newPrefs, error: insertError } = await supabase
@@ -67,7 +88,8 @@ export const Settings = () => {
     if (preferences) {
       setNotificationSettings({
         notification_enabled: preferences.notification_enabled,
-        theme: preferences.theme
+        theme: preferences.theme,
+        timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
       });
     }
   }, [preferences]);
@@ -98,7 +120,8 @@ export const Settings = () => {
           id: preferences.id,
           user_id: user.id,
           notification_enabled: newSettings.notification_enabled,
-          theme: newSettings.theme
+          theme: newSettings.theme,
+          timezone: newSettings.timezone
         }, {
           onConflict: 'id'
         });
@@ -119,7 +142,8 @@ export const Settings = () => {
       if (preferences) {
         setNotificationSettings({
           notification_enabled: preferences.notification_enabled,
-          theme: preferences.theme
+          theme: preferences.theme,
+          timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
         });
       }
     }
@@ -253,6 +277,29 @@ export const Settings = () => {
               />
               <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
             </label>
+          </div>
+
+          {/* Timezone Settings */}
+          <div className="flex flex-col">
+            <label className="text-gray-900 font-medium">
+              Timezone
+            </label>
+            <p className="text-sm text-gray-600 mt-1">
+              Set your timezone for daily notifications
+            </p>
+            <select
+              className="mt-2 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
+              value={notificationSettings.timezone}
+              onChange={(e) => handleNotificationChange({
+                timezone: e.target.value
+              })}
+            >
+              {TIMEZONES.map((zone: string) => (
+                <option key={zone} value={zone}>
+                  {zone.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
