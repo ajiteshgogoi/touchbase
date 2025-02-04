@@ -4,12 +4,15 @@ import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 type ContactFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
 type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
 
-// Calculate next contact date based on relationship level, contact frequency, and missed interactions
+// Calculate next contact date based on relationship level, contact frequency, missed interactions, and base date
 const getNextContactDate = (
   level: RelationshipLevel,
   frequency: ContactFrequency | null,
-  missedInteractions: number = 0
+  missedInteractions: number = 0,
+  baseDate?: Date | null
 ): Date => {
+  // Use provided base date, fall back to current date
+  const referenceDate = baseDate || new Date();
   // Base intervals in days
   const baseIntervals: Record<RelationshipLevel, number> = {
     1: 90,  // Acquaintance: ~3 months
@@ -44,8 +47,17 @@ const getNextContactDate = (
     days = reducedDays;
   }
 
-  const nextDate = new Date();
+  // Calculate next date from reference date
+  const nextDate = new Date(referenceDate);
   nextDate.setDate(nextDate.getDate() + days);
+
+  // If calculated date is in the past, recalculate from current date
+  const now = new Date();
+  if (nextDate <= now) {
+    nextDate.setTime(now.getTime());
+    nextDate.setDate(nextDate.getDate() + days);
+  }
+
   return nextDate;
 };
 
@@ -72,19 +84,22 @@ export const contactsService = {
   },
 
   async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
-    // Calculate initial next_contact_due based on relationship level and frequency
-    const nextContactDue = getNextContactDate(
-      contact.relationship_level as RelationshipLevel,
-      contact.contact_frequency as ContactFrequency | null
-    ).toISOString();
+   // Use last_contacted as base date if provided, otherwise use current date
+   const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
+   const nextContactDue = getNextContactDate(
+     contact.relationship_level as RelationshipLevel,
+     contact.contact_frequency as ContactFrequency | null,
+     0,
+     baseDate
+   ).toISOString();
 
-    const { data, error } = await supabase
-      .from('contacts')
-      .insert({
-        ...contact,
-        next_contact_due: nextContactDue,
-        missed_interactions: 0
-      })
+   const { data, error } = await supabase
+     .from('contacts')
+     .insert({
+       ...contact,
+       next_contact_due: nextContactDue,
+       missed_interactions: 0
+     })
       .select()
       .single();
     
@@ -93,17 +108,26 @@ export const contactsService = {
   },
 
   async updateContact(id: string, updates: Partial<Contact>): Promise<Contact> {
-    // If relationship level or frequency is being updated, recalculate next_contact_due
+    // Get current contact data for calculations
+    const contact = await this.getContact(id);
+    if (!contact) throw new Error('Contact not found');
+
     let updatedFields = { ...updates };
     
-    if (updates.relationship_level || updates.contact_frequency) {
-      const contact = await this.getContact(id);
-      if (contact) {
-        const level = (updates.relationship_level || contact.relationship_level) as RelationshipLevel;
-        const frequency = (updates.contact_frequency || contact.contact_frequency) as ContactFrequency | null;
-        const missedInteractions = contact.missed_interactions || 0;
-        updatedFields.next_contact_due = getNextContactDate(level, frequency, missedInteractions).toISOString();
-      }
+    // Recalculate next_contact_due if any relevant fields change
+    if (updates.relationship_level || updates.contact_frequency || updates.last_contacted) {
+      const level = (updates.relationship_level || contact.relationship_level) as RelationshipLevel;
+      const frequency = (updates.contact_frequency || contact.contact_frequency) as ContactFrequency | null;
+      const missedInteractions = contact.missed_interactions || 0;
+      const baseDate = updates.last_contacted ? new Date(updates.last_contacted) :
+                      contact.last_contacted ? new Date(contact.last_contacted) : null;
+      
+      updatedFields.next_contact_due = getNextContactDate(
+        level,
+        frequency,
+        missedInteractions,
+        baseDate
+      ).toISOString();
     }
 
     const { data, error } = await supabase
@@ -155,6 +179,7 @@ export const contactsService = {
   },
 
   async addInteraction(interaction: Omit<Interaction, 'id' | 'created_at'>): Promise<Interaction> {
+    // First insert the interaction
     const { data: interactionData, error: interactionError } = await supabase
       .from('interactions')
       .insert(interaction)
@@ -163,12 +188,25 @@ export const contactsService = {
     
     if (interactionError) throw interactionError;
 
-    // Reset missed_interactions counter since we had a successful interaction
+    // Get contact data for next_contact_due calculation
+    const contact = await this.getContact(interaction.contact_id);
+    if (!contact) throw new Error('Contact not found');
+
+    // Calculate next contact due date using interaction date as base
+    const nextContactDue = getNextContactDate(
+      contact.relationship_level as RelationshipLevel,
+      contact.contact_frequency as ContactFrequency | null,
+      0, // Reset missed interactions
+      new Date(interaction.date) // Use interaction date as base
+    );
+
+    // Update contact with new last_contacted, next_contact_due, and reset missed_interactions
     const { error: updateError } = await supabase
       .from('contacts')
       .update({
         missed_interactions: 0,
-        last_contacted: new Date().toISOString()
+        last_contacted: interaction.date,
+        next_contact_due: nextContactDue.toISOString()
       })
       .eq('id', interaction.contact_id);
 
@@ -240,10 +278,13 @@ export const contactsService = {
     if (!contact) throw new Error('Contact not found');
 
     const newMissedCount = (contact.missed_interactions || 0) + 1;
+    // For missed interactions, use last_contacted as base date if available
+    const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
     const nextContactDue = getNextContactDate(
       contact.relationship_level as RelationshipLevel,
       contact.contact_frequency as ContactFrequency | null,
-      newMissedCount
+      newMissedCount,
+      baseDate
     );
 
     const { error } = await supabase
