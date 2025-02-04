@@ -98,7 +98,7 @@ export const Help = () => {
                   <li>Use the notes section to record important details about your contacts (interests, important dates, recent events)</li>
                   <li>Log interactions right after they happen for better tracking</li>
                   <li>Check your dashboard regularly to see who you need to connect with</li>
-                  <li>Add personal context to notes to make future conversations more meaningful</li>
+                  <li>Add personal context in your notes to make future conversations more meaningful</li>
                 </ul>
                 <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
                   <strong>Remember:</strong> The goal is to maintain meaningful connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
