@@ -13,12 +13,14 @@ const FREE_PLAN: SubscriptionPlan = {
   id: 'free',
   name: 'free',
   price: 0,
-  contactLimit: 5,
+  contactLimit: 10,
   features: [
-    'Up to 5 contacts',
+    'Up to 10 contacts',
+    'Contact history',
+    'Push notifications',
     'Basic reminder system',
-    'Email notifications',
-    'Contact history'
+    '1-tap interaction logging',
+    'Intelligent rescheduling for missed interactions'
   ]
 };
 
@@ -27,13 +29,15 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'free',
     name: 'free',
     price: 0,
-    contactLimit: 5,
+    contactLimit: 10,
     features: [
-      'Up to 5 contacts',
+      'Up to 10 contacts',
+      'Contact history',
+      'Push notifications',
       'Basic reminder system',
-      'Email notifications',
-      'Contact history'
-    ]
+      '1-tap interaction logging',
+      'Intelligent rescheduling for missed interactions'
+        ]
   },
   {
     id: 'premium',
@@ -42,11 +46,15 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     contactLimit: Infinity,
     features: [
       'Unlimited contacts',
+      'Contact history',
+      'Push notifications',
+      'Basic reminder system',
+      '1-tap interaction logging',
+      'Intelligent rescheduling for missed interactions',
       'Advanced AI suggestions',
-      'Priority support',
-      'Custom reminder schedules',
       'Detailed analytics',
-      'Export data'
+      'Priority support'
+      
     ]
   }
 ];
