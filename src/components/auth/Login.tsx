@@ -58,7 +58,7 @@ export const Login = () => {
             Welcome to TouchBase
           </h2>
           <p className="text-gray-600">
-            Stay connected with the people who matter.
+            Stay connected with the people who matter most.
           </p>
         </div>
 
