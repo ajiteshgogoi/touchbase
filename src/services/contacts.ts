@@ -53,7 +53,7 @@ export const contactsService = {
     const { data, error } = await supabase
       .from('contacts')
       .select('*')
-      .order('name');
+      .order('created_at', { ascending: false });
     
     if (error) throw error;
     return data || [];
