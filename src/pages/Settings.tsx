@@ -40,7 +40,7 @@ export const Settings = () => {
   const queryClient = useQueryClient();
   const [selectedPlan] = useState(isPremium ? 'premium' : 'free');
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-    notification_enabled: true,
+    notification_enabled: false,
     theme: 'light',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   });
@@ -61,7 +61,7 @@ export const Settings = () => {
           // No preferences found, create default
           const defaultPreferences: UserPreferencesUpsert = {
             user_id: user.id,
-            notification_enabled: true,
+            notification_enabled: false,
             theme: 'light',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
           };
