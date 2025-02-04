@@ -15,7 +15,15 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
       </main>
       <footer className="text-center pt-2 pb-4 text-gray-600 text-sm">
-        © {new Date().getFullYear()} ajitesh gogoi
+        © {new Date().getFullYear()}{' '}
+        <a
+          href="https://ajiteshgogoi.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-primary-600 transition-colors duration-200"
+        >
+          ajitesh gogoi
+        </a>
       </footer>
     </div>
   );
