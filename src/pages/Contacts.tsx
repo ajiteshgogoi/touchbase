@@ -93,7 +93,7 @@ export const Contacts = () => {
         : (b[sortField] || 0) - (a[sortField] || 0);
     });
 
-  const contactLimit = isPremium ? Infinity : 5;
+  const contactLimit = isPremium ? Infinity : 7;
   const canAddMore = (contacts?.length || 0) < contactLimit;
 
   return (
