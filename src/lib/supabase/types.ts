@@ -40,7 +40,6 @@ export interface Reminder {
 export interface UserPreferences {
   id: string;
   user_id: string;
-  reminder_frequency: 'daily' | 'weekly' | 'monthly';
   notification_enabled: boolean;
   theme: 'light' | 'dark' | 'system';
   created_at: string;

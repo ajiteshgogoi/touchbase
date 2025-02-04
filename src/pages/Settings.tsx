@@ -10,7 +10,6 @@ import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface NotificationSettings {
   notification_enabled: boolean;
-  reminder_frequency: 'daily' | 'weekly' | 'monthly';
   theme: 'light' | 'dark' | 'system';
 }
 
@@ -22,7 +21,6 @@ export const Settings = () => {
   const [selectedPlan] = useState(isPremium ? 'premium' : 'free');
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: true,
-    reminder_frequency: 'weekly',
     theme: 'light'
   });
 
@@ -43,7 +41,6 @@ export const Settings = () => {
           const defaultPreferences: UserPreferencesUpsert = {
             user_id: user.id,
             notification_enabled: true,
-            reminder_frequency: 'weekly',
             theme: 'light'
           };
 
@@ -69,7 +66,6 @@ export const Settings = () => {
     if (preferences) {
       setNotificationSettings({
         notification_enabled: preferences.notification_enabled,
-        reminder_frequency: preferences.reminder_frequency,
         theme: preferences.theme
       });
     }
@@ -85,7 +81,6 @@ export const Settings = () => {
           id: preferences.id, // Include the ID for update
           user_id: user.id,
           notification_enabled: newSettings.notification_enabled,
-          reminder_frequency: newSettings.reminder_frequency,
           theme: newSettings.theme
         }, {
           onConflict: 'id'
@@ -107,7 +102,6 @@ export const Settings = () => {
       if (preferences) {
         setNotificationSettings({
           notification_enabled: preferences.notification_enabled,
-          reminder_frequency: preferences.reminder_frequency,
           theme: preferences.theme
         });
       }
@@ -242,26 +236,6 @@ export const Settings = () => {
               />
               <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
             </label>
-          </div>
-
-          <div>
-            <label className="block text-gray-900 font-medium">
-              Reminder Frequency
-            </label>
-            <p className="text-sm text-gray-600 mt-1 mb-2">
-              How often would you like to receive contact reminders?
-            </p>
-            <select
-              value={notificationSettings.reminder_frequency}
-              onChange={(e) => handleNotificationChange({
-                reminder_frequency: e.target.value as NotificationSettings['reminder_frequency']
-              })}
-              className="block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 transition-colors"
-            >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
           </div>
         </div>
       </div>

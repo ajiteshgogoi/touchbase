@@ -54,7 +54,6 @@ create table public.user_preferences (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid references auth.users not null unique,
     notification_enabled boolean default true,
-    reminder_frequency text check (reminder_frequency in ('daily', 'weekly', 'monthly')) default 'weekly',
     theme text check (theme in ('light', 'dark', 'system')) default 'system',
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
