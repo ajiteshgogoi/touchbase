@@ -43,7 +43,9 @@ export const signInWithGoogle = async () => {
         redirectTo: `${import.meta.env.VITE_APP_URL}/auth/callback`,
         queryParams: {
           access_type: 'offline', // This requests a refresh token from Google //
-          prompt: 'consent' // This ensures we always get a refresh token
+          prompt: 'consent', // This ensures we always get a refresh token
+          app_name: import.meta.env.VITE_APP_NAME, // Set the application name in consent screen
+          application_name: import.meta.env.VITE_APP_NAME // Alternative parameter for app name
         }
       },
     });
