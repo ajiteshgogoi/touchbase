@@ -13,9 +13,9 @@ const FREE_PLAN: SubscriptionPlan = {
   id: 'free',
   name: 'free',
   price: 0,
-  contactLimit: 10,
+  contactLimit: 7,
   features: [
-    'Up to 10 contacts',
+    'Up to 7 contacts',
     'Contact history',
     'Push notifications',
     'Basic reminder system',
@@ -29,9 +29,9 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'free',
     name: 'free',
     price: 0,
-    contactLimit: 10,
+    contactLimit: 7,
     features: [
-      'Up to 10 contacts',
+      'Up to 7 contacts',
       'Contact history',
       'Push notifications',
       'Basic reminder system',
