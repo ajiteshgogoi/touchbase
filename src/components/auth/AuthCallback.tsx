@@ -11,15 +11,15 @@ export const AuthCallback = () => {
     const handleAuthCallback = async () => {
       setIsLoading(true);
       try {
-        // Get tokens from URL fragment
-        const params = new URLSearchParams(window.location.hash.substring(1));
-        const idToken = params.get('id_token');
+        // Get authorization code from URL query parameters
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
         
-        if (!idToken) {
-          throw new Error('No ID token received from Google');
+        if (!code) {
+          throw new Error('No authorization code received from Google');
         }
 
-        const { session } = await handleCallback(idToken);
+        const { session } = await handleCallback(code);
 
         if (session?.user) {
           setUser(session.user);
