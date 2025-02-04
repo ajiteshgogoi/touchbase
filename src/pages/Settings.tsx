@@ -222,7 +222,7 @@ export const Settings = () => {
                 Notifications
               </label>
               <p className="text-sm text-gray-600 mt-1">
-                Enable or disable all notifications
+                Enable or disable push notifications
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
