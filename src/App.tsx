@@ -56,10 +56,56 @@ function App() {
     }
   };
 
+  // Separate notifications and timezone check
+  const checkNotificationsAndTimezone = async (userId: string) => {
+    try {
+      // Initialize notification service
+      await notificationService.initialize();
+      
+      // Check notification permission and get timezone
+      const hasPermission = await notificationService.checkPermission();
+      const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Update user preferences
+      const { data: prefs } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (prefs) {
+        // Update preferences if timezone changed or notifications granted
+        if (prefs.timezone !== currentTimezone || (hasPermission && !prefs.notification_enabled)) {
+          await supabase
+            .from('user_preferences')
+            .upsert({
+              id: prefs.id,
+              user_id: userId,
+              notification_enabled: hasPermission,
+              timezone: currentTimezone,
+              theme: prefs.theme
+            });
+        }
+      } else {
+        // Create initial preferences
+        await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: userId,
+            notification_enabled: hasPermission,
+            timezone: currentTimezone,
+            theme: 'light'
+          });
+      }
+    } catch (error) {
+      console.error('Error checking notifications and timezone:', error);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
-    // Initialize auth state and app settings
+    // Initialize auth state
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
@@ -70,51 +116,10 @@ function App() {
         // Set user immediately
         setUser(session?.user ?? null);
         
-        // If user exists, initialize notifications and check settings
+        // Check premium status in background if user exists
         if (session?.user) {
-          // Initialize notification service
-          await notificationService.initialize();
-          
-          // Check notification permission and update preferences if needed
-          const hasPermission = await notificationService.checkPermission();
-          
-          // Get current timezone
-          const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-          
-          // Update user preferences
-          const { data: prefs } = await supabase
-            .from('user_preferences')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-
-          if (prefs) {
-            // Update preferences if timezone changed or notifications granted
-            if (prefs.timezone !== currentTimezone || (hasPermission && !prefs.notification_enabled)) {
-              await supabase
-                .from('user_preferences')
-                .upsert({
-                  id: prefs.id,
-                  user_id: session.user.id,
-                  notification_enabled: hasPermission,
-                  timezone: currentTimezone,
-                  theme: prefs.theme
-                });
-            }
-          } else {
-            // Create initial preferences
-            await supabase
-              .from('user_preferences')
-              .insert({
-                user_id: session.user.id,
-                notification_enabled: hasPermission,
-                timezone: currentTimezone,
-                theme: 'light'
-              });
-          }
-          
-          // Check premium status
           checkPremiumStatus();
+          checkNotificationsAndTimezone(session.user.id);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -142,27 +147,8 @@ function App() {
         // Handle user state changes
         if (session?.user) {
           if (event === 'SIGNED_IN') {
-            // Initialize notification service
-            await notificationService.initialize();
-            
-            // Check notification permission and get timezone
-            const hasPermission = await notificationService.checkPermission();
-            const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            
-            // Update preferences on sign in
-            await supabase
-              .from('user_preferences')
-              .upsert({
-                user_id: session.user.id,
-                notification_enabled: hasPermission,
-                timezone: currentTimezone,
-                theme: 'light'
-              }, {
-                onConflict: 'user_id'
-              });
+            checkNotificationsAndTimezone(session.user.id);
           }
-          
-          // Always check premium status for authenticated users
           checkPremiumStatus();
         } else {
           setIsPremium(false);
