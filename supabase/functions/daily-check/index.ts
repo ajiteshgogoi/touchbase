@@ -182,7 +182,7 @@ serve(async (req: Request) => {
           `${(contact.interactions || []).map(i => `- ${i.type} (${i.sentiment || "neutral"})`).join('\n') || 'None'}`,
           "",
           "Rules for Suggestions:",
-          "1. Must be specific to their context and personal details - no generic advice",
+          "1. Must be specific to their context and personal details — no generic advice",
           "2. Must be actionable within 24-48 hours",
           "3. Must clearly contribute to relationship growth",
           "4. Each suggestion should start with \"[type: call/message/social]\"",
