@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const FIREBASE_PROJECT_ID = Deno.env.get('VITE_FIREBASE_PROJECT_ID');
-const FIREBASE_PRIVATE_KEY = Deno.env.get('VITE_FIREBASE_PRIVATE_KEY')?.replace(/\\n/g, '\n');
+const FIREBASE_PRIVATE_KEY = Deno.env.get('VITE_FIREBASE_PRIVATE_KEY');
 const FIREBASE_CLIENT_EMAIL = Deno.env.get('VITE_FIREBASE_CLIENT_EMAIL');
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -50,55 +50,44 @@ async function getFcmAccessToken(): Promise<string> {
   let jwt: string;
   
   try {
-    // Create JWT segments first
+    // Create JWT segments
     console.log('Creating JWT segments...');
-    const headerEncoded = base64UrlEncode(JSON.stringify(header));
-    const payloadEncoded = base64UrlEncode(JSON.stringify(payload));
-    const toSign = `${headerEncoded}.${payloadEncoded}`;
-    console.log('JWT segments created:', { headerEncoded, payloadEncoded });
+    const encode = (obj: any) => btoa(JSON.stringify(obj));
+    const message = `${encode(header)}.${encode(payload)}`;
+    console.log('JWT message created');
 
-    // Clean and validate private key
+    if (!FIREBASE_PRIVATE_KEY) {
+      throw new Error('Missing Firebase private key');
+    }
+
+    // Clean the private key - remove quotes if present and normalize newlines
     console.log('Processing private key...');
     const cleanedKey = FIREBASE_PRIVATE_KEY
-      .replace(/\\n/g, '\n')
-      .replace(/^\s+|\s+$/g, '');
-      
-    if (!cleanedKey.startsWith('-----BEGIN PRIVATE KEY-----') || !cleanedKey.endsWith('-----END PRIVATE KEY-----')) {
-      throw new Error('Invalid private key format');
-    }
+      .replace(/^"/, '')  // Remove leading quote if present
+      .replace(/"$/, '')  // Remove trailing quote if present
+      .replace(/\\n/g, '\n'); // Convert \n string to actual newlines
 
     // Extract base64 portion of the key
     const base64Key = cleanedKey
-      .replace('-----BEGIN PRIVATE KEY-----', '')
-      .replace('-----END PRIVATE KEY-----', '')
-      .replace(/\n/g, '')
-      .trim();
+      .replace('-----BEGIN PRIVATE KEY-----\n', '')
+      .replace('\n-----END PRIVATE KEY-----', '')
+      .replace(/\n/g, '');
 
-    console.log('Importing private key...');
-    const privateKey = await crypto.subtle.importKey(
-      'pkcs8',
-      new Uint8Array(atob(base64Key).split('').map(c => c.charCodeAt(0))),
-      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-      false,
-      ['sign']
-    );
-
-    // Sign the JWT
+    // Sign JWT Token using private key
     console.log('Signing JWT...');
-    const signature = await crypto.subtle.sign(
+    const signature = new Uint8Array(await crypto.subtle.sign(
       { name: 'RSASSA-PKCS1-v1_5' },
-      privateKey,
-      encoder.encode(toSign)
-    );
+      await crypto.subtle.importKey(
+        'pkcs8',
+        new Uint8Array(atob(base64Key).split('').map(c => c.charCodeAt(0))),
+        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        false,
+        ['sign']
+      ),
+      new TextEncoder().encode(message)
+    ));
 
-    // Convert signature to base64url
-    console.log('Converting signature to base64url...');
-    const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-    
-    jwt = `${headerEncoded}.${payloadEncoded}.${signatureBase64}`;
+    jwt = `${message}.${btoa(String.fromCharCode(...signature))}`;
     console.log('JWT created successfully');
 
   } catch (error) {
