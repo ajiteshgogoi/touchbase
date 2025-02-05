@@ -223,10 +223,24 @@ serve(async (req) => {
           url: '/reminders'
         };
 
-        console.log('Sending test notification:', notificationPayload);
+        const serializedPayload = JSON.stringify(notificationPayload);
+        console.log('Test notification details:', {
+          subscription: {
+            endpoint: subscription.endpoint,
+            keys: Object.keys(subscription.keys || {}),
+            auth: !!subscription.keys?.auth,
+            p256dh: !!subscription.keys?.p256dh
+          },
+          payload: serializedPayload,
+          vapidKey: VAPID_PUBLIC_KEY?.slice(0, 10) + '...'
+        });
+
         await webPush.sendNotification(
           subscription,
-          JSON.stringify(notificationPayload)
+          serializedPayload,
+          {
+            TTL: 60
+          }
         );
 
         return new Response(

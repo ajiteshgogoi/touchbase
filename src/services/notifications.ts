@@ -211,6 +211,11 @@ class NotificationService {
 
   async sendTestNotification(userId: string, message?: string): Promise<void> {
     try {
+      // First, force a fresh subscription
+      console.log('Forcing fresh subscription for test notification...');
+      await this.subscribeToPushNotifications(userId, true);
+      console.log('Fresh subscription created');
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
         method: 'POST',
         headers: {
