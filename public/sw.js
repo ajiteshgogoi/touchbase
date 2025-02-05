@@ -161,10 +161,18 @@ self.addEventListener('push', (event) => {
           }
         }
 
-        const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-        const { title, body, url } = data;
-
+        // Parse FCM message format
+        let data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+        
+        // FCM wraps notification data
+        const { notification, webpush } = data;
+        const { title, body } = notification;
+        const url = webpush?.fcm_options?.link || '/reminders';
+        
         console.log('[SW-Push] Parsed notification data:', { title, body, url });
+
+        const baseUrl = self.registration.scope.replace(/\/$/, '');
+        const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
         const options = {
           body,
@@ -172,7 +180,7 @@ self.addEventListener('push', (event) => {
           badge: '/icon-192.png',
           vibrate: [100, 50, 100],
           data: {
-            url,
+            url: fullUrl,
             dateOfArrival: Date.now(),
             primaryKey: 1
           },
@@ -266,16 +274,18 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
+  const url = event.notification.data.url || `${self.registration.scope}reminders`;
+
   // Handle action clicks
   if (event.action === 'open') {
     event.waitUntil(
-      clients.openWindow('/reminders')
+      clients.openWindow(url)
     );
     return;
   }
 
   // Default click behavior
   event.waitUntil(
-    clients.openWindow(event.notification.data.url || '/reminders')
+    clients.openWindow(url)
   );
 });
