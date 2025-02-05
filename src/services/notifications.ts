@@ -1,22 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 
-// Convert VAPID key to Uint8Array then to urlBase64
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
-
-const VAPID_PUBLIC_KEY = urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY);
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
@@ -211,7 +195,24 @@ class NotificationService {
 
   async sendTestNotification(userId: string, message?: string): Promise<void> {
     try {
-      // First, force a fresh subscription
+      // First ensure service worker is active
+      if (!this.swRegistration?.active) {
+        console.log('Service worker not active, initializing...');
+        await this.initialize();
+        // Wait for service worker to become active
+        if (this.swRegistration?.installing) {
+          await new Promise<void>((resolve) => {
+            this.swRegistration!.installing!.addEventListener('statechange', (e) => {
+              if ((e.target as ServiceWorker).state === 'activated') {
+                resolve();
+              }
+            });
+          });
+        }
+        console.log('Service worker activated');
+      }
+
+      // Then force a fresh subscription
       console.log('Forcing fresh subscription for test notification...');
       await this.subscribeToPushNotifications(userId, true);
       console.log('Fresh subscription created');
