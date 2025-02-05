@@ -5,6 +5,21 @@ const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
 
+  private urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
   async initialize(): Promise<void> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.warn('Push notifications are not supported');
@@ -77,11 +92,22 @@ class NotificationService {
       if (!subscription) {
         console.log('Creating new push subscription...');
         try {
+          console.log('Converting VAPID key...');
+          if (!VAPID_PUBLIC_KEY) {
+            throw new Error('VAPID_PUBLIC_KEY is not set');
+          }
+          const applicationServerKey = this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+          
+          console.log('Requesting push subscription with converted key...');
           subscription = await this.swRegistration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: VAPID_PUBLIC_KEY
+            applicationServerKey
           });
-          console.log('Successfully created new push subscription');
+          console.log('Successfully created new push subscription:', {
+            endpoint: subscription.endpoint,
+            auth: !!subscription.toJSON().keys?.auth,
+            p256dh: !!subscription.toJSON().keys?.p256dh
+          });
         } catch (subError) {
           console.error('Failed to create push subscription:', subError);
           // Check if permission was denied

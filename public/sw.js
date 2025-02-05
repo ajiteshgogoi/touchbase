@@ -1,10 +1,15 @@
 // Service Worker for TouchBase PWA
-console.log('Service Worker script starting', { timestamp: new Date().toISOString() });
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing service worker...', { timestamp: new Date().toISOString() });
+  self.skipWaiting(); // Ensure the service worker becomes active right away
+});
 
 let initialized = false;
 const debug = (...args) => {
   const timestamp = new Date().toISOString();
   console.log(`[SW ${timestamp}]`, ...args);
+  // Also log to browser console without formatting to ensure visibility
+  console.log('[SW-Raw]', ...args);
 };
 
 self.addEventListener('install', (event) => {
@@ -52,7 +57,11 @@ self.addEventListener('fetch', (event) => {
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
-  debug('Push event received', {
+  console.log('[SW-Push] Push event received');
+  console.log('[SW-Push] Event data:', event.data ? 'present' : 'missing');
+  
+  // Log the raw event for debugging
+  console.log('[SW-Push] Full event:', {
     hasData: !!event.data,
     timestamp: new Date().toISOString(),
     initialized,
@@ -68,22 +77,38 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     (async () => {
       try {
-        if (!initialized) {
-          debug('WARNING: Push event before service worker initialization');
-        }
-
         if (!event.data) {
-          debug('Warning: Push event has no data');
+          console.log('[SW-Push] No data in push event');
           return;
         }
 
-        const rawData = event.data.text();
-        debug('Raw push data:', rawData);
-        
-        const data = JSON.parse(rawData);
+        // Try different data formats
+        let rawData;
+        try {
+          rawData = event.data.text();
+          console.log('[SW-Push] Raw text data:', rawData);
+        } catch (textError) {
+          console.log('[SW-Push] Error getting text data:', textError);
+          try {
+            rawData = event.data.json();
+            console.log('[SW-Push] Raw JSON data:', rawData);
+          } catch (jsonError) {
+            console.log('[SW-Push] Error getting JSON data:', jsonError);
+            try {
+              const arrayBuffer = event.data.arrayBuffer();
+              rawData = new TextDecoder('utf-8').decode(arrayBuffer);
+              console.log('[SW-Push] ArrayBuffer data:', rawData);
+            } catch (bufferError) {
+              console.error('[SW-Push] All data extraction methods failed');
+              throw bufferError;
+            }
+          }
+        }
+
+        const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
         const { title, body, url } = data;
 
-        debug('Parsed push notification data:', { title, body, url });
+        console.log('[SW-Push] Parsed notification data:', { title, body, url });
 
         const options = {
           body,
@@ -104,43 +129,75 @@ self.addEventListener('push', (event) => {
           requireInteraction: true // Keep notification visible until user interacts
         };
 
-        debug('Checking notification permission:', Notification.permission);
-        
+        console.log('[SW-Push] Verifying prerequisites...');
+        console.log('[SW-Push] Notification permission:', Notification.permission);
+        console.log('[SW-Push] Service worker state:', {
+          active: !!self.registration.active,
+          installing: !!self.registration.installing,
+          waiting: !!self.registration.waiting
+        });
+
+        // Check notification permission
         if (Notification.permission !== 'granted') {
           throw new Error(`Notification permission not granted: ${Notification.permission}`);
         }
 
-        debug('About to display notification:', {
+        // Verify service worker is fully active
+        if (!self.registration.active) {
+          throw new Error('Service worker not active');
+        }
+
+        console.log('[SW-Push] Prerequisites verified, preparing to show notification');
+        console.log('[SW-Push] Notification details:', {
           title,
-          options,
-          registration: {
-            active: !!self.registration.active,
-            installing: !!self.registration.installing,
-            waiting: !!self.registration.waiting,
-            scope: self.registration.scope
+          body: options.body,
+          icon: options.icon,
+          actions: options.actions
+        });
+
+        try {
+          // Attempt to show the notification
+          await self.registration.showNotification(title, options);
+          console.log('[SW-Push] showNotification call successful');
+          
+          // Verify the notification was created
+          const activeNotifications = await self.registration.getNotifications();
+          console.log('[SW-Push] Active notifications after display:', {
+            count: activeNotifications.length,
+            titles: activeNotifications.map(n => n.title)
+          });
+
+          if (activeNotifications.length === 0) {
+            console.warn('[SW-Push] Warning: No active notifications found after display');
+          } else {
+            console.log('[SW-Push] Notification successfully verified');
           }
-        });
-
-        // Display the notification
-        await self.registration.showNotification(title, options);
-        debug('showNotification call completed');
-
-        // Verify the notification was created
-        const activeNotifications = await self.registration.getNotifications();
-        debug('Active notifications after display:', {
-          count: activeNotifications.length,
-          titles: activeNotifications.map(n => n.title)
-        });
+        } catch (notificationError) {
+          console.error('[SW-Push] Failed to show notification:', {
+            error: notificationError.toString(),
+            name: notificationError.name,
+            message: notificationError.message,
+            stack: notificationError.stack
+          });
+          throw notificationError;
+        }
       } catch (error) {
-        debug('Error handling push notification:', {
+        // Log detailed error information
+        console.error('[SW-Push] Fatal error in push handler:', {
+          errorType: error.constructor.name,
+          error: error.toString(),
           name: error.name,
           message: error.message,
           stack: error.stack,
-          registration: {
-            active: !!self.registration.active,
-            installing: !!self.registration.installing,
-            waiting: !!self.registration.waiting,
-            scope: self.registration.scope
+          state: {
+            initialized,
+            permission: Notification.permission,
+            registration: {
+              active: !!self.registration.active,
+              installing: !!self.registration.installing,
+              waiting: !!self.registration.waiting,
+              scope: self.registration.scope
+            }
           }
         });
         throw error; // Re-throw to ensure event.waitUntil knows the operation failed
