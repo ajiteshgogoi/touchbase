@@ -18,15 +18,6 @@ class NotificationService {
         }
       });
 
-      // First send Firebase config to ensure it's ready
-      if (navigator.serviceWorker.controller) {
-        const { firebaseConfig } = await import('../lib/firebase');
-        navigator.serviceWorker.controller.postMessage({
-          type: 'FIREBASE_CONFIG',
-          config: firebaseConfig
-        });
-      }
-
       // Register Firebase messaging service worker
       console.log('Registering Firebase messaging service worker...');
       try {

@@ -53,28 +53,29 @@ export async function getFcmToken(): Promise<string> {
     }
 
     // Ensure service worker is initialized with config first
-    if (navigator.serviceWorker?.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'FIREBASE_CONFIG',
-        config: firebaseConfig
-      });
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Service worker config timeout'));
+      }, 10000); // Increased timeout
 
-      // Wait for service worker to acknowledge config
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Service worker config timeout'));
-        }, 5000);
+      const handler = (event: MessageEvent) => {
+        if (event.data?.type === 'FIREBASE_CONFIG_ACK') {
+          navigator.serviceWorker.removeEventListener('message', handler);
+          clearTimeout(timeout);
+          resolve();
+        }
+      };
+      
+      navigator.serviceWorker.addEventListener('message', handler);
 
-        const handler = (event: MessageEvent) => {
-          if (event.data?.type === 'FIREBASE_CONFIG_ACK') {
-            navigator.serviceWorker.removeEventListener('message', handler);
-            clearTimeout(timeout);
-            resolve();
-          }
-        };
-        navigator.serviceWorker.addEventListener('message', handler);
+      // Broadcast to all service worker clients
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.active?.postMessage({
+          type: 'FIREBASE_CONFIG',
+          config: firebaseConfig
+        });
       });
-    }
+    });
 
     // Now get the token
     const currentToken = await getToken(messaging, { vapidKey });

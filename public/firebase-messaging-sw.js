@@ -27,39 +27,50 @@ self.addEventListener('message', (event) => {
   
   if (event.data?.type === 'FIREBASE_CONFIG') {
     try {
-      firebaseConfig = event.data.config;
-      
-      // Initialize Firebase once we have the config
-      firebase.initializeApp(firebaseConfig);
-      messaging = firebase.messaging();
-
-      // Set up background message handler
-      messaging.onBackgroundMessage((payload) => {
-        console.log('[FCM-SW] Received background message:', payload);
+      // Only initialize once
+      if (!messaging) {
+        firebaseConfig = event.data.config;
         
-        const notificationTitle = payload.notification.title;
-        const notificationOptions = {
-          body: payload.notification.body,
-          icon: '/icon-192.png',
-          badge: '/icon-192.png',
-          data: {
-            url: payload.data?.url || '/reminders'
-          }
-        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        messaging = firebase.messaging();
 
-        return self.registration.showNotification(notificationTitle, notificationOptions);
-      });
+        // Set up background message handler
+        messaging.onBackgroundMessage((payload) => {
+          console.log('[FCM-SW] Received background message:', payload);
+          
+          const notificationTitle = payload.notification.title;
+          const notificationOptions = {
+            body: payload.notification.body,
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            data: {
+              url: payload.data?.url || '/reminders'
+            }
+          };
 
-      // Acknowledge successful initialization
-      event.source?.postMessage({
-        type: 'FIREBASE_CONFIG_ACK'
+          return self.registration.showNotification(notificationTitle, notificationOptions);
+        });
+      }
+
+      // Acknowledge successful initialization - broadcast to all clients
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'FIREBASE_CONFIG_ACK'
+          });
+        });
       });
     } catch (error) {
       console.error('[FCM-SW] Failed to initialize:', error);
-      // Send error back to main app
-      event.source?.postMessage({
-        type: 'FIREBASE_CONFIG_ERROR',
-        error: error.message
+      // Broadcast error to all clients
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'FIREBASE_CONFIG_ERROR',
+            error: error.message
+          });
+        });
       });
     }
   } else if (event.data?.type === 'SHOW_NOTIFICATION') {
