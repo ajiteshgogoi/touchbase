@@ -47,62 +47,104 @@ async function getFcmAccessToken(): Promise<string> {
   console.log('JWT payload:', { ...payload, exp_in: payload.exp - now });
 
   const encoder = new TextEncoder();
-  const privateKey = await crypto.subtle.importKey(
-    'pkcs8',
-    new Uint8Array(atob(FIREBASE_PRIVATE_KEY.replace(/-----BEGIN PRIVATE KEY-----|\n|-----END PRIVATE KEY-----/g, '')).split('').map(c => c.charCodeAt(0))),
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
+  let jwt: string;
+  
   try {
+    // Create JWT segments first
     console.log('Creating JWT segments...');
-    // Create JWT segments
     const headerEncoded = base64UrlEncode(JSON.stringify(header));
     const payloadEncoded = base64UrlEncode(JSON.stringify(payload));
     const toSign = `${headerEncoded}.${payloadEncoded}`;
     console.log('JWT segments created:', { headerEncoded, payloadEncoded });
 
-    console.log('Signing JWT...');
+    // Clean and validate private key
+    console.log('Processing private key...');
+    const cleanedKey = FIREBASE_PRIVATE_KEY
+      .replace(/\\n/g, '\n')
+      .replace(/^\s+|\s+$/g, '');
+      
+    if (!cleanedKey.startsWith('-----BEGIN PRIVATE KEY-----') || !cleanedKey.endsWith('-----END PRIVATE KEY-----')) {
+      throw new Error('Invalid private key format');
+    }
+
+    // Extract base64 portion of the key
+    const base64Key = cleanedKey
+      .replace('-----BEGIN PRIVATE KEY-----', '')
+      .replace('-----END PRIVATE KEY-----', '')
+      .replace(/\n/g, '')
+      .trim();
+
+    console.log('Importing private key...');
+    const privateKey = await crypto.subtle.importKey(
+      'pkcs8',
+      new Uint8Array(atob(base64Key).split('').map(c => c.charCodeAt(0))),
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
     // Sign the JWT
+    console.log('Signing JWT...');
     const signature = await crypto.subtle.sign(
       { name: 'RSASSA-PKCS1-v1_5' },
       privateKey,
       encoder.encode(toSign)
     );
 
+    // Convert signature to base64url
     console.log('Converting signature to base64url...');
-    // Convert signature to base64url - handle binary data differently
     const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
     
-    const jwt = `${headerEncoded}.${payloadEncoded}.${signatureBase64}`;
+    jwt = `${headerEncoded}.${payloadEncoded}.${signatureBase64}`;
     console.log('JWT created successfully');
+
   } catch (error) {
-    console.error('Error in JWT generation:', {
+    console.error('JWT generation error:', {
       error,
       message: error.message,
       stack: error.stack,
       phase: 'JWT creation'
     });
-    throw new Error(`JWT generation failed: ${error.message}`);
+    throw error;
   }
 
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt
-    })
-  });
+  try {
+    // Get OAuth token
+    console.log('Requesting OAuth token...');
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwt
+      })
+    });
 
-  const data = await response.json();
-  return data.access_token;
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('OAuth token request failed:', {
+        status: response.status,
+        error: data
+      });
+      throw new Error(`OAuth token request failed: ${data.error_description || data.error || 'Unknown error'}`);
+    }
+
+    console.log('OAuth token obtained successfully');
+    return data.access_token;
+
+  } catch (error) {
+    console.error('OAuth token request error:', {
+      error,
+      message: error.message,
+      stack: error.stack
+    });
+    throw error;
+  }
 }
 
 // FCM notification sender
@@ -185,41 +227,67 @@ async function getDueRemindersCount(userId: string): Promise<number> {
   return reminders?.length || 0;
 }
 
-async function getUserTimeAndSubscription(userId: string) {
+async function getUserTimeAndSubscription(userId: string): Promise<{ timezone: string; username: string; fcmToken: string }> {
   console.log(`Fetching data for user ${userId}`);
 
-  // Get user preferences which includes timezone
-  const { data: prefs, error: prefsError } = await supabase
-    .from('user_preferences')
-    .select('timezone')
-    .eq('user_id', userId)
-    .single();
+  // Initialize with defaults
+  let timezone = 'UTC';
+  let fcmToken: string;
 
-  if (prefsError) {
-    console.error('Error fetching user preferences:', prefsError);
-    console.log('Using default timezone (UTC)');
+  try {
+    // Get user preferences which includes timezone
+    const { data: prefs, error: prefsError } = await supabase
+      .from('user_preferences')
+      .select('timezone')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (prefsError) {
+      console.error('Error fetching user preferences:', prefsError);
+      console.log('Using default timezone (UTC)');
+    } else if (prefs?.timezone) {
+      timezone = prefs.timezone;
+    }
+    
+    console.log('User preferences:', {
+      userId,
+      hasPrefs: !!prefs,
+      timezone
+    });
+  } catch (error) {
+    console.error('Error in preferences lookup:', error);
+    // Continue with default timezone
   }
 
-  // Get FCM token
-  const { data: subscription, error: subError } = await supabase
-    .from('push_subscriptions')
-    .select('fcm_token')
-    .eq('user_id', userId)
-    .single();
+  try {
+    // Get FCM token
+    const { data: subscription, error: subError } = await supabase
+      .from('push_subscriptions')
+      .select('fcm_token')
+      .eq('user_id', userId)
+      .maybeSingle();
 
-  if (subError) {
-    console.error('Error fetching FCM token:', subError);
-    throw new Error('Error fetching FCM token');
-  }
+    if (subError) {
+      console.error('Error fetching FCM token:', subError);
+      throw new Error(`Error fetching FCM token: ${subError.message}`);
+    }
 
-  if (!subscription?.fcm_token) {
-    throw new Error('No FCM token found');
+    if (!subscription?.fcm_token) {
+      throw new Error(`No FCM token found for user: ${userId}`);
+    }
+
+    fcmToken = subscription.fcm_token;
+    console.log('Successfully fetched FCM token for user:', userId);
+
+  } catch (error) {
+    console.error('Error in FCM token lookup:', error);
+    throw error;
   }
 
   const result = {
-    timezone: prefs?.timezone || 'UTC',
+    timezone,
     username: 'User',  // Generic username is fine since we don't use it for critical functionality
-    fcmToken: subscription.fcm_token
+    fcmToken
   };
 
   console.log('User data retrieved:', {
