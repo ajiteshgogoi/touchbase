@@ -235,33 +235,17 @@ serve(async (req) => {
           vapidKey: VAPID_PUBLIC_KEY?.slice(0, 10) + '...'
         });
 
-        const pushOptions = {
-          // TTL in seconds - keep lower for test notifications
-          TTL: 10,
-          vapidDetails: {
-            subject: 'mailto:ajiteshgogoi@gmail.com',
-            publicKey: VAPID_PUBLIC_KEY!,
-            privateKey: VAPID_PRIVATE_KEY!
-          },
-          // Critical for FCM endpoints
-          contentEncoding: 'aes128gcm',
-          headers: {
-            Urgency: 'high'
-          }
-        };
-        
-        console.log('Sending push notification with options:', {
-          ...pushOptions,
-          vapidDetails: {
-            ...pushOptions.vapidDetails,
-            privateKey: '[redacted]'
-          }
-        });
-
         const pushResponse = await webPush.sendNotification(
           subscription,
           serializedPayload,
-          pushOptions
+          {
+            TTL: 3600, // 1 hour
+            urgency: 'high',
+            topic: 'test-notification',
+            headers: {
+              'Content-Encoding': 'aes128gcm'
+            }
+          }
         );
         console.log('Push service response:', {
           status: pushResponse?.statusCode,
@@ -336,49 +320,52 @@ serve(async (req) => {
         vapidKeyExists: !!VAPID_PUBLIC_KEY
       });
 
+      try {
+        await webPush.setVapidDetails(
+          'mailto:ajiteshgogoi@gmail.com',
+          VAPID_PUBLIC_KEY,
+          VAPID_PRIVATE_KEY
+        );
+        console.log('VAPID details set successfully');
+      } catch (vapidError) {
+        console.error('VAPID setup error:', {
+          error: vapidError,
+          stack: vapidError.stack,
+          message: vapidError.message
+        });
+        throw vapidError;
+      }
+
       const notificationPayload = {
         title: 'TouchBase Reminder',
         body: `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`,
         url: '/reminders'
       };
 
-      console.log('Preparing to send notification...');
-      console.log('Subscription details:', {
+      console.log('Attempting to send notification...');
+      console.log('Subscription format:', {
         endpoint: subscription.endpoint,
         keys: Object.keys(subscription.keys || {}),
         expirationTime: subscription.expirationTime
       });
 
-      const pushOptions = {
-        TTL: 3600, // 1 hour
-        vapidDetails: {
-          subject: 'mailto:ajiteshgogoi@gmail.com',
-          publicKey: VAPID_PUBLIC_KEY!,
-          privateKey: VAPID_PRIVATE_KEY!
-        },
-        contentEncoding: 'aes128gcm',
-        headers: {
-          Urgency: 'high'
-        }
-      };
-
-      console.log('Push configuration:', {
-        ...pushOptions,
-        vapidDetails: {
-          ...pushOptions.vapidDetails,
-          privateKey: '[redacted]'
-        }
-      });
-
-      try {
-        const serializedPayload = JSON.stringify(notificationPayload);
-        console.log('Sending notification with payload:', serializedPayload);
-        
-        const pushResponse = await webPush.sendNotification(
-          subscription,
-          serializedPayload,
-          pushOptions
-        );
+      if (subscription) {
+        try {
+          const serializedPayload = JSON.stringify(notificationPayload);
+          console.log('Sending notification with payload:', serializedPayload);
+          
+          const pushResponse = await webPush.sendNotification(
+            subscription,
+            serializedPayload,
+            {
+              TTL: 3600, // 1 hour
+              urgency: 'high',
+              topic: 'reminder-notification',
+              headers: {
+                'Content-Encoding': 'aes128gcm'
+              }
+            }
+          );
           console.log('Push service response:', {
             status: pushResponse?.statusCode,
             headers: pushResponse?.headers,
