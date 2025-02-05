@@ -9,24 +9,6 @@ importScripts('https://www.gstatic.com/firebasejs/11.2.0/firebase-messaging-comp
 let firebaseConfig = null;
 let messaging = null;
 
-// Install event handler with skipWaiting
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...', { timestamp: new Date().toISOString() });
-  self.skipWaiting();
-});
-
-// Activate event - claim clients and enable navigation preload
-self.addEventListener('activate', event => {
-  console.log('[SW] Activating...');
-  event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      // Enable navigation preload if supported
-      self.registration.navigationPreload?.enable()
-    ])
-  );
-});
-
 // Use Workbox for PWA caching
 workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
 
@@ -64,20 +46,9 @@ self.addEventListener('error', (event) => {
 
 // Handle messages from the client
 self.addEventListener('message', (event) => {
-  console.log('[SW-Message] Received message:', event.data);
+  console.log('[FCM-SW] Received message:', event.data);
   
-  if (event.data?.type === 'SW_PING') {
-    console.log('[SW-Message] Received ping, sending response');
-    // Ensure we have a client to respond to
-    event.source?.postMessage({
-      type: 'SW_PING_RESPONSE',
-      timestamp: new Date().toISOString(),
-      state: {
-        active: self.registration.active?.state,
-        scope: self.registration.scope
-      }
-    });
-  } else if (event.data?.type === 'FIREBASE_CONFIG') {
+  if (event.data?.type === 'FIREBASE_CONFIG') {
     try {
       if (!firebaseConfig) {
         firebaseConfig = event.data.config;
