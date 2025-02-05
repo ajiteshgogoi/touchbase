@@ -1,6 +1,22 @@
 import { supabase } from '../lib/supabase/client';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+// Convert VAPID key to Uint8Array then to urlBase64
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+const VAPID_PUBLIC_KEY = urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY);
 
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
@@ -12,6 +28,13 @@ class NotificationService {
     }
 
     try {
+      // Unregister any existing service worker first
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) {
+        await registration.unregister();
+      }
+
+      // Register fresh service worker
       this.swRegistration = await navigator.serviceWorker.register('/sw.js');
       console.log('Service Worker registered');
     } catch (error) {
