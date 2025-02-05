@@ -22,18 +22,32 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Fetching users with active push subscriptions');
+    
     // Get all users who have push subscriptions
     const { data: users, error } = await supabase
       .from('push_subscriptions')
-      .select('user_id')
+      .select('user_id, subscription')
       .eq('subscription->>endpoint', null, { not: true });
 
     if (error) {
+      console.error('Error fetching users:', error);
       throw error;
     }
 
+    const userIds = users.map(u => u.user_id);
+    console.log(`Found ${userIds.length} users with active subscriptions`);
+    
+    // Log subscription details for debugging
+    users.forEach(user => {
+      const subscription = typeof user.subscription === 'string'
+        ? JSON.parse(user.subscription)
+        : user.subscription;
+      console.log(`User ${user.user_id} subscription endpoint: ${subscription?.endpoint || 'none'}`);
+    });
+
     return new Response(
-      JSON.stringify(users.map(u => u.user_id)),
+      JSON.stringify(userIds),
       {
         headers: { 'Content-Type': 'application/json' }
       }
