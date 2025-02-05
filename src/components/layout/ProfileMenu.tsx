@@ -3,7 +3,8 @@ import { Menu, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
 import { UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../../stores/useStore';
-import { signInWithGoogle, signOut } from '../../lib/supabase/client';
+import { signOut } from '../../lib/supabase/client';
+import { initiateGoogleLogin } from '../../lib/auth/google';
 
 export const ProfileMenu = () => {
   const { user } = useStore();
@@ -18,12 +19,12 @@ export const ProfileMenu = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     try {
       setIsLoading(true);
-      await signInWithGoogle();
+      initiateGoogleLogin();
     } catch (error) {
-      console.error('Error signing in with Google:', error);
+      console.error('Error initiating Google login:', error);
       setIsLoading(false);
     }
   };
