@@ -10,7 +10,7 @@ on:
 jobs:
   trigger-push-notifications:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # 15 minutes timeout
+    timeout-minutes: 30  # 30 minutes timeout
     steps:
       - name: Get all user IDs
         id: get-users
