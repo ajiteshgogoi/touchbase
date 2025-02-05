@@ -19,15 +19,22 @@ class NotificationService {
     }
   }
 
-  async subscribeToPushNotifications(userId: string): Promise<void> {
+  async subscribeToPushNotifications(userId: string, forceResubscribe = false): Promise<void> {
     if (!this.swRegistration) {
       throw new Error('Service Worker not registered');
     }
 
     try {
-      let subscription = await this.swRegistration.pushManager.getSubscription();
+      let subscription = !forceResubscribe && await this.swRegistration.pushManager.getSubscription();
       
       if (!subscription) {
+        // If forceResubscribe is true or no subscription exists, unsubscribe from any existing subscription
+        const existingSub = await this.swRegistration.pushManager.getSubscription();
+        if (existingSub) {
+          await existingSub.unsubscribe();
+        }
+
+        // Create new subscription
         subscription = await this.swRegistration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: VAPID_PUBLIC_KEY
@@ -40,7 +47,8 @@ class NotificationService {
         .upsert({
           user_id: userId,
           subscription: subscription.toJSON(),
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
         });
@@ -51,6 +59,29 @@ class NotificationService {
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
       throw error;
+    }
+  }
+
+  async resubscribeIfNeeded(userId: string): Promise<void> {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const data = await response.json();
+      
+      // If subscription is expired, force a resubscribe
+      if (data.error?.includes('resubscription required')) {
+        console.log('Push subscription expired, resubscribing...');
+        await this.subscribeToPushNotifications(userId, true);
+      }
+    } catch (error) {
+      console.error('Error checking push notification status:', error);
     }
   }
 

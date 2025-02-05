@@ -290,13 +290,32 @@ serve(async (req) => {
           // Record the notification
           await recordNotification(userId, currentWindow.type);
           console.log('Notification recorded in history');
-        } catch (pushError) {
+        } catch (pushError: any) {
           console.error('Send notification error:', {
             error: pushError,
             stack: pushError.stack,
             message: pushError.message,
-            name: pushError.name
+            name: pushError.name,
+            statusCode: pushError.statusCode
           });
+
+          // If subscription is expired/invalid (HTTP 410), delete it
+          if (pushError.statusCode === 410) {
+            console.log('Subscription expired, deleting...');
+            const { error: deleteError } = await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('user_id', userId);
+
+            if (deleteError) {
+              console.error('Error deleting expired subscription:', deleteError);
+            } else {
+              console.log('Expired subscription deleted successfully');
+            }
+
+            throw new Error('Push subscription expired - resubscription required');
+          }
+
           throw pushError;
         }
       }
