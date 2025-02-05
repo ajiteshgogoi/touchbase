@@ -52,9 +52,15 @@ export async function getFcmToken(): Promise<string> {
       throw new Error('VAPID key is not configured');
     }
 
-    // Ensure service worker is initialized with config first
-    if (!navigator.serviceWorker?.controller) {
-      throw new Error('Service worker not controlling the page');
+    // Wait for service worker to be ready
+    if (!navigator.serviceWorker?.ready) {
+      throw new Error('Service worker not ready');
+    }
+
+    // Wait for the service worker to be activated
+    const registration = await navigator.serviceWorker.ready;
+    if (!registration.active) {
+      throw new Error('Service worker not active');
     }
 
     // First ensure Firebase is initialized in the service worker
@@ -62,7 +68,7 @@ export async function getFcmToken(): Promise<string> {
     const configAckPromise = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Service worker config timeout'));
-      }, 10000);
+      }, 15000); // Increased timeout
 
       const handler = (event: MessageEvent) => {
         if (event.data?.type === 'FIREBASE_CONFIG_ACK') {
@@ -70,6 +76,8 @@ export async function getFcmToken(): Promise<string> {
           navigator.serviceWorker.removeEventListener('message', handler);
           clearTimeout(timeout);
           resolve();
+        } else if (event.data?.type === 'FIREBASE_CONFIG_ERROR') {
+          reject(new Error(`Service worker initialization failed: ${event.data.error}`));
         }
       };
 
@@ -77,7 +85,7 @@ export async function getFcmToken(): Promise<string> {
     });
 
     // Send config to service worker
-    navigator.serviceWorker.controller.postMessage({
+    registration.active.postMessage({
       type: 'FIREBASE_CONFIG',
       config: firebaseConfig
     });
