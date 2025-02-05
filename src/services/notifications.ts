@@ -18,6 +18,15 @@ class NotificationService {
         }
       });
 
+      // First send Firebase config to ensure it's ready
+      if (navigator.serviceWorker.controller) {
+        const { firebaseConfig } = await import('../lib/firebase');
+        navigator.serviceWorker.controller.postMessage({
+          type: 'FIREBASE_CONFIG',
+          config: firebaseConfig
+        });
+      }
+
       // Register Firebase messaging service worker
       console.log('Registering Firebase messaging service worker...');
       try {
@@ -28,49 +37,35 @@ class NotificationService {
         
         this.swRegistration = registration;
 
-        // Wait for service worker to become active
+        // Wait for service worker to become active with better error handling
         if (registration.installing || registration.waiting) {
           await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => {
               reject(new Error('Service worker activation timeout'));
-            }, 5000);
+            }, 10000); // Increased timeout
+
+            const checkActive = () => {
+              if (registration.active) {
+                clearTimeout(timeout);
+                resolve();
+              }
+            };
 
             registration.addEventListener('activate', () => {
-              clearTimeout(timeout);
-              resolve();
-            }, { once: true });
+              checkActive();
+            });
+
+            // Check immediately in case it's already active
+            checkActive();
           });
+        }
+
+        if (!registration.active) {
+          throw new Error('Service worker failed to activate');
         }
       } catch (error) {
         console.error('Service worker registration failed:', error);
         throw error;
-      }
-
-      // Wait for our service worker to be activated
-      if (!this.swRegistration) {
-        throw new Error('Failed to register service worker');
-      }
-
-      if (this.swRegistration.installing || this.swRegistration.waiting) {
-        await new Promise<void>((resolve) => {
-          const sw = this.swRegistration!.installing || this.swRegistration!.waiting;
-          if (!sw) {
-            resolve();
-            return;
-          }
-
-          sw.addEventListener('statechange', function listener(e) {
-            if ((e.target as ServiceWorker).state === 'activated') {
-              sw.removeEventListener('statechange', listener);
-              resolve();
-            }
-          });
-        });
-      }
-
-      // Double check registration is active
-      if (!this.swRegistration?.active) {
-        throw new Error('Service worker failed to activate');
       }
 
       console.log('Service worker successfully registered and activated');
