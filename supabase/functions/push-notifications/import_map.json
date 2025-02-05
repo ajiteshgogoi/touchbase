@@ -2,6 +2,6 @@
   "imports": {
     "std/": "https://deno.land/std@0.168.0/",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
-    "web-push": "https://esm.sh/web-push@3.5.0?target=deno"
+    "web-push": "https://esm.sh/v128/web-push@3.6.1?target=denonext&deno-std=0.168.0"
   }
 }
