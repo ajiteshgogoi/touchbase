@@ -1,43 +1,20 @@
-// Import Workbox
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
+// Give the service worker access to Firebase Messaging.
+// Note that you can only use Firebase Messaging here.
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
-// Import Firebase
-importScripts('https://www.gstatic.com/firebasejs/11.2.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/11.2.0/firebase-messaging-compat.js');
-
-// Store for Firebase config and messaging
+// Store for Firebase config
 let firebaseConfig = null;
 let messaging = null;
 
-// Use Workbox for PWA caching
-workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
-
-// Cache images
-workbox.routing.registerRoute(
-  ({request}) => request.destination === 'image',
-  new workbox.strategies.CacheFirst({
-    cacheName: 'images',
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 60,
-        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-      }),
-    ],
-  })
-);
-
-// Cache API responses
-workbox.routing.registerRoute(
-  ({url}) => url.pathname.startsWith('/api/'),
-  new workbox.strategies.NetworkFirst({
-    cacheName: 'api-cache',
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 50,
-      }),
-    ],
-  })
-);
+// Handle standard fetch events for PWA functionality
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
+});
 
 // Global error handler
 self.addEventListener('error', (event) => {
