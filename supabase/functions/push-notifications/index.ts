@@ -13,6 +13,15 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+function addCorsHeaders(headers: Headers = new Headers()) {
+  headers.set('Access-Control-Allow-Origin', '*');
+  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  headers.set('Access-Control-Max-Age', '86400');
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  return headers;
+}
+
 type NotificationType = 'morning' | 'afternoon' | 'evening';
 
 interface NotificationWindow {
@@ -182,13 +191,7 @@ async function shouldNotify(
 serve(async (req) => {
   try {
     if (req.method === 'OPTIONS') {
-      return new Response('ok', {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      });
+      return new Response('ok', { headers: addCorsHeaders() });
     }
 
     const url = new URL(req.url);
@@ -198,7 +201,10 @@ serve(async (req) => {
       if (!userId) {
         return new Response(
           JSON.stringify({ error: 'Missing user ID' }),
-          { status: 400 }
+          {
+            status: 400,
+            headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+          }
         );
       }
 
@@ -225,7 +231,9 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify({ message: 'Test notification sent successfully' }),
-          { headers: { 'Content-Type': 'application/json' } }
+          {
+            headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+          }
         );
       } catch (error) {
         console.error('Test notification error:', error);
@@ -266,7 +274,7 @@ serve(async (req) => {
             currentHour
           }
         }),
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
       );
     }
 
@@ -278,7 +286,7 @@ serve(async (req) => {
     if (!shouldSendNotification) {
       return new Response(
         JSON.stringify({ message: 'Notification already sent for this window' }),
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
       );
     }
 
@@ -376,13 +384,13 @@ serve(async (req) => {
         message: 'Notification sent successfully',
         window: currentWindow.type
       }),
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   } catch (error) {
     console.error('Push notification error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500 }
+      { status: 500, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   }
 });
