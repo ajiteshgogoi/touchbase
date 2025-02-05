@@ -249,7 +249,7 @@ serve(async (req) => {
 
       try {
         await webPush.setVapidDetails(
-          'mailto:admin@touchbase.com',
+          'mailto:ajiteshgogoi@gmail.com',
           VAPID_PUBLIC_KEY,
           VAPID_PRIVATE_KEY
         );
