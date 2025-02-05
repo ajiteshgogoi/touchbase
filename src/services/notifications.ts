@@ -27,39 +27,47 @@ class NotificationService {
     }
 
     try {
-      // Check for existing registrations
+      // Force update of service worker
+      console.log('Ensuring clean service worker state...');
       const registrations = await navigator.serviceWorker.getRegistrations();
-      
-      // Find an active service worker
-      const activeRegistration = registrations.find(
-        reg => reg.active && reg.active.scriptURL.endsWith('/sw.js')
-      );
-
-      if (activeRegistration) {
-        console.log('Using existing active service worker');
-        this.swRegistration = activeRegistration;
-      } else {
-        console.log('No active service worker found, registering new one');
-        // Only unregister if we need to
-        for (let registration of registrations) {
-          await registration.unregister();
-        }
-        
-        // Register fresh service worker
-        this.swRegistration = await navigator.serviceWorker.register('/sw.js');
-        
-        // Wait for the service worker to be activated
-        if (this.swRegistration.installing) {
-          await new Promise<void>((resolve) => {
-            this.swRegistration!.installing!.addEventListener('statechange', (e) => {
-              if ((e.target as ServiceWorker).state === 'activated') {
-                resolve();
-              }
-            });
-          });
-        }
-        console.log('New service worker registered and activated');
+      for (let registration of registrations) {
+        await registration.unregister();
       }
+      
+      console.log('Registering fresh service worker...');
+      this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none'
+      });
+
+      // Wait for the service worker to be activated
+      if (this.swRegistration.installing || this.swRegistration.waiting) {
+        await new Promise<void>((resolve) => {
+          const sw = this.swRegistration!.installing || this.swRegistration!.waiting;
+          if (!sw) {
+            resolve();
+            return;
+          }
+
+          sw.addEventListener('statechange', function listener(e) {
+            if ((e.target as ServiceWorker).state === 'activated') {
+              sw.removeEventListener('statechange', listener);
+              resolve();
+            }
+          });
+        });
+      }
+
+      // Double check registration is active
+      if (!this.swRegistration.active) {
+        throw new Error('Service worker failed to activate');
+      }
+
+      console.log('Service worker successfully registered and activated');
+      
+      // Extra verification of push capability
+      const subscription = await this.swRegistration.pushManager.getSubscription();
+      console.log('Initial push subscription state:', subscription ? 'exists' : 'none');
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
@@ -245,43 +253,54 @@ class NotificationService {
 
   async sendTestNotification(userId: string, message?: string): Promise<void> {
     try {
-      // First ensure service worker is active
+      console.log('Starting test notification sequence...');
+      
+      // First ensure fresh service worker registration
+      await this.initialize();
+      
       if (!this.swRegistration?.active) {
-        console.log('Service worker not active, initializing...');
-        await this.initialize();
-        // Wait for service worker to become active
-        if (this.swRegistration?.installing) {
-          await new Promise<void>((resolve) => {
-            this.swRegistration!.installing!.addEventListener('statechange', (e) => {
-              if ((e.target as ServiceWorker).state === 'activated') {
-                resolve();
-              }
-            });
-          });
-        }
-        console.log('Service worker activated');
+        throw new Error('Service worker failed to activate after initialization');
       }
-
-      // Then force a fresh subscription
-      console.log('Forcing fresh subscription for test notification...');
+      
+      // Verify push manager access
+      const pushManager = this.swRegistration.pushManager;
+      if (!pushManager) {
+        throw new Error('Push manager not available');
+      }
+      
+      // Create fresh subscription
+      console.log('Creating fresh push subscription...');
       await this.subscribeToPushNotifications(userId, true);
-      console.log('Fresh subscription created');
-
+      
+      // Verify subscription was created
+      const subscription = await pushManager.getSubscription();
+      if (!subscription) {
+        throw new Error('Failed to create push subscription');
+      }
+      
+      console.log('Subscription verified, sending test notification...');
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         },
-        body: JSON.stringify({ userId, message })
+        body: JSON.stringify({
+          userId,
+          message: message || 'This is a test notification'
+        })
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to send test notification');
+        throw new Error(data.error || 'Failed to send test notification');
       }
 
-      console.log('Test notification sent successfully');
+      console.log('Test notification sent successfully. If you do not see the notification, check:');
+      console.log('1. Browser notification permissions');
+      console.log('2. Service worker logs in DevTools > Application > Service Workers');
+      console.log('3. Network tab for the push notification request');
     } catch (error) {
       console.error('Failed to send test notification:', error);
       throw error;
