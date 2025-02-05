@@ -208,6 +208,32 @@ class NotificationService {
     const permission = await Notification.requestPermission();
     return permission === 'granted';
   }
+
+  async sendTestNotification(userId: string, message?: string): Promise<void> {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ userId, message })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send test notification');
+      }
+
+      console.log('Test notification sent successfully');
+    } catch (error) {
+      console.error('Failed to send test notification:', error);
+      throw error;
+    }
+  }
 }
 
 export const notificationService = new NotificationService();
+
+// Test in browser console:
+// await notificationService.sendTestNotification('your-user-id', 'Test message');

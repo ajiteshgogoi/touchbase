@@ -186,9 +186,51 @@ serve(async (req) => {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST',
-          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       });
+    }
+
+    const url = new URL(req.url);
+    if (url.pathname.endsWith('/test')) {
+      const { userId, message } = await req.json();
+      
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'Missing user ID' }),
+          { status: 400 }
+        );
+      }
+
+      const { timezone, username, subscription } = await getUserTimeAndSubscription(userId);
+
+      try {
+        await webPush.setVapidDetails(
+          'mailto:ajiteshgogoi@gmail.com',
+          VAPID_PUBLIC_KEY!,
+          VAPID_PRIVATE_KEY!
+        );
+
+        const notificationPayload = {
+          title: 'Test Notification',
+          body: message || 'This is a test notification',
+          url: '/reminders'
+        };
+
+        console.log('Sending test notification:', notificationPayload);
+        await webPush.sendNotification(
+          subscription,
+          JSON.stringify(notificationPayload)
+        );
+
+        return new Response(
+          JSON.stringify({ message: 'Test notification sent successfully' }),
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error('Test notification error:', error);
+        throw error;
+      }
     }
 
     if (!VAPID_PRIVATE_KEY || !VAPID_PUBLIC_KEY) {
