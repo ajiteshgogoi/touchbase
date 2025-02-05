@@ -109,13 +109,9 @@ class NotificationService {
       // Store token in Supabase
       const { error } = await supabase
         .from('push_subscriptions')
-        .upsert({
+        .insert({
           user_id: userId,
-          fcm_token: currentToken,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
+          fcm_token: currentToken
         });
 
       if (error) {
