@@ -2,8 +2,6 @@
   "imports": {
     "std/": "https://deno.land/std@0.168.0/",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
-    "firebase-admin": "https://cdn.skypack.dev/firebase-admin@11.10.1",
-    "firebase-admin/app": "https://cdn.skypack.dev/firebase-admin@11.10.1/app",
-    "firebase-admin/messaging": "https://cdn.skypack.dev/firebase-admin@11.10.1/messaging"
+    "firebase-admin": "npm:firebase-admin@11.11.1"
   }
 }
