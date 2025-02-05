@@ -73,6 +73,8 @@ serve(async (req: Request) => {
     // Tomorrow's date range for new reminders
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    tomorrow.setMinutes(-1);
     const tomorrowEnd = new Date(tomorrow);
     tomorrowEnd.setHours(23, 59, 59, 999);
 
