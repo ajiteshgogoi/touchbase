@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { initializeApp, cert } from "firebase/app";
-import { getMessaging } from "firebase/messaging";
+import { initializeApp, cert } from "https://cdn.skypack.dev/firebase-admin@11.10.1/app";
+import { getMessaging } from "https://cdn.skypack.dev/firebase-admin@11.10.1/messaging";
 
 const FIREBASE_SERVICE_ACCOUNT = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
