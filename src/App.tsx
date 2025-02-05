@@ -120,6 +120,18 @@ function App() {
             theme: 'light'
           });
       }
+
+      // Handle push notification subscription
+      if (hasPermission) {
+        try {
+          // First try to resubscribe if needed (handles expired subscriptions)
+          await notificationService.resubscribeIfNeeded(userId);
+        } catch (error) {
+          console.log('Error checking subscription, attempting fresh subscription:', error);
+          // If resubscribe check fails, try a fresh subscription
+          await notificationService.subscribeToPushNotifications(userId);
+        }
+      }
     } catch (error) {
       console.error('Error checking notifications and timezone:', error);
     }
