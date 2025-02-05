@@ -72,9 +72,13 @@ serve(async (req: Request) => {
 
     // Tomorrow's date range for new reminders
     const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setDate(tomorrow.getDate());  // Start from today to catch UTC conversions
+    tomorrow.setHours(12, 0, 0, 0);  // Start from noon UTC today
     const tomorrowEnd = new Date(tomorrow);
-    tomorrowEnd.setHours(23, 59, 59, 999);
+    tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);  // End 24h later
+    tomorrowEnd.setHours(12, 0, 0, 0);
+
+    console.log('Checking for tomorrow\'s contacts between:', tomorrow.toISOString(), 'and', tomorrowEnd.toISOString());
 
     // First, handle missed interactions from today
     const { data: missedContacts, error: missedError } = await supabaseClient
@@ -110,6 +114,7 @@ serve(async (req: Request) => {
         user_id,
         name,
         last_contacted,
+        next_contact_due,
         preferred_contact_method,
         relationship_level,
         contact_frequency,
@@ -125,8 +130,19 @@ serve(async (req: Request) => {
       .gte('next_contact_due', tomorrow.toISOString())
       .lte('next_contact_due', tomorrowEnd.toISOString());
 
-    if (contactsError) throw contactsError;
-    if (!contacts || contacts.length === 0) {
+    if (contactsError) {
+      console.error('Error fetching tomorrow\'s contacts:', contactsError);
+      throw contactsError;
+    }
+
+    console.log('Found contacts for tomorrow:', contacts?.length || 0);
+    if (contacts?.length) {
+      console.log('Contact due dates:', contacts.map(c => ({
+        id: c.id,
+        name: c.name,
+        next_contact_due: c.next_contact_due
+      })));
+    } else {
       return new Response(
         JSON.stringify({ message: 'No contacts need attention' }),
         {
@@ -138,12 +154,19 @@ serve(async (req: Request) => {
 
     // Get already processed contacts for tomorrow
     const tomorrowStr = tomorrow.toISOString().split('T')[0]; // Get date only
+    console.log('Checking processed contacts for date:', tomorrowStr);
+    
     const { data: processedContacts, error: processedError } = await supabaseClient
       .from('contact_processing_logs')
       .select('contact_id')
       .eq('processing_date', tomorrowStr);
 
-    if (processedError) throw processedError;
+    if (processedError) {
+      console.error('Error fetching processed contacts:', processedError);
+      throw processedError;
+    }
+
+    console.log('Found processed contacts:', processedContacts?.length || 0);
 
     // Filter out already processed contacts
     const processedContactIds = new Set((processedContacts || []).map(p => p.contact_id));
