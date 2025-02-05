@@ -7,24 +7,8 @@ importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-comp
 let firebaseConfig = null;
 let messaging = null;
 
-// Handle standard fetch events for PWA functionality
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
-
-// Global error handler
-self.addEventListener('error', (event) => {
-  console.error('[FCM-SW-Error] Global error:', event.error);
-});
-
-// Handle messages from the client
+// Listen for config message from main app
 self.addEventListener('message', (event) => {
-  console.log('[FCM-SW] Received message:', event.data);
-  
   if (event.data?.type === 'FIREBASE_CONFIG') {
     try {
       firebaseConfig = event.data.config;
@@ -35,7 +19,7 @@ self.addEventListener('message', (event) => {
 
       // Set up background message handler
       messaging.onBackgroundMessage((payload) => {
-        console.log('[FCM-SW] Received background message:', payload);
+        console.log('[firebase-messaging-sw.js] Received background message:', payload);
         
         const notificationTitle = payload.notification.title;
         const notificationOptions = {
@@ -55,27 +39,19 @@ self.addEventListener('message', (event) => {
         type: 'FIREBASE_CONFIG_ACK'
       });
     } catch (error) {
-      console.error('[FCM-SW] Failed to initialize:', error);
+      console.error('[firebase-messaging-sw.js] Failed to initialize:', error);
       // Send error back to main app
       event.source?.postMessage({
         type: 'FIREBASE_CONFIG_ERROR',
         error: error.message
       });
     }
-  } else if (event.data?.type === 'SHOW_NOTIFICATION') {
-    // Handle foreground notifications
-    const payload = event.data.payload;
-    self.registration.showNotification(payload.title, {
-      ...payload,
-      badge: payload.badge || '/icon-192.png',
-      icon: payload.icon || '/icon-192.png'
-    });
   }
 });
 
-// Handle notification clicks
+// Handle notification click
 self.addEventListener('notificationclick', (event) => {
-  console.log('[FCM-SW] Notification click:', event);
+  console.log('[firebase-messaging-sw.js] Notification click:', event);
   
   // Close the notification
   event.notification.close();

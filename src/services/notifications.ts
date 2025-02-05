@@ -18,29 +18,37 @@ class NotificationService {
         }
       });
 
-      // Register Firebase messaging service worker
-      console.log('Registering Firebase messaging service worker...');
+      // Register both service workers with proper error handling
+      console.log('Registering service workers...');
       try {
-        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        // First register Firebase messaging service worker
+        await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          updateViaCache: 'none'
+        });
+
+        // Then register our main service worker
+        const registration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
           updateViaCache: 'none'
         });
         
         this.swRegistration = registration;
 
-        // Wait for service worker to become active
-        if (registration.installing || registration.waiting) {
-          await new Promise<void>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              reject(new Error('Service worker activation timeout'));
-            }, 5000);
-
-            registration.addEventListener('activate', () => {
-              clearTimeout(timeout);
+        // Wait for any of the service workers to become active
+        await Promise.race([
+          new Promise<void>((resolve) => {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
               resolve();
             }, { once: true });
-          });
+          }),
+          new Promise<void>((resolve) => setTimeout(resolve, 3000)) // Timeout after 3s
+        ]);
+
+        // Double check we have an active controller
+        if (!navigator.serviceWorker.controller) {
+          throw new Error('Service worker failed to become active');
         }
+
       } catch (error) {
         console.error('Service worker registration failed:', error);
         throw error;
