@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import webPush from "https://esm.sh/web-push@3.6.7";
+import * as webPush from "https://esm.sh/web-push@3.5.0?target=deno";
 
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
 const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
@@ -130,26 +130,35 @@ function getCurrentWindow(hour: number): NotificationWindow | null {
 }
 
 async function shouldNotify(
-  userId: string, 
-  window: NotificationWindow, 
+  userId: string,
+  window: NotificationWindow,
   userTime: Date,
   dueCount: number
 ): Promise<boolean> {
   // Get the last notification time for this window type
   const lastNotification = await getLastNotificationTime(userId, window.type);
+  console.log(`Last notification for user ${userId}, window ${window.type}: ${lastNotification?.toISOString() || 'none'}`);
+
   if (!lastNotification) {
-    return true; // No previous notification, should notify
+    console.log(`No previous notification found for window ${window.type}, should notify`);
+    return true;
   }
 
   // Convert both dates to user's timezone for comparison
   const lastNotificationDay = lastNotification.getDate();
   const currentDay = userTime.getDate();
 
+  console.log(`Comparing days - Last notification: ${lastNotificationDay}, Current: ${currentDay}`);
+  console.log(`Window requires due reminders: ${window.requiresDueReminders}, Due count: ${dueCount}`);
+
   // If it's a different day and either:
   // 1. It's not requiring due reminders, or
   // 2. It is requiring due reminders and there are some
-  return lastNotificationDay !== currentDay && 
+  const should = lastNotificationDay !== currentDay &&
          (!window.requiresDueReminders || (window.requiresDueReminders && dueCount > 0));
+
+  console.log(`Should notify for window ${window.type}: ${should}`);
+  return should;
 }
 
 serve(async (req) => {
@@ -181,11 +190,22 @@ serve(async (req) => {
     const userTime = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
     const currentHour = userTime.getHours();
     
+    console.log(`Processing notification for user ${userId} - Time in ${timezone}: ${userTime.toISOString()} (Hour: ${currentHour})`);
+    
     // Find current notification window
     const currentWindow = getCurrentWindow(currentHour);
+    console.log(`Current window: ${currentWindow ? currentWindow.type : 'none'} (searching for hour ${currentHour})`);
+
     if (!currentWindow) {
       return new Response(
-        JSON.stringify({ message: 'No notification window available' }),
+        JSON.stringify({
+          message: 'No notification window available',
+          debug: {
+            timezone,
+            userTime: userTime.toISOString(),
+            currentHour
+          }
+        }),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -202,26 +222,31 @@ serve(async (req) => {
       );
     }
 
-    webPush.setVapidDetails(
-      'mailto:admin@touchbase.com',
-      VAPID_PUBLIC_KEY,
-      VAPID_PRIVATE_KEY
-    );
-
-    const notificationPayload = {
-      title: 'TouchBase Reminder',
-      body: `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`,
-      url: '/reminders'
-    };
-
-    if (subscription) {
-      await webPush.sendNotification(
-        subscription,
-        JSON.stringify(notificationPayload)
+    try {
+      webPush.setVapidDetails(
+        'mailto:admin@touchbase.com',
+        VAPID_PUBLIC_KEY,
+        VAPID_PRIVATE_KEY
       );
-      
-      // Record the notification
-      await recordNotification(userId, currentWindow.type);
+
+      const notificationPayload = {
+        title: 'TouchBase Reminder',
+        body: `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`,
+        url: '/reminders'
+      };
+
+      if (subscription) {
+        await webPush.sendNotification(
+          subscription,
+          JSON.stringify(notificationPayload)
+        );
+        
+        // Record the notification
+        await recordNotification(userId, currentWindow.type);
+      }
+    } catch (err) {
+      console.error('Web Push Error:', err);
+      throw new Error(`Failed to send push notification: ${err.message}`);
     }
 
     return new Response(

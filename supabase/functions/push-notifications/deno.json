@@ -1,11 +1,11 @@
 {
   "tasks": {
-    "serve": "deno run --allow-net --allow-env index.ts"
+    "serve": "deno run --allow-net --allow-env --allow-read index.ts"
   },
   "importMap": "./import_map.json",
   "compilerOptions": {
     "allowJs": true,
-    "lib": ["deno.window"],
+    "lib": ["deno.window", "deno.crypto"],
     "strict": true
   }
 }
