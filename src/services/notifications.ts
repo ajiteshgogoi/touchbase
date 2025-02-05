@@ -1,8 +1,24 @@
 import { supabase } from '../lib/supabase/client';
-import { getFcmToken, onTokenRefresh } from '../lib/firebase';
+
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
+
+  private urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
 
   async initialize(): Promise<void> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -24,24 +40,14 @@ class NotificationService {
       for (let registration of registrations) {
         await registration.unregister();
       }
+      
+      console.log('Registering fresh service worker...');
+      this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none'
+      });
 
-      // Register both Firebase and our own service worker
-      console.log('Registering service workers...');
-      await Promise.all([
-        navigator.serviceWorker.register('/firebase-messaging-sw.js'),
-        navigator.serviceWorker.register('/sw.js', {
-          scope: '/',
-          updateViaCache: 'none'
-        }).then(registration => {
-          this.swRegistration = registration;
-        })
-      ]);
-
-      // Wait for our service worker to be activated
-      if (!this.swRegistration) {
-        throw new Error('Failed to register service worker');
-      }
-
+      // Wait for the service worker to be activated
       if (this.swRegistration.installing || this.swRegistration.waiting) {
         await new Promise<void>((resolve) => {
           const sw = this.swRegistration!.installing || this.swRegistration!.waiting;
@@ -60,49 +66,15 @@ class NotificationService {
       }
 
       // Double check registration is active
-      if (!this.swRegistration?.active) {
+      if (!this.swRegistration.active) {
         throw new Error('Service worker failed to activate');
       }
 
       console.log('Service worker successfully registered and activated');
-
+      
       // Extra verification of push capability
       const subscription = await this.swRegistration.pushManager.getSubscription();
       console.log('Initial push subscription state:', subscription ? 'exists' : 'none');
-
-      // Set up FCM token refresh handler
-      onTokenRefresh(async (newToken: string) => {
-        console.log('FCM token refreshed, updating subscription...');
-        // Find all subscriptions in Supabase that point to the old token endpoint
-        const { data: subs } = await supabase
-          .from('push_subscriptions')
-          .select('user_id, subscription');
-
-        // Update each subscription with the new token
-        if (subs) {
-          for (const sub of subs) {
-            if (sub.subscription.endpoint.includes('fcm')) {
-              const updatedSubscription = {
-                endpoint: `https://fcm.googleapis.com/fcm/send/${newToken}`,
-                keys: {
-                  p256dh: 'FCM',
-                  auth: 'FCM'
-                }
-              };
-
-              await supabase
-                .from('push_subscriptions')
-                .upsert({
-                  user_id: sub.user_id,
-                  subscription: updatedSubscription,
-                  updated_at: new Date().toISOString()
-                }, {
-                  onConflict: 'user_id'
-                });
-            }
-          }
-        }
-      });
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
@@ -119,7 +91,7 @@ class NotificationService {
 
     try {
       console.log('Starting push notification subscription process...');
-
+      
       // Always check current subscription first
       const currentSubscription = await this.swRegistration.pushManager.getSubscription();
       console.log('Current subscription status:', currentSubscription ? 'exists' : 'none');
@@ -130,18 +102,36 @@ class NotificationService {
         console.log('Successfully unsubscribed from current subscription');
       }
 
-      // Get FCM token
-      console.log('Getting FCM token...');
-      const fcmToken = await getFcmToken();
-
-      // Create subscription object that matches our database schema
-      const subscription = {
-        endpoint: `https://fcm.googleapis.com/fcm/send/${fcmToken}`,
-        keys: {
-          p256dh: 'FCM',
-          auth: 'FCM'
+      let subscription = !forceResubscribe ? currentSubscription : null;
+      
+      if (!subscription) {
+        console.log('Creating new push subscription...');
+        try {
+          console.log('Converting VAPID key...');
+          if (!VAPID_PUBLIC_KEY) {
+            throw new Error('VAPID_PUBLIC_KEY is not set');
+          }
+          const applicationServerKey = this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+          
+          console.log('Requesting push subscription with converted key...');
+          subscription = await this.swRegistration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey
+          });
+          console.log('Successfully created new push subscription:', {
+            endpoint: subscription.endpoint,
+            auth: !!subscription.toJSON().keys?.auth,
+            p256dh: !!subscription.toJSON().keys?.p256dh
+          });
+        } catch (subError) {
+          console.error('Failed to create push subscription:', subError);
+          // Check if permission was denied
+          if (Notification.permission === 'denied') {
+            throw new Error('Push notification permission denied');
+          }
+          throw subError;
         }
-      };
+      }
 
       console.log('Storing subscription in Supabase...');
       // Store subscription in Supabase
@@ -149,7 +139,7 @@ class NotificationService {
         .from('push_subscriptions')
         .upsert({
           user_id: userId,
-          subscription,
+          subscription: subscription.toJSON(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }, {
@@ -201,7 +191,7 @@ class NotificationService {
       });
 
       const data = await response.json();
-
+      
       if (response.status === 500 && data.error?.includes('resubscription required')) {
         console.log('Server indicates subscription expired, creating new subscription...');
         // Unsubscribe from current subscription
@@ -271,10 +261,10 @@ class NotificationService {
   async sendTestNotification(userId: string, message?: string): Promise<void> {
     try {
       console.log('Starting test notification sequence...');
-
+      
       // First ensure fresh service worker registration
       await this.initialize();
-
+      
       if (!this.swRegistration?.active) {
         throw new Error('Service worker failed to activate after initialization');
       }
@@ -291,7 +281,7 @@ class NotificationService {
           }
         };
         navigator.serviceWorker.addEventListener('message', handler);
-
+        
         // Send ping to service worker if it's active
         if (this.swRegistration?.active) {
           this.swRegistration.active.postMessage({ type: 'SW_PING' });
@@ -311,17 +301,23 @@ class NotificationService {
       });
 
       await messagePromise;
-
+      
+      // Verify push manager access
+      const pushManager = this.swRegistration.pushManager;
+      if (!pushManager) {
+        throw new Error('Push manager not available');
+      }
+      
       // Create fresh subscription
       console.log('Creating fresh push subscription...');
       await this.subscribeToPushNotifications(userId, true);
-
-      // Verify FCM token
-      const fcmToken = await getFcmToken();
-      if (!fcmToken) {
-        throw new Error('Failed to get FCM token');
+      
+      // Verify subscription was created
+      const subscription = await pushManager.getSubscription();
+      if (!subscription) {
+        throw new Error('Failed to create push subscription');
       }
-
+      
       console.log('Subscription verified, sending test notification...');
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
         method: 'POST',
@@ -331,12 +327,12 @@ class NotificationService {
         },
         body: JSON.stringify({
           userId,
-          message: message || 'Test notification message'
+          message: message || 'This is a test notification'
         })
       });
 
       const data = await response.json();
-
+      
       if (!response.ok) {
         throw new Error(data.error || 'Failed to send test notification');
       }

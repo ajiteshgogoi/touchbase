@@ -1,25 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { initializeApp, cert } from "firebase/app";
-import { getMessaging } from "firebase/messaging";
+import * as webPush from "https://esm.sh/v128/web-push@3.6.1?target=denonext&deno-std=0.168.0";
 
-const FIREBASE_SERVICE_ACCOUNT = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
+const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY');
+const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !FIREBASE_SERVICE_ACCOUNT) {
-  throw new Error('Missing required environment variables');
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('Missing Supabase environment variables');
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-// Initialize Firebase Admin
-const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
-initializeApp({
-  credential: cert(serviceAccount)
-});
-
-const messaging = getMessaging();
 
 function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
@@ -30,14 +22,170 @@ function addCorsHeaders(headers: Headers = new Headers()) {
   return headers;
 }
 
-// Extract FCM token from subscription endpoint
-function getFcmToken(subscription: any) {
-  const endpoint = subscription.endpoint;
-  const fcmTokenMatch = endpoint.match(/\/send\/(.+)$/);
-  if (!fcmTokenMatch) {
-    throw new Error('Invalid FCM endpoint format');
+type NotificationType = 'morning' | 'afternoon' | 'evening';
+
+interface NotificationWindow {
+  type: NotificationType;
+  hour: number;
+  requiresDueReminders: boolean;
+}
+
+const NOTIFICATION_WINDOWS: NotificationWindow[] = [
+  { type: 'morning', hour: 9, requiresDueReminders: false },
+  { type: 'afternoon', hour: 14, requiresDueReminders: true },
+  { type: 'evening', hour: 19, requiresDueReminders: true }
+];
+
+async function getDueRemindersCount(userId: string): Promise<number> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { data: reminders, error } = await supabase
+    .from('reminders')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('completed', false)
+    .lte('due_date', today.toISOString());
+
+  if (error) {
+    console.error('Error fetching reminders:', error);
+    return 0;
   }
-  return fcmTokenMatch[1];
+
+  return reminders?.length || 0;
+}
+
+async function getUserTimeAndSubscription(userId: string) {
+  console.log(`Fetching data for user ${userId}`);
+
+  // Get user preferences which includes timezone
+  const { data: prefs, error: prefsError } = await supabase
+    .from('user_preferences')
+    .select('timezone')
+    .eq('user_id', userId)
+    .single();
+
+  if (prefsError) {
+    console.error('Error fetching user preferences:', prefsError);
+    console.log('Using default timezone (UTC)');
+  }
+
+  // Get push subscription
+  const { data: subscription, error: subError } = await supabase
+    .from('push_subscriptions')
+    .select('subscription')
+    .eq('user_id', userId)
+    .single();
+
+  if (subError) {
+    console.error('Error fetching subscription:', subError);
+    throw new Error('Error fetching subscription');
+  }
+
+  if (!subscription) {
+    throw new Error('No subscription found');
+  }
+
+  const result = {
+    timezone: prefs?.timezone || 'UTC',
+    username: 'User',  // Generic username is fine since we don't use it for critical functionality
+    subscription: subscription.subscription
+  };
+
+  console.log('User data retrieved:', {
+    userId,
+    timezone: result.timezone,
+    hasSubscription: !!result.subscription
+  });
+
+  return result;
+}
+
+async function getLastNotificationTime(userId: string, type: NotificationType): Promise<Date | null> {
+  const { data, error } = await supabase
+    .from('notification_history')
+    .select('sent_at')
+    .eq('user_id', userId)
+    .eq('notification_type', type)
+    .order('sent_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return new Date(data.sent_at);
+}
+
+async function recordNotification(userId: string, type: NotificationType): Promise<void> {
+  const { error } = await supabase
+    .from('notification_history')
+    .insert({
+      user_id: userId,
+      notification_type: type,
+      sent_at: new Date().toISOString()
+    });
+
+  if (error) {
+    console.error('Error recording notification:', error);
+  }
+}
+
+function getCurrentWindow(hour: number): NotificationWindow | null {
+  // Check current hour's window
+  const currentWindow = NOTIFICATION_WINDOWS.find(w => w.hour === hour);
+  if (currentWindow) {
+    return currentWindow;
+  }
+
+  // Find the most recent passed window
+  const passedWindows = NOTIFICATION_WINDOWS
+    .filter(w => w.hour < hour)
+    .sort((a, b) => b.hour - a.hour);
+  
+  if (passedWindows.length > 0) {
+    return passedWindows[0];
+  }
+
+  // If no windows have passed today, return the last window from yesterday
+  if (hour < NOTIFICATION_WINDOWS[0].hour) {
+    return NOTIFICATION_WINDOWS[NOTIFICATION_WINDOWS.length - 1];
+  }
+
+  return null;
+}
+
+async function shouldNotify(
+  userId: string,
+  window: NotificationWindow,
+  userTime: Date,
+  dueCount: number
+): Promise<boolean> {
+  // Get the last notification time for this window type
+  const lastNotification = await getLastNotificationTime(userId, window.type);
+  console.log(`Last notification for user ${userId}, window ${window.type}: ${lastNotification?.toISOString() || 'none'}`);
+
+  if (!lastNotification) {
+    console.log(`No previous notification found for window ${window.type}, should notify`);
+    return true;
+  }
+
+  // Convert both dates to user's timezone for comparison
+  const lastNotificationDay = lastNotification.getDate();
+  const currentDay = userTime.getDate();
+
+  console.log(`Comparing days - Last notification: ${lastNotificationDay}, Current: ${currentDay}`);
+  console.log(`Window requires due reminders: ${window.requiresDueReminders}, Due count: ${dueCount}`);
+
+  // If it's a different day and either:
+  // 1. It's not requiring due reminders, or
+  // 2. It is requiring due reminders and there are some
+  const should = lastNotificationDay !== currentDay &&
+         (!window.requiresDueReminders || (window.requiresDueReminders && dueCount > 0));
+
+  console.log(`Should notify for window ${window.type}: ${should}`);
+  return should;
 }
 
 serve(async (req) => {
@@ -60,40 +208,50 @@ serve(async (req) => {
         );
       }
 
-      const { data: subscription, error: subError } = await supabase
-        .from('push_subscriptions')
-        .select('subscription')
-        .eq('user_id', userId)
-        .single();
-
-      if (subError || !subscription) {
-        throw new Error('No subscription found');
-      }
+      const { timezone, username, subscription } = await getUserTimeAndSubscription(userId);
 
       try {
-        // Get FCM token from subscription endpoint
-        const fcmToken = getFcmToken(subscription.subscription);
+        await webPush.setVapidDetails(
+          'mailto:ajiteshgogoi@gmail.com',
+          VAPID_PUBLIC_KEY!,
+          VAPID_PRIVATE_KEY!
+        );
 
-        // Send test notification via FCM
         const notificationPayload = {
-          notification: {
-            title: 'Test Notification',
-            body: message || 'This is a test notification'
-          },
-          webpush: {
-            fcmOptions: {
-              link: '/reminders'
-            }
-          }
+          title: 'Test Notification',
+          body: message || 'This is a test notification',
+          url: '/reminders'
         };
 
-        console.log('Sending FCM message to token:', fcmToken);
-        const response = await messaging.send({
-          token: fcmToken,
-          ...notificationPayload
+        const serializedPayload = JSON.stringify(notificationPayload);
+        console.log('Test notification details:', {
+          subscription: {
+            endpoint: subscription.endpoint,
+            keys: Object.keys(subscription.keys || {}),
+            auth: !!subscription.keys?.auth,
+            p256dh: !!subscription.keys?.p256dh
+          },
+          payload: serializedPayload,
+          vapidKey: VAPID_PUBLIC_KEY?.slice(0, 10) + '...'
         });
 
-        console.log('FCM response:', response);
+        const pushResponse = await webPush.sendNotification(
+          subscription,
+          serializedPayload,
+          {
+            TTL: 3600, // 1 hour
+            urgency: 'high',
+            topic: 'test-notification',
+            headers: {
+              'Content-Encoding': 'aes128gcm',
+              'Content-Type': 'application/octet-stream'
+            }
+          }
+        );
+        console.log('Push service response:', {
+          status: pushResponse?.statusCode,
+          headers: pushResponse?.headers
+        });
 
         return new Response(
           JSON.stringify({ message: 'Test notification sent successfully' }),
@@ -107,115 +265,169 @@ serve(async (req) => {
       }
     }
 
+    if (!VAPID_PRIVATE_KEY || !VAPID_PUBLIC_KEY) {
+      throw new Error('Missing VAPID keys');
+    }
+
     const { userId } = await req.json();
 
     if (!userId) {
       return new Response(
         JSON.stringify({ error: 'Missing user ID' }),
-        { 
-          status: 400,
-          headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-        }
+        { status: 400 }
       );
     }
 
-    // Get user data and subscription
-    const { data: userPrefs } = await supabase
-      .from('user_preferences')
-      .select('timezone')
-      .eq('user_id', userId)
-      .single();
-
-    const { data: subscription, error: subError } = await supabase
-      .from('push_subscriptions')
-      .select('subscription')
-      .eq('user_id', userId)
-      .single();
-
-    if (subError || !subscription) {
-      throw new Error('No subscription found');
-    }
-
-    const timezone = userPrefs?.timezone || 'UTC';
+    const { timezone, username, subscription } = await getUserTimeAndSubscription(userId);
     const userTime = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
     const currentHour = userTime.getHours();
+    
+    console.log(`Processing notification for user ${userId} - Time in ${timezone}: ${userTime.toISOString()} (Hour: ${currentHour})`);
+    
+    // Find current notification window
+    const currentWindow = getCurrentWindow(currentHour);
+    console.log(`Current window: ${currentWindow ? currentWindow.type : 'none'} (searching for hour ${currentHour})`);
 
-    // Get due reminders count
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const { data: reminders, error: reminderError } = await supabase
-      .from('reminders')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('completed', false)
-      .lte('due_date', today.toISOString());
-
-    if (reminderError) {
-      throw new Error('Failed to fetch reminders');
-    }
-
-    const dueCount = reminders?.length || 0;
-
-    try {
-      // Get FCM token from subscription endpoint
-      const fcmToken = getFcmToken(subscription.subscription);
-
-      // Send notification via FCM
-      const notificationPayload = {
-        notification: {
-          title: 'TouchBase Reminder',
-          body: `You have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`
-        },
-        webpush: {
-          fcmOptions: {
-            link: '/reminders'
-          }
-        }
-      };
-
-      console.log('Sending FCM message to token:', fcmToken);
-      const response = await messaging.send({
-        token: fcmToken,
-        ...notificationPayload
-      });
-
-      console.log('FCM response:', response);
-
+    if (!currentWindow) {
       return new Response(
-        JSON.stringify({ 
-          message: 'Notification sent successfully',
-          fcmMessageId: response
+        JSON.stringify({
+          message: 'No notification window available',
+          debug: {
+            timezone,
+            userTime: userTime.toISOString(),
+            currentHour
+          }
         }),
         { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
       );
-    } catch (err) {
-      console.error('Push notification error:', err);
-      
-      // If the token is invalid/expired, delete the subscription
-      if (err.code === 'messaging/registration-token-not-registered') {
-        console.log('FCM token expired, deleting subscription...');
-        const { error: deleteError } = await supabase
-          .from('push_subscriptions')
-          .delete()
-          .eq('user_id', userId);
+    }
 
-        if (deleteError) {
-          console.error('Error deleting expired subscription:', deleteError);
-        }
-        throw new Error('Push subscription expired - resubscription required');
+    const dueCount = await getDueRemindersCount(userId);
+    
+    // Check if we should send a notification
+    const shouldSendNotification = await shouldNotify(userId, currentWindow, userTime, dueCount);
+    
+    if (!shouldSendNotification) {
+      return new Response(
+        JSON.stringify({ message: 'Notification already sent for this window' }),
+        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      );
+    }
+
+    try {
+      console.log('Setting VAPID details with subscription:', {
+        endpoint: subscription.endpoint,
+        keys: !!subscription.keys,
+        vapidKeyExists: !!VAPID_PUBLIC_KEY
+      });
+
+      try {
+        await webPush.setVapidDetails(
+          'mailto:ajiteshgogoi@gmail.com',
+          VAPID_PUBLIC_KEY,
+          VAPID_PRIVATE_KEY
+        );
+        console.log('VAPID details set successfully');
+      } catch (vapidError) {
+        console.error('VAPID setup error:', {
+          error: vapidError,
+          stack: vapidError.stack,
+          message: vapidError.message
+        });
+        throw vapidError;
       }
 
-      throw err;
+      const notificationPayload = {
+        title: 'TouchBase Reminder',
+        body: `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`,
+        url: '/reminders'
+      };
+
+      console.log('Attempting to send notification...');
+      console.log('Subscription format:', {
+        endpoint: subscription.endpoint,
+        keys: Object.keys(subscription.keys || {}),
+        expirationTime: subscription.expirationTime
+      });
+
+      if (subscription) {
+        try {
+          const serializedPayload = JSON.stringify(notificationPayload);
+          console.log('Sending notification with payload:', serializedPayload);
+          
+          const pushResponse = await webPush.sendNotification(
+            subscription,
+            serializedPayload,
+            {
+              TTL: 3600, // 1 hour
+              urgency: 'high',
+              topic: 'reminder-notification',
+              headers: {
+                'Content-Encoding': 'aes128gcm',
+                'Content-Type': 'application/octet-stream'
+              }
+            }
+          );
+          console.log('Push service response:', {
+            status: pushResponse?.statusCode,
+            headers: pushResponse?.headers,
+            success: pushResponse?.statusCode === 201
+          });
+          
+          // Record the notification
+          await recordNotification(userId, currentWindow.type);
+          console.log('Notification recorded in history');
+        } catch (pushError: any) {
+          console.error('Send notification error:', {
+            error: pushError,
+            stack: pushError.stack,
+            message: pushError.message,
+            name: pushError.name,
+            statusCode: pushError.statusCode
+          });
+
+          // If subscription is expired/invalid (HTTP 410), delete it
+          if (pushError.statusCode === 410) {
+            console.log('Subscription expired, deleting...');
+            const { error: deleteError } = await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('user_id', userId);
+
+            if (deleteError) {
+              console.error('Error deleting expired subscription:', deleteError);
+            } else {
+              console.log('Expired subscription deleted successfully');
+            }
+
+            throw new Error('Push subscription expired - resubscription required');
+          }
+
+          throw pushError;
+        }
+      }
+    } catch (err) {
+      console.error('Web Push overall error:', {
+        error: err,
+        stack: err.stack,
+        message: err.message,
+        name: err.name
+      });
+      throw new Error(`Failed to send push notification: ${err.message}`);
     }
+
+    return new Response(
+      JSON.stringify({ 
+        message: 'Notification sent successfully',
+        window: currentWindow.type
+      }),
+      { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+    );
   } catch (error) {
     console.error('Push notification error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500,
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-      }
+      { status: 500, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   }
 });
