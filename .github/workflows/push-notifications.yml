@@ -15,18 +15,12 @@ jobs:
       - name: Get all user IDs
         id: get-users
         run: |
-          USERS=$(curl --request GET \
+          # Fetch and directly process users without storing in outputs
+          curl --request GET \
             --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
-            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}')
-          echo "Found users: $USERS"
-          # Store users array directly
-          echo "users=$USERS" >> $GITHUB_OUTPUT
-
-      - name: Trigger Notifications for Each User
-        run: |
-          # Parse the JSON array properly using jq
-          echo "${{ steps.get-users.outputs.users }}" > users.json
-          cat users.json | jq -c '.[]' | while read -r user_id; do
+            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
+            --silent | \
+          jq -c '.[]' | while read -r user_id; do
             # Remove quotes from user_id
             user_id=$(echo $user_id | tr -d '"')
             echo "Processing user: $user_id"
