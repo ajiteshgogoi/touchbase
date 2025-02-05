@@ -18,52 +18,24 @@ class NotificationService {
         }
       });
 
-      // Pass Firebase config to service worker
-      const firebaseConfig = {
-        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID,
-        measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-      };
+      // Force update of service worker
+      console.log('Ensuring clean service worker state...');
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) {
+        await registration.unregister();
+      }
 
-      // Register both service workers with proper error handling
+      // Register both Firebase and our own service worker
       console.log('Registering service workers...');
-      try {
-        // First register Firebase messaging service worker
-        await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          updateViaCache: 'none'
-        });
-
-        // Then register our main service worker
-        const registration = await navigator.serviceWorker.register('/sw.js', {
+      await Promise.all([
+        navigator.serviceWorker.register('/firebase-messaging-sw.js'),
+        navigator.serviceWorker.register('/sw.js', {
           scope: '/',
           updateViaCache: 'none'
-        });
-        
-        this.swRegistration = registration;
-
-        // Wait for any of the service workers to become active
-        await Promise.race([
-          new Promise<void>((resolve) => {
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-              resolve();
-            }, { once: true });
-          }),
-          new Promise<void>((resolve) => setTimeout(resolve, 3000)) // Timeout after 3s
-        ]);
-
-        // Double check we have an active controller
-        if (!navigator.serviceWorker.controller) {
-          throw new Error('Service worker failed to become active');
-        }
-
-      } catch (error) {
-        console.error('Service worker registration failed:', error);
-        throw error;
-      }
+        }).then(registration => {
+          this.swRegistration = registration;
+        })
+      ]);
 
       // Wait for our service worker to be activated
       if (!this.swRegistration) {
