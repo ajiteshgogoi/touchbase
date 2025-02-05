@@ -27,6 +27,13 @@ class NotificationService {
     }
 
     try {
+      // Set up message listener first
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'PUSH_RECEIVED') {
+          console.log('[Notifications] Push event received by service worker:', event.data);
+        }
+      });
+
       // Force update of service worker
       console.log('Ensuring clean service worker state...');
       const registrations = await navigator.serviceWorker.getRegistrations();
@@ -261,6 +268,39 @@ class NotificationService {
       if (!this.swRegistration?.active) {
         throw new Error('Service worker failed to activate after initialization');
       }
+
+      // Test service worker communication
+      console.log('Testing service worker communication...');
+      let messageReceived = false;
+      const messagePromise = new Promise<void>((resolve) => {
+        const handler = (event: MessageEvent) => {
+          if (event.data?.type === 'SW_PING_RESPONSE') {
+            messageReceived = true;
+            navigator.serviceWorker.removeEventListener('message', handler);
+            resolve();
+          }
+        };
+        navigator.serviceWorker.addEventListener('message', handler);
+        
+        // Send ping to service worker if it's active
+        if (this.swRegistration?.active) {
+          this.swRegistration.active.postMessage({ type: 'SW_PING' });
+        } else {
+          console.warn('Service worker is not active, cannot send ping');
+          resolve(); // Resolve and continue with notification attempt
+        }
+
+        // Timeout after 3 seconds
+        setTimeout(() => {
+          if (!messageReceived) {
+            navigator.serviceWorker.removeEventListener('message', handler);
+            console.warn('Service worker did not respond to ping');
+            resolve(); // Resolve anyway to continue with notification
+          }
+        }, 3000);
+      });
+
+      await messagePromise;
       
       // Verify push manager access
       const pushManager = this.swRegistration.pushManager;

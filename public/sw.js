@@ -5,12 +5,42 @@ self.addEventListener('install', (event) => {
 });
 
 let initialized = false;
+
+// Global error handler for service worker
+self.addEventListener('error', (event) => {
+  console.error('[SW-Error] Global error:', event.error);
+});
+
+// Global unhandled rejection handler
+self.addEventListener('unhandledrejection', (event) => {
+  console.error('[SW-Error] Unhandled rejection:', event.reason);
+});
+
 const debug = (...args) => {
   const timestamp = new Date().toISOString();
   console.log(`[SW ${timestamp}]`, ...args);
   // Also log to browser console without formatting to ensure visibility
   console.log('[SW-Raw]', ...args);
 };
+
+// Listen for message events (useful for debugging)
+self.addEventListener('message', (event) => {
+  console.log('[SW-Message] Received message:', event.data);
+  
+  if (event.data?.type === 'SW_PING') {
+    console.log('[SW-Message] Received ping, sending response');
+    // Ensure we have a client to respond to
+    event.source?.postMessage({
+      type: 'SW_PING_RESPONSE',
+      timestamp: new Date().toISOString(),
+      state: {
+        initialized,
+        active: self.registration.active?.state,
+        scope: self.registration.scope
+      }
+    });
+  }
+});
 
 self.addEventListener('install', (event) => {
   debug('Installing...');
@@ -57,21 +87,47 @@ self.addEventListener('fetch', (event) => {
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
-  console.log('[SW-Push] Push event received');
-  console.log('[SW-Push] Event data:', event.data ? 'present' : 'missing');
-  
-  // Log the raw event for debugging
-  console.log('[SW-Push] Full event:', {
-    hasData: !!event.data,
-    timestamp: new Date().toISOString(),
-    initialized,
-    registration: {
-      scope: self.registration.scope,
-      active: !!self.registration.active,
-      installing: !!self.registration.installing,
-      waiting: !!self.registration.waiting
-    }
+  // Notify all clients about the push event
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'PUSH_RECEIVED',
+        timestamp: new Date().toISOString(),
+        state: {
+          initialized,
+          active: self.registration.active?.state,
+          scope: self.registration.scope
+        }
+      });
+    });
   });
+
+  console.log('[SW-Push] Push event received at:', new Date().toISOString());
+  console.log('[SW-Push] Service worker state:', {
+    initialized,
+    active: self.registration.active?.state,
+    scope: self.registration.scope
+  });
+
+  // Detailed push event inspection
+  const pushInfo = {
+    timestamp: new Date().toISOString(),
+    eventType: event.type,
+    hasData: !!event.data,
+    dataFormats: event.data ? {
+      text: typeof event.data.text === 'function',
+      json: typeof event.data.json === 'function',
+      arrayBuffer: typeof event.data.arrayBuffer === 'function'
+    } : null,
+    registration: {
+      active: !!self.registration.active,
+      activateState: self.registration.active?.state,
+      installing: !!self.registration.installing,
+      waiting: !!self.registration.waiting,
+      scope: self.registration.scope
+    }
+  };
+  console.log('[SW-Push] Detailed push event info:', pushInfo);
 
   // Ensure the event stays alive until all asynchronous operations complete
   event.waitUntil(
