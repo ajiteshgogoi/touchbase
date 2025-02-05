@@ -21,26 +21,47 @@ class NotificationService {
 
   async subscribeToPushNotifications(userId: string, forceResubscribe = false): Promise<void> {
     if (!this.swRegistration) {
-      throw new Error('Service Worker not registered');
+      console.warn('Service Worker not registered, initializing...');
+      await this.initialize();
+      if (!this.swRegistration) {
+        throw new Error('Failed to initialize Service Worker');
+      }
     }
 
     try {
-      let subscription = !forceResubscribe && await this.swRegistration.pushManager.getSubscription();
+      console.log('Starting push notification subscription process...');
       
-      if (!subscription) {
-        // If forceResubscribe is true or no subscription exists, unsubscribe from any existing subscription
-        const existingSub = await this.swRegistration.pushManager.getSubscription();
-        if (existingSub) {
-          await existingSub.unsubscribe();
-        }
+      // Always check current subscription first
+      const currentSubscription = await this.swRegistration.pushManager.getSubscription();
+      console.log('Current subscription status:', currentSubscription ? 'exists' : 'none');
 
-        // Create new subscription
-        subscription = await this.swRegistration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: VAPID_PUBLIC_KEY
-        });
+      if (currentSubscription && forceResubscribe) {
+        console.log('Force resubscribe requested, unsubscribing from current subscription...');
+        await currentSubscription.unsubscribe();
+        console.log('Successfully unsubscribed from current subscription');
       }
 
+      let subscription = !forceResubscribe ? currentSubscription : null;
+      
+      if (!subscription) {
+        console.log('Creating new push subscription...');
+        try {
+          subscription = await this.swRegistration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: VAPID_PUBLIC_KEY
+          });
+          console.log('Successfully created new push subscription');
+        } catch (subError) {
+          console.error('Failed to create push subscription:', subError);
+          // Check if permission was denied
+          if (Notification.permission === 'denied') {
+            throw new Error('Push notification permission denied');
+          }
+          throw subError;
+        }
+      }
+
+      console.log('Storing subscription in Supabase...');
       // Store subscription in Supabase
       const { error } = await supabase
         .from('push_subscriptions')
@@ -54,8 +75,11 @@ class NotificationService {
         });
 
       if (error) {
+        console.error('Failed to store subscription in Supabase:', error);
         throw error;
       }
+
+      console.log('Successfully completed push notification subscription process');
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
       throw error;
@@ -63,7 +87,28 @@ class NotificationService {
   }
 
   async resubscribeIfNeeded(userId: string): Promise<void> {
+    if (!this.swRegistration) {
+      console.warn('Service Worker not registered, initializing...');
+      await this.initialize();
+      if (!this.swRegistration) {
+        throw new Error('Failed to initialize Service Worker');
+      }
+    }
+
     try {
+      // First check local subscription status
+      const currentSubscription = await this.swRegistration.pushManager.getSubscription();
+      console.log('Current local subscription:', currentSubscription ? 'exists' : 'none');
+
+      // If no local subscription exists, create one
+      if (!currentSubscription) {
+        console.log('No local subscription found, creating new one...');
+        await this.subscribeToPushNotifications(userId, true);
+        return;
+      }
+
+      // Verify with the server
+      console.log('Verifying subscription with server...');
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications`, {
         method: 'POST',
         headers: {
@@ -75,13 +120,26 @@ class NotificationService {
 
       const data = await response.json();
       
-      // If subscription is expired, force a resubscribe
-      if (data.error?.includes('resubscription required')) {
-        console.log('Push subscription expired, resubscribing...');
+      if (response.status === 500 && data.error?.includes('resubscription required')) {
+        console.log('Server indicates subscription expired, creating new subscription...');
+        // Unsubscribe from current subscription
+        await currentSubscription.unsubscribe();
+        // Create new subscription
         await this.subscribeToPushNotifications(userId, true);
+        return;
       }
+
+      console.log('Subscription verified successfully');
     } catch (error) {
-      console.error('Error checking push notification status:', error);
+      console.error('Error in resubscribeIfNeeded:', error);
+      // If any error occurs during verification, try a fresh subscription
+      console.log('Error during verification, attempting fresh subscription...');
+      try {
+        await this.subscribeToPushNotifications(userId, true);
+      } catch (subError) {
+        console.error('Failed to create fresh subscription:', subError);
+        throw subError;
+      }
     }
   }
 
