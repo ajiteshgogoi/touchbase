@@ -22,36 +22,39 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Fetching users with active push subscriptions');
+    console.log('Fetching users with FCM tokens');
     
-    // Get all users who have push subscriptions
-    // First, let's log total subscriptions for debugging
+    // Get total count of FCM tokens for debugging
     const { count: totalCount, error: countError } = await supabase
       .from('push_subscriptions')
-      .select('*', { count: 'exact' });
+      .select('fcm_token', { count: 'exact' })
+      .not('fcm_token', 'is', null);
 
     if (countError) {
       console.error('Error getting total count:', countError);
     } else {
-      console.log(`Total subscriptions in database: ${totalCount}`);
+      console.log(`Total FCM tokens in database: ${totalCount}`);
     }
 
-    // Log raw table data for debugging
-    const { data: allSubs, error: allSubsError } = await supabase
+    // Log token stats for debugging
+    const { data: tokenStats, error: statsError } = await supabase
       .from('push_subscriptions')
-      .select('*');
+      .select('user_id, created_at');
     
-    if (allSubsError) {
-      console.error('Error getting all subscriptions:', allSubsError);
+    if (statsError) {
+      console.error('Error getting token stats:', statsError);
     } else {
-      console.log('All subscriptions:', JSON.stringify(allSubs, null, 2));
+      console.log('Token stats:', tokenStats.map(s => ({
+        user_id: s.user_id,
+        created_at: s.created_at
+      })));
     }
 
-    // Get all users who have push subscriptions with non-null endpoints
+    // Get all users who have FCM tokens
     const { data: users, error } = await supabase
       .from('push_subscriptions')
-      .select('user_id, subscription')
-      .not('subscription', 'is', null);
+      .select('user_id, fcm_token')
+      .not('fcm_token', 'is', null);
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -59,22 +62,12 @@ serve(async (req) => {
     }
 
     const userIds = users.map(u => u.user_id);
-    console.log(`Found ${userIds.length} users with active subscriptions`);
+    console.log(`Found ${userIds.length} users with active FCM tokens`);
     
-    // Log subscription details for debugging
-    // Log detailed subscription info
+    // Log FCM token details for debugging
     users.forEach(user => {
-      console.log(`\nUser ${user.user_id} subscription:`);
-      console.log('Raw subscription:', JSON.stringify(user.subscription, null, 2));
-      
-      const subscription = typeof user.subscription === 'string'
-        ? JSON.parse(user.subscription)
-        : user.subscription;
-      
-      console.log('Parsed subscription:', JSON.stringify({
-        endpoint: subscription?.endpoint || 'none',
-        keys: subscription?.keys ? 'present' : 'absent'
-      }, null, 2));
+      console.log(`\nUser ${user.user_id}:`);
+      console.log('Has FCM token:', !!user.fcm_token);
     });
 
     return new Response(
