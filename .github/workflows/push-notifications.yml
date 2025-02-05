@@ -18,14 +18,23 @@ jobs:
           USERS=$(curl --request GET \
             --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
             --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}')
+          echo "Found users: $USERS"
+          # Store users array directly
           echo "users=$USERS" >> $GITHUB_OUTPUT
 
       - name: Trigger Notifications for Each User
         run: |
-          for USER_ID in $(echo "${{ steps.get-users.outputs.users }}" | jq -r '.[]'); do
-            curl --request POST \
+          # Parse the JSON array properly using jq
+          echo "${{ steps.get-users.outputs.users }}" > users.json
+          cat users.json | jq -c '.[]' | while read -r user_id; do
+            # Remove quotes from user_id
+            user_id=$(echo $user_id | tr -d '"')
+            echo "Processing user: $user_id"
+            
+            response=$(curl --request POST \
               --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
               --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
               --header 'Content-Type: application/json' \
-              --data "{\"userId\": \"$USER_ID\"}"
+              --data "{\"userId\": \"$user_id\"}")
+            echo "Push notification response for $user_id: $response"
           done
