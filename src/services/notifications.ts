@@ -71,6 +71,20 @@ class NotificationService {
     }
 
     try {
+      // Check for existing subscription if not forcing resubscribe
+      if (!forceResubscribe) {
+        const { data: existingSubscription } = await supabase
+          .from('push_subscriptions')
+          .select('fcm_token')
+          .eq('user_id', userId)
+          .maybeSingle();
+          
+        if (existingSubscription?.fcm_token) {
+          console.log('Using existing FCM token');
+          return;
+        }
+      }
+
       console.log('Starting FCM token registration process...');
       const messaging = getMessaging(app);
 
