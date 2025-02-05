@@ -47,16 +47,21 @@ async function getDueRemindersCount(userId: string): Promise<number> {
 }
 
 async function getUserTimeAndSubscription(userId: string) {
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select('timezone, username')
-    .eq('id', userId)
+  console.log(`Fetching data for user ${userId}`);
+
+  // Get user preferences which includes timezone
+  const { data: prefs, error: prefsError } = await supabase
+    .from('user_preferences')
+    .select('timezone')
+    .eq('user_id', userId)
     .single();
 
-  if (userError) {
-    throw new Error('Error fetching user data');
+  if (prefsError) {
+    console.error('Error fetching user preferences:', prefsError);
+    console.log('Using default timezone (UTC)');
   }
 
+  // Get push subscription
   const { data: subscription, error: subError } = await supabase
     .from('push_subscriptions')
     .select('subscription')
@@ -64,14 +69,27 @@ async function getUserTimeAndSubscription(userId: string) {
     .single();
 
   if (subError) {
+    console.error('Error fetching subscription:', subError);
     throw new Error('Error fetching subscription');
   }
 
-  return {
-    timezone: userData?.timezone || 'UTC',
-    username: userData?.username || 'User',
-    subscription: subscription?.subscription
+  if (!subscription) {
+    throw new Error('No subscription found');
+  }
+
+  const result = {
+    timezone: prefs?.timezone || 'UTC',
+    username: 'User',  // Generic username is fine since we don't use it for critical functionality
+    subscription: subscription.subscription
   };
+
+  console.log('User data retrieved:', {
+    userId,
+    timezone: result.timezone,
+    hasSubscription: !!result.subscription
+  });
+
+  return result;
 }
 
 async function getLastNotificationTime(userId: string, type: NotificationType): Promise<Date | null> {
