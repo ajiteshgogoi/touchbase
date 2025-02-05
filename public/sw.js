@@ -1,7 +1,17 @@
 // Service Worker for TouchBase PWA
+console.log('Service Worker script starting', { timestamp: new Date().toISOString() });
+
+let initialized = false;
+const debug = (...args) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[SW ${timestamp}]`, ...args);
+};
+
 self.addEventListener('install', (event) => {
+  debug('Installing...');
   event.waitUntil(
     caches.open('touchbase-v1').then((cache) => {
+      debug('Caching app shell...');
       return cache.addAll([
         '/',
         '/index.html',
@@ -13,7 +23,26 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// Activate event - claim clients and keep alive
+self.addEventListener('activate', event => {
+  debug('Activating...');
+  // Take control of all pages immediately
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Keep the service worker alive
+      self.registration.navigationPreload?.enable()
+    ]).then(() => {
+      initialized = true;
+      debug('Activated and claimed clients');
+    })
+  );
+});
+
 self.addEventListener('fetch', (event) => {
+  if (!initialized) {
+    debug('Fetch event before initialization');
+  }
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);
@@ -23,27 +52,38 @@ self.addEventListener('fetch', (event) => {
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
+  debug('Push event received', {
+    hasData: !!event.data,
+    timestamp: new Date().toISOString(),
+    initialized,
+    registration: {
+      scope: self.registration.scope,
+      active: !!self.registration.active,
+      installing: !!self.registration.installing,
+      waiting: !!self.registration.waiting
+    }
+  });
+
   // Ensure the event stays alive until all asynchronous operations complete
   event.waitUntil(
     (async () => {
       try {
-        console.log('Push event received in service worker', {
-          hasData: !!event.data,
-          timestamp: new Date().toISOString()
-        });
-        
+        if (!initialized) {
+          debug('WARNING: Push event before service worker initialization');
+        }
+
         if (!event.data) {
-          console.warn('Push event has no data');
+          debug('Warning: Push event has no data');
           return;
         }
 
         const rawData = event.data.text();
-        console.log('Raw push data:', rawData);
+        debug('Raw push data:', rawData);
         
         const data = JSON.parse(rawData);
         const { title, body, url } = data;
 
-        console.log('Parsed push notification data:', { title, body, url });
+        debug('Parsed push notification data:', { title, body, url });
 
         const options = {
           body,
@@ -64,37 +104,45 @@ self.addEventListener('push', (event) => {
           requireInteraction: true // Keep notification visible until user interacts
         };
 
-        // Log before displaying notification
-        // Check notification permission
-        console.log('Current notification permission:', Notification.permission);
+        debug('Checking notification permission:', Notification.permission);
         
         if (Notification.permission !== 'granted') {
           throw new Error(`Notification permission not granted: ${Notification.permission}`);
         }
 
-        console.log('About to display notification:', {
+        debug('About to display notification:', {
           title,
           options,
-          registration: !!self.registration,
-          timestamp: new Date().toISOString()
+          registration: {
+            active: !!self.registration.active,
+            installing: !!self.registration.installing,
+            waiting: !!self.registration.waiting,
+            scope: self.registration.scope
+          }
         });
 
         // Display the notification
         await self.registration.showNotification(title, options);
-        console.log('Notification displayed successfully');
+        debug('showNotification call completed');
 
         // Verify the notification was created
         const activeNotifications = await self.registration.getNotifications();
-        console.log('Active notifications after display:', {
+        debug('Active notifications after display:', {
           count: activeNotifications.length,
           titles: activeNotifications.map(n => n.title)
         });
-        
-        // Check if the notification was created
-        const notifications = await self.registration.getNotifications();
-        console.log('Active notifications:', notifications.length);
       } catch (error) {
-        console.error('Error handling push notification:', error);
+        debug('Error handling push notification:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          registration: {
+            active: !!self.registration.active,
+            installing: !!self.registration.installing,
+            waiting: !!self.registration.waiting,
+            scope: self.registration.scope
+          }
+        });
         throw error; // Re-throw to ensure event.waitUntil knows the operation failed
       }
     })()
