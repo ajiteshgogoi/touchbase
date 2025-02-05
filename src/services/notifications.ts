@@ -235,5 +235,7 @@ class NotificationService {
 
 export const notificationService = new NotificationService();
 
-// Test in browser console:
-// await notificationService.sendTestNotification('your-user-id', 'Test message');
+// Make service available globally for testing
+if (import.meta.env.DEV) {
+  (window as any).notificationService = notificationService;
+}
