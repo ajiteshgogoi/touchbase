@@ -47,6 +47,14 @@ export interface UserPreferences {
   updated_at: string;
 }
 
+export interface PushSubscription {
+  id: string;
+  user_id: string;
+  fcm_token: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -69,6 +77,11 @@ export interface Database {
         Row: UserPreferences;
         Insert: Omit<UserPreferences, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<UserPreferences, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      push_subscriptions: {
+        Row: PushSubscription;
+        Insert: Omit<PushSubscription, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<PushSubscription, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
   };
