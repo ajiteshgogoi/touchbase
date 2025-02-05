@@ -241,11 +241,27 @@ serve(async (req) => {
     }
 
     try {
-      webPush.setVapidDetails(
-        'mailto:admin@touchbase.com',
-        VAPID_PUBLIC_KEY,
-        VAPID_PRIVATE_KEY
-      );
+      console.log('Setting VAPID details with subscription:', {
+        endpoint: subscription.endpoint,
+        keys: !!subscription.keys,
+        vapidKeyExists: !!VAPID_PUBLIC_KEY
+      });
+
+      try {
+        await webPush.setVapidDetails(
+          'mailto:admin@touchbase.com',
+          VAPID_PUBLIC_KEY,
+          VAPID_PRIVATE_KEY
+        );
+        console.log('VAPID details set successfully');
+      } catch (vapidError) {
+        console.error('VAPID setup error:', {
+          error: vapidError,
+          stack: vapidError.stack,
+          message: vapidError.message
+        });
+        throw vapidError;
+      }
 
       const notificationPayload = {
         title: 'TouchBase Reminder',
@@ -253,17 +269,44 @@ serve(async (req) => {
         url: '/reminders'
       };
 
+      console.log('Attempting to send notification...');
+      console.log('Subscription format:', {
+        endpoint: subscription.endpoint,
+        keys: Object.keys(subscription.keys || {}),
+        expirationTime: subscription.expirationTime
+      });
+
       if (subscription) {
-        await webPush.sendNotification(
-          subscription,
-          JSON.stringify(notificationPayload)
-        );
-        
-        // Record the notification
-        await recordNotification(userId, currentWindow.type);
+        try {
+          const serializedPayload = JSON.stringify(notificationPayload);
+          console.log('Sending notification with payload:', serializedPayload);
+          
+          await webPush.sendNotification(
+            subscription,
+            serializedPayload
+          );
+          console.log('Push notification sent successfully');
+          
+          // Record the notification
+          await recordNotification(userId, currentWindow.type);
+          console.log('Notification recorded in history');
+        } catch (pushError) {
+          console.error('Send notification error:', {
+            error: pushError,
+            stack: pushError.stack,
+            message: pushError.message,
+            name: pushError.name
+          });
+          throw pushError;
+        }
       }
     } catch (err) {
-      console.error('Web Push Error:', err);
+      console.error('Web Push overall error:', {
+        error: err,
+        stack: err.stack,
+        message: err.message,
+        name: err.name
+      });
       throw new Error(`Failed to send push notification: ${err.message}`);
     }
 
