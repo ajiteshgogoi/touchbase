@@ -164,66 +164,58 @@ class NotificationService {
   }
 
   async resubscribeIfNeeded(userId: string): Promise<void> {
-    // Max retries to prevent infinite loops
-    const MAX_RETRIES = 2;
-    let retryCount = 0;
+    if (!this.swRegistration) {
+      console.warn('Service Worker not registered, initializing...');
+      await this.initialize();
+      if (!this.swRegistration) {
+        throw new Error('Failed to initialize Service Worker');
+      }
+    }
 
-    while (retryCount < MAX_RETRIES) {
-      try {
-        if (!this.swRegistration) {
-          console.warn('Service Worker not registered, initializing...');
-          await this.initialize();
-          if (!this.swRegistration) {
-            throw new Error('Failed to initialize Service Worker');
-          }
-        }
+    try {
+      // First check local subscription status
+      const currentSubscription = await this.swRegistration.pushManager.getSubscription();
+      console.log('Current local subscription:', currentSubscription ? 'exists' : 'none');
 
-        // First check local subscription status
-        const currentSubscription = await this.swRegistration.pushManager.getSubscription();
-        console.log('Current local subscription:', currentSubscription ? 'exists' : 'none');
-
-        if (!currentSubscription) {
-          console.log('No local subscription found, creating new one...');
-          await this.subscribeToPushNotifications(userId, true);
-          return;
-        }
-
-        // Verify with the server
-        console.log('Verifying subscription with server...');
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-          },
-          body: JSON.stringify({ userId })
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-          if (response.status === 500 && data.error?.includes('resubscription required')) {
-            if (retryCount < MAX_RETRIES - 1) {
-              console.log('Server indicates subscription expired, retrying...');
-              await currentSubscription.unsubscribe();
-              retryCount++;
-              continue;
-            }
-            throw new Error('Max retries reached for subscription renewal');
-          }
-          throw new Error(data.error || 'Server verification failed');
-        }
-
-        console.log('Subscription verified successfully');
+      // If no local subscription exists, create one
+      if (!currentSubscription) {
+        console.log('No local subscription found, creating new one...');
+        await this.subscribeToPushNotifications(userId, true);
         return;
+      }
 
-      } catch (error) {
-        console.error(`Error in resubscribeIfNeeded (attempt ${retryCount + 1}):`, error);
-        
-        if (retryCount >= MAX_RETRIES - 1) {
-          throw error;
-        }
-        retryCount++;
+      // Verify with the server
+      console.log('Verifying subscription with server...');
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const data = await response.json();
+
+      if (response.status === 500 && data.error?.includes('resubscription required')) {
+        console.log('Server indicates subscription expired, creating new subscription...');
+        // Unsubscribe from current subscription
+        await currentSubscription.unsubscribe();
+        // Create new subscription
+        await this.subscribeToPushNotifications(userId, true);
+        return;
+      }
+
+      console.log('Subscription verified successfully');
+    } catch (error) {
+      console.error('Error in resubscribeIfNeeded:', error);
+      // If any error occurs during verification, try a fresh subscription
+      console.log('Error during verification, attempting fresh subscription...');
+      try {
+        await this.subscribeToPushNotifications(userId, true);
+      } catch (subError) {
+        console.error('Failed to create fresh subscription:', subError);
+        throw subError;
       }
     }
   }

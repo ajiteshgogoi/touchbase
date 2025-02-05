@@ -27,24 +27,15 @@ self.addEventListener('message', (event) => {
   
   if (event.data?.type === 'FIREBASE_CONFIG') {
     try {
-      if (!firebaseConfig) {
+      // Only initialize once
+      if (!messaging) {
         firebaseConfig = event.data.config;
         
-        // Initialize Firebase only once
-        try {
-          firebase.initializeApp(firebaseConfig);
-        } catch (error) {
-          if (error.code !== 'app/duplicate-app') {
-            throw error;
-          }
-        }
-        
-        // Get messaging instance
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
         messaging = firebase.messaging();
-      }
 
-      // Set up background message handler if not already set
-      if (!messaging.onBackgroundMessage) {
+        // Set up background message handler
         messaging.onBackgroundMessage((payload) => {
           console.log('[FCM-SW] Received background message:', payload);
           
@@ -62,9 +53,13 @@ self.addEventListener('message', (event) => {
         });
       }
 
-      // Send immediate acknowledgment to the specific client
-      event.source.postMessage({
-        type: 'FIREBASE_CONFIG_ACK'
+      // Acknowledge successful initialization - broadcast to all clients
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'FIREBASE_CONFIG_ACK'
+          });
+        });
       });
     } catch (error) {
       console.error('[FCM-SW] Failed to initialize:', error);
