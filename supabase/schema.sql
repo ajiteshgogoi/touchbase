@@ -64,7 +64,7 @@ create table public.user_preferences (
 create table public.push_subscriptions (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid references auth.users not null unique,
-    subscription jsonb not null,
+    fcm_token text not null,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
