@@ -235,13 +235,22 @@ serve(async (req) => {
           vapidKey: VAPID_PUBLIC_KEY?.slice(0, 10) + '...'
         });
 
-        await webPush.sendNotification(
+        const pushResponse = await webPush.sendNotification(
           subscription,
           serializedPayload,
           {
-            TTL: 60
+            TTL: 3600, // 1 hour
+            urgency: 'high',
+            topic: 'test-notification',
+            headers: {
+              'Content-Encoding': 'aes128gcm'
+            }
           }
         );
+        console.log('Push service response:', {
+          status: pushResponse?.statusCode,
+          headers: pushResponse?.headers
+        });
 
         return new Response(
           JSON.stringify({ message: 'Test notification sent successfully' }),
@@ -345,11 +354,23 @@ serve(async (req) => {
           const serializedPayload = JSON.stringify(notificationPayload);
           console.log('Sending notification with payload:', serializedPayload);
           
-          await webPush.sendNotification(
+          const pushResponse = await webPush.sendNotification(
             subscription,
-            serializedPayload
+            serializedPayload,
+            {
+              TTL: 3600, // 1 hour
+              urgency: 'high',
+              topic: 'reminder-notification',
+              headers: {
+                'Content-Encoding': 'aes128gcm'
+              }
+            }
           );
-          console.log('Push notification sent successfully');
+          console.log('Push service response:', {
+            status: pushResponse?.statusCode,
+            headers: pushResponse?.headers,
+            success: pushResponse?.statusCode === 201
+          });
           
           // Record the notification
           await recordNotification(userId, currentWindow.type);

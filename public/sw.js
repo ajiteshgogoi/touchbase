@@ -27,7 +27,10 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     (async () => {
       try {
-        console.log('Push event received in service worker');
+        console.log('Push event received in service worker', {
+          hasData: !!event.data,
+          timestamp: new Date().toISOString()
+        });
         
         if (!event.data) {
           console.warn('Push event has no data');
@@ -61,12 +64,31 @@ self.addEventListener('push', (event) => {
           requireInteraction: true // Keep notification visible until user interacts
         };
 
-        await self.registration.showNotification(title, options);
         // Log before displaying notification
-        console.log('About to display notification with options:', options);
-        // Actually display the notification
+        // Check notification permission
+        console.log('Current notification permission:', Notification.permission);
+        
+        if (Notification.permission !== 'granted') {
+          throw new Error(`Notification permission not granted: ${Notification.permission}`);
+        }
+
+        console.log('About to display notification:', {
+          title,
+          options,
+          registration: !!self.registration,
+          timestamp: new Date().toISOString()
+        });
+
+        // Display the notification
         await self.registration.showNotification(title, options);
         console.log('Notification displayed successfully');
+
+        // Verify the notification was created
+        const activeNotifications = await self.registration.getNotifications();
+        console.log('Active notifications after display:', {
+          count: activeNotifications.length,
+          titles: activeNotifications.map(n => n.title)
+        });
         
         // Check if the notification was created
         const notifications = await self.registration.getNotifications();

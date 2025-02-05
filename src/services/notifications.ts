@@ -12,15 +12,39 @@ class NotificationService {
     }
 
     try {
-      // Unregister any existing service worker first
+      // Check for existing registrations
       const registrations = await navigator.serviceWorker.getRegistrations();
-      for (let registration of registrations) {
-        await registration.unregister();
-      }
+      
+      // Find an active service worker
+      const activeRegistration = registrations.find(
+        reg => reg.active && reg.active.scriptURL.endsWith('/sw.js')
+      );
 
-      // Register fresh service worker
-      this.swRegistration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered');
+      if (activeRegistration) {
+        console.log('Using existing active service worker');
+        this.swRegistration = activeRegistration;
+      } else {
+        console.log('No active service worker found, registering new one');
+        // Only unregister if we need to
+        for (let registration of registrations) {
+          await registration.unregister();
+        }
+        
+        // Register fresh service worker
+        this.swRegistration = await navigator.serviceWorker.register('/sw.js');
+        
+        // Wait for the service worker to be activated
+        if (this.swRegistration.installing) {
+          await new Promise<void>((resolve) => {
+            this.swRegistration!.installing!.addEventListener('statechange', (e) => {
+              if ((e.target as ServiceWorker).state === 'activated') {
+                resolve();
+              }
+            });
+          });
+        }
+        console.log('New service worker registered and activated');
+      }
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
