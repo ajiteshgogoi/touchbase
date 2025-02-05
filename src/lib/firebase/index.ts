@@ -47,10 +47,37 @@ export function onTokenRefresh(callback: (token: string) => void) {
 
 export async function getFcmToken(): Promise<string> {
   try {
-    // Get registration token using VAPID key from environment
-    const currentToken = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-    });
+    const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      throw new Error('VAPID key is not configured');
+    }
+
+    // Ensure service worker is initialized with config first
+    if (navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'FIREBASE_CONFIG',
+        config: firebaseConfig
+      });
+
+      // Wait for service worker to acknowledge config
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Service worker config timeout'));
+        }, 5000);
+
+        const handler = (event: MessageEvent) => {
+          if (event.data?.type === 'FIREBASE_CONFIG_ACK') {
+            navigator.serviceWorker.removeEventListener('message', handler);
+            clearTimeout(timeout);
+            resolve();
+          }
+        };
+        navigator.serviceWorker.addEventListener('message', handler);
+      });
+    }
+
+    // Now get the token
+    const currentToken = await getToken(messaging, { vapidKey });
 
     if (currentToken) {
       console.log('FCM registration token available');

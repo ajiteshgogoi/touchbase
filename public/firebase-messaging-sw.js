@@ -1,37 +1,52 @@
 // Give the service worker access to Firebase Messaging.
 // Note that you can only use Firebase Messaging here.
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
-// Initialize the Firebase app in the service worker
-firebase.initializeApp({
-  apiKey: "AIzaSyBseFvFMYyf7JXnqb3HzGp64Hm3BXwqYlw",
-  authDomain: "touchbase-8308f.firebaseapp.com",
-  projectId: "touchbase-8308f",
-  storageBucket: "touchbase-8308f.firebasestorage.app",
-  messagingSenderId: "456167551143",
-  appId: "1:456167551143:web:5950277a9eece90eac2b82",
-  measurementId: "G-51J28BCVHT"
-});
+// Store for Firebase config
+let firebaseConfig = null;
+let messaging = null;
 
-// Retrieve an instance of Firebase Messaging so that it can handle background messages.
-const messaging = firebase.messaging();
+// Listen for config message from main app
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'FIREBASE_CONFIG') {
+    try {
+      firebaseConfig = event.data.config;
+      
+      // Initialize Firebase once we have the config
+      firebase.initializeApp(firebaseConfig);
+      messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message:', payload);
-  
-  // Customize notification here
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    data: {
-      url: payload.data?.url || '/reminders'
+      // Set up background message handler
+      messaging.onBackgroundMessage((payload) => {
+        console.log('[firebase-messaging-sw.js] Received background message:', payload);
+        
+        const notificationTitle = payload.notification.title;
+        const notificationOptions = {
+          body: payload.notification.body,
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
+          data: {
+            url: payload.data?.url || '/reminders'
+          }
+        };
+
+        return self.registration.showNotification(notificationTitle, notificationOptions);
+      });
+
+      // Acknowledge successful initialization
+      event.source?.postMessage({
+        type: 'FIREBASE_CONFIG_ACK'
+      });
+    } catch (error) {
+      console.error('[firebase-messaging-sw.js] Failed to initialize:', error);
+      // Send error back to main app
+      event.source?.postMessage({
+        type: 'FIREBASE_CONFIG_ERROR',
+        error: error.message
+      });
     }
-  };
-
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+  }
 });
 
 // Handle notification click
