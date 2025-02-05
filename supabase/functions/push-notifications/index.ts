@@ -15,10 +15,28 @@ if (!FIREBASE_PROJECT_ID || !FIREBASE_PRIVATE_KEY || !FIREBASE_CLIENT_EMAIL) {
   throw new Error('Missing Firebase environment variables');
 }
 
+// Base64Url encoding function
+function base64UrlEncode(input: string): string {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const base64 = btoa(String.fromCharCode(...data));
+  return base64
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
 // FCM OAuth token management
 async function getFcmAccessToken(): Promise<string> {
+  console.log('Starting JWT token generation...');
   const now = Math.floor(Date.now() / 1000);
-  const jwt = {
+  const header = {
+    alg: 'RS256',
+    typ: 'JWT'
+  };
+  console.log('JWT header:', header);
+
+  const payload = {
     iss: FIREBASE_CLIENT_EMAIL,
     sub: FIREBASE_CLIENT_EMAIL,
     aud: 'https://oauth2.googleapis.com/token',
@@ -26,6 +44,7 @@ async function getFcmAccessToken(): Promise<string> {
     exp: now + 3600,
     scope: 'https://www.googleapis.com/auth/firebase.messaging'
   };
+  console.log('JWT payload:', { ...payload, exp_in: payload.exp - now });
 
   const encoder = new TextEncoder();
   const privateKey = await crypto.subtle.importKey(
@@ -36,11 +55,40 @@ async function getFcmAccessToken(): Promise<string> {
     ['sign']
   );
 
-  const signature = await crypto.subtle.sign(
-    { name: 'RSASSA-PKCS1-v1_5' },
-    privateKey,
-    encoder.encode(JSON.stringify(jwt))
-  );
+  try {
+    console.log('Creating JWT segments...');
+    // Create JWT segments
+    const headerEncoded = base64UrlEncode(JSON.stringify(header));
+    const payloadEncoded = base64UrlEncode(JSON.stringify(payload));
+    const toSign = `${headerEncoded}.${payloadEncoded}`;
+    console.log('JWT segments created:', { headerEncoded, payloadEncoded });
+
+    console.log('Signing JWT...');
+    // Sign the JWT
+    const signature = await crypto.subtle.sign(
+      { name: 'RSASSA-PKCS1-v1_5' },
+      privateKey,
+      encoder.encode(toSign)
+    );
+
+    console.log('Converting signature to base64url...');
+    // Convert signature to base64url - handle binary data differently
+    const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+    
+    const jwt = `${headerEncoded}.${payloadEncoded}.${signatureBase64}`;
+    console.log('JWT created successfully');
+  } catch (error) {
+    console.error('Error in JWT generation:', {
+      error,
+      message: error.message,
+      stack: error.stack,
+      phase: 'JWT creation'
+    });
+    throw new Error(`JWT generation failed: ${error.message}`);
+  }
 
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -49,7 +97,7 @@ async function getFcmAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: btoa(JSON.stringify(jwt))
+      assertion: jwt
     })
   });
 
@@ -410,9 +458,30 @@ serve(async (req) => {
       { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   } catch (error) {
-    console.error('Push notification error:', error);
+    console.error('Push notification error:', {
+      error: error,
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    // Log the error chain if it exists
+    let currentError = error;
+    while (currentError.cause) {
+      console.error('Caused by:', {
+        error: currentError.cause,
+        message: currentError.cause.message,
+        stack: currentError.cause.stack
+      });
+      currentError = currentError.cause;
+    }
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: error.message,
+        details: error.stack,
+        name: error.name
+      }),
       { status: 500, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   }
