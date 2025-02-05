@@ -243,7 +243,8 @@ serve(async (req) => {
             urgency: 'high',
             topic: 'test-notification',
             headers: {
-              'Content-Encoding': 'aes128gcm'
+              'Content-Encoding': 'aes128gcm',
+              'Content-Type': 'application/octet-stream'
             }
           }
         );
@@ -362,7 +363,8 @@ serve(async (req) => {
               urgency: 'high',
               topic: 'reminder-notification',
               headers: {
-                'Content-Encoding': 'aes128gcm'
+                'Content-Encoding': 'aes128gcm',
+                'Content-Type': 'application/octet-stream'
               }
             }
           );
