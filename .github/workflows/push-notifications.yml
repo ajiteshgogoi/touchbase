@@ -10,25 +10,22 @@ on:
 jobs:
   trigger-push-notifications:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 30 minutes timeout
+    timeout-minutes: 60  # 1 hour timeout
     steps:
       - name: Get all user IDs
         id: get-users
         run: |
-          # Fetch and directly process users without storing in outputs
-          curl --request GET \
+          USERS=$(curl --request GET \
             --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
-            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
-            --silent | \
-          jq -c '.[]' | while read -r user_id; do
-            # Remove quotes from user_id
-            user_id=$(echo $user_id | tr -d '"')
-            echo "Processing user: $user_id"
-            
-            response=$(curl --request POST \
+            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}')
+          echo "users=$USERS" >> $GITHUB_OUTPUT
+
+      - name: Trigger Notifications for Each User
+        run: |
+          for USER_ID in $(echo "${{ steps.get-users.outputs.users }}" | jq -r '.[]'); do
+            curl --request POST \
               --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
               --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
               --header 'Content-Type: application/json' \
-              --data "{\"userId\": \"$user_id\"}")
-            echo "Push notification response for $user_id: $response"
+              --data "{\"userId\": \"$USER_ID\"}"
           done

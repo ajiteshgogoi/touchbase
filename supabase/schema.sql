@@ -203,15 +203,6 @@ create policy "Users can view their own notification history"
     on public.notification_history for select
     using (auth.uid() = user_id);
 
--- Allow service role to read necessary tables for push notifications
-create policy "Service role can read user preferences"
-    on public.user_preferences for select
-    using (true);
-
-create policy "Service role can read push subscriptions"
-    on public.push_subscriptions for select
-    using (true);
-
 create policy "Service role can insert notification history"
     on public.notification_history for insert
     with check (true);

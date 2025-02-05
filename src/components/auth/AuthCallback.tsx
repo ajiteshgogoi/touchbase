@@ -16,13 +16,7 @@ export const AuthCallback = () => {
         const error = params.get('error');
         
         if (error) {
-          console.log('Google OAuth flow ended:', error);
-          // For intentional cancellation, just redirect without showing error
-          if (error === 'access_denied') {
-            setIsLoading(false);
-            navigate('/login', { replace: true });
-            return;
-          }
+          console.error('Google OAuth error:', error);
           throw new Error(`Google OAuth error: ${error}`);
         }
         

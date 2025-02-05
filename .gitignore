@@ -51,6 +51,7 @@ lerna-debug.log*
 
 # PWA files
 **/public/workbox-*.js
+**/public/sw.js
 **/public/fallback-*.js
 
 # Temp directories

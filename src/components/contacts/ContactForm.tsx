@@ -303,24 +303,12 @@ export const ContactForm = () => {
             <input
               type="datetime-local"
               id="last_contacted"
-              max={formatLocalDateTime(new Date())}
               value={formData.last_contacted || ''}
               onChange={(e) => {
-                const selectedDate = e.target.value ? new Date(e.target.value) : null;
-                const now = new Date();
-                
-                if (selectedDate && selectedDate > now) {
-                  // If future date/time selected, set to current date/time
-                  setFormData({
-                    ...formData,
-                    last_contacted: formatLocalDateTime(now)
-                  });
-                } else {
-                  setFormData({
-                    ...formData,
-                    last_contacted: selectedDate ? formatLocalDateTime(selectedDate) : null
-                  });
-                }
+                setFormData({
+                  ...formData,
+                  last_contacted: e.target.value ? formatLocalDateTime(new Date(e.target.value)) : null
+                });
               }}
               className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
             />
