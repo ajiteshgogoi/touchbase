@@ -1,5 +1,5 @@
 import { BatchProcessor } from './batch-processor';
-import { Contact } from './batch-types';
+import { Contact, BatchConfig } from './batch-types';
 import { createClient } from '@supabase/supabase-js';
 
 function getNextContactDate(
@@ -41,8 +41,16 @@ export async function runDailyCheckV2() {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const groqApiKey = process.env.GROQ_API_KEY;
-    const batchSize = parseInt(process.env.BATCH_SIZE || '100', 10);
-    const delayBetweenBatches = parseInt(process.env.DELAY_BETWEEN_BATCHES || '5000', 10);
+
+    // Get batch configuration from environment variables
+    const batchConfig: BatchConfig = {
+      batchSize: parseInt(process.env.BATCH_SIZE || '20', 10),
+      delayBetweenBatches: parseInt(process.env.DELAY_BETWEEN_BATCHES || '5000', 10),
+      delayBetweenContacts: parseInt(process.env.DELAY_BETWEEN_CONTACTS || '1000', 10),
+      maxContactsPerRun: parseInt(process.env.MAX_CONTACTS_PER_RUN || '100', 10),
+      retryAttempts: parseInt(process.env.RETRY_ATTEMPTS || '3', 10),
+      retryDelay: parseInt(process.env.RETRY_DELAY || '2000', 10),
+    };
 
     if (!supabaseUrl || !supabaseServiceKey || !groqApiKey) {
       throw new Error('Missing required environment variables');
@@ -71,6 +79,7 @@ export async function runDailyCheckV2() {
     tomorrowEnd.setHours(12, 0, 0, 0);
 
     console.log('Checking for tomorrow\'s contacts between:', tomorrow.toISOString(), 'and', tomorrowEnd.toISOString());
+    console.log('Using batch configuration:', JSON.stringify(batchConfig, null, 2));
 
     // First, handle missed interactions from today
     const { data: missedContacts, error: missedError } = await supabaseClient
@@ -195,15 +204,12 @@ export async function runDailyCheckV2() {
       return { message: 'No unprocessed contacts need attention' };
     }
 
-    // Initialize batch processor
+    // Initialize batch processor with configuration
     const batchProcessor = new BatchProcessor(
       supabaseUrl,
       supabaseServiceKey,
       groqApiKey,
-      {
-        batchSize,
-        delayBetweenBatches,
-      }
+      batchConfig
     );
 
     // Process contacts in batches
@@ -211,7 +217,15 @@ export async function runDailyCheckV2() {
 
     return {
       message: 'Daily check completed with batch processing',
-      results
+      results,
+      processingStats: {
+        totalContacts: contacts.length,
+        unprocessedContacts: unprocessedContacts.length,
+        batchesProcessed: results.length,
+        totalProcessed: results.reduce((acc, r) => acc + r.processedCount, 0),
+        totalSuccess: results.reduce((acc, r) => acc + r.successCount, 0),
+        totalErrors: results.reduce((acc, r) => acc + r.errorCount, 0)
+      }
     };
   } catch (error: any) {
     console.error('Daily check error:', error);

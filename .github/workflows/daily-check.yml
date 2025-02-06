@@ -8,14 +8,19 @@ on:
   workflow_dispatch:
 
 env:
-  # Batch processing configuration
-  BATCH_SIZE: 100                    # Number of contacts per batch
-  DELAY_BETWEEN_BATCHES: 5000        # Delay between batches in milliseconds (5 seconds)
-
+  # Batch processing configuration for LLM rate limiting
+  BATCH_SIZE: 20                     # Process 20 contacts at a time (each batch takes ~1 minute)
+  DELAY_BETWEEN_BATCHES: 5000        # Wait 5 seconds between batches to avoid overwhelming the system
+  DELAY_BETWEEN_CONTACTS: 1000       # Wait 1 second between contacts in a batch
+  MAX_CONTACTS_PER_RUN: 100         # Limit total contacts per workflow run
+  RETRY_ATTEMPTS: 3                  # Number of retries for failed requests
+  RETRY_DELAY: 2000                  # Wait 2 seconds before retrying failed requests
+  
 jobs:
   run-daily-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 30 minutes timeout
+    timeout-minutes: 45  # Extended timeout for reliable batch processing
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -36,6 +41,11 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Pass batch configuration to the script
           BATCH_SIZE: ${{ env.BATCH_SIZE }}
           DELAY_BETWEEN_BATCHES: ${{ env.DELAY_BETWEEN_BATCHES }}
-        run: node dist/services/daily-check-v2.js # Updated to use v2 implementation
+          DELAY_BETWEEN_CONTACTS: ${{ env.DELAY_BETWEEN_CONTACTS }}
+          MAX_CONTACTS_PER_RUN: ${{ env.MAX_CONTACTS_PER_RUN }}
+          RETRY_ATTEMPTS: ${{ env.RETRY_ATTEMPTS }}
+          RETRY_DELAY: ${{ env.RETRY_DELAY }}
+        run: node dist/services/daily-check-v2.js # Using v2 implementation with batch processing

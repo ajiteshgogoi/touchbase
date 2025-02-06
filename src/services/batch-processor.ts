@@ -1,18 +1,22 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
-import { BatchConfig, BatchResult, Contact, ContactBatch, BatchProcessingResult } from './batch-types';
+import {
+  BatchConfig,
+  BatchResult,
+  Contact,
+  ContactBatch,
+  BatchProcessingResult,
+  DEFAULT_BATCH_CONFIG
+} from './batch-types';
 import axios from 'axios';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_BATCH_CONFIG: BatchConfig = {
-  batchSize: 100,
-  delayBetweenBatches: 5000, // 5 seconds
-};
 
 export class BatchProcessor {
   private supabase: SupabaseClient;
   private config: BatchConfig;
   private groqApiKey: string;
+  private processedCount: number = 0;
 
   constructor(
     supabaseUrl: string,
@@ -31,19 +35,25 @@ export class BatchProcessor {
   }
 
   async processBatches(contacts: Contact[]): Promise<BatchResult[]> {
+    // Limit total contacts per run
+    contacts = contacts.slice(0, this.config.maxContactsPerRun);
     const batches = this.createBatches(contacts);
     const results: BatchResult[] = [];
 
     for (const batch of batches) {
       try {
-        // Log batch start
+        // Check if we've hit the max contacts limit
+        if (this.processedCount >= this.config.maxContactsPerRun) {
+          console.log(`Reached max contacts limit (${this.config.maxContactsPerRun}). Stopping processing.`);
+          break;
+        }
+
         console.log(`Processing batch ${batch.batchId} with ${batch.contacts.length} contacts`);
-        
-        // Process the batch
         const result = await this.processBatch(batch);
         results.push(result);
+        this.processedCount += result.successCount;
 
-        // Add delay between batches
+        // Add delay between batches if not the last batch
         if (batches.indexOf(batch) < batches.length - 1) {
           await new Promise(resolve => setTimeout(resolve, this.config.delayBetweenBatches));
         }
@@ -69,7 +79,13 @@ export class BatchProcessor {
 
   private async processBatch(batch: ContactBatch): Promise<BatchResult> {
     const results = await Promise.all(
-      batch.contacts.map(contact => this.processContact(contact, batch.batchId))
+      batch.contacts.map(async (contact, index) => {
+        // Add delay between contacts
+        if (index > 0) {
+          await new Promise(resolve => setTimeout(resolve, this.config.delayBetweenContacts));
+        }
+        return this.processContactWithRetry(contact, batch.batchId);
+      })
     );
 
     const successResults = results.filter(r => r.status === 'success');
@@ -85,6 +101,23 @@ export class BatchProcessor {
         error: r.error || 'Unknown error',
       })),
     };
+  }
+
+  private async processContactWithRetry(
+    contact: Contact,
+    batchId: string,
+    attempt: number = 1
+  ): Promise<BatchProcessingResult> {
+    try {
+      return await this.processContact(contact, batchId);
+    } catch (error: any) {
+      if (attempt < this.config.retryAttempts) {
+        console.log(`Attempt ${attempt} failed for contact ${contact.id}. Retrying...`);
+        await new Promise(resolve => setTimeout(resolve, this.config.retryDelay));
+        return this.processContactWithRetry(contact, batchId, attempt + 1);
+      }
+      throw error;
+    }
   }
 
   private async processContact(

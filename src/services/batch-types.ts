@@ -22,8 +22,12 @@ interface Contact {
 }
 
 export interface BatchConfig {
-  batchSize: number;
-  delayBetweenBatches: number;  // in milliseconds
+  batchSize: number;                   // Number of contacts per batch (recommended: 20)
+  delayBetweenBatches: number;        // Delay between batches in milliseconds (recommended: 5000)
+  delayBetweenContacts: number;       // Delay between processing each contact in milliseconds (recommended: 1000)
+  maxContactsPerRun: number;          // Maximum contacts to process in a single workflow run (recommended: 100)
+  retryAttempts: number;              // Number of retry attempts for failed requests (recommended: 3)
+  retryDelay: number;                 // Delay between retries in milliseconds (recommended: 2000)
 }
 
 export interface BatchResult {
@@ -48,5 +52,14 @@ export interface ContactBatch {
   batchId: string;
   contacts: Contact[];
 }
+
+export const DEFAULT_BATCH_CONFIG: BatchConfig = {
+  batchSize: 20,                // 20 contacts per batch
+  delayBetweenBatches: 5000,   // 5 seconds between batches
+  delayBetweenContacts: 1000,  // 1 second between contacts
+  maxContactsPerRun: 100,      // Maximum 100 contacts per workflow run
+  retryAttempts: 3,            // 3 retry attempts
+  retryDelay: 2000,            // 2 seconds between retries
+};
 
 export type { Contact, Interaction };
