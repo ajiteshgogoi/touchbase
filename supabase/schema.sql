@@ -38,7 +38,6 @@ create table public.reminders (
     user_id uuid references auth.users not null,
     type text not null check (type in ('call', 'message', 'social')),
     due_date timestamp with time zone not null,
-    description text,
     completed boolean default false,
     created_at timestamp with time zone default now()
 );
