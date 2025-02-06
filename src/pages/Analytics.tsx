@@ -128,7 +128,7 @@ export const Analytics = () => {
         <div className="flex flex-col items-center justify-center p-8 text-center">
           <SparklesIcon className="w-16 h-16 text-primary-500 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Upgrade to Access Detailed Analytics
+            Upgrade to access detailed analytics
           </h2>
           <p className="text-gray-600 mb-6 max-w-lg">
             Get deep insights into your relationships, including interaction patterns,

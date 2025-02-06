@@ -139,7 +139,7 @@ export const InteractionHistory = () => {
         <div className="flex flex-col items-center justify-center p-8 text-center">
           <SparklesIcon className="w-16 h-16 text-primary-500 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Upgrade to Access Interaction History
+            Upgrade to access interaction history
           </h2>
           <p className="text-gray-600 mb-6 max-w-lg">
             View complete interaction history for each contact to track your relationship progress.
