@@ -363,7 +363,7 @@ serve(async (req: Request) => {
         const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method, contact.missed_interactions || 0);
 
         // Update contact with AI suggestion and log processing
-        const [updateResult, reminderResult, logResult] = await Promise.all([
+        const [updateResult, logResult] = await Promise.all([
           supabaseClient
             .from('contacts')
             .update({
@@ -371,8 +371,6 @@ serve(async (req: Request) => {
               ai_last_suggestion_date: new Date().toISOString()
             })
             .eq('id', contact.id),
-          // No need to handle reminders here - they're managed by the frontend
-          Promise.resolve(),
           supabaseClient
             .from('contact_processing_logs')
             .insert({
@@ -382,7 +380,6 @@ serve(async (req: Request) => {
         ]);
 
         if (updateResult.error) throw updateResult.error;
-        if (reminderResult.error) throw reminderResult.error;
         if (logResult.error) throw logResult.error;
 
         return {
