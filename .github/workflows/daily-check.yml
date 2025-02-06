@@ -7,6 +7,11 @@ on:
   # Allow manual triggers for testing
   workflow_dispatch:
 
+# Add concurrency control to prevent multiple workflows running simultaneously
+concurrency:
+  group: daily-check
+  cancel-in-progress: false
+
 env:
   # Batch processing configuration for LLM rate limiting
   BATCH_SIZE: 20                     # Process 20 contacts at a time (each batch takes ~1 minute)
