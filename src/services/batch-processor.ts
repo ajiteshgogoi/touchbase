@@ -7,7 +7,7 @@ import {
   ContactBatch,
   BatchProcessingResult,
   DEFAULT_BATCH_CONFIG
-} from './batch-types';
+} from './batch-types.js';
 import axios, { AxiosError } from 'axios';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
