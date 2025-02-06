@@ -407,7 +407,4 @@ jobs:
           }
 
           main();
-          EOF              const freeContacts = unprocessedContacts.filter(c => !premiumUserIds.has(c.user_id));
-
-              // Process premium users first, up to the limit
-              let contactsToProcess = [
+          EOF
