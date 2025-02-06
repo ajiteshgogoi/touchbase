@@ -85,11 +85,10 @@ function App() {
       // Initialize notification service
       await notificationService.initialize();
       
-      // Check notification permission and get timezone
-      const hasPermission = await notificationService.checkPermission();
+      // Get current timezone
       const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       
-      // Update user preferences
+      // Get or create user preferences
       const { data: prefs } = await supabase
         .from('user_preferences')
         .select('*')
@@ -97,40 +96,37 @@ function App() {
         .single();
 
       if (prefs) {
-        // Update preferences if timezone changed or notifications granted
-        if (prefs.timezone !== currentTimezone || (hasPermission && !prefs.notification_enabled)) {
+        // Only update timezone if changed
+        if (prefs.timezone !== currentTimezone) {
           await supabase
             .from('user_preferences')
-            .upsert({
-              id: prefs.id,
-              user_id: userId,
-              notification_enabled: hasPermission,
-              timezone: currentTimezone,
-              theme: prefs.theme
-            });
+            .update({
+              timezone: currentTimezone
+            })
+            .eq('id', prefs.id);
+        }
+
+        // Only handle notifications if user has explicitly enabled them
+        if (prefs.notification_enabled) {
+          const hasPermission = await notificationService.checkPermission();
+          if (hasPermission) {
+            try {
+              await notificationService.resubscribeIfNeeded(userId);
+            } catch (error) {
+              console.log('Error checking subscription:', error);
+            }
+          }
         }
       } else {
-        // Create initial preferences
+        // Create initial preferences with notifications disabled by default
         await supabase
           .from('user_preferences')
           .insert({
             user_id: userId,
-            notification_enabled: hasPermission,
+            notification_enabled: false,
             timezone: currentTimezone,
             theme: 'light'
           });
-      }
-
-      // Handle push notification subscription
-      if (hasPermission) {
-        try {
-          // First try to resubscribe if needed (handles expired subscriptions)
-          await notificationService.resubscribeIfNeeded(userId);
-        } catch (error) {
-          console.log('Error checking subscription, attempting fresh subscription:', error);
-          // If resubscribe check fails, try a fresh subscription
-          await notificationService.subscribeToPushNotifications(userId);
-        }
       }
     } catch (error) {
       console.error('Error checking notifications and timezone:', error);
