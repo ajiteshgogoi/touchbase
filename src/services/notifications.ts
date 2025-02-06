@@ -27,10 +27,20 @@ class NotificationService {
       }
       
       console.log('Registering fresh service worker...');
-      this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none'
-      });
+      try {
+        this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+          updateViaCache: 'none'
+        });
+      } catch (error) {
+        console.log('First registration attempt failed, trying with full URL...');
+        // Try with full URL path in case we're in a subdirectory
+        const scriptURL = new URL('/sw.js', window.location.origin).href;
+        this.swRegistration = await navigator.serviceWorker.register(scriptURL, {
+          scope: window.location.origin + '/',
+          updateViaCache: 'none'
+        });
+      }
 
       // Wait for the service worker to be activated
       if (this.swRegistration.installing || this.swRegistration.waiting) {
@@ -93,10 +103,40 @@ class NotificationService {
         throw new Error('Notification permission denied');
       }
 
+      // Check IndexedDB access before proceeding
+      try {
+        console.log('Verifying IndexedDB access...');
+        const request = indexedDB.open('fcm-test-db');
+        await new Promise<void>((resolve, reject) => {
+          request.onerror = () => reject(new Error('IndexedDB access denied - check browser settings'));
+          request.onsuccess = () => {
+            request.result.close();
+            resolve();
+          };
+        });
+        console.log('IndexedDB access confirmed');
+      } catch (error) {
+        console.error('IndexedDB access error:', error);
+        throw new Error('Browser storage access denied - check privacy settings and third-party cookie settings');
+      }
+
+      // Ensure service worker is ready
+      if (!this.swRegistration?.active) {
+        console.log('Service worker not active, reinitializing...');
+        await this.initialize();
+        if (!this.swRegistration?.active) {
+          throw new Error('Service worker failed to activate');
+        }
+      }
+
       // Get FCM token using existing VAPID key
+      console.log('Getting FCM token...');
       const currentToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
         serviceWorkerRegistration: this.swRegistration
+      }).catch(error => {
+        console.error('FCM token error:', error);
+        throw new Error(`FCM registration failed: ${error.message}`);
       });
 
       if (!currentToken) {
