@@ -222,8 +222,18 @@ async function getUserTimeAndSubscription(userId: string): Promise<{ timezone: s
   // Initialize with defaults
   let timezone = 'UTC';
   let fcmToken: string;
+  let username = 'Friend'; // Default fallback like Dashboard uses
 
   try {
+    // Get user metadata from auth
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+    
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+    } else if (userData?.user?.user_metadata?.name) {
+      username = userData.user.user_metadata.name;
+    }
+
     // Get user preferences which includes timezone
     const { data: prefs, error: prefsError } = await supabase
       .from('user_preferences')
@@ -244,8 +254,8 @@ async function getUserTimeAndSubscription(userId: string): Promise<{ timezone: s
       timezone
     });
   } catch (error) {
-    console.error('Error in preferences lookup:', error);
-    // Continue with default timezone
+    console.error('Error in preferences/user lookup:', error);
+    // Continue with defaults
   }
 
   try {
@@ -275,14 +285,15 @@ async function getUserTimeAndSubscription(userId: string): Promise<{ timezone: s
 
   const result = {
     timezone,
-    username: 'User',  // Generic username is fine since we don't use it for critical functionality
+    username,
     fcmToken
   };
 
   console.log('User data retrieved:', {
     userId,
     timezone: result.timezone,
-    hasFcmToken: !!result.fcmToken
+    hasFcmToken: !!result.fcmToken,
+    hasUsername: username !== 'Friend'
   });
 
   return result;
