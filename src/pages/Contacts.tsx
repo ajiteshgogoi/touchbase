@@ -266,7 +266,6 @@ export const Contacts = () => {
                         title="Upgrade to view interaction history"
                       >
                         View History
-                        <span className="ml-1 text-yellow-500">✦</span>
                       </button>
                     )}
                   </div>

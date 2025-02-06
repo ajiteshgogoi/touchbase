@@ -279,10 +279,10 @@ export const Dashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <Link
             to="/analytics"
-            className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium ${
-              isPremium 
-                ? 'text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg' 
-                : 'text-gray-700 bg-gray-100 cursor-not-allowed'
+            className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
+              isPremium
+                ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
             } transition-all`}
           >
             <ChartBarIcon className="h-5 w-5 mr-2" />
