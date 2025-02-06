@@ -34,7 +34,7 @@ env:
 jobs:
   daily-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 30 minutes timeout
+    timeout-minutes: 60  # 60 minutes timeout
 
     steps:
       - uses: actions/checkout@v4
