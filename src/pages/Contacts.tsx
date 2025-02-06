@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
@@ -24,6 +24,7 @@ type SortOrder = 'asc' | 'desc';
 
 export const Contacts = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -242,7 +243,7 @@ export const Contacts = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center sm:self-start mt-3 sm:mt-0">
+                  <div className="flex items-center gap-2 sm:self-start mt-3 sm:mt-0">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
@@ -250,6 +251,24 @@ export const Contacts = () => {
                     >
                       Log Interaction
                     </button>
+                    {isPremium ? (
+                      <Link
+                        to={`/contacts/${contact.id}/interactions`}
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                        title="View interaction history"
+                      >
+                        View History
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                        title="Upgrade to view interaction history"
+                      >
+                        View History
+                        <span className="ml-1 text-yellow-500">✦</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

@@ -241,6 +241,27 @@ export const contactsService = {
     return data || [];
   },
 
+  async updateInteraction(id: string, updates: Partial<Interaction>): Promise<Interaction> {
+    const { data, error } = await supabase
+      .from('interactions')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteInteraction(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('interactions')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+  },
+
   async addReminder(reminder: Omit<Reminder, 'id' | 'created_at'>): Promise<Reminder> {
     // Delete any existing reminders for this contact
     const { error: deleteError } = await supabase

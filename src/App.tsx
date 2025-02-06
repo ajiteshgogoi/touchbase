@@ -20,6 +20,7 @@ import { Analytics } from './pages/Analytics';
 import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { ContactForm } from './components/contacts/ContactForm';
+import { InteractionHistory } from './pages/InteractionHistory';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -265,15 +266,24 @@ function App() {
               />
               
               <Route
-                path="/contacts/:id/edit"
-                element={
-                  <AuthenticatedRoute>
-                    <ContactForm />
-                  </AuthenticatedRoute>
-                }
-              />
+               path="/contacts/:id/edit"
+               element={
+                 <AuthenticatedRoute>
+                   <ContactForm />
+                 </AuthenticatedRoute>
+               }
+             />
 
-              <Route
+             <Route
+               path="/contacts/:contactId/interactions"
+               element={
+                 <AuthenticatedRoute>
+                   <InteractionHistory />
+                 </AuthenticatedRoute>
+               }
+             />
+
+             <Route
                 path="/analytics"
                 element={
                   <AuthenticatedRoute>

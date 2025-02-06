@@ -14,6 +14,10 @@ interface QuickInteractionProps {
   contactId: string;
   contactName: string;
   defaultType?: InteractionType;
+  defaultDate?: string;
+  defaultNotes?: string | null;
+  defaultSentiment?: Interaction['sentiment'];
+  interactionId?: string;
   onSuccess?: () => void;
 }
 
@@ -38,12 +42,16 @@ export const QuickInteraction = ({
   contactId,
   contactName,
   defaultType = 'call',
+  defaultDate,
+  defaultNotes = '',
+  defaultSentiment = 'neutral',
+  interactionId,
   onSuccess
 }: QuickInteractionProps) => {
   const [type, setType] = useState<InteractionType>(defaultType);
-  const [selectedDate, setSelectedDate] = useState(() => getDateOptions()[0]?.value || dayjs());
-  const [notes, setNotes] = useState('');
-  const [sentiment, setSentiment] = useState<Interaction['sentiment']>('neutral');
+  const [selectedDate, setSelectedDate] = useState(() => defaultDate ? dayjs(defaultDate) : (getDateOptions()[0]?.value || dayjs()));
+  const [notes, setNotes] = useState(defaultNotes || '');
+  const [sentiment, setSentiment] = useState<Interaction['sentiment']>(defaultSentiment);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -92,23 +100,29 @@ export const QuickInteraction = ({
         const contact = await contactsService.getContact(contactId);
         if (!contact) throw new Error('Contact not found');
 
-        // First add the interaction
-        await contactsService.addInteraction({
+        const interactionData = {
           contact_id: contactId,
           user_id: user.id,
           type,
           date: selectedDate.toISOString(),
           notes: notes || null,
           sentiment
-        });
+        };
 
-        // Update contact with last_contacted and next_contact_due
-        const lastContactedDate = selectedDate.toISOString();
-        await contactsService.updateContact(contactId, {
-          last_contacted: lastContactedDate,
-          // updateContact will automatically calculate next_contact_due based on
-          // the contact's relationship_level and contact_frequency
-        });
+        if (interactionId) {
+          // Update existing interaction
+          await contactsService.updateInteraction(interactionId, interactionData);
+        } else {
+          // Add new interaction and update contact
+          await contactsService.addInteraction(interactionData);
+          
+          // Update contact with last_contacted and next_contact_due
+          await contactsService.updateContact(contactId, {
+            last_contacted: selectedDate.toISOString(),
+            // updateContact will automatically calculate next_contact_due based on
+            // the contact's relationship_level and contact_frequency
+          });
+        }
       } catch (error) {
         console.error('Database operation failed:', error);
         throw error; // Re-throw to be caught by outer catch block

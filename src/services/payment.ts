@@ -16,9 +16,8 @@ const FREE_PLAN: SubscriptionPlan = {
   contactLimit: 7,
   features: [
     'Up to 7 contacts',
-    'Contact history',
     'Push notifications',
-    'Basic reminder system',
+    'Daily reminder system',
     '1-tap interaction logging',
     'Intelligent rescheduling for missed interactions'
   ]
@@ -32,9 +31,8 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     contactLimit: 7,
     features: [
       'Up to 7 contacts',
-      'Contact history',
       'Push notifications',
-      'Basic reminder system',
+      'Daily reminder system',
       '1-tap interaction logging',
       'Intelligent rescheduling for missed interactions'
         ]
@@ -46,11 +44,11 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     contactLimit: Infinity,
     features: [
       'Unlimited contacts',
-      'Contact history',
       'Push notifications',
-      'Basic reminder system',
+      'Daily reminder system',
       '1-tap interaction logging',
       'Intelligent rescheduling for missed interactions',
+      'Contact interaction history',      
       'Advanced AI suggestions',
       'Detailed analytics',
       'Priority support'
