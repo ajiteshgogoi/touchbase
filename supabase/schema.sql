@@ -88,6 +88,14 @@ create table public.notification_history (
     created_at timestamp with time zone default now()
 );
 
+create table public.contact_analytics (
+    id uuid default uuid_generate_v4() primary key,
+    user_id uuid references auth.users(id) on delete cascade not null,
+    data jsonb not null,
+    generated_at timestamp with time zone not null,
+    created_at timestamp with time zone default now() not null
+);
+
 -- Create indexes
 create index contacts_user_id_idx on public.contacts(user_id);
 create index contacts_last_contacted_idx on public.contacts(last_contacted);
@@ -102,6 +110,8 @@ create index contact_processing_logs_date_idx on public.contact_processing_logs(
 create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
 create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id);
 create index notification_history_user_time_idx on public.notification_history(user_id, sent_at);
+create index contact_analytics_user_id_idx on public.contact_analytics(user_id);
+create index contact_analytics_generated_at_idx on public.contact_analytics(generated_at);
 
 -- Enable Row Level Security
 alter table public.contacts enable row level security;
@@ -112,6 +122,7 @@ alter table public.subscriptions enable row level security;
 alter table public.contact_processing_logs enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.notification_history enable row level security;
+alter table public.contact_analytics enable row level security;
 
 -- Create policies
 create policy "Users can view their own contacts"
@@ -201,6 +212,23 @@ create policy "Users can delete their own push subscriptions"
 
 create policy "Users can view their own notification history"
     on public.notification_history for select
+    using (auth.uid() = user_id);
+
+create policy "Users can view their own analytics"
+    on public.contact_analytics for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own analytics"
+    on public.contact_analytics for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own analytics"
+    on public.contact_analytics for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Users can delete their own analytics"
+    on public.contact_analytics for delete
     using (auth.uid() = user_id);
 
 -- Allow service role to read necessary tables for push notifications

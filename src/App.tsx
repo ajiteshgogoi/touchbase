@@ -16,6 +16,7 @@ import { Contacts } from './pages/Contacts';
 import { Settings } from './pages/Settings';
 import { Reminders } from './pages/Reminders';
 import { Help } from './pages/Help';
+import { Analytics } from './pages/Analytics';
 import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { ContactForm } from './components/contacts/ContactForm';
@@ -268,6 +269,15 @@ function App() {
                 element={
                   <AuthenticatedRoute>
                     <ContactForm />
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route
+                path="/analytics"
+                element={
+                  <AuthenticatedRoute>
+                    <Analytics />
                   </AuthenticatedRoute>
                 }
               />

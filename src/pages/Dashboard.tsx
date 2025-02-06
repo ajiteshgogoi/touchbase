@@ -5,6 +5,7 @@ import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
 import {
   UserPlusIcon,
+  ChartBarIcon,
   UserGroupIcon,
   CalendarIcon,
   PhoneIcon,
@@ -275,26 +276,38 @@ export const Dashboard = () => {
             Here's what's happening with your relationships
           </p>
         </div>
-        {canAddMore ? (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <Link
-            to="/contacts/new"
-            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+            to="/analytics"
+            className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium ${
+              isPremium 
+                ? 'text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg' 
+                : 'text-gray-700 bg-gray-100 cursor-not-allowed'
+            } transition-all`}
           >
-            <UserPlusIcon className="h-5 w-5 mr-2" />
-            Add Contact
+            <ChartBarIcon className="h-5 w-5 mr-2" />
+            Get Detailed Analytics
           </Link>
-        ) : (
-          <button className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
-            Upgrade to add more contacts
-          </button>
-        )}
+          {canAddMore ? (
+            <Link
+              to="/contacts/new"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+            >
+              <UserPlusIcon className="h-5 w-5 mr-2" />
+              Add Contact
+            </Link>
+          ) : (
+            <button className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+              Upgrade to add more contacts
+            </button>
+          )}
+        </div>
       </div>
 
       <DashboardMetrics />
 
       <div className="grid grid-cols-1 gap-6">
         <RecentContacts />
-        {/* Add Upcoming Reminders component here */}
       </div>
     </div>
   );
