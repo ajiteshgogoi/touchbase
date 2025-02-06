@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase/client';
-import { getMessaging, getToken } from "firebase/messaging";
-import { app } from '../lib/firebase';
+import { getToken } from "firebase/messaging";
+import { messaging } from '../lib/firebase';
 
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
@@ -86,8 +86,7 @@ class NotificationService {
       }
 
       console.log('Starting FCM token registration process...');
-      const messaging = getMessaging(app);
-
+      
       // Request permission first
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
