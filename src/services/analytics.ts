@@ -43,7 +43,7 @@ export interface AnalyticsData {
 
 const GENERATION_COOLDOWN_DAYS = 7;
 const MIN_INTERACTIONS_FOR_ANALYSIS = 5;
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_URL = 'https://openrouter.ai/api/v1'; // Set LLM API URL here //
 
 export const analyticsService = {
   async getLastAnalytics(): Promise<AnalyticsData | null> {
@@ -166,7 +166,7 @@ export const analyticsService = {
         const response = await axios.post(
           GROQ_API_URL,
           {
-            model: 'llama-3.3-70b-versatile',
+            model: 'meta-llama/llama-3.3-70b-instruct', // Set LLM model here //
             messages: [
               {
                 role: 'system',

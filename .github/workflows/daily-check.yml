@@ -14,10 +14,10 @@ concurrency:
 
 env:
   # Batch processing configuration for LLM rate limiting
-  BATCH_SIZE: 20                     # Process 20 contacts at a time (each batch takes ~1 minute)
-  DELAY_BETWEEN_BATCHES: 5000        # Wait 5 seconds between batches to avoid overwhelming the system
+  BATCH_SIZE: 40                     # Process 40 contacts at a time
+  DELAY_BETWEEN_BATCHES: 2000        # Wait 2 seconds between batches to avoid overwhelming the system
   DELAY_BETWEEN_CONTACTS: 1000       # Wait 1 second between contacts in a batch
-  MAX_CONTACTS_PER_RUN: 100           # Limit total contacts per workflow run
+  MAX_CONTACTS_PER_RUN: 1200           # Limit total contacts per workflow run
   RETRY_ATTEMPTS: 3                   # Number of retries for failed requests
   RETRY_DELAY: 2000                   # Initial delay between retries in milliseconds
   MAX_RETRY_DELAY: 30000              # Maximum delay for exponential backoff in milliseconds

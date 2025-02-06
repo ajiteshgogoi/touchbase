@@ -10,7 +10,7 @@ import {
 } from './batch-types.js';
 import axios, { AxiosError } from 'axios';
 
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_URL = 'https://openrouter.ai/api/v1'; // LLM API endpoint //
 
 export class BatchProcessor {
   private supabase: SupabaseClient;
@@ -290,7 +290,7 @@ export class BatchProcessor {
     const groqResponse = await axios.post(
       GROQ_API_URL,
       {
-        model: 'llama-3.3-70b-versatile',
+        model: 'meta-llama/llama-3.3-70b-instruct', // Set LLM model here //
         messages: [
           {
             role: 'system',
