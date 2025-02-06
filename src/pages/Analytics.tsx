@@ -118,7 +118,7 @@ export const Analytics = () => {
         </h2>
         <p className="text-gray-600 mb-6 max-w-lg">
           Get deep insights into your relationships, including interaction patterns,
-          contact trends, and AI-powered relationship analysis.
+          contact trends and AI-powered relationship analysis.
         </p>
         <Link
           to="/settings"
@@ -137,7 +137,7 @@ export const Analytics = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Relationship Analytics</h1>
           <p className="mt-1 text-sm text-gray-600">
-            Deep insights into your social connections and interaction patterns
+            Deep insights into your connections and interaction patterns
           </p>
         </div>
         <button

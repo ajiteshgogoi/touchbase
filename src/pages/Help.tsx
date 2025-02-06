@@ -2,7 +2,8 @@ import {
   UserPlusIcon,
   ChatBubbleLeftRightIcon,
   BellIcon,
-  LightBulbIcon
+  LightBulbIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 
 export const Help = () => {
@@ -62,6 +63,33 @@ export const Help = () => {
                 </ol>
                 <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
                   <strong>Pro Tip:</strong> Regular logging helps TouchBase provide better reminders and insights about your relationships.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Analytics */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <ChartBarIcon className="h-6 w-6 text-primary-500" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Detailed Analytics</h2>
+            </div>
+            <div className="w-full">
+              <div className="mt-2 text-gray-600 space-y-2">
+                <p>Get deep insights into your relationships (Premium feature):</p>
+                <ol className="list-decimal list-inside space-y-1 ml-4">
+                  <li>Click 'Get Detailed Analytics' on the dashboard</li>
+                  <li>View your interaction patterns through the heatmap visualization</li>
+                  <li>See your top engaged contacts and their interaction frequencies</li>
+                  <li>Identify relationships that need attention</li>
+                  <li>Get AI-powered insights about your interactions with each contact</li>
+                </ol>
+                <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
+                  <strong>Pro Tip:</strong> Analytics are generated weekly and saved for you to revisit anytime. The insights help you understand your relationship patterns and make meaningful improvements.
                 </p>
               </div>
             </div>
