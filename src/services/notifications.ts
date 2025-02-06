@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
-import { messaging, initializeFirebaseAuth } from '../lib/firebase';
+import { messaging } from '../lib/firebase';
 
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
@@ -112,14 +112,6 @@ class NotificationService {
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         throw new Error('Notification permission denied');
-      }
-
-      // Initialize Firebase auth
-      try {
-        await initializeFirebaseAuth();
-      } catch (error) {
-        console.error('Failed to initialize Firebase auth:', error);
-        throw new Error('Failed to initialize Firebase authentication');
       }
 
       // Check IndexedDB access before proceeding
