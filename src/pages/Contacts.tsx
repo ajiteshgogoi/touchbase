@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
@@ -24,7 +24,6 @@ type SortOrder = 'asc' | 'desc';
 
 export const Contacts = () => {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -260,13 +259,13 @@ export const Contacts = () => {
                         View History
                       </Link>
                     ) : (
-                      <button
-                        onClick={() => navigate('/settings')}
+                      <Link
+                        to={`/contacts/${contact.id}/interactions`}
                         className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
                         title="Upgrade to view interaction history"
                       >
                         View History
-                      </button>
+                      </Link>
                     )}
                   </div>
                 </div>

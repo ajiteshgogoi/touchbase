@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
+import { SparklesIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../services/contacts';
 import { ClockIcon, TrashIcon, PencilSquareIcon, ChevronUpDownIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
@@ -135,20 +136,22 @@ export const InteractionHistory = () => {
           </h1>
         </div>
 
-        <div className="bg-white rounded-xl shadow-soft p-8 text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 text-primary-600 mb-2">
-            <span className="text-xl">✦</span>
-          </div>
-          <h2 className="text-lg font-medium text-gray-900">Premium Feature</h2>
-          <p className="text-gray-600 max-w-md mx-auto">
-            Upgrade to Premium to access detailed interaction history, including advanced sorting and filtering options.
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <SparklesIcon className="w-16 h-16 text-primary-500 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Upgrade to Access Interaction History
+          </h2>
+          <p className="text-gray-600 mb-6 max-w-lg">
+            View complete interaction history for each contact, with advanced sorting
+            and filtering options to track your relationship progress.
           </p>
-          <button
-            onClick={() => navigate('/settings')}
-            className="inline-flex items-center justify-center px-5 py-2.5 mt-4 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+          <Link
+            to="/settings"
+            className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors"
           >
-            Upgrade to Premium
-          </button>
+            Upgrade Now
+            <ChevronRightIcon className="w-4 h-4 ml-1" />
+          </Link>
         </div>
       </div>
     );
