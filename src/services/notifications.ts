@@ -19,28 +19,39 @@ class NotificationService {
         }
       });
 
-      // Force update of service worker
-      console.log('Ensuring clean service worker state...');
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (let registration of registrations) {
-        await registration.unregister();
+      // Don't force unregister existing service worker in production
+      if (import.meta.env.DEV) {
+        console.log('Development mode: Ensuring clean service worker state...');
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          await registration.unregister();
+        }
       }
       
-      console.log('Registering fresh service worker...');
-      try {
-        this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/',
-          updateViaCache: 'none'
-        });
-      } catch (error) {
-        console.log('First registration attempt failed, trying with full URL...');
-        // Try with full URL path in case we're in a subdirectory
-        const scriptURL = new URL('/sw.js', window.location.origin).href;
-        this.swRegistration = await navigator.serviceWorker.register(scriptURL, {
-          scope: window.location.origin + '/',
-          updateViaCache: 'none'
-        });
+      console.log('Registering service worker...');
+      // First verify manifest is accessible
+      console.log('Verifying manifest accessibility...');
+      const manifestURL = new URL('/manifest.json', window.location.origin).href;
+      const manifestResponse = await fetch(manifestURL);
+      if (!manifestResponse.ok) {
+        throw new Error('Failed to load manifest.json');
       }
+      const manifest = await manifestResponse.json();
+      
+      // Use manifest start_url as base for service worker scope
+      const baseScope = new URL(manifest.start_url || '/', window.location.origin).pathname;
+      const scriptURL = new URL('/sw.js', window.location.origin).href;
+      
+      console.log('Registering service worker with configuration:', {
+        scriptURL,
+        scope: baseScope,
+        origin: window.location.origin
+      });
+      
+      this.swRegistration = await navigator.serviceWorker.register(scriptURL, {
+        scope: baseScope,
+        updateViaCache: 'none'
+      });
 
       // Wait for the service worker to be activated
       if (this.swRegistration.installing || this.swRegistration.waiting) {
