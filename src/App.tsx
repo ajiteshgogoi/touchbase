@@ -45,7 +45,7 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isLoading || isInitialLoad) {
     return (
       <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 bg-transparent">
           <svg
             className="animate-spin h-12 w-12 text-primary-500"
             xmlns="http://www.w3.org/2000/svg"
