@@ -1,10 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "CommonJS",
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["vite/client"]
+    "esModuleInterop": true
   },
   "include": ["src/services/**/*", "src/utils/**/*", "src/lib/**/*"],
   "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]

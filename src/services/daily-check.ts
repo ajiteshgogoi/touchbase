@@ -62,9 +62,9 @@ interface Contact {
 export async function runDailyCheck() {
   try {
     // Create Supabase client with service role key
-    const supabaseUrl = import.meta.env.SUPABASE_URL;
-    const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-    const groqApiKey = import.meta.env.GROQ_API_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const groqApiKey = process.env.GROQ_API_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey || !groqApiKey) {
       throw new Error('Missing required environment variables');

@@ -27,8 +27,8 @@ jobs:
         run: npm run build:scripts
 
       - name: Run daily check
-        run: npm run daily-check
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: npm run daily-check
