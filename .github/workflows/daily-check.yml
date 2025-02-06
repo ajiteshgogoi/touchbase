@@ -12,15 +12,18 @@ env:
   BATCH_SIZE: 20                     # Process 20 contacts at a time (each batch takes ~1 minute)
   DELAY_BETWEEN_BATCHES: 5000        # Wait 5 seconds between batches to avoid overwhelming the system
   DELAY_BETWEEN_CONTACTS: 1000       # Wait 1 second between contacts in a batch
-  MAX_CONTACTS_PER_RUN: 100         # Limit total contacts per workflow run
-  RETRY_ATTEMPTS: 3                  # Number of retries for failed requests
-  RETRY_DELAY: 2000                  # Wait 2 seconds before retrying failed requests
-  
+  MAX_CONTACTS_PER_RUN: 100           # Limit total contacts per workflow run
+  RETRY_ATTEMPTS: 3                   # Number of retries for failed requests
+  RETRY_DELAY: 2000                   # Initial delay between retries in milliseconds
+  MAX_RETRY_DELAY: 30000              # Maximum delay for exponential backoff in milliseconds
+  BACKOFF_MULTIPLIER: 2               # Multiplier for exponential backoff
+  RATE_LIMIT_STATUS_CODES: '429,503' # HTTP status codes that indicate rate limiting
+
 jobs:
   run-daily-check:
     runs-on: ubuntu-latest
     timeout-minutes: 45  # Extended timeout for reliable batch processing
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -48,4 +51,7 @@ jobs:
           MAX_CONTACTS_PER_RUN: ${{ env.MAX_CONTACTS_PER_RUN }}
           RETRY_ATTEMPTS: ${{ env.RETRY_ATTEMPTS }}
           RETRY_DELAY: ${{ env.RETRY_DELAY }}
+          MAX_RETRY_DELAY: ${{ env.MAX_RETRY_DELAY }}
+          BACKOFF_MULTIPLIER: ${{ env.BACKOFF_MULTIPLIER }}
+          RATE_LIMIT_STATUS_CODES: ${{ env.RATE_LIMIT_STATUS_CODES }}
         run: node dist/services/daily-check-v2.js # Using v2 implementation with batch processing

@@ -60,6 +60,7 @@ export class BatchProcessor {
       } catch (error: any) {
         console.error(`Error processing batch ${batch.batchId}:`, error);
         results.push(this.createErrorBatchResult(batch.batchId, error.message));
+
         // If we hit a rate limit, add an extra delay before the next batch
         if (this.isRateLimitError(error)) {
           const extraDelay = Math.min(
