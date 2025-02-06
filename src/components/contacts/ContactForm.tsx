@@ -368,14 +368,22 @@ export const ContactForm = () => {
               <li>Shared memories or inside jokes</li>
             </ul>
           </div>
-          <textarea
-            id="notes"
-            rows={4}
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-            placeholder="E.g., Loves hiking and photography. Birthday: March 15. Recently started a new job in tech."
-          />
+          <div>
+            <textarea
+              id="notes"
+              rows={4}
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value.slice(0, 500) })}
+              maxLength={500}
+              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+              placeholder="E.g., Loves hiking and photography. Birthday: March 15. Recently started a new job in tech."
+            />
+            <div className="mt-2 flex justify-end">
+              <span className="text-sm text-gray-500">
+                {formData.notes.length}/500 characters
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 

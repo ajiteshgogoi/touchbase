@@ -251,13 +251,21 @@ export const QuickInteraction = ({
                     <label className="block text-sm font-medium text-gray-700">
                       Notes (optional)
                     </label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Add any notes about the interaction..."
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-primary-400 focus:ring-primary-400"
-                      rows={3}
-                    />
+                    <div>
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value.slice(0, 500))}
+                        placeholder="Add any notes about the interaction..."
+                        maxLength={500}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-primary-400 focus:ring-primary-400"
+                        rows={3}
+                      />
+                      <div className="mt-2 flex justify-end">
+                        <span className="text-sm text-gray-500">
+                          {notes.length}/500 characters
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
