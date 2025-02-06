@@ -46,6 +46,9 @@ create table public.contact_processing_logs (
     id uuid primary key default uuid_generate_v4(),
     contact_id uuid references public.contacts on delete cascade not null,
     processing_date date not null,
+    batch_id text,
+    status text check (status in ('pending', 'success', 'error')) default 'success',
+    error_message text,
     created_at timestamp with time zone default now(),
     constraint unique_contact_date unique (contact_id, processing_date)
 );
@@ -107,6 +110,7 @@ create index reminders_user_id_idx on public.reminders(user_id);
 create index reminders_due_date_idx on public.reminders(due_date);
 create index contact_processing_logs_date_idx on public.contact_processing_logs(processing_date);
 create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
+create index contact_processing_logs_batch_id_idx on public.contact_processing_logs(batch_id);
 create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id);
 create index notification_history_user_time_idx on public.notification_history(user_id, sent_at);
 create index contact_analytics_user_id_idx on public.contact_analytics(user_id);
