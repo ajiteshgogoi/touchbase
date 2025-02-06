@@ -1,5 +1,5 @@
 import { BatchProcessor } from './batch-processor';
-import { Contact, BatchConfig } from './batch-types';
+import { Contact, BatchConfig, DEFAULT_BATCH_CONFIG } from './batch-types';
 import { createClient } from '@supabase/supabase-js';
 
 function getNextContactDate(
@@ -8,24 +8,20 @@ function getNextContactDate(
   missedInteractions: number
 ): Date {
   const today = new Date();
+  let daysUntilNext = 7;
 
-  // Base number of days until next contact
-  let daysUntilNext = 7; // Default to weekly
-
-  // Adjust based on frequency
   if (frequency === 'daily') daysUntilNext = 1;
   else if (frequency === 'weekly') daysUntilNext = 7;
   else if (frequency === 'fortnightly') daysUntilNext = 14;
   else if (frequency === 'monthly') daysUntilNext = 30;
   else if (frequency === 'quarterly') daysUntilNext = 90;
 
-  // Adjust based on relationship level (closer relationships get more frequent contact)
-  const levelMultiplier = 1 - (relationshipLevel - 1) * 0.1; // 1.0 to 0.6
+  const levelMultiplier = 1 - (relationshipLevel - 1) * 0.1;
   daysUntilNext = Math.round(daysUntilNext * levelMultiplier);
 
   // Reduce interval for missed interactions (more urgent follow-up)
   if (missedInteractions > 0) {
-    const urgencyMultiplier = Math.max(0.3, 1 - missedInteractions * 0.2); // 0.8 to 0.3
+    const urgencyMultiplier = Math.max(0.3, 1 - missedInteractions * 0.2);
     daysUntilNext = Math.max(1, Math.round(daysUntilNext * urgencyMultiplier));
   }
 
@@ -42,14 +38,17 @@ export async function runDailyCheckV2() {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const groqApiKey = process.env.GROQ_API_KEY;
 
-    // Get batch configuration from environment variables
+    // Get batch configuration from environment variables with defaults from DEFAULT_BATCH_CONFIG
     const batchConfig: BatchConfig = {
-      batchSize: parseInt(process.env.BATCH_SIZE || '20', 10),
-      delayBetweenBatches: parseInt(process.env.DELAY_BETWEEN_BATCHES || '5000', 10),
-      delayBetweenContacts: parseInt(process.env.DELAY_BETWEEN_CONTACTS || '1000', 10),
-      maxContactsPerRun: parseInt(process.env.MAX_CONTACTS_PER_RUN || '100', 10),
-      retryAttempts: parseInt(process.env.RETRY_ATTEMPTS || '3', 10),
-      retryDelay: parseInt(process.env.RETRY_DELAY || '2000', 10),
+      batchSize: parseInt(process.env.BATCH_SIZE || DEFAULT_BATCH_CONFIG.batchSize.toString(), 10),
+      delayBetweenBatches: parseInt(process.env.DELAY_BETWEEN_BATCHES || DEFAULT_BATCH_CONFIG.delayBetweenBatches.toString(), 10),
+      delayBetweenContacts: parseInt(process.env.DELAY_BETWEEN_CONTACTS || DEFAULT_BATCH_CONFIG.delayBetweenContacts.toString(), 10),
+      maxContactsPerRun: parseInt(process.env.MAX_CONTACTS_PER_RUN || DEFAULT_BATCH_CONFIG.maxContactsPerRun.toString(), 10),
+      retryAttempts: parseInt(process.env.RETRY_ATTEMPTS || DEFAULT_BATCH_CONFIG.retryAttempts.toString(), 10),
+      retryDelay: parseInt(process.env.RETRY_DELAY || DEFAULT_BATCH_CONFIG.retryDelay.toString(), 10),
+      maxRetryDelay: parseInt(process.env.MAX_RETRY_DELAY || DEFAULT_BATCH_CONFIG.maxRetryDelay.toString(), 10),
+      backoffMultiplier: parseFloat(process.env.BACKOFF_MULTIPLIER || DEFAULT_BATCH_CONFIG.backoffMultiplier.toString()),
+      rateLimitStatusCodes: DEFAULT_BATCH_CONFIG.rateLimitStatusCodes
     };
 
     if (!supabaseUrl || !supabaseServiceKey || !groqApiKey) {
@@ -224,7 +223,8 @@ export async function runDailyCheckV2() {
         batchesProcessed: results.length,
         totalProcessed: results.reduce((acc, r) => acc + r.processedCount, 0),
         totalSuccess: results.reduce((acc, r) => acc + r.successCount, 0),
-        totalErrors: results.reduce((acc, r) => acc + r.errorCount, 0)
+        totalErrors: results.reduce((acc, r) => acc + r.errorCount, 0),
+        configuration: batchConfig
       }
     };
   } catch (error: any) {

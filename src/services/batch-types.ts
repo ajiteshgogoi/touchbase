@@ -27,7 +27,10 @@ export interface BatchConfig {
   delayBetweenContacts: number;       // Delay between processing each contact in milliseconds (recommended: 1000)
   maxContactsPerRun: number;          // Maximum contacts to process in a single workflow run (recommended: 100)
   retryAttempts: number;              // Number of retry attempts for failed requests (recommended: 3)
-  retryDelay: number;                 // Delay between retries in milliseconds (recommended: 2000)
+  retryDelay: number;                 // Initial delay between retries in milliseconds (recommended: 2000)
+  maxRetryDelay: number;              // Maximum delay for exponential backoff (recommended: 30000)
+  backoffMultiplier: number;          // Multiplier for exponential backoff (recommended: 2)
+  rateLimitStatusCodes: number[];     // HTTP status codes that indicate rate limiting
 }
 
 export interface BatchResult {
@@ -59,7 +62,10 @@ export const DEFAULT_BATCH_CONFIG: BatchConfig = {
   delayBetweenContacts: 1000,  // 1 second between contacts
   maxContactsPerRun: 100,      // Maximum 100 contacts per workflow run
   retryAttempts: 3,            // 3 retry attempts
-  retryDelay: 2000,            // 2 seconds between retries
+  retryDelay: 2000,            // Initial 2 second delay
+  maxRetryDelay: 30000,        // Maximum 30 second delay
+  backoffMultiplier: 2,        // Double the delay each retry
+  rateLimitStatusCodes: [429, 503] // Common rate limit status codes
 };
 
 export type { Contact, Interaction };

@@ -8,7 +8,7 @@ import {
   BatchProcessingResult,
   DEFAULT_BATCH_CONFIG
 } from './batch-types';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -60,6 +60,15 @@ export class BatchProcessor {
       } catch (error: any) {
         console.error(`Error processing batch ${batch.batchId}:`, error);
         results.push(this.createErrorBatchResult(batch.batchId, error.message));
+        // If we hit a rate limit, add an extra delay before the next batch
+        if (this.isRateLimitError(error)) {
+          const extraDelay = Math.min(
+            this.config.maxRetryDelay,
+            this.config.delayBetweenBatches * this.config.backoffMultiplier
+          );
+          console.log(`Rate limit detected, adding extra delay of ${extraDelay}ms before next batch`);
+          await new Promise(resolve => setTimeout(resolve, extraDelay));
+        }
       }
     }
 
@@ -103,6 +112,23 @@ export class BatchProcessor {
     };
   }
 
+  private isRateLimitError(error: any): boolean {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      return this.config.rateLimitStatusCodes.includes(axiosError.response?.status || 0);
+    }
+    return false;
+  }
+
+  private calculateBackoffDelay(attempt: number): number {
+    const delay = Math.min(
+      this.config.maxRetryDelay,
+      this.config.retryDelay * Math.pow(this.config.backoffMultiplier, attempt - 1)
+    );
+    // Add some jitter to prevent all retries happening at exactly the same time
+    return delay + Math.random() * 1000;
+  }
+
   private async processContactWithRetry(
     contact: Contact,
     batchId: string,
@@ -111,9 +137,14 @@ export class BatchProcessor {
     try {
       return await this.processContact(contact, batchId);
     } catch (error: any) {
-      if (attempt < this.config.retryAttempts) {
-        console.log(`Attempt ${attempt} failed for contact ${contact.id}. Retrying...`);
-        await new Promise(resolve => setTimeout(resolve, this.config.retryDelay));
+      const isRateLimit = this.isRateLimitError(error);
+      const shouldRetry = attempt < this.config.retryAttempts && 
+        (isRateLimit || error.message.toLowerCase().includes('rate limit'));
+
+      if (shouldRetry) {
+        const backoffDelay = this.calculateBackoffDelay(attempt);
+        console.log(`Attempt ${attempt} failed for contact ${contact.id}. Retrying in ${backoffDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoffDelay));
         return this.processContactWithRetry(contact, batchId, attempt + 1);
       }
       throw error;
