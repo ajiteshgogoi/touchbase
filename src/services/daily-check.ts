@@ -416,7 +416,8 @@ export async function runDailyCheck() {
 }
 
 // Execute if run directly (for CLI usage)
-if (require.main === module) {
+const entryPoint = process.argv[1] ? new URL(process.argv[1], 'file://').pathname : '';
+if (import.meta.url.endsWith(entryPoint)) {
   runDailyCheck()
     .then(results => console.log(JSON.stringify(results, null, 2)))
     .catch(error => {
