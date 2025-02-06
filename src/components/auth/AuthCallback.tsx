@@ -58,7 +58,7 @@ export const AuthCallback = () => {
   }, [navigate, setUser, setIsLoading]);
 
   return (
-    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="flex flex-col items-center gap-4">
         <svg
           className="animate-spin h-12 w-12 text-primary-500"
