@@ -77,12 +77,12 @@ export const Reminders = () => {
                               <span className="text-gray-600">{dayjs(reminder.due_date).fromNow()}</span>
                             </span>
                           </div>
-                          {reminder.description && (
+                          {contactsMap[reminder.contact_id]?.ai_last_suggestion && (
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span>
                                 <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
                                 <span className="text-gray-600 whitespace-pre-line">
-                                  {reminder.description}
+                                  {contactsMap[reminder.contact_id]?.ai_last_suggestion}
                                 </span>
                               </span>
                             </div>

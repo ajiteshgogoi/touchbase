@@ -123,8 +123,7 @@ export const contactsService = {
        contact_id: data.id,
        user_id: data.user_id,
        type: data.preferred_contact_method || 'message',
-       due_date: nextContactDue,
-       description: data.ai_last_suggestion
+       due_date: nextContactDue
      });
 
    if (reminderError) throw reminderError;
@@ -181,8 +180,7 @@ export const contactsService = {
             contact_id: id,
             user_id: contact.user_id,
             type: contact.preferred_contact_method || 'message',
-            due_date: updatedFields.next_contact_due,
-            description: contact.ai_last_suggestion
+            due_date: updatedFields.next_contact_due
           });
 
         if (reminderError) throw reminderError;
@@ -357,8 +355,7 @@ export const contactsService = {
         contact_id: contactId,
         user_id: contact.user_id,
         type: contact.preferred_contact_method || 'message',
-        due_date: nextContactDue.toISOString(),
-        description: contact.ai_last_suggestion
+        due_date: nextContactDue.toISOString()
       });
 
     if (reminderError) throw reminderError;
