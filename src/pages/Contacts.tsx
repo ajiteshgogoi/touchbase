@@ -242,7 +242,7 @@ export const Contacts = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 sm:self-start mt-3 sm:mt-0">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto mt-3 sm:mt-0">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
