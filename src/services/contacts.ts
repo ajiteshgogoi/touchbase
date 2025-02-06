@@ -103,18 +103,33 @@ export const contactsService = {
      baseDate
    ).toISOString();
 
+   // First create the contact to get its ID
    const { data, error } = await supabase
-     .from('contacts')
-     .insert({
-       ...contact,
-       next_contact_due: nextContactDue,
-       missed_interactions: 0
-     })
-      .select()
-      .single();
+    .from('contacts')
+    .insert({
+      ...contact,
+      next_contact_due: nextContactDue,
+      missed_interactions: 0
+    })
+    .select()
+    .single();
     
-    if (error) throw error;
-    return data;
+   if (error) throw error;
+
+   // Then create the initial reminder
+   const { error: reminderError } = await supabase
+     .from('reminders')
+     .insert({
+       contact_id: data.id,
+       user_id: data.user_id,
+       type: data.preferred_contact_method || 'message',
+       due_date: nextContactDue,
+       description: data.notes || undefined
+     });
+
+   if (reminderError) throw reminderError;
+   
+   return data;
   },
 
   async updateContact(id: string, updates: Partial<Contact>): Promise<Contact> {
@@ -124,20 +139,54 @@ export const contactsService = {
 
     let updatedFields = { ...updates };
     
-    // Recalculate next_contact_due if any relevant fields change
-    if (updates.relationship_level || updates.contact_frequency || updates.last_contacted) {
+    // Only recalculate next_contact_due if we have a last_contacted date
+    if (updates.last_contacted ||
+        (updates.relationship_level || updates.contact_frequency) && contact.last_contacted) {
       const level = (updates.relationship_level || contact.relationship_level) as RelationshipLevel;
       const frequency = (updates.contact_frequency || contact.contact_frequency) as ContactFrequency | null;
-      const missedInteractions = contact.missed_interactions || 0;
+      
+      // Always use the most recent last_contacted date for calculations
       const baseDate = updates.last_contacted ? new Date(updates.last_contacted) :
                       contact.last_contacted ? new Date(contact.last_contacted) : null;
       
-      updatedFields.next_contact_due = getNextContactDate(
-        level,
-        frequency,
-        missedInteractions,
-        baseDate
-      ).toISOString();
+      if (baseDate) {
+        updatedFields.next_contact_due = getNextContactDate(
+          level,
+          frequency,
+          0, // Reset missed interactions when updating contact
+          baseDate
+        ).toISOString();
+
+        // Check if this is a today's interaction
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const interactionDate = new Date(baseDate);
+        interactionDate.setHours(0, 0, 0, 0);
+        const isToday = interactionDate.getTime() === today.getTime();
+
+        if (isToday) {
+          // Remove any current reminders if this is today's interaction
+          const { error: deleteError } = await supabase
+            .from('reminders')
+            .delete()
+            .eq('contact_id', id);
+          
+          if (deleteError) throw deleteError;
+        }
+        
+        // Create new reminder for next contact due date
+        const { error: reminderError } = await supabase
+          .from('reminders')
+          .insert({
+            contact_id: id,
+            user_id: contact.user_id,
+            type: contact.preferred_contact_method || 'message',
+            due_date: updatedFields.next_contact_due,
+            description: contact.notes || undefined
+          });
+
+        if (reminderError) throw reminderError;
+      }
     }
 
     const { data, error } = await supabase
@@ -189,7 +238,7 @@ export const contactsService = {
   },
 
   async addInteraction(interaction: Omit<Interaction, 'id' | 'created_at'>): Promise<Interaction> {
-    // First insert the interaction
+    // Just record the interaction without handling reminders
     const { data: interactionData, error: interactionError } = await supabase
       .from('interactions')
       .insert(interaction)
@@ -197,31 +246,6 @@ export const contactsService = {
       .single();
     
     if (interactionError) throw interactionError;
-
-    // Get contact data for next_contact_due calculation
-    const contact = await this.getContact(interaction.contact_id);
-    if (!contact) throw new Error('Contact not found');
-
-    // Calculate next contact due date using interaction date as base
-    const nextContactDue = getNextContactDate(
-      contact.relationship_level as RelationshipLevel,
-      contact.contact_frequency as ContactFrequency | null,
-      0, // Reset missed interactions
-      new Date(interaction.date) // Use interaction date as base
-    );
-
-    // Update contact with new last_contacted, next_contact_due, and reset missed_interactions
-    const { error: updateError } = await supabase
-      .from('contacts')
-      .update({
-        missed_interactions: 0,
-        last_contacted: interaction.date,
-        next_contact_due: nextContactDue.toISOString()
-      })
-      .eq('id', interaction.contact_id);
-
-    if (updateError) throw updateError;
-    
     return interactionData;
   },
 
@@ -318,7 +342,29 @@ export const contactsService = {
       baseDate
     );
 
-    const { error } = await supabase
+    // Delete existing reminders since we're creating a new one
+    const { error: deleteError } = await supabase
+      .from('reminders')
+      .delete()
+      .eq('contact_id', contactId);
+    
+    if (deleteError) throw deleteError;
+
+    // Create new reminder for the recalculated next due date
+    const { error: reminderError } = await supabase
+      .from('reminders')
+      .insert({
+        contact_id: contactId,
+        user_id: contact.user_id,
+        type: contact.preferred_contact_method || 'message',
+        due_date: nextContactDue.toISOString(),
+        description: contact.notes || undefined
+      });
+
+    if (reminderError) throw reminderError;
+
+    // Update contact with new missed count and next due date
+    const { error: updateError } = await supabase
       .from('contacts')
       .update({
         missed_interactions: newMissedCount,
@@ -326,6 +372,6 @@ export const contactsService = {
       })
       .eq('id', contactId);
 
-    if (error) throw error;
+    if (updateError) throw updateError;
   }
 };

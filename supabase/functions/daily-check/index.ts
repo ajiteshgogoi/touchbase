@@ -94,15 +94,55 @@ serve(async (req: Request) => {
 
     if (missedError) throw missedError;
 
-    // Update missed_interactions counter for contacts that were due today
+    // Handle missed interactions from today
     if (missedContacts && missedContacts.length > 0) {
       await Promise.all(missedContacts.map(async (contact) => {
-        await supabaseClient
-          .from('contacts')
-          .update({
-            missed_interactions: (contact.missed_interactions || 0) + 1
-          })
-          .eq('id', contact.id);
+        // Get latest interaction to verify it's really missed
+        const { data: latestInteraction } = await supabaseClient
+          .from('interactions')
+          .select('date')
+          .eq('contact_id', contact.id)
+          .order('date', { ascending: false })
+          .limit(1)
+          .single();
+
+        // Only count as missed if no interaction was logged today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (!latestInteraction ||
+            (new Date(latestInteraction.date).setHours(0, 0, 0, 0) < today.getTime())) {
+          try {
+            await supabaseClient
+              .from('reminders')
+              .delete()
+              .eq('contact_id', contact.id);
+
+            const nextContactDue = getNextContactDate(
+              contact.relationship_level,
+              contact.contact_frequency,
+              (contact.missed_interactions || 0) + 1
+            );
+
+            await supabaseClient.from('reminders').insert({
+              contact_id: contact.id,
+              user_id: contact.user_id,
+              type: contact.preferred_contact_method || 'message',
+              due_date: nextContactDue.toISOString(),
+              description: undefined
+            });
+
+            await supabaseClient
+              .from('contacts')
+              .update({
+                missed_interactions: (contact.missed_interactions || 0) + 1,
+                next_contact_due: nextContactDue.toISOString()
+              })
+              .eq('id', contact.id);
+          } catch (error) {
+            console.error('Error handling missed interaction:', error);
+          }
+        }
       }));
     }
 
@@ -369,16 +409,25 @@ serve(async (req: Request) => {
               ai_last_suggestion_date: new Date().toISOString()
             })
             .eq('id', contact.id),
-          // Delete existing reminders for this contact before creating new one
-          supabaseClient.from('reminders').delete().eq('contact_id', contact.id),
-          // Then create new reminder
-          supabaseClient.from('reminders').insert({
-            contact_id: contact.id,
-            user_id: contact.user_id,
-            type: suggestedMethod,
-            due_date: nextContactDue.toISOString(),
-            description: suggestions
-          }),
+          // Check if a reminder already exists for this next contact date
+          (async () => {
+            const { data: existingReminders } = await supabaseClient
+              .from('reminders')
+              .select('id')
+              .eq('contact_id', contact.id)
+              .eq('due_date', nextContactDue.toISOString());
+
+            if (!existingReminders || existingReminders.length === 0) {
+              // Only create new reminder if one doesn't exist for this date
+              await supabaseClient.from('reminders').insert({
+                contact_id: contact.id,
+                user_id: contact.user_id,
+                type: suggestedMethod,
+                due_date: nextContactDue.toISOString(),
+                description: suggestions
+              });
+            }
+          })(),
           supabaseClient
             .from('contact_processing_logs')
             .insert({

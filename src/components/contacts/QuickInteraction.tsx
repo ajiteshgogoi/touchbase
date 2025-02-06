@@ -96,10 +96,6 @@ export const QuickInteraction = ({
       if (!user) throw new Error('You must be logged in to log interactions');
 
       try {
-        // Get current contact data to calculate next contact due date
-        const contact = await contactsService.getContact(contactId);
-        if (!contact) throw new Error('Contact not found');
-
         const interactionData = {
           contact_id: contactId,
           user_id: user.id,
@@ -110,18 +106,30 @@ export const QuickInteraction = ({
         };
 
         if (interactionId) {
-          // Update existing interaction
+          // Just update the interaction record for history
           await contactsService.updateInteraction(interactionId, interactionData);
         } else {
-          // Add new interaction and update contact
+          // For new interactions:
+          // 1. Record the interaction
           await contactsService.addInteraction(interactionData);
-          
-          // Update contact with last_contacted and next_contact_due
-          await contactsService.updateContact(contactId, {
-            last_contacted: selectedDate.toISOString(),
-            // updateContact will automatically calculate next_contact_due based on
-            // the contact's relationship_level and contact_frequency
-          });
+          // 2. Update contact with last_contacted which will handle reminders
+          const contact = await contactsService.getContact(contactId);
+          if (!contact) throw new Error('Contact not found');
+
+          // Only update contact if this is the most recent interaction
+          const { data: latestInteraction } = await supabase
+            .from('interactions')
+            .select('date')
+            .eq('contact_id', contactId)
+            .order('date', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (latestInteraction && new Date(latestInteraction.date) <= new Date(selectedDate.toISOString())) {
+            await contactsService.updateContact(contactId, {
+              last_contacted: selectedDate.toISOString()
+            });
+          }
         }
       } catch (error) {
         console.error('Database operation failed:', error);
