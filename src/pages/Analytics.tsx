@@ -9,6 +9,7 @@ import {
   ChevronRightIcon,
   SparklesIcon,
   ArrowPathIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 
 const HeatmapChart = ({ data }: { data: { date: string; count: number }[] }) => {
@@ -111,22 +112,36 @@ export const Analytics = () => {
 
   if (!isPremium) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <SparklesIcon className="w-16 h-16 text-primary-500 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Upgrade to Access Detailed Analytics
-        </h2>
-        <p className="text-gray-600 mb-6 max-w-lg">
-          Get deep insights into your relationships, including interaction patterns,
-          contact trends and AI-powered relationship analysis.
-        </p>
-        <Link
-          to="/settings"
-          className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors"
-        >
-          Upgrade Now
-          <ChevronRightIcon className="w-4 h-4 ml-1" />
-        </Link>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => window.history.back()}
+            className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Relationship Analytics
+          </h1>
+        </div>
+
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <SparklesIcon className="w-16 h-16 text-primary-500 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Upgrade to Access Detailed Analytics
+          </h2>
+          <p className="text-gray-600 mb-6 max-w-lg">
+            Get deep insights into your relationships, including interaction patterns,
+            contact trends and AI-powered relationship analysis.
+          </p>
+          <Link
+            to="/settings"
+            className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors"
+          >
+            Upgrade Now
+            <ChevronRightIcon className="w-4 h-4 ml-1" />
+          </Link>
+        </div>
       </div>
     );
   }
