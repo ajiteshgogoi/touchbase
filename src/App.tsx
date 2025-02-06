@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { Toaster } from 'react-hot-toast';
@@ -31,8 +31,16 @@ const queryClient = new QueryClient({
 
 const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useStore();
+  const location = useLocation();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading) {
+      setIsInitialLoad(false);
+    }
+  }, [isLoading]);
+
+  if (isLoading || isInitialLoad) {
     return (
       <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="flex flex-col items-center gap-4">
@@ -62,7 +70,12 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   
-  return user ? <>{children}</> : <Navigate to="/login" replace />;
+  if (!user) {
+    // Save the attempted location
+    return <Navigate to="/login" state={{ from: location }} />;
+  }
+
+  return <>{children}</>;
 };
 
 function App() {
@@ -286,8 +299,7 @@ function App() {
               />
               
               {/* Catch all route */}
-              {/* Catch all route */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Layout>
         </BrowserRouter>

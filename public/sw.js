@@ -75,12 +75,56 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (!initialized) {
-    debug('Fetch event before initialization');
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
   }
+
+  const url = new URL(event.request.url);
+
+  // Handle navigation requests differently
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      (async () => {
+        try {
+          // Try to use the navigation preload response if available
+          const preloadResponse = await event.preloadResponse;
+          if (preloadResponse) {
+            return preloadResponse;
+          }
+
+          // Otherwise, get from network and cache
+          const networkResponse = await fetch(event.request);
+          const cache = await caches.open('touchbase-v1');
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        } catch (error) {
+          // If offline, try to serve the cached index.html
+          const cache = await caches.open('touchbase-v1');
+          const cachedResponse = await cache.match('/index.html');
+          return cachedResponse;
+        }
+      })()
+    );
+    return;
+  }
+
+  // For non-navigation requests, use cache first, network fallback strategy
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+      if (response) {
+        return response;
+      }
+      return fetch(event.request).then((networkResponse) => {
+        // Cache successful responses
+        if (networkResponse.ok) {
+          const responseToCache = networkResponse.clone();
+          caches.open('touchbase-v1').then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      });
     })
   );
 });
