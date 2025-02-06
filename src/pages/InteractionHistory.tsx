@@ -142,8 +142,7 @@ export const InteractionHistory = () => {
             Upgrade to Access Interaction History
           </h2>
           <p className="text-gray-600 mb-6 max-w-lg">
-            View complete interaction history for each contact, with advanced sorting
-            and filtering options to track your relationship progress.
+            View complete interaction history for each contact to track your relationship progress.
           </p>
           <Link
             to="/settings"
@@ -172,7 +171,7 @@ export const InteractionHistory = () => {
               Interaction History
             </h1>
             <p className="mt-1 text-sm text-gray-600">
-              View and manage interactions with {contact.name}
+              Manage your interactions with {contact.name}
             </p>
           </div>
         </div>
