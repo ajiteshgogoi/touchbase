@@ -277,7 +277,7 @@ export const Settings = () => {
               Timezone
             </label>
             <p className="text-sm text-gray-600 mt-1">
-              Set your timezone for timely notifications
+              Set your timezone for timely reminders
             </p>
             <input
               type="text"
