@@ -1,18 +1,8 @@
-// @ts-ignore
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// @ts-ignore
-import { createClient } from "https://esm.sh/@supabase/supabase-js";
-// @ts-ignore
-import axiod from "https://deno.land/x/axiod@0.26.0/mod.ts";
-
-// Declare Deno global to satisfy TypeScript.
-declare const Deno: any;
+import { createClient } from '@supabase/supabase-js';
+import axios from 'axios';
+import { getNextContactDate } from '../utils/dates';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 interface Interaction {
   type: string;
@@ -37,17 +27,12 @@ interface Contact {
   interactions: Interaction[];
 }
 
-serve(async (req: Request) => {
+export async function runDailyCheck() {
   try {
-    // Handle CORS
-    if (req.method === 'OPTIONS') {
-      return new Response('ok', { headers: corsHeaders });
-    }
-
     // Create Supabase client with service role key
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const groqApiKey = Deno.env.get('GROQ_API_KEY');
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const groqApiKey = process.env.GROQ_API_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey || !groqApiKey) {
       throw new Error('Missing required environment variables');
@@ -203,13 +188,7 @@ serve(async (req: Request) => {
         next_contact_due: c.next_contact_due
       })));
     } else {
-      return new Response(
-        JSON.stringify({ message: 'No contacts need attention' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
+      return { message: 'No contacts need attention' };
     }
 
     // Get already processed contacts for tomorrow
@@ -233,13 +212,7 @@ serve(async (req: Request) => {
     const unprocessedContacts = contacts.filter(c => !processedContactIds.has(c.id));
 
     if (!unprocessedContacts || unprocessedContacts.length === 0) {
-      return new Response(
-        JSON.stringify({ message: 'No unprocessed contacts need attention' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
+      return { message: 'No unprocessed contacts need attention' };
     }
 
     // Process each unprocessed contact
@@ -296,7 +269,7 @@ serve(async (req: Request) => {
         if (isPremium) {
           try {
             console.log('Making Groq API request for contact:', contact.id);
-            const groqResponse = await axiod.post(
+            const groqResponse = await axios.post(
               GROQ_API_URL,
               {
                 model: 'llama-3.3-70b-versatile',
@@ -397,23 +370,22 @@ serve(async (req: Request) => {
       }
     }));
 
-    return new Response(
-      JSON.stringify({
-        message: 'Daily check completed',
-        results: processResults
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+    return {
+      message: 'Daily check completed',
+      results: processResults
+    };
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    console.error('Daily check error:', error);
+    throw error;
   }
-});
+}
+
+// Execute if run directly (for CLI usage)
+if (require.main === module) {
+  runDailyCheck()
+    .then(results => console.log(JSON.stringify(results, null, 2)))
+    .catch(error => {
+      console.error('Error running daily check:', error);
+      process.exit(1);
+    });
+}

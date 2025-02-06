@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:scripts": "tsc -p tsconfig.scripts.json",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "supabase:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts"
+    "supabase:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
+    "daily-check": "node dist/services/daily-check.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
