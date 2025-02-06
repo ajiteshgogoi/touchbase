@@ -3,7 +3,7 @@ name: Daily Check
 on:
   schedule:
     # Runs every 30 minutes
-    - cron: '*/30 * * * *'
+    - cron: "*/30 * * * *"
   # Allow manual triggers for testing
   workflow_dispatch:
 
@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         run: npm install @supabase/supabase-js axios
@@ -179,7 +179,7 @@ jobs:
                 .lte("next_contact_due", tomorrowEnd.toISOString());
 
               if (contactsError) {
-                console.error("Error fetching tomorrow's contacts:", contactsError);
+                console.error("Error fetching tomorrow\"s contacts:", contactsError);
                 throw contactsError;
               }
 
@@ -304,7 +304,7 @@ jobs:
                       suggestions = groqResponse.data.choices[0].message.content;
                     } catch (groqError) {
                       console.error("Groq API error:", groqError);
-                      throw new Error(`Groq API error: ${groqError.message || 'Unknown error'} - ${groqError.response?.data ? JSON.stringify(groqError.response.data) : 'No response data'}`);
+                      throw new Error(`Groq API error: ${groqError.message || "Unknown error"} - ${groqError.response?.data ? JSON.stringify(groqResponse.data) : "No response data"}`);
                     }
                   } else {
                     suggestions = "<div class=\"bg-yellow-50 p-3 rounded-lg\"><strong>Important:</strong> Upgrade to premium to get advanced AI suggestions!</div>";
