@@ -222,31 +222,33 @@ async function getUserTimeAndSubscription(userId: string): Promise<{ timezone: s
   // Initialize with defaults
   let timezone = 'UTC';
   let fcmToken: string;
+  let username = '';
 
   try {
-    // Get user preferences which includes timezone
-    const { data: prefs, error: prefsError } = await supabase
-      .from('user_preferences')
-      .select('timezone')
-      .eq('user_id', userId)
-      .maybeSingle();
+    // Get user preferences and user data in parallel
+    const [prefsResponse, userResponse] = await Promise.all([
+      supabase
+        .from('user_preferences')
+        .select('timezone')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase.auth.admin.getUserById(userId)
+    ]);
 
-    if (prefsError) {
-      console.error('Error fetching user preferences:', prefsError);
+    // Handle timezone
+    if (prefsResponse.error) {
+      console.error('Error fetching user preferences:', prefsResponse.error);
       console.log('Using default timezone (UTC)');
-    } else if (prefs?.timezone) {
-      timezone = prefs.timezone;
+    } else if (prefsResponse.data?.timezone) {
+      timezone = prefsResponse.data.timezone;
     }
-    
-    console.log('User preferences:', {
-      userId,
-      hasPrefs: !!prefs,
-      timezone
-    });
-  } catch (error) {
-    console.error('Error in preferences lookup:', error);
-    // Continue with default timezone
-  }
+
+    // Handle username from user metadata
+    if (userResponse.error) {
+      console.error('Error fetching user:', userResponse.error);
+    } else if (userResponse.data.user.user_metadata?.name) {
+      username = userResponse.data.user.user_metadata.name;
+    }
 
   try {
     // Get FCM token
@@ -464,7 +466,9 @@ serve(async (req) => {
 
     try {
       const title = 'TouchBase Reminder';
-      const body = `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`;
+      const body = username
+        ? `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`
+        : `You have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`;
       const url = '/reminders';
 
       console.log('Attempting to send FCM notification...');
