@@ -170,7 +170,7 @@ export const analyticsService = {
             messages: [
               {
                 role: 'system',
-                content: 'You are a relationship analyst helping users understand their social connections and interaction patterns.'
+                content: 'You are an expert relationship analyst helping users understand their social connections and interaction patterns.'
               },
               {
                 role: 'user',
