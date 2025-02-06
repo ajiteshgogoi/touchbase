@@ -133,6 +133,20 @@ class NotificationService {
     try {
       // Verify with the server
       console.log('Verifying FCM token with server...');
+      // First check if we even have a subscription
+      const { data: existingSubscription } = await supabase
+        .from('push_subscriptions')
+        .select('fcm_token')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!existingSubscription?.fcm_token) {
+        console.log('No existing subscription found, creating new one...');
+        await this.subscribeToPushNotifications(userId, true);
+        return;
+      }
+
+      // If we have a token, verify it with the server
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications`, {
         method: 'POST',
         headers: {
@@ -145,10 +159,11 @@ class NotificationService {
       const data = await response.json();
       
       if (response.status === 500 && (
-        data.error?.includes('resubscription required') || 
-        data.error?.includes('FCM token invalid')
+        data.error?.includes('resubscription required') ||
+        data.error?.includes('FCM token invalid') ||
+        data.error?.includes('No FCM token found')
       )) {
-        console.log('Server indicates token invalid, creating new subscription...');
+        console.log('Server indicates token invalid or missing, creating new subscription...');
         await this.subscribeToPushNotifications(userId, true);
         return;
       }
