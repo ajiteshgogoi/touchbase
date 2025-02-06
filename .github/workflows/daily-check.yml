@@ -18,11 +18,18 @@ env:
   LLM_TEMPERATURE: '0.7'
   LLM_MAX_TOKENS: '250'
   
-  # Processing configuration
-  MAX_CONTACTS_PER_RUN: '70'     # Maximum contacts to process in 30-min run
-  BATCH_SIZE: '10'               # Contacts per batch
+  # Processing limits per workflow run (30 minutes)
+  MAX_CONTACTS_PER_RUN: '70'      # Maximum total contacts to process per run
+  PREMIUM_USER_RATIO: '0.7'       # 70% of slots for premium users
+  
+  # Batch configuration
+  BATCH_SIZE: '10'                # Contacts per batch
   BATCH_DELAY: '20000'           # Milliseconds between batches (20s)
   CONTACT_DELAY: '2000'          # Milliseconds between each contact (2s)
+  
+  # Priority configuration
+  MIN_RELATIONSHIP_LEVEL: '3'    # Minimum relationship level for priority
+  MAX_MISSED_INTERACTIONS: '2'   # Process contacts with up to this many misses first
 
 jobs:
   daily-check:
@@ -344,21 +351,38 @@ jobs:
                   .map(s => s.user_id) || []
               );
 
-             // Sort all contacts by priority
-             const sortedContacts = unprocessedContacts.sort((a, b) => {
-               // First priority: relationship level
-               if (a.relationship_level !== b.relationship_level) {
-                 return b.relationship_level - a.relationship_level;
-               }
-               // Second priority: missed interactions
-               return (b.missed_interactions || 0) - (a.missed_interactions || 0);
-             });
+              // Split contacts by subscription and sort by priority
+              const premiumContacts = unprocessedContacts
+                .filter(c => premiumUserIds.has(c.user_id))
+                .sort((a, b) => {
+                  // Sort by relationship level and missed interactions
+                  const aScore = (a.relationship_level >= parseInt(process.env.MIN_RELATIONSHIP_LEVEL) ? 2 : 0) +
+                                (a.missed_interactions <= parseInt(process.env.MAX_MISSED_INTERACTIONS) ? 1 : 0);
+                  const bScore = (b.relationship_level >= parseInt(process.env.MIN_RELATIONSHIP_LEVEL) ? 2 : 0) +
+                                (b.missed_interactions <= parseInt(process.env.MAX_MISSED_INTERACTIONS) ? 1 : 0);
+                  return bScore - aScore;
+                });
 
-             // Take contacts up to the limit
-             const maxContacts = parseInt(process.env.MAX_CONTACTS_PER_RUN);
-             const contactsToProcess = sortedContacts.slice(0, maxContacts);
+              const freeContacts = unprocessedContacts
+                .filter(c => !premiumUserIds.has(c.user_id))
+                .sort((a, b) =>
+                  // For free users, prioritize by missed interactions
+                  (b.missed_interactions || 0) - (a.missed_interactions || 0)
+                );
 
-             // Process in batches with configured delays
+              // Calculate slots for each tier
+              const maxContacts = parseInt(process.env.MAX_CONTACTS_PER_RUN);
+              const premiumRatio = parseFloat(process.env.PREMIUM_USER_RATIO);
+              const premiumSlots = Math.floor(maxContacts * premiumRatio);
+              const freeSlots = maxContacts - Math.min(premiumContacts.length, premiumSlots);
+
+              // Select contacts to process this run
+              const contactsToProcess = [
+                ...premiumContacts.slice(0, premiumSlots),
+                ...freeContacts.slice(0, freeSlots)
+              ];
+
+              // Process in batches
               const batchSize = parseInt(process.env.BATCH_SIZE);
               const batchDelay = parseInt(process.env.BATCH_DELAY);
 
