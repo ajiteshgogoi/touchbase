@@ -25,7 +25,11 @@ export const initializeFirebaseAuth = async () => {
     if (!user) {
       throw new Error('Failed to initialize Firebase auth');
     }
-    console.log('Firebase auth initialized successfully');
+    console.log('Firebase auth initialized successfully:', {
+      uid: user.uid,
+      isAnonymous: user.isAnonymous,
+      state: auth.currentUser ? 'authenticated' : 'not authenticated'
+    });
   } catch (error) {
     console.error('Firebase auth error:', error);
     throw error;
