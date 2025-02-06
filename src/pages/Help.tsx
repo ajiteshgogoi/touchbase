@@ -54,7 +54,7 @@ export const Help = () => {
               <div className="mt-2 text-gray-600 space-y-2">
                 <p>Easily log your interactions in one tap:</p>
                 <ol className="list-decimal list-inside space-y-1 ml-4">
-                  <li>Click "Log Interaction" on any contact's card</li>
+                  <li>Click 'Log Interaction' on any contact's card</li>
                   <li>Select the type of interaction (call, message, social, or meeting)</li>
                   <li>Choose when it happened (just now, today, yesterday, etc.)</li>
                   <li>Add optional notes about the interaction</li>
