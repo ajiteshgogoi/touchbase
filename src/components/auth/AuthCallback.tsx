@@ -58,13 +58,14 @@ export const AuthCallback = () => {
   }, [navigate, setUser, setIsLoading]);
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="flex flex-col items-center gap-4 bg-transparent p-0">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50" style={{ background: 'transparent' }}>
+      <div style={{ all: 'unset', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
         <svg
-          className="animate-spin h-12 w-12 text-primary-500"
+          className="animate-spin h-12 w-12 text-primary-500 bg-transparent"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
+          style={{ background: 'transparent' }}
         >
           <circle
             className="opacity-25"
