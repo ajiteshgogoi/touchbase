@@ -1,5 +1,5 @@
-import { BatchProcessor } from './batch-processor';
-import { Contact, BatchConfig, DEFAULT_BATCH_CONFIG } from './batch-types';
+import { BatchProcessor } from './batch-processor.js';
+import { Contact, BatchConfig, DEFAULT_BATCH_CONFIG } from './batch-types.js';
 import { createClient } from '@supabase/supabase-js';
 
 function getNextContactDate(
