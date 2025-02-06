@@ -3,8 +3,9 @@
   "compilerOptions": {
     "module": "ESNext",
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": ["vite/client"]
   },
-  "include": ["src/services/**/*"],
+  "include": ["src/services/**/*", "src/utils/**/*", "src/lib/**/*"],
   "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]
 }

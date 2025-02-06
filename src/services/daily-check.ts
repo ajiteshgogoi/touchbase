@@ -1,8 +1,40 @@
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
-import { getNextContactDate } from '../utils/dates';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+function getNextContactDate(
+  relationshipLevel: number,
+  frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null,
+  missedInteractions: number
+): Date {
+  const today = new Date();
+
+  // Base number of days until next contact
+  let daysUntilNext = 7; // Default to weekly
+
+  // Adjust based on frequency
+  if (frequency === 'daily') daysUntilNext = 1;
+  else if (frequency === 'weekly') daysUntilNext = 7;
+  else if (frequency === 'fortnightly') daysUntilNext = 14;
+  else if (frequency === 'monthly') daysUntilNext = 30;
+  else if (frequency === 'quarterly') daysUntilNext = 90;
+
+  // Adjust based on relationship level (closer relationships get more frequent contact)
+  const levelMultiplier = 1 - (relationshipLevel - 1) * 0.1; // 1.0 to 0.6
+  daysUntilNext = Math.round(daysUntilNext * levelMultiplier);
+
+  // Reduce interval for missed interactions (more urgent follow-up)
+  if (missedInteractions > 0) {
+    const urgencyMultiplier = Math.max(0.3, 1 - missedInteractions * 0.2); // 0.8 to 0.3
+    daysUntilNext = Math.max(1, Math.round(daysUntilNext * urgencyMultiplier));
+  }
+
+  // Set the next contact date
+  const nextDate = new Date(today);
+  nextDate.setDate(today.getDate() + daysUntilNext);
+  return nextDate;
+}
 
 interface Interaction {
   type: string;
@@ -30,9 +62,9 @@ interface Contact {
 export async function runDailyCheck() {
   try {
     // Create Supabase client with service role key
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const groqApiKey = process.env.GROQ_API_KEY;
+    const supabaseUrl = import.meta.env.SUPABASE_URL;
+    const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+    const groqApiKey = import.meta.env.GROQ_API_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey || !groqApiKey) {
       throw new Error('Missing required environment variables');
@@ -166,6 +198,8 @@ export async function runDailyCheck() {
         social_media_handle,
         notes,
         missed_interactions,
+        ai_last_suggestion,
+        ai_last_suggestion_date,
         interactions (
           type,
           date,
@@ -236,7 +270,7 @@ export async function runDailyCheck() {
           "Recent Activity (chronological):",
           `${(contact.interactions || [])
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-            .map(i => `- ${new Date(i.date).toLocaleDateString()}: ${i.type} (${i.sentiment || "neutral"})${i.notes ? `\n  Notes: ${i.notes}` : ''}`).join('\n') || 'None'}`,
+            .map(i => `- ${new Date(i.date).toLocaleDateString()}: ${i.type} (${i.sentiment || "neutral"})`).join('\n') || 'None'}`,
           "",
           "Rules for Suggestions:",
           "1. Must be specific to their context and personal details — no generic advice",
@@ -341,7 +375,8 @@ export async function runDailyCheck() {
             .from('contacts')
             .update({
               ai_last_suggestion: suggestions,
-              ai_last_suggestion_date: new Date().toISOString()
+              ai_last_suggestion_date: new Date().toISOString(),
+              preferred_contact_method: suggestedMethod
             })
             .eq('id', contact.id),
           supabaseClient
