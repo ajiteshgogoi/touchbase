@@ -197,7 +197,7 @@ export const InteractionHistory = () => {
 
       <div className="bg-white rounded-xl shadow-soft">
         <div className="p-6 border-b border-gray-100">
-          <div className="flex flex-wrap gap-3">
+          <div className="relative flex gap-3">
             <div className="w-full min-w-[160px] max-w-[180px]">
               <select
                 value={sortField}
@@ -232,6 +232,11 @@ export const InteractionHistory = () => {
                       <span className="inline-flex items-center capitalize px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
                         {interaction.type}
                       </span>
+                      {interaction.sentiment && (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getSentimentColor(interaction.sentiment)}`}>
+                          {interaction.sentiment}
+                        </span>
+                      )}
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => setEditingInteraction({ interaction, isOpen: true })}
@@ -261,13 +266,6 @@ export const InteractionHistory = () => {
                       )}
                     </div>
                   </div>
-                  {interaction.sentiment && (
-                    <div className="sm:text-right">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${getSentimentColor(interaction.sentiment)}`}>
-                        {interaction.sentiment}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             ))
