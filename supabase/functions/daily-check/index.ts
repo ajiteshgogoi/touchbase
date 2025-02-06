@@ -360,9 +360,9 @@ serve(async (req: Request) => {
           return 'message';
         };
 
-        const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method, missedCount);
+        const suggestedMethod = getSuggestedMethod(contact.relationship_level, contact.preferred_contact_method, contact.missed_interactions || 0);
 
-        // Update contact with next due date, AI suggestion, create reminder, and log processing
+        // Update contact with AI suggestion and log processing
         const [updateResult, reminderResult, logResult] = await Promise.all([
           supabaseClient
             .from('contacts')
