@@ -164,14 +164,16 @@ export async function runDailyCheckV2() {
         missed_interactions,
         ai_last_suggestion,
         ai_last_suggestion_date,
-        interactions (
+        interactions!inner (
           type,
           date,
           sentiment
         )
       `)
       .gte('next_contact_due', tomorrow.toISOString())
-      .lte('next_contact_due', tomorrowEnd.toISOString());
+      .lte('next_contact_due', tomorrowEnd.toISOString())
+      .order('interactions.date', { foreignTable: 'interactions', ascending: false })
+      .limit(5, { foreignTable: 'interactions' });
 
     if (contactsError) {
       console.error('Error fetching tomorrow\'s contacts:', contactsError);

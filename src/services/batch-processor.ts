@@ -265,8 +265,9 @@ export class BatchProcessor {
         (contact.interactions || [])
           .sort(
             (a, b) =>
-              new Date(a.date).getTime() - new Date(b.date).getTime()
+              new Date(b.date).getTime() - new Date(a.date).getTime()
           )
+          .slice(0, 5)
           .map(
             i =>
               `- ${new Date(i.date).toLocaleDateString()}: ${i.type} (${
