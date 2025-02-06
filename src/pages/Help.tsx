@@ -84,7 +84,7 @@ export const Help = () => {
                   <li>Go to Settings in the profile menu</li>
                   <li>Find the 'Notification Preferences' section</li>
                   <li>Toggle on notifications</li>
-                  <li>Allow browser notifications when prompted</li>
+                  <li>Allow notification permissions when prompted</li>
                   <li>Set your timezone for accurate reminder timing</li>
                 </ol>
                 <p className="mt-4 text-sm bg-yellow-50 p-3 rounded-lg">
