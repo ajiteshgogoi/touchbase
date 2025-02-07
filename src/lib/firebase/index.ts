@@ -90,6 +90,25 @@ export const initializeTokenRefresh = async (userId: string) => {
       await updateTokenInDatabase(userId, currentToken);
     }
 
+    // Set up periodic token refresh
+    const refreshToken = async () => {
+      try {
+        const newToken = await getToken(messaging, {
+          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        });
+
+        if (newToken) {
+          await updateTokenInDatabase(userId, newToken);
+          console.log('FCM token refreshed successfully');
+        }
+      } catch (error) {
+        console.error('Error in token refresh:', error);
+      }
+    };
+
+    // Check token every 6 hours (good balance between freshness and server load)
+    setInterval(refreshToken, 6 * 60 * 60 * 1000);
+
     // Set up foreground message handler
     onMessage(messaging, async (payload) => {
       console.log('Received foreground message:', payload);
