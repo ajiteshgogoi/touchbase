@@ -132,9 +132,12 @@ export const Contacts = () => {
             Add Contact
           </Link>
         ) : (
-          <button className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+          <Link
+            to="/settings"
+            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg transition-all"
+          >
             Upgrade to add more contacts
-          </button>
+          </Link>
         )}
       </div>
 

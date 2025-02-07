@@ -364,11 +364,14 @@ export const Dashboard = () => {
               </span>
             </Link>
           ) : (
-            <button className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+            <Link
+              to="/settings"
+              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg transition-all"
+            >
               <span className="inline-flex items-center justify-center">
                 Upgrade to add more contacts
               </span>
-            </button>
+            </Link>
           )}
         </div>
       </div>
