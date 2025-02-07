@@ -138,11 +138,13 @@ export const contactsService = {
 
     let updatedFields = { ...updates };
     
-    // Skip reminder handling if this is just an AI suggestion update
+    // Skip reminder handling if this update includes AI suggestions
     const isAiSuggestionUpdate =
-      Object.keys(updates).length === 2 &&
       'ai_last_suggestion' in updates &&
-      'ai_last_suggestion_date' in updates;
+      'ai_last_suggestion_date' in updates &&
+      !('last_contacted' in updates) &&
+      !('relationship_level' in updates) &&
+      !('contact_frequency' in updates);
 
     // Only recalculate next_contact_due if we have a last_contacted date and this isn't an AI update
     if (!isAiSuggestionUpdate && (
