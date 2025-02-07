@@ -37,43 +37,15 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
 // Handle token refresh
 export const initializeTokenRefresh = async (userId: string) => {
   try {
-    // Attempt to get the current token
-    let currentToken;
-    try {
-      currentToken = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-      });
-
-      if (currentToken) {
-        // Update token in Supabase
-        await updateTokenInDatabase(userId, currentToken);
-      }
-    } catch (tokenError) {
-      // Suppress initial token errors as they're expected before service worker is ready
-      if (tokenError instanceof Error &&
-          tokenError.message.includes('no active Service Worker')) {
-        console.debug('Token refresh will be retried when service worker is ready');
-        return; // Exit early without throwing
-      }
-      throw tokenError; // Re-throw other errors
-    }
-
-    // Set up message handler to catch token changes
-    onMessage(messaging, async (message) => {
-      if (message.data?.type === 'token_change') {
-        try {
-          const newToken = await getToken(messaging, {
-            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-          });
-
-          if (newToken && newToken !== currentToken) {
-            await updateTokenInDatabase(userId, newToken);
-          }
-        } catch (error) {
-          console.error('Error in token change handler:', error);
-        }
-      }
+    // Get current token with existing registration
+    const currentToken = await getToken(messaging, {
+      vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
     });
+
+    if (currentToken) {
+      // Update token in Supabase
+      await updateTokenInDatabase(userId, currentToken);
+    }
 
     // Set up message handler to catch token changes
     onMessage(messaging, async (message) => {
