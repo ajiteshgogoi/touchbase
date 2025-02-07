@@ -80,17 +80,22 @@ export async function runDailyCheckV2() {
     console.log('Checking for tomorrow\'s contacts between:', tomorrow.toISOString(), 'and', tomorrowEnd.toISOString());
     console.log('Using batch configuration:', JSON.stringify(batchConfig, null, 2));
 
-    // First, handle missed interactions from today
+    // First, get all user preferences to have timezone info
+    const { data: userPreferences, error: preferencesError } = await supabaseClient
+      .from('user_preferences')
+      .select('user_id, timezone');
+
+    if (preferencesError) throw preferencesError;
+
+    // Create a map of user_id to timezone
+    const userTimezones = new Map(
+      (userPreferences || []).map(pref => [pref.user_id, pref.timezone || 'UTC'])
+    );
+
+    // Get contacts that might need attention
     const { data: missedContacts, error: missedError } = await supabaseClient
       .from('contacts')
-      .select(`
-        *,
-        user:user_id (
-          preferences:user_preferences (
-            timezone
-          )
-        )
-      `)
+      .select('*')
       .gte('next_contact_due', today.toISOString())
       .lte('next_contact_due', todayEnd.toISOString());
 
@@ -99,11 +104,9 @@ export async function runDailyCheckV2() {
     // Handle missed interactions
     if (missedContacts && missedContacts.length > 0) {
       for (const contact of missedContacts) {
-        // Skip if no timezone info
-        if (!contact.user?.preferences?.timezone) continue;
-
+        const userTimezone = userTimezones.get(contact.user_id) || 'UTC';
+        
         // Convert next_contact_due to user's timezone
-        const userTimezone = contact.user.preferences.timezone;
         const dueDate = new Date(contact.next_contact_due);
         const dueDateInUserTz = new Date(dueDate.toLocaleString('en-US', { timeZone: userTimezone }));
         dueDateInUserTz.setHours(0, 0, 0, 0);
