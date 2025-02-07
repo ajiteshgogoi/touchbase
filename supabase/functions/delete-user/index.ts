@@ -9,15 +9,37 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
   throw new Error('Missing environment variables');
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const getAllowedOrigins = () => {
+  // Get allowed origins from environment variables
+  const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+  if (allowedOrigins.length === 0) {
+    console.warn('No ALLOWED_ORIGINS configured, defaulting to development URLs');
+    return ['http://localhost:3000', 'http://localhost:5173'];
+  }
+  return allowedOrigins;
+};
+
+const getCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin');
+  const allowedOrigins = getAllowedOrigins();
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'true'
+  };
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    });
   }
 
   if (req.method !== 'POST') {
@@ -35,12 +57,11 @@ try {
   }
 
   const authHeader = req.headers.get('Authorization');
-    const authHeader = req.headers.get('Authorization');
-    console.log('Auth header:', authHeader?.substring(0, 20) + '...');
-    
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
+  console.log('Auth header:', authHeader?.substring(0, 20) + '...');
+  
+  if (!authHeader) {
+    throw new Error('No authorization header');
+  }
 
     const token = authHeader.replace('Bearer ', '');
     console.log('Token (first 20 chars):', token.substring(0, 20) + '...');
