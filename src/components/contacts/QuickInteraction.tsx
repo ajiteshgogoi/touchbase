@@ -193,8 +193,8 @@ export const QuickInteraction = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl">
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100">
                   <Dialog.Title className="text-lg font-medium">
                     Log Interaction for <span className="text-primary-500">{contactName}</span>
                   </Dialog.Title>
@@ -206,7 +206,7 @@ export const QuickInteraction = ({
                   </button>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Type
@@ -257,7 +257,7 @@ export const QuickInteraction = ({
                     {(isPremium || isOnTrial) ? (
                       <div className="mb-4 p-4 bg-primary-50 rounded-lg">
                         <p className="text-sm text-gray-600">
-                          Add details about this interaction. This will help our AI provide you with personalised suggestions for future interactions.
+                          Add details about this interaction to help our AI provide you with personalised suggestions.
                         </p>
                       </div>
                     ) : (
@@ -309,7 +309,7 @@ export const QuickInteraction = ({
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
+                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
                   <button
                     onClick={onClose}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
