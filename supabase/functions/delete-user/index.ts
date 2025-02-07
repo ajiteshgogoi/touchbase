@@ -74,91 +74,67 @@ try {
       }
     });
 
-    // Verify admin client permissions
-    const { error: adminError } = await supabase.auth.admin.listUsers();
-    if (adminError) {
-      console.error('Admin permissions check failed:', adminError);
-      throw new Error('Service role key does not have admin permissions');
-    }
-
-    // Verify token and get user
+    // First verify the user's token and get their ID
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
-    if (userError) {
+    if (userError || !user) {
       console.error('User verification error:', userError);
       throw new Error('Invalid user token');
     }
-    
-    if (!user) {
-      console.error('No user found for token');
-      throw new Error('Invalid user token');
-    }
 
-    console.log('User verified:', user.id);
     const userId = user.id;
+    console.log('User verified:', userId);
 
-    // First get all contact IDs for this user
-    const { data: contacts, error: contactsError } = await supabase
-      .from('contacts')
-      .select('id')
-      .eq('user_id', userId);
+    // Then verify admin permissions specifically for this user
+    const { data: adminCheck, error: adminError } = await supabase.auth.admin.getUserById(userId);
+    if (adminError || !adminCheck?.user) {
+      console.error('Admin permissions check failed:', adminError);
+      throw new Error('Service role key validation failed - please contact support');
+    }
+
+    // Verify the user exists in auth system
+    const { data: authUser, error: authCheckError } = await supabase.auth.admin.getUserById(userId);
+    if (authCheckError || !authUser?.user) {
+      console.error('User not found in auth system:', authCheckError);
+      throw new Error('User not found in auth system');
+    }
+
+    console.log('Starting data cleanup for user:', userId);
     
-    if (contactsError) {
-      console.error('Error fetching contacts:', contactsError);
-      throw contactsError;
-    }
-
-    const contactIds = contacts?.map(c => c.id) || [];
-    console.log(`Found ${contactIds.length} contacts to delete`);
-
-    // Delete all user data in transaction order
-    if (contactIds.length > 0) {
-      // Delete processing logs for user's contacts
-      const { error: logsError } = await supabase
-        .from('contact_processing_logs')
-        .delete()
-        .in('contact_id', contactIds);
-      
-      if (logsError) {
-        console.error('Error deleting logs:', logsError);
-        throw logsError;
-      }
-
-      // Delete reminders for user's contacts
-      const { error: remindersError } = await supabase
-        .from('reminders')
-        .delete()
-        .in('contact_id', contactIds);
-      
-      if (remindersError) {
-        console.error('Error deleting reminders:', remindersError);
-        throw remindersError;
-      }
-    }
-
-    // Delete user's interactions
-    const { error: interactionsError } = await supabase
-      .from('interactions')
+    // Delete contact_analytics first (no dependencies)
+    const { error: analyticsError } = await supabase
+      .from('contact_analytics')
       .delete()
       .eq('user_id', userId);
     
-    if (interactionsError) {
-      console.error('Error deleting interactions:', interactionsError);
-      throw interactionsError;
+    if (analyticsError) {
+      console.error('Error deleting analytics:', analyticsError);
+      throw analyticsError;
     }
 
-    // Delete push subscriptions
-    const { error: subscriptionsError } = await supabase
+    // Delete notification_history (no dependencies)
+    const { error: notificationError } = await supabase
+      .from('notification_history')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (notificationError) {
+      console.error('Error deleting notification history:', notificationError);
+      throw notificationError;
+    }
+
+    // Delete push_subscriptions (no dependencies)
+    const { error: pushError } = await supabase
       .from('push_subscriptions')
       .delete()
       .eq('user_id', userId);
     
-    if (subscriptionsError) {
-      console.error('Error deleting subscriptions:', subscriptionsError);
-      throw subscriptionsError;
+    if (pushError) {
+      console.error('Error deleting push subscriptions:', pushError);
+      throw pushError;
     }
 
-    // Delete user preferences
+    // Delete user_preferences (no dependencies)
     const { error: preferencesError } = await supabase
       .from('user_preferences')
       .delete()
@@ -169,18 +145,7 @@ try {
       throw preferencesError;
     }
 
-    // Delete contacts
-    const { error: contactsDeleteError } = await supabase
-      .from('contacts')
-      .delete()
-      .eq('user_id', userId);
-    
-    if (contactsDeleteError) {
-      console.error('Error deleting contacts:', contactsDeleteError);
-      throw contactsDeleteError;
-    }
-
-    // Delete user subscriptions
+    // Delete subscriptions (no dependencies)
     const { error: subscriptionError } = await supabase
       .from('subscriptions')
       .delete()
@@ -191,30 +156,62 @@ try {
       throw subscriptionError;
     }
 
-    console.log('All related data deleted, proceeding to delete auth record');
-
-    // Finally delete the user auth record
-    try {
-      const { error: deleteUserError } = await supabase.auth.admin.deleteUser(userId);
-      if (deleteUserError) {
-        console.error('Error deleting user auth:', deleteUserError);
-        throw new Error(`Failed to delete auth record: ${deleteUserError.message}`);
-      }
-      console.log('Successfully deleted user auth record and all related data');
-    } catch (authError) {
-      console.error('Unexpected error during auth deletion:', authError);
-      throw new Error(`Auth deletion failed - please ensure user exists and token has required permissions: ${authError.message}`);
+    // Delete all interactions
+    const { error: interactionsError } = await supabase
+      .from('interactions')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (interactionsError) {
+      console.error('Error deleting interactions:', interactionsError);
+      throw interactionsError;
     }
 
-    return new Response(
-      JSON.stringify({ success: true }), 
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
+    // Finally delete all contacts - this will cascade delete reminders and processing logs
+    const { error: contactsError } = await supabase
+      .from('contacts')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (contactsError) {
+      console.error('Error deleting contacts:', contactsError);
+      throw contactsError;
+    }
+
+    console.log('All related data deleted, proceeding to delete auth record');
+
+    // Delete the auth record with retries
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        const { error: deleteUserError } = await supabase.auth.admin.deleteUser(userId);
+        if (!deleteUserError) {
+          console.log('Successfully deleted user auth record and all related data');
+          return new Response(
+            JSON.stringify({ success: true }),
+            {
+              headers: {
+                ...corsHeaders,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+        }
+        console.error(`Error deleting user auth (${retries} retries left):`, deleteUserError);
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between retries
+        }
+      } catch (authError) {
+        console.error(`Unexpected error during auth deletion (${retries} retries left):`, authError);
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
-    );
+    }
+
+    throw new Error('Failed to delete user after multiple attempts - please try again later');
 
   } catch (error) {
     console.error('Error in delete-user function:', error);
