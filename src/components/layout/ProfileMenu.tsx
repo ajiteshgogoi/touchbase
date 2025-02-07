@@ -1,13 +1,13 @@
 import { Fragment, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
-import { UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, ChevronDownIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../../stores/useStore';
 import { signOut } from '../../lib/supabase/client';
 import { initiateGoogleLogin } from '../../lib/auth/google';
 
 export const ProfileMenu = () => {
-  const { user } = useStore();
+  const { user, isPremium } = useStore();
 
   const handleSignOut = async () => {
     try {
@@ -66,10 +66,18 @@ export const ProfileMenu = () => {
 
   return (
     <Menu as="div" className="relative inline-block text-left" style={{ isolation: 'isolate' }}>
-      <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out">
-        <UserCircleIcon className="h-6 w-6" />
-        <ChevronDownIcon className="h-4 w-4" />
-      </Menu.Button>
+      <div className="flex items-center gap-2">
+        {isPremium && (
+          <div className="flex items-center gap-0.5 bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none">
+            <SparklesIcon className="h-3 w-3" />
+            <span>Premium</span>
+          </div>
+        )}
+        <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out">
+          <UserCircleIcon className="h-6 w-6" />
+          <ChevronDownIcon className="h-4 w-4" />
+        </Menu.Button>
+      </div>
 
       <Transition
         as={Fragment}
