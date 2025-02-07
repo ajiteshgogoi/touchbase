@@ -97,6 +97,18 @@ export const paymentService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No active session');
 
+      // Check if user already has a subscription record
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('trial_start_date')
+        .eq('user_id', user.id)
+        .single();
+
+      // Don't start trial if user already used it
+      if (subscription?.trial_start_date) {
+        throw new Error('Trial period already used');
+      }
+
       const trialStartDate = new Date();
       const trialEndDate = new Date(trialStartDate);
       trialEndDate.setDate(trialEndDate.getDate() + 14); // 14 day trial
@@ -139,14 +151,26 @@ export const paymentService = {
         .single();
 
       if (error || !subscription) {
-        // Start trial for new users
-        await this.startTrial();
+        // Create initial free subscription without trial
+        const { error: createError } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: user.id,
+            plan_id: 'free',
+            status: 'active',
+            valid_until: null,
+            trial_start_date: null,
+            trial_end_date: null
+          });
+
+        if (createError) throw createError;
+        
         return {
           isPremium: false,
           currentPlan: FREE_PLAN,
           validUntil: null,
-          isOnTrial: true,
-          trialDaysRemaining: 14
+          isOnTrial: false,
+          trialDaysRemaining: null
         };
       }
 
