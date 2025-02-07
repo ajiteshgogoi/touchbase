@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
-import { messaging } from '../lib/firebase';
+import { messaging, initializeTokenRefresh } from '../lib/firebase';
 
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null;
@@ -12,6 +12,12 @@ class NotificationService {
     }
 
     try {
+      // Initialize token refresh mechanism if user is authenticated
+      const session = await supabase.auth.getSession();
+      if (session.data.session?.user) {
+        await initializeTokenRefresh(session.data.session.user.id);
+      }
+
       // Set up message listener first
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'PUSH_RECEIVED') {
