@@ -1,9 +1,11 @@
 import { Fragment, useState, useEffect, useLayoutEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase/client';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
 import type { Interaction } from '../../lib/supabase/types';
+import { useStore } from '../../stores/useStore';
 import dayjs from 'dayjs';
 
 type InteractionType = Interaction['type'];
@@ -48,6 +50,7 @@ export const QuickInteraction = ({
   interactionId,
   onSuccess
 }: QuickInteractionProps) => {
+  const { isPremium, isOnTrial } = useStore();
   const [type, setType] = useState<InteractionType>(defaultType);
   const [selectedDate, setSelectedDate] = useState(() => defaultDate ? dayjs(defaultDate) : (getDateOptions()[0]?.value || dayjs()));
   const [notes, setNotes] = useState(defaultNotes || '');
@@ -249,8 +252,24 @@ export const QuickInteraction = ({
 
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      Notes (optional)
+                      Notes
                     </label>
+                    {(isPremium || isOnTrial) ? (
+                      <div className="mb-4 p-4 bg-primary-50 rounded-lg">
+                        <p className="text-sm text-gray-600">
+                          Add details about this interaction. This will help our AI provide you with personalised suggestions for future interactions.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-600">
+                          Add details about this interaction.
+                          <span className="block mt-2">
+                            ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions based on your notes!
+                          </span>
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <textarea
                         value={notes}
