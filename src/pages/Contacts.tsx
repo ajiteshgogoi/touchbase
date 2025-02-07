@@ -187,8 +187,8 @@ export const Contacts = () => {
           ) : (
             filteredContacts?.map((contact) => (
               <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  <div className="min-w-0 flex-1">
+                <div className="flex flex-col gap-4">
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <h3 className="text-lg font-semibold text-primary-500">
                         {contact.name}
@@ -269,7 +269,7 @@ export const Contacts = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto mt-3 sm:mt-0">
+                  <div className="flex items-center justify-start gap-2 w-full mt-3">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"

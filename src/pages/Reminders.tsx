@@ -83,8 +83,8 @@ export const Reminders = () => {
               ) : (
                 dueTodayReminders.map((reminder) => (
                   <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-4">
+                      <div className="min-w-0">
                         <div className="space-y-2.5">
                           <div className="flex flex-wrap gap-4 text-sm">
                             <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
@@ -113,7 +113,7 @@ export const Reminders = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center sm:self-start gap-2">
+                      <div className="flex items-center justify-start gap-2 w-full">
                         <button
                           onClick={() => setQuickInteraction({
                             isOpen: true,
@@ -165,8 +165,8 @@ export const Reminders = () => {
               ) : (
                 upcomingReminders.map((reminder) => (
                   <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div className="min-w-0 flex-1">
+                    <div className="flex flex-col gap-4">
+                      <div className="min-w-0">
                         <div className="space-y-2.5">
                           <div className="flex flex-wrap gap-4 text-sm">
                             <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
@@ -195,7 +195,7 @@ export const Reminders = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center sm:self-start gap-2">
+                      <div className="flex items-center justify-start gap-2 w-full">
                         <button
                           onClick={() => setQuickInteraction({
                             isOpen: true,
