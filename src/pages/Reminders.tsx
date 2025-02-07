@@ -85,10 +85,7 @@ export const Reminders = () => {
                                 {contactsMap[reminder.contact_id]?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
                                   <div className="p-4 bg-gray-50 rounded-lg">
                                     <span className="text-sm text-gray-600">
-                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion}
-                                      <span className="block mt-2">
-                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                      </span>
+                                      ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
                                     </span>
                                   </div>
                                 ) : (
@@ -153,10 +150,7 @@ export const Reminders = () => {
                                 {contactsMap[reminder.contact_id]?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
                                   <div className="p-4 bg-gray-50 rounded-lg">
                                     <span className="text-sm text-gray-600">
-                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion}
-                                      <span className="block mt-2">
-                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                      </span>
+                                      ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
                                     </span>
                                   </div>
                                 ) : (
