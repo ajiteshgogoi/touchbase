@@ -185,21 +185,22 @@ export async function runDailyCheckV2() {
       return { message: 'No contacts need attention' };
     }
 
-    // Get already processed contacts for tomorrow
+    // Get successfully processed contacts for tomorrow
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
     const { data: processedContacts, error: processedError } = await supabaseClient
       .from('contact_processing_logs')
       .select('contact_id')
-      .eq('processing_date', tomorrowStr);
+      .eq('processing_date', tomorrowStr)
+      .eq('status', 'success');  // Only consider successfully processed contacts
 
     if (processedError) {
       console.error('Error fetching processed contacts:', processedError);
       throw processedError;
     }
 
-    // Filter out already processed contacts
-    const processedContactIds = new Set((processedContacts || []).map(p => p.contact_id));
-    const unprocessedContacts = contacts.filter(c => !processedContactIds.has(c.id));
+    // Filter out successfully processed contacts
+    const successfullyProcessedIds = new Set((processedContacts || []).map(p => p.contact_id));
+    const unprocessedContacts = contacts.filter(c => !successfullyProcessedIds.has(c.id));
 
     if (!unprocessedContacts.length) {
       return { message: 'No unprocessed contacts need attention' };
