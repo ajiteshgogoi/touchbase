@@ -80,9 +80,13 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
 // Handle token refresh and message handling
 export const initializeTokenRefresh = async (userId: string) => {
   try {
-    // Get current token with existing registration
+    // Wait for service worker to be ready
+    const registration = await navigator.serviceWorker.ready;
+    
+    // Get current token with service worker registration
     const currentToken = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+      vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+      serviceWorkerRegistration: registration
     });
 
     if (currentToken) {
@@ -93,8 +97,12 @@ export const initializeTokenRefresh = async (userId: string) => {
     // Set up periodic token refresh
     const refreshToken = async () => {
       try {
+        // Get the current service worker registration
+        const registration = await navigator.serviceWorker.ready;
+
         const newToken = await getToken(messaging, {
-          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+          serviceWorkerRegistration: registration
         });
 
         if (newToken) {
@@ -133,8 +141,12 @@ export const initializeTokenRefresh = async (userId: string) => {
       // Handle token changes if needed
       if (payload.data?.type === 'token_change') {
         try {
+          // Get the current service worker registration
+          const registration = await navigator.serviceWorker.ready;
+
           const newToken = await getToken(messaging, {
-            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            serviceWorkerRegistration: registration
           });
 
           if (newToken && newToken !== currentToken) {
