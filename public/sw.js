@@ -34,6 +34,38 @@ self.addEventListener('message', (event) => {
         scope: self.registration.scope
       }
     });
+  } else if (event.data?.type === 'FCM_MESSAGE') {
+    // Handle forwarded FCM message from firebase-messaging-sw.js
+    const { payload } = event.data;
+    console.log('[SW-Message] Received FCM message:', payload);
+    
+    // Extract notification data
+    const { notification, webpush } = payload;
+    const { title, body } = notification;
+    const url = webpush?.fcm_options?.link || '/reminders';
+    
+    const baseUrl = self.registration.scope.replace(/\/$/, '');
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+    
+    // Show notification with proper styling
+    self.registration.showNotification(title, {
+      body,
+      icon: `${baseUrl}/icon.svg`,
+      badge: `${baseUrl}/icon.svg`,
+      vibrate: [100, 50, 100],
+      data: {
+        url: fullUrl,
+        dateOfArrival: Date.now(),
+        primaryKey: 1
+      },
+      actions: [
+        {
+          action: 'open',
+          title: 'View Reminders'
+        }
+      ],
+      requireInteraction: true
+    });
   }
 });
 
