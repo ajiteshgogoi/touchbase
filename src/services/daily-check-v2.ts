@@ -172,7 +172,7 @@ export async function runDailyCheckV2() {
       `)
       .gte('next_contact_due', tomorrow.toISOString())
       .lte('next_contact_due', tomorrowEnd.toISOString())
-      .order('interactions.date', { foreignTable: 'interactions', ascending: false })
+      .order('date', { referencedTable: 'interactions', ascending: false })
       .limit(5, { foreignTable: 'interactions' });
 
     if (contactsError) {
