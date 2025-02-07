@@ -13,7 +13,7 @@ export default defineConfig({
       manifest: {
         name: 'TouchBase',
         short_name: 'TouchBase',
-        description: 'Stay connected with the people who matter',
+        description: 'Stay connected with the people who matter most',
         theme_color: '#0EA5E9',
         icons: [
           {
@@ -66,7 +66,18 @@ export default defineConfig({
           }
         ]
       }
-    })
+    }),
+    {
+      name: 'configure-service-worker',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url?.endsWith('firebase-messaging-sw.js')) {
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          }
+          next();
+        });
+      }
+    }
   ],
   resolve: {
     alias: {
