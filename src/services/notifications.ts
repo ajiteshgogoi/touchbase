@@ -3,6 +3,7 @@ import { getToken } from "firebase/messaging";
 import { messaging, initializeTokenRefresh } from '../lib/firebase';
 
 class NotificationService {
+  private swRegistration: ServiceWorkerRegistration | null = null;
   private fcmRegistration: ServiceWorkerRegistration | null = null;
 
   async initialize(): Promise<void> {
@@ -12,7 +13,20 @@ class NotificationService {
     }
 
     try {
-      // Register Firebase messaging service worker
+      // Set up message listener first
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'PUSH_RECEIVED') {
+          console.log('[Notifications] Push event received by service worker:', event.data);
+        }
+      });
+
+      // Unregister any existing service workers first
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+      }
+
+      // First register Firebase messaging service worker
       console.log('Registering Firebase messaging service worker...');
       const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
       
@@ -28,16 +42,59 @@ class NotificationService {
       }
 
       // Wait for explicit activation
-      if (this.fcmRegistration.installing || this.fcmRegistration.waiting) {
+      await new Promise<void>((resolve) => {
+        if (this.fcmRegistration?.active) {
+          resolve();
+          return;
+        }
+
+        const handleActivation = () => {
+          this.fcmRegistration?.removeEventListener('activate', handleActivation);
+          resolve();
+        };
+
+        this.fcmRegistration?.addEventListener('activate', handleActivation);
+      });
+
+      await this.fcmRegistration.update();
+
+      // Now register main app service worker
+      console.log('Registering main app service worker...');
+      // First verify manifest is accessible
+      console.log('Verifying manifest accessibility...');
+      const manifestURL = new URL('/manifest.json', window.location.origin).href;
+      const manifestResponse = await fetch(manifestURL);
+      if (!manifestResponse.ok) {
+        throw new Error('Failed to load manifest.json');
+      }
+      const manifest = await manifestResponse.json();
+      
+      // Use manifest start_url as base for service worker scope
+      const baseScope = new URL(manifest.start_url || '/', window.location.origin).pathname;
+      const scriptURL = new URL('/sw.js', window.location.origin).href;
+      
+      console.log('Registering service worker with configuration:', {
+        scriptURL,
+        scope: baseScope,
+        origin: window.location.origin
+      });
+      
+      this.swRegistration = await navigator.serviceWorker.register(scriptURL, {
+        scope: baseScope,
+        updateViaCache: 'none'
+      });
+
+      // Wait for the service worker to be activated
+      if (this.swRegistration.installing || this.swRegistration.waiting) {
         await new Promise<void>((resolve) => {
-          const sw = this.fcmRegistration!.installing || this.fcmRegistration!.waiting;
+          const sw = this.swRegistration!.installing || this.swRegistration!.waiting;
           if (!sw) {
             resolve();
             return;
           }
 
-          sw.addEventListener('statechange', function listener(event) {
-            if ((event.target as ServiceWorker).state === 'activated') {
+          sw.addEventListener('statechange', function listener(e) {
+            if ((e.target as ServiceWorker).state === 'activated') {
               sw.removeEventListener('statechange', listener);
               resolve();
             }
@@ -46,11 +103,11 @@ class NotificationService {
       }
 
       // Double check registration is active
-      if (!this.fcmRegistration.active) {
-        throw new Error('Firebase service worker failed to activate');
+      if (!this.swRegistration.active) {
+        throw new Error('Service worker failed to activate');
       }
 
-      console.log('Firebase service worker successfully registered and activated');
+      console.log('Service worker successfully registered and activated');
 
       // Initialize token refresh mechanism if user is authenticated
       const session = await supabase.auth.getSession();
@@ -263,13 +320,60 @@ class NotificationService {
       const targetingOtherUser = session.data.session?.user.id !== userId;
 
       if (isAdmin && targetingOtherUser) {
-        // Ensure admin has active FCM registration
         console.log('Admin sending test notification to other user...');
-        await this.subscribeToPushNotifications(session.data.session!.user.id, true);
+        
+        // For admin, we need to ensure proper initialization sequence
+        if (!this.fcmRegistration?.active) {
+          console.log('Initializing admin FCM registration...');
+          // First ensure admin has notification permission
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            throw new Error('Notification permission required for admin operations');
+          }
+
+          // Force a clean service worker registration
+          if (this.fcmRegistration) {
+            await this.fcmRegistration.unregister();
+            this.fcmRegistration = null;
+          }
+
+          // Register Firebase service worker with force flag
+          const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+          this.fcmRegistration = await navigator.serviceWorker.register(firebaseSWURL, {
+            scope: '/',
+            updateViaCache: 'none'
+          });
+
+          // Wait for activation
+          if (this.fcmRegistration.installing || this.fcmRegistration.waiting) {
+            await new Promise<void>((resolve) => {
+              const sw = this.fcmRegistration!.installing || this.fcmRegistration!.waiting;
+              if (!sw) {
+                resolve();
+                return;
+              }
+
+              sw.addEventListener('statechange', function listener(e) {
+                if ((e.target as ServiceWorker).state === 'activated') {
+                  sw.removeEventListener('statechange', listener);
+                  resolve();
+                }
+              });
+            });
+          }
+
+          // Initialize admin's token
+          await this.subscribeToPushNotifications(session.data.session!.user.id, true);
+        }
       } else {
         // For non-admin users or admin testing own notifications
         console.log('Creating fresh FCM token...');
         await this.subscribeToPushNotifications(userId, true);
+      }
+
+      // Final verification
+      if (!this.fcmRegistration?.active) {
+        throw new Error('Firebase service worker failed to activate');
       }
       
       console.log('Sending test notification...');
