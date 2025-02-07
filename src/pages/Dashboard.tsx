@@ -223,7 +223,18 @@ const RecentContacts = () => {
                           <span>
                             <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
                             <span className="text-gray-600 whitespace-pre-line">
-                              {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                              {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                <div className="p-4 bg-gray-50 rounded-lg">
+                                  <span className="text-sm text-gray-600">
+                                    {contact.ai_last_suggestion}
+                                    <span className="block mt-2">
+                                      ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                    </span>
+                                  </span>
+                                </div>
+                              ) : (
+                                contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')
+                              )}
                             </span>
                           </span>
                         )}

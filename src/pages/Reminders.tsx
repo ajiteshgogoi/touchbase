@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
 import dayjs from 'dayjs';
 import type { Reminder, Contact, Interaction } from '../lib/supabase/types';
@@ -81,7 +82,18 @@ export const Reminders = () => {
                             <span>
                               <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
                               <span className="text-gray-600 whitespace-pre-line">
-                                {contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'}
+                                {contactsMap[reminder.contact_id]?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                  <div className="p-4 bg-gray-50 rounded-lg">
+                                    <span className="text-sm text-gray-600">
+                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion}
+                                      <span className="block mt-2">
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                      </span>
+                                    </span>
+                                  </div>
+                                ) : (
+                                  contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'
+                                )}
                               </span>
                             </span>
                           </div>
@@ -138,7 +150,18 @@ export const Reminders = () => {
                             <span>
                               <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
                               <span className="text-gray-600 whitespace-pre-line">
-                                {contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'}
+                                {contactsMap[reminder.contact_id]?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                  <div className="p-4 bg-gray-50 rounded-lg">
+                                    <span className="text-sm text-gray-600">
+                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion}
+                                      <span className="block mt-2">
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                      </span>
+                                    </span>
+                                  </div>
+                                ) : (
+                                  contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'
+                                )}
                               </span>
                             </span>
                           </div>
