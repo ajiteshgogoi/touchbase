@@ -247,37 +247,6 @@ class NotificationService {
     return permission === 'granted';
   }
 
-  private async ensureValidToken(userId: string): Promise<string> {
-    console.log('Ensuring valid FCM token...');
-    
-    // Get current token directly from Firebase
-    const currentToken = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-      serviceWorkerRegistration: this.fcmRegistration || undefined
-    });
-
-    if (!currentToken) {
-      throw new Error('Failed to get FCM token from Firebase');
-    }
-
-    // Update token in database
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .upsert({
-        user_id: userId,
-        fcm_token: currentToken,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
-      });
-
-    if (error) {
-      throw new Error(`Failed to update FCM token in database: ${error.message}`);
-    }
-
-    return currentToken;
-  }
-
   async sendTestNotification(userId: string, message?: string): Promise<void> {
     try {
       console.log('Starting test notification sequence...');
@@ -293,23 +262,17 @@ class NotificationService {
       const isAdmin = session.data.session?.user.id === import.meta.env.VITE_ADMIN_USER_ID;
       const targetingOtherUser = session.data.session?.user.id !== userId;
 
-      // Get and verify token for the target user
-      let fcmToken;
       if (isAdmin && targetingOtherUser) {
+        // Ensure admin has active FCM registration
         console.log('Admin sending test notification to other user...');
-        // First ensure admin's token is valid
-        await this.ensureValidToken(session.data.session!.user.id);
-        // Then get target user's token
-        fcmToken = await this.ensureValidToken(userId);
+        await this.subscribeToPushNotifications(session.data.session!.user.id, true);
       } else {
+        // For non-admin users or admin testing own notifications
         console.log('Creating fresh FCM token...');
-        fcmToken = await this.ensureValidToken(userId);
+        await this.subscribeToPushNotifications(userId, true);
       }
-
-      // Add delay to ensure token propagation
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log('Sending test notification using token:', fcmToken);
+      console.log('Sending test notification...');
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
         method: 'POST',
         headers: {
@@ -318,8 +281,7 @@ class NotificationService {
         },
         body: JSON.stringify({
           userId,
-          message: message || 'This is a test notification',
-          fcmToken // Pass the verified token directly
+          message: message || 'This is a test notification'
         })
       });
 
