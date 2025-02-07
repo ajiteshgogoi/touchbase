@@ -176,7 +176,7 @@ export const InteractionHistory = () => {
               Interaction History
             </h1>
             <p className="mt-1 text-sm text-gray-600">
-              Manage your interactions with {contact.name}
+              Manage your interactions with <span className="text-primary-500">{contact.name}</span>
             </p>
           </div>
         </div>
