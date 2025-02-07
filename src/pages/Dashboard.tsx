@@ -276,29 +276,45 @@ export const Dashboard = () => {
             Here's what's happening with your relationships
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-stretch gap-3">
+          {!isPremium && (
+            <Link
+              to="/settings"
+              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-soft hover:shadow-lg transition-all"
+            >
+              <span className="inline-flex items-center justify-center">
+                ✨ Upgrade to Premium
+              </span>
+            </Link>
+          )}
           <Link
             to="/analytics"
-            className={`inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
+            className={`flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
               isPremium
                 ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                 : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
             } transition-all`}
           >
-            <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-            Get Detailed Analytics
+            <span className="inline-flex items-center justify-center">
+              <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+              Get Detailed Analytics
+            </span>
           </Link>
           {canAddMore ? (
             <Link
               to="/contacts/new"
-              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
             >
-              <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-              Add Contact
+              <span className="inline-flex items-center justify-center">
+                <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+                Add Contact
+              </span>
             </Link>
           ) : (
-            <button className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
-              Upgrade to add more contacts
+            <button className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+              <span className="inline-flex items-center justify-center">
+                Upgrade to add more contacts
+              </span>
             </button>
           )}
         </div>
