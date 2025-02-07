@@ -3,17 +3,30 @@ import {
   ChatBubbleLeftRightIcon,
   BellIcon,
   LightBulbIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 export const Help = () => {
+  const navigate = useNavigate();
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">How to Use TouchBase</h1>
-        <p className="mt-2 text-gray-600">
-          Learn how to manage your relationships effectively
-        </p>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">How to Use TouchBase</h1>
+            <p className="mt-2 text-gray-600">
+              Learn how to manage your relationships effectively
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-6">

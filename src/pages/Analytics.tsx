@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsService } from '../services/analytics';
 import { useStore } from '../stores/useStore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import {
   ChartPieIcon,
@@ -85,6 +85,7 @@ const ProgressMetric = ({ label, value, total }: { label: string; value: number;
 };
 
 export const Analytics = () => {
+  const navigate = useNavigate();
   const { isPremium, isOnTrial } = useStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -116,7 +117,7 @@ export const Analytics = () => {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => window.history.back()}
+            onClick={() => navigate('/')}
             className="p-2 -m-2 text-gray-400 hover:text-gray-500"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -151,10 +152,20 @@ export const Analytics = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Relationship Analytics (beta)</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Deep insights into your connections and interaction patterns
-          </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+            >
+              <ArrowLeftIcon className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Relationship Analytics (beta)</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Deep insights into your connections and interaction patterns
+              </p>
+            </div>
+          </div>
         </div>
         <button
           onClick={handleGenerateAnalytics}
