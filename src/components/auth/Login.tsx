@@ -88,7 +88,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">AI Powered</h3>
-            <p className="text-gray-600">Personalised interaction suggestions based on your history</p>
+            <p className="text-gray-600">Personalised interaction suggestions and analytics based on your history</p>
           </div>
         </div>
       </div>
