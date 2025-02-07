@@ -138,9 +138,16 @@ export const contactsService = {
 
     let updatedFields = { ...updates };
     
-    // Only recalculate next_contact_due if we have a last_contacted date
-    if (updates.last_contacted ||
-        (updates.relationship_level || updates.contact_frequency) && contact.last_contacted) {
+    // Skip reminder handling if this is just an AI suggestion update
+    const isAiSuggestionUpdate =
+      Object.keys(updates).length === 2 &&
+      'ai_last_suggestion' in updates &&
+      'ai_last_suggestion_date' in updates;
+
+    // Only recalculate next_contact_due if we have a last_contacted date and this isn't an AI update
+    if (!isAiSuggestionUpdate && (
+        updates.last_contacted ||
+        (updates.relationship_level || updates.contact_frequency) && contact.last_contacted)) {
       const level = (updates.relationship_level || contact.relationship_level) as RelationshipLevel;
       const frequency = (updates.contact_frequency || contact.contact_frequency) as ContactFrequency | null;
       

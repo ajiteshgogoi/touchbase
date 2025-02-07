@@ -108,10 +108,8 @@ export async function runDailyCheckV2() {
 
         // Only consider as missed if:
         // 1. Due date is today
-        // 2. AND contact has been contacted before (has last_contacted)
-        // 3. AND no interaction today
+        // 2. AND no interaction today
         if (dueDate.getTime() === missedDate.getTime() &&
-            contact.last_contacted &&
             (!latestInteraction ||
              new Date(latestInteraction.date).setHours(0, 0, 0, 0) < missedDate.getTime())) {
           
