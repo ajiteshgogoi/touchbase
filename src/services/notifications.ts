@@ -6,21 +6,30 @@ class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
 
   async initialize(): Promise<void> {
-    if (!('serviceWorker' in navigator)) {
-      console.warn('Service workers are not supported');
-      return;
-    }
-
-    try {
-      // Register Firebase messaging service worker
-      console.log('Registering Firebase messaging service worker...');
-      const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
-      
-      // Register with explicit options for better control
-      this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-        scope: '/',
-        updateViaCache: 'none'
-      });
+      if (!('serviceWorker' in navigator)) {
+        console.warn('Service workers are not supported');
+        return;
+      }
+  
+      try {
+        // First unregister any existing service worker
+        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of existingRegistrations) {
+          if (reg.active?.scriptURL.includes('sw.js')) {
+            console.log('Unregistering old service worker...');
+            await reg.unregister();
+          }
+        }
+  
+        // Register Firebase messaging service worker
+        console.log('Registering Firebase messaging service worker...');
+        const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+        
+        // Register with explicit options for better control
+        this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
+          scope: '/',
+          updateViaCache: 'none'
+        });
 
       // Wait for the service worker to be ready
       if (this.registration.installing || this.registration.waiting) {
