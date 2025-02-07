@@ -372,7 +372,7 @@ export const ContactForm = () => {
           ) : (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-2">
-                Add personal notes about your contact.
+                Add details that can help maintain the relationship.
                 <span className="block mt-2">
                   ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions based on your notes!
                 </span>

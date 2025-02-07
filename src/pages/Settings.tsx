@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
 import moment from 'moment-timezone';
 
 const TIMEZONES = moment.tz.names();
@@ -89,6 +88,11 @@ export const Settings = () => {
   useEffect(() => {
     // Initialize notification service when component mounts
     notificationService.initialize().catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, []);
 
   const updatePreferencesMutation = useMutation({
