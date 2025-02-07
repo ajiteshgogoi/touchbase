@@ -1,7 +1,11 @@
 import { supabase } from '../lib/supabase/client';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 import { paymentService } from './payment';
+
+// Extend dayjs with the relativeTime plugin
+dayjs.extend(relativeTime);
 
 type ContactFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
 type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
