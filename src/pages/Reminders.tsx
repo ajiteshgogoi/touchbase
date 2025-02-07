@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
@@ -25,6 +25,11 @@ export const Reminders = () => {
     contactName: string;
     type: Interaction['type'];
   } | null>(null);
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   const contactsMap = contacts?.reduce((acc, contact) => {
     acc[contact.id] = contact;
