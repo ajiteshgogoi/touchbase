@@ -128,6 +128,7 @@ export const initializeTokenRefresh = async (userId: string) => {
           {
             body: notification.body,
             data: payload.data,
+            silent: true, // Prevent Chrome PWA prompt
             actions: [
               {
                 action: 'view',
