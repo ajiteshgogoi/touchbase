@@ -253,99 +253,17 @@ class NotificationService {
 
   async sendTestNotification(userId: string, message?: string): Promise<void> {
     try {
-      console.log('Starting test notification sequence...');
-      
-      // First ensure fresh service worker registration
-      await this.initialize();
-      
-      if (!this.registration?.active) {
-        throw new Error('Firebase service worker failed to activate after initialization');
-      }
-
+      // Only initialize service worker if testing own notifications
       const session = await supabase.auth.getSession();
-      const isAdmin = session.data.session?.user.id === import.meta.env.VITE_ADMIN_USER_ID;
       const targetingOtherUser = session.data.session?.user.id !== userId;
-
-      if (isAdmin && targetingOtherUser) {
-        console.log('Admin sending test notification to other user...');
-        
-        // For admin, we need to ensure proper initialization sequence
-        if (!this.registration?.active) {
-          console.log('Initializing admin FCM registration...');
-          // First ensure admin has notification permission
-          const permission = await Notification.requestPermission();
-          if (permission !== 'granted') {
-            throw new Error('Notification permission required for admin operations');
-          }
-
-          // Force a clean service worker registration
-          if (this.registration) {
-            await this.registration.unregister();
-            this.registration = null;
-          }
-
-          // Register Firebase service worker with force flag
-          const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
-          this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-            scope: '/',
-            updateViaCache: 'none'
-          });
-
-          // Wait for activation
-          if (this.registration.installing || this.registration.waiting) {
-            await new Promise<void>((resolve) => {
-              const sw = this.registration!.installing || this.registration!.waiting;
-              if (!sw) {
-                resolve();
-                return;
-              }
-
-              sw.addEventListener('statechange', function listener(event: Event) {
-                if ((event.target as ServiceWorker).state === 'activated') {
-                  sw.removeEventListener('statechange', listener);
-                  resolve();
-                }
-              });
-            });
-          }
-
-          // Initialize admin's token
-          await this.subscribeToPushNotifications(session.data.session!.user.id, true);
-        }
-      } else {
-        // For non-admin users or admin testing own notifications
-        console.log('Creating fresh FCM token...');
+      if (!targetingOtherUser) {
+        await this.initialize();
         await this.subscribeToPushNotifications(userId, true);
       }
 
-      // Final verification
-      if (!this.registration?.active) {
-        throw new Error('Firebase service worker failed to activate');
-      }
-      
-      console.log('Sending test notification...');
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        },
-        body: JSON.stringify({
-          userId,
-          message: message || 'This is a test notification'
-        })
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send test notification');
-      }
-
-      console.log('Test notification sent successfully. If you do not see the notification, check:');
-      console.log('1. Browser notification permissions');
-      console.log('2. Service worker logs in DevTools > Application > Service Workers');
-      console.log('3. Network tab for the FCM response');
+      // Use the dedicated test notification service
+      const { sendTestNotification } = await import('./test-notifications');
+      await sendTestNotification(userId, message);
     } catch (error) {
       console.error('Failed to send test notification:', error);
       throw error;
