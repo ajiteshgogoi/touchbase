@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase/client';
+import dayjs from 'dayjs';
 import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 import { paymentService } from './payment';
 
@@ -72,7 +73,28 @@ const getNextContactDate = (
   return normalizeDate(nextDate);
 };
 
+// Format the next contact due date in a user-friendly way
+const formatDueDate = (dueDate: string | null): string => {
+  if (!dueDate) return 'Not set';
+  
+  const due = new Date(dueDate);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  // Normalize dates to midnight for comparison
+  due.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  tomorrow.setHours(0, 0, 0, 0);
+  
+  if (due.getTime() === today.getTime()) return 'Today';
+  if (due.getTime() === tomorrow.getTime()) return 'Tomorrow';
+  return dayjs(dueDate).fromNow();
+};
+
 export const contactsService = {
+  formatDueDate,
+
   async getContacts(): Promise<Contact[]> {
     const { data, error } = await supabase
       .from('contacts')

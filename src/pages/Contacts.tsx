@@ -214,7 +214,7 @@ export const Contacts = () => {
                         </span>
                         <span>
                           <span className="text-gray-700 font-medium">Next contact due:</span>{' '}
-                          <span className="text-gray-600">{contact.next_contact_due ? dayjs(contact.next_contact_due).fromNow() : 'Not set'}</span>
+                          <span className="text-gray-600">{contactsService.formatDueDate(contact.next_contact_due)}</span>
                         </span>
                         <span className="inline-flex items-baseline">
                           <span className="text-gray-700 font-medium">Closeness:</span> <div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ml-1.5 translate-y-[0.5px] ${

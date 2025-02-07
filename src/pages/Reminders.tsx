@@ -74,7 +74,7 @@ export const Reminders = () => {
                           <div className="flex flex-wrap gap-4 text-sm">
                             <span>
                               <span className="text-gray-700 font-medium">Contact due:</span>{' '}
-                              <span className="text-gray-600">{dayjs(reminder.due_date).fromNow()}</span>
+                              <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
                             </span>
                           </div>
                           <div className="flex flex-wrap gap-4 text-sm">
@@ -131,7 +131,7 @@ export const Reminders = () => {
                           <div className="flex flex-wrap gap-4 text-sm">
                             <span>
                               <span className="text-gray-700 font-medium">Contact due:</span>{' '}
-                              <span className="text-gray-600">{dayjs(reminder.due_date).fromNow()}</span>
+                              <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
                             </span>
                           </div>
                           <div className="flex flex-wrap gap-4 text-sm">
