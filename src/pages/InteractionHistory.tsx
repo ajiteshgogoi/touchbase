@@ -131,7 +131,7 @@ export const InteractionHistory = () => {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/contacts')}
+            onClick={() => navigate(-1)}
             className="p-2 -m-2 text-gray-400 hover:text-gray-500"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -166,7 +166,7 @@ export const InteractionHistory = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/contacts')}
+            onClick={() => navigate(-1)}
             className="p-2 -m-2 text-gray-400 hover:text-gray-500"
           >
             <ArrowLeftIcon className="h-5 w-5" />
