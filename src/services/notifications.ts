@@ -269,7 +269,18 @@ class NotificationService {
       if (isAdmin && targetingOtherUser) {
         console.log('Admin sending test notification to other user...');
         
-        // For admin, we need to ensure proper initialization sequence
+        // First verify target user has a valid FCM token
+        const { data: targetSubscription } = await supabase
+          .from('push_subscriptions')
+          .select('fcm_token')
+          .eq('user_id', userId)
+          .maybeSingle();
+          
+        if (!targetSubscription?.fcm_token) {
+          throw new Error('Target user does not have a valid FCM token. They need to enable notifications first.');
+        }
+
+        // Then ensure admin's registration is valid
         if (!this.registration?.active) {
           console.log('Initializing admin FCM registration...');
           // First ensure admin has notification permission
