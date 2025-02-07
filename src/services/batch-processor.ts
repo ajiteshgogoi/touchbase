@@ -158,16 +158,45 @@ export class BatchProcessor {
   ): Promise<BatchProcessingResult> {
     try {
       // Create processing log entry
-      const { error: logError } = await this.supabase
-        .from('contact_processing_logs')
-        .insert({
-          contact_id: contact.id,
-          batch_id: batchId,
-          status: 'pending',
-          processing_date: new Date().toISOString().split('T')[0],
-        });
+      // Check for existing log and update if failed
+      type ProcessingLog = {
+        status: 'pending' | 'success' | 'error';
+        retry_count?: number;
+        error_message?: string;
+      };
 
-      if (logError) throw logError;
+      const { data: existingLog, error: fetchError } = await this.supabase
+        .from('contact_processing_logs')
+        .select('status, retry_count, error_message')
+        .eq('contact_id', contact.id)
+        .eq('processing_date', new Date().toISOString().split('T')[0])
+        .maybeSingle<ProcessingLog>();
+
+      if (fetchError) throw fetchError;
+
+      // Only create/update if no log exists or previous attempt failed
+      if (!existingLog || existingLog.status === 'error') {
+        const upsertResult = await this.supabase
+          .from('contact_processing_logs')
+          .upsert({
+            contact_id: contact.id,
+            batch_id: batchId,
+            status: 'pending',
+            processing_date: new Date().toISOString().split('T')[0],
+            retry_count: (existingLog?.retry_count || 0) + (existingLog ? 1 : 0),
+            last_error: existingLog?.status === 'error' ? existingLog.error_message : null
+          }, {
+            onConflict: 'contact_id,processing_date'
+          });
+
+        if (upsertResult.error) throw upsertResult.error;
+      } else {
+        // Skip if already successfully processed
+        return {
+          status: 'success',
+          contactId: contact.id
+        };
+      }
 
       // Check subscription status
       const { data: subscription, error: subError } = await this.supabase
