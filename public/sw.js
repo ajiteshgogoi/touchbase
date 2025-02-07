@@ -159,23 +159,25 @@ self.addEventListener('fetch', (event) => {
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
-  // Log basic push event details
-  console.log('[SW-Push] Push event received');
-  
-  // Only process non-FCM push notifications
-  // FCM messages are handled by firebase-messaging-sw.js
-  if (event.data) {
+  // Check if this is an FCM message by inspecting headers and data patterns
+  const isFirebaseMessage = event.data && (() => {
     try {
       const data = event.data.json();
-      // Check if this is an FCM message
-      if (data.notification && data.from && data.from.startsWith('FCM')) {
-        console.log('[SW-Push] Skipping FCM notification, will be handled by firebase-messaging-sw.js');
-        return;
-      }
+      // FCM messages have a specific structure
+      return (
+        (data.firebase && data.firebase.messaging) || // Check for FCM v9+ structure
+        (data.from && data.from.startsWith('FCM')) || // Check for FCM v8 structure
+        data.collapse_key || // FCM specific field
+        (data.notification && data.notification.title && data.notification.icon) // Matches our FCM notification structure
+      );
     } catch (e) {
-      // If we can't parse as JSON or it doesn't have FCM markers, assume it's a non-FCM push
-      console.log('[SW-Push] Processing as non-FCM push notification');
+      return false;
     }
+  })();
+
+  if (isFirebaseMessage) {
+    console.log('[SW-Push] FCM message detected, skipping duplicate notification');
+    return; // Let firebase-messaging-sw.js handle it
   }
 
   // For non-FCM pushes, notify clients
@@ -188,8 +190,11 @@ self.addEventListener('push', (event) => {
     });
   });
 
-  // Handle custom push notifications here
-  // This section will only run for non-FCM pushes
+  // Process only non-FCM push notifications here
+  console.log('[SW-Push] Processing non-FCM push notification');
+
+  // Non-FCM push notification logic would go here
+  // Currently we don't have any non-FCM push notifications to handle
 });
 
 // Handle notification clicks
