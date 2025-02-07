@@ -313,7 +313,7 @@ export const Dashboard = () => {
           <Link
             to="/analytics"
             className={`flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
-              isPremium
+              isPremium || isOnTrial
                 ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                 : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
             } transition-all`}

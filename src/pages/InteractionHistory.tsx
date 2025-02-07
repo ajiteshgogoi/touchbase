@@ -16,7 +16,7 @@ export const InteractionHistory = () => {
   const { contactId } = useParams<{ contactId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { isPremium } = useStore();
+  const { isPremium, isOnTrial } = useStore();
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [editingInteraction, setEditingInteraction] = useState<{
@@ -121,7 +121,7 @@ export const InteractionHistory = () => {
     );
   }
 
-  if (!isPremium) {
+  if (!isPremium && !isOnTrial) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">

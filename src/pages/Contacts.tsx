@@ -41,7 +41,7 @@ export const Contacts = () => {
       refetchType: 'all'
     });
   }, [queryClient]);
-  const { isPremium } = useStore();
+  const { isPremium, isOnTrial } = useStore();
 
   const { data: contacts, isLoading } = useQuery<Contact[]>({
     queryKey: ['contacts'],
@@ -93,7 +93,7 @@ export const Contacts = () => {
         : (b[sortField] || 0) - (a[sortField] || 0);
     });
 
-  const contactLimit = isPremium ? Infinity : 7;
+  const contactLimit = isPremium || isOnTrial ? Infinity : 7;
   const canAddMore = (contacts?.length || 0) < contactLimit;
 
   return (
@@ -250,7 +250,7 @@ export const Contacts = () => {
                     >
                       Log Interaction
                     </button>
-                    {isPremium ? (
+                    {(isPremium || isOnTrial) ? (
                       <Link
                         to={`/contacts/${contact.id}/interactions`}
                         className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"

@@ -84,7 +84,7 @@ const ProgressMetric = ({ label, value, total }: { label: string; value: number;
 };
 
 export const Analytics = () => {
-  const { isPremium } = useStore();
+  const { isPremium, isOnTrial } = useStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const { data: analytics, refetch: refetchAnalytics } = useQuery({
@@ -93,7 +93,7 @@ export const Analytics = () => {
   });
 
   const handleGenerateAnalytics = async () => {
-    if (!isPremium) return;
+    if (!isPremium && !isOnTrial) return;
     setIsGenerating(true);
     try {
       await analyticsService.generateAnalytics();
@@ -110,7 +110,7 @@ export const Analytics = () => {
     return dayjs().isAfter(dayjs(analytics.nextGenerationAllowed));
   }, [analytics]);
 
-  if (!isPremium) {
+  if (!isPremium && !isOnTrial) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">

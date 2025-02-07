@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../../services/contacts';
 import { useStore } from '../../stores/useStore';
@@ -61,7 +61,7 @@ export const ContactForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useStore();
+  const { user, isPremium, isOnTrial } = useStore();
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
@@ -355,19 +355,30 @@ export const ContactForm = () => {
       <div className="bg-white rounded-xl shadow-soft p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-6">Personal Notes</h2>
         <div>
-          <div className="mb-4 p-4 bg-primary-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-2">
-              Add details that can help maintain the relationship. This will help our AI provide you with personalised suggestions for your interactions.
-              Examples:
-            </p>
-            <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-              <li>Their interests and hobbies</li>
-              <li>Important dates (birthdays, anniversaries)</li>
-              <li>Recent life events or achievements</li>
-              <li>Conversation preferences (topics they enjoy)</li>
-              <li>Shared memories or inside jokes</li>
-            </ul>
-          </div>
+          {(isPremium || isOnTrial) ? (
+            <div className="mb-4 p-4 bg-primary-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">
+                Add details that can help maintain the relationship. This will help our AI provide you with personalised suggestions for your interactions.
+                Examples:
+              </p>
+              <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                <li>Their interests and hobbies</li>
+                <li>Important dates (birthdays, anniversaries)</li>
+                <li>Recent life events or achievements</li>
+                <li>Conversation preferences (topics they enjoy)</li>
+                <li>Shared memories or inside jokes</li>
+              </ul>
+            </div>
+          ) : (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">
+                Add personal notes about your contact.
+                <span className="block mt-2">
+                  ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions based on your notes!
+                </span>
+              </p>
+            </div>
+          )}
           <div>
             <textarea
               id="notes"
