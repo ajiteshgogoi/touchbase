@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -8,21 +8,24 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing environment variables');
 }
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-      },
-    });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: corsHeaders
+    });
   }
 
   try {
@@ -40,37 +43,50 @@ serve(async (req) => {
 
     const userId = user.id;
 
+    // First get all contact IDs for this user
+    const { data: contacts } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('user_id', userId);
+    
+    const contactIds = contacts?.map(c => c.id) || [];
+
     // Delete all user data in transaction order
-    // First delete dependent tables
-    await supabase.from('contact_processing_logs')
-      .delete()
-      .eq('contact_id', 'any', 
-        supabase.from('contacts')
-          .select('id')
-          .eq('user_id', userId)
-      );
+    if (contactIds.length > 0) {
+      // Delete processing logs for user's contacts
+      await supabase
+        .from('contact_processing_logs')
+        .delete()
+        .in('contact_id', contactIds);
 
-    await supabase.from('interactions')
-      .delete()
-      .eq('user_id', userId);
+      // Delete reminders for user's contacts
+      await supabase
+        .from('reminders')
+        .delete()
+        .in('contact_id', contactIds);
+    }
 
-    await supabase.from('reminders')
-      .delete()
-      .eq('contact_id', 'any',
-        supabase.from('contacts')
-          .select('id')
-          .eq('user_id', userId)
-      );
-
-    await supabase.from('push_subscriptions')
+    // Delete user's interactions
+    await supabase
+      .from('interactions')
       .delete()
       .eq('user_id', userId);
 
-    await supabase.from('user_preferences')
+    // Delete push subscriptions
+    await supabase
+      .from('push_subscriptions')
       .delete()
       .eq('user_id', userId);
 
-    await supabase.from('contacts')
+    // Delete user preferences
+    await supabase
+      .from('user_preferences')
+      .delete()
+      .eq('user_id', userId);
+
+    // Delete contacts
+    await supabase
+      .from('contacts')
       .delete()
       .eq('user_id', userId);
 
@@ -80,9 +96,15 @@ serve(async (req) => {
       throw deleteUserError;
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ success: true }), 
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
   } catch (error) {
     console.error('Error deleting user:', error);
@@ -90,7 +112,10 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     );
   }

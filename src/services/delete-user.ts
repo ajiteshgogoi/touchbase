@@ -11,12 +11,18 @@ export const deleteUserService = {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json'
       },
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to delete account');
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error || `Failed to delete account (${response.status})`;
+      console.error('Delete account error:', errorData);
+      throw new Error(errorMessage);
     }
+
+    // Clear local auth state
+    await supabase.auth.signOut();
   }
 };
