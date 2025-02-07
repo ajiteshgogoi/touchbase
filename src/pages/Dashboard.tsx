@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
@@ -290,6 +290,11 @@ export const Dashboard = () => {
   });
   const contactLimit = isPremium ? Infinity : (isOnTrial ? Infinity : 7);
   const canAddMore = (contacts?.length || 0) < contactLimit;
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="space-y-8">
