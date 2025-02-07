@@ -66,8 +66,20 @@ try {
     const token = authHeader.replace('Bearer ', '');
     console.log('Token (first 20 chars):', token.substring(0, 20) + '...');
 
-    // Create admin client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // Create admin client with service role key
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    // Verify admin client permissions
+    const { error: adminError } = await supabase.auth.admin.listUsers();
+    if (adminError) {
+      console.error('Admin permissions check failed:', adminError);
+      throw new Error('Service role key does not have admin permissions');
+    }
 
     // Verify token and get user
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
