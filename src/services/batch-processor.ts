@@ -159,11 +159,14 @@ export class BatchProcessor {
     try {
       // Create processing log entry
       // Check for existing log and update if failed
+      // Processing log tracks the status and retry attempts for each contact
       type ProcessingLog = {
-        status: 'pending' | 'success' | 'error';
+        status: 'pending' | 'success' | 'error' | 'max_retries_exceeded';
         retry_count?: number;
         error_message?: string;
       };
+
+      const MAX_RETRY_ATTEMPTS = 3; // Maximum number of retry attempts before giving up
 
       const { data: existingLog, error: fetchError } = await this.supabase
         .from('contact_processing_logs')
@@ -174,7 +177,33 @@ export class BatchProcessor {
 
       if (fetchError) throw fetchError;
 
-      // Only create/update if no log exists or previous attempt failed
+      // Check if max retries exceeded
+      if (existingLog?.status === 'error' && (existingLog.retry_count || 0) >= MAX_RETRY_ATTEMPTS) {
+        console.log(`Contact ${contact.id} has exceeded max retry attempts (${existingLog.retry_count}). Marking as failed.`);
+        
+        // Update status to indicate max retries exceeded
+        await this.supabase
+          .from('contact_processing_logs')
+          .upsert({
+            contact_id: contact.id,
+            batch_id: batchId,
+            status: 'max_retries_exceeded',
+            processing_date: new Date().toISOString().split('T')[0],
+            retry_count: existingLog.retry_count,
+            last_error: existingLog.error_message
+          }, {
+            onConflict: 'contact_id,processing_date'
+          });
+
+        return {
+          status: 'error',
+          contactId: contact.id,
+          error: 'Maximum retry attempts exceeded',
+          details: `Failed after ${existingLog.retry_count} attempts. Last error: ${existingLog.error_message}`
+        };
+      }
+
+      // Process if no log exists, has error status (with retries < 3), or already pending
       if (!existingLog || existingLog.status === 'error') {
         const upsertResult = await this.supabase
           .from('contact_processing_logs')

@@ -55,6 +55,18 @@ export interface PushSubscription {
   updated_at: string;
 }
 
+export interface ContactProcessingLog {
+  id: string;
+  contact_id: string;
+  processing_date: string;
+  batch_id: string | null;
+  status: 'pending' | 'success' | 'error' | 'max_retries_exceeded';
+  error_message: string | null;
+  retry_count: number;
+  last_error: string | null;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -82,6 +94,11 @@ export interface Database {
         Row: PushSubscription;
         Insert: Omit<PushSubscription, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<PushSubscription, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      contact_processing_logs: {
+        Row: ContactProcessingLog;
+        Insert: Omit<ContactProcessingLog, 'id' | 'created_at'>;
+        Update: Partial<Omit<ContactProcessingLog, 'id' | 'created_at'>>;
       };
     };
   };
