@@ -88,6 +88,21 @@ function App() {
   const checkPremiumStatus = async () => {
     try {
       const status = await paymentService.getSubscriptionStatus();
+      
+      // If user is on free plan and has never had a trial, start one
+      if (!status.isPremium && !status.isOnTrial && status.trialDaysRemaining === null) {
+        try {
+          await paymentService.startTrial();
+          // Refetch status after starting trial
+          const updatedStatus = await paymentService.getSubscriptionStatus();
+          setIsPremium(updatedStatus.isPremium);
+          setTrialStatus(updatedStatus.isOnTrial, updatedStatus.trialDaysRemaining);
+          return;
+        } catch (error) {
+          console.error('Error starting trial:', error);
+        }
+      }
+
       setIsPremium(status.isPremium);
       setTrialStatus(status.isOnTrial, status.trialDaysRemaining);
     } catch (error) {
