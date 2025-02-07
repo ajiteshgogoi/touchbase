@@ -153,12 +153,12 @@ export const Contacts = () => {
                 />
               </div>
             </div>
-            <div className="relative flex gap-3">
-              <div className="w-full min-w-[160px] max-w-[180px]">
+            <div className="flex items-center gap-2 w-full">
+              <div className="flex-1">
                 <select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value as SortField)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none bg-white"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none bg-white text-sm"
                 >
                   <option value="name">Sort by Name</option>
                   <option value="last_contacted">Sort by Last Contacted</option>
