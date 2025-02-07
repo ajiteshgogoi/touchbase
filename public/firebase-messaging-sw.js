@@ -64,30 +64,12 @@ messaging.onBackgroundMessage(async (payload) => {
       ]
     };
 
-    debug('Showing notification with options:', {
-      title: notificationTitle,
-      options: notificationOptions
-    });
-
-    // Verify we have notification permission
-    if (Notification.permission !== 'granted') {
-      throw new Error('Notification permission not granted');
-    }
-
-    // Show the notification
+    // Show our custom notification
     await self.registration.showNotification(notificationTitle, notificationOptions);
-    debug('Notification displayed successfully');
+    debug('Custom notification displayed successfully');
 
-    // Verify notification was created
-    const activeNotifications = await self.registration.getNotifications();
-    if (activeNotifications.length === 0) {
-      throw new Error('Notification was not created');
-    }
-
-    debug('Notification verified active:', {
-      count: activeNotifications.length,
-      titles: activeNotifications.map(n => n.title)
-    });
+    // Return true to prevent FCM's default notification
+    return true;
   } catch (error) {
     debug('Error showing notification:', {
       error: error.toString(),
