@@ -194,22 +194,13 @@ async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>):
           baseDate
         ).toISOString();
 
-        // Check if this is a today's interaction
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const interactionDate = new Date(baseDate);
-        interactionDate.setHours(0, 0, 0, 0);
-        const isToday = interactionDate.getTime() === today.getTime();
-
-        if (isToday) {
-          // Remove any current reminders if this is today's interaction
-          const { error: deleteError } = await supabase
-            .from('reminders')
-            .delete()
-            .eq('contact_id', id);
-          
-          if (deleteError) throw deleteError;
-        }
+        // Always remove existing reminders before creating new ones
+        const { error: deleteError } = await supabase
+          .from('reminders')
+          .delete()
+          .eq('contact_id', id);
+        
+        if (deleteError) throw deleteError;
         
         // Create new reminder for next contact due date
         const { error: reminderError } = await supabase
