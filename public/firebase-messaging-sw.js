@@ -49,8 +49,8 @@ messaging.onBackgroundMessage(async (payload) => {
     const notificationTitle = notification?.title || 'New Message';
     const notificationOptions = {
       body: notification?.body,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
+      icon: self.location.origin + '/icon-192.png',
+      badge: self.location.origin + '/icon-192.png',
       data: payload.data,
       tag: 'touchbase-notification', // Prevent duplicate notifications
       renotify: true, // Allow new notifications to override old ones with same tag
@@ -64,12 +64,12 @@ messaging.onBackgroundMessage(async (payload) => {
       ]
     };
 
-    // Show our custom notification
-    await self.registration.showNotification(notificationTitle, notificationOptions);
+    // Show our custom notification and prevent default
+    await Promise.all([
+      self.registration.showNotification(notificationTitle, notificationOptions),
+      Promise.resolve(true) // Explicitly return true to prevent default notification
+    ]);
     debug('Custom notification displayed successfully');
-
-    // Return true to prevent FCM's default notification
-    return true;
   } catch (error) {
     debug('Error showing notification:', {
       error: error.toString(),
@@ -77,7 +77,11 @@ messaging.onBackgroundMessage(async (payload) => {
       message: error.message,
       stack: error.stack
     });
-    throw error; // Re-throw to ensure Firebase knows of the failure
+    // Still return true even on error to prevent default notification
+    return Promise.all([
+      Promise.reject(error), // Re-throw to ensure Firebase knows of the failure
+      Promise.resolve(true) // Prevent default notification
+    ]);
   }
 });
 
