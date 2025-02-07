@@ -168,14 +168,31 @@ try {
       throw contactsDeleteError;
     }
 
-    // Finally delete the user auth record
-    const { error: deleteUserError } = await supabase.auth.admin.deleteUser(userId);
-    if (deleteUserError) {
-      console.error('Error deleting user auth:', deleteUserError);
-      throw deleteUserError;
+    // Delete user subscriptions
+    const { error: subscriptionError } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (subscriptionError) {
+      console.error('Error deleting subscriptions:', subscriptionError);
+      throw subscriptionError;
     }
 
-    console.log('Successfully deleted user and all related data');
+    console.log('All related data deleted, proceeding to delete auth record');
+
+    // Finally delete the user auth record
+    try {
+      const { error: deleteUserError } = await supabase.auth.admin.deleteUser(userId);
+      if (deleteUserError) {
+        console.error('Error deleting user auth:', deleteUserError);
+        throw new Error(`Failed to delete auth record: ${deleteUserError.message}`);
+      }
+      console.log('Successfully deleted user auth record and all related data');
+    } catch (authError) {
+      console.error('Unexpected error during auth deletion:', authError);
+      throw new Error(`Auth deletion failed - please ensure user exists and token has required permissions: ${authError.message}`);
+    }
 
     return new Response(
       JSON.stringify({ success: true }), 
@@ -189,9 +206,15 @@ try {
 
   } catch (error) {
     console.error('Error in delete-user function:', error);
+
+    // Preserve the specific error message from database operations
+    const errorMessage = error instanceof Error
+      ? error.message
+      : 'Unknown error deleting user';
+
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
+      JSON.stringify({ error: errorMessage }),
+      {
         status: 500,
         headers: {
           ...corsHeaders,
