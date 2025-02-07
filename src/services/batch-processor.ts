@@ -230,20 +230,20 @@ export class BatchProcessor {
       // Check subscription status
       const { data: subscription, error: subError } = await this.supabase
         .from('subscriptions')
-        .select('plan_id, valid_until')
+        .select('plan_id, valid_until, trial_end_date')
         .eq('user_id', contact.user_id)
         .single();
 
       if (subError) throw subError;
 
-      const isPremium =
-        subscription?.plan_id === 'premium' &&
-        subscription.valid_until &&
-        new Date(subscription.valid_until) > new Date();
+      const now = new Date();
+      const isEligible =
+        (subscription?.plan_id === 'premium' && subscription.valid_until && new Date(subscription.valid_until) > now) ||
+        (subscription?.trial_end_date && new Date(subscription.trial_end_date) > now);
 
-      // Process with LLM if premium
+      // Process with LLM if premium or on trial
       let suggestions;
-      if (isPremium) {
+      if (isEligible) {
         suggestions = await this.getLLMSuggestions(contact);
       } else {
         suggestions =
