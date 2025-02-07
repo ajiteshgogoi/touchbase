@@ -78,7 +78,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">Timely Reminders</h3>
-            <p className="text-gray-600">Get regular notifications to maintain meaningful relationships</p>
+            <p className="text-gray-600">Get daily notifications to maintain meaningful relationships</p>
           </div>
           
           <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
@@ -88,7 +88,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">AI Powered</h3>
-            <p className="text-gray-600">Get personalised interaction suggestions based on your history</p>
+            <p className="text-gray-600">Personalised interaction suggestions based on your history</p>
           </div>
         </div>
       </div>
