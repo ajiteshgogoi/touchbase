@@ -21,18 +21,16 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages
-messaging.onBackgroundMessage((payload) => {
+// Handle background messages by forwarding to main service worker
+messaging.onBackgroundMessage(async (payload) => {
   console.log('Received background message:', payload);
-
-  const { notification } = payload;
-  const notificationTitle = notification?.title || 'New Message';
-  const notificationOptions = {
-    body: notification?.body,
-    icon: '/icon.svg',  // Use the heart icon
-    badge: '/icon.svg', // Use the heart icon for badge too
-    data: payload.data
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  
+  // Forward to main service worker instead of showing notification directly
+  const mainSW = await navigator.serviceWorker.ready;
+  if (mainSW) {
+    mainSW.active.postMessage({
+      type: 'FCM_MESSAGE',
+      payload
+    });
+  }
 });
