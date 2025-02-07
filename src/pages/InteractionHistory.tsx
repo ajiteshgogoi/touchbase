@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
@@ -33,6 +33,11 @@ export const InteractionHistory = () => {
     queryKey: ['interactions', contactId],
     queryFn: () => contactsService.getInteractions(contactId!)
   });
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleDeleteInteraction = async (interaction: Interaction) => {
     if (!confirm('Are you sure you want to delete this interaction?')) {
