@@ -155,8 +155,8 @@ export const Analytics = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/')}
@@ -175,7 +175,7 @@ export const Analytics = () => {
         <button
           onClick={handleGenerateAnalytics}
           disabled={!canGenerate || isGenerating}
-          className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-colors shadow-soft hover:shadow-lg ${
+          className={`inline-flex items-center justify-center w-full px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-colors shadow-soft hover:shadow-lg ${
             canGenerate && !isGenerating
               ? 'bg-primary-500 hover:bg-primary-400'
               : 'bg-gray-400 cursor-not-allowed'
