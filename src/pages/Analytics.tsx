@@ -121,7 +121,7 @@ export const Analytics = () => {
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <h1 className="text-2xl font-bold text-gray-900">
-            Relationship Analytics
+            Relationship Analytics (beta)
           </h1>
         </div>
 
@@ -150,7 +150,7 @@ export const Analytics = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Relationship Analytics</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Relationship Analytics (beta)</h1>
           <p className="mt-1 text-sm text-gray-600">
             Deep insights into your connections and interaction patterns
           </p>
