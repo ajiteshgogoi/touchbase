@@ -201,13 +201,13 @@ export const InteractionHistory = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-soft">
-        <div className="p-6 border-b border-gray-100">
-          <div className="relative flex gap-3">
-            <div className="w-full min-w-[160px] max-w-[180px]">
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex items-center gap-2 w-full">
+            <div className="flex-1">
               <select
                 value={sortField}
                 onChange={(e) => setSortField(e.target.value as SortField)}
-                className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none bg-white"
+                className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none bg-white text-sm"
               >
                 <option value="date">Sort by Date</option>
                 <option value="type">Sort by Type</option>
