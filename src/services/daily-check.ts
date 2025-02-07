@@ -119,33 +119,31 @@ export async function runDailyCheckV2() {
             (contact.missed_interactions || 0) + 1
           );
 
-          await Promise.all([
-            // Update contact
-            supabaseClient
-              .from('contacts')
-              .update({
-                missed_interactions: (contact.missed_interactions || 0) + 1,
-                next_contact_due: nextContactDue.toISOString()
-              })
-              .eq('id', contact.id),
+          // Update contact first
+          await supabaseClient
+            .from('contacts')
+            .update({
+              missed_interactions: (contact.missed_interactions || 0) + 1,
+              next_contact_due: nextContactDue.toISOString()
+            })
+            .eq('id', contact.id);
 
-            // Delete old reminder
-            supabaseClient
-              .from('reminders')
-              .delete()
-              .eq('contact_id', contact.id),
+          // Then delete old reminder
+          await supabaseClient
+            .from('reminders')
+            .delete()
+            .eq('contact_id', contact.id);
 
-            // Create new reminder
-            supabaseClient
-              .from('reminders')
-              .insert({
-                contact_id: contact.id,
-                user_id: contact.user_id,
-                type: contact.preferred_contact_method || 'message',
-                due_date: nextContactDue.toISOString(),
-                description: contact.notes || undefined
-              })
-          ]);
+          // Finally create new reminder
+          await supabaseClient
+            .from('reminders')
+            .insert({
+              contact_id: contact.id,
+              user_id: contact.user_id,
+              type: contact.preferred_contact_method || 'message',
+              due_date: nextContactDue.toISOString(),
+              description: contact.notes || undefined
+            });
         }
       }
     }
