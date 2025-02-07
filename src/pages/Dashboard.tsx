@@ -12,7 +12,6 @@ import {
   AtSymbolIcon,
   PencilSquareIcon,
   TrashIcon,
-  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -23,15 +22,12 @@ dayjs.extend(relativeTime);
 const TrialBanner = ({ daysRemaining }: { daysRemaining: number }) => (
   <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-3 rounded-lg shadow-soft mb-6">
     <div className="flex items-center justify-between">
-      <div className="flex items-center">
-        <SparklesIcon className="h-5 w-5 mr-2" />
-        <p className="text-sm font-medium">
-          You have {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining in your free trial period.
-        </p>
-      </div>
+      <p className="text-sm font-medium">
+        You have {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining in your free trial period.
+      </p>
       <Link
         to="/settings"
-        className="ml-4 px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
+        className="ml-4 px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-shadow flex items-center justify-center"
       >
         Upgrade Now
       </Link>
