@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
@@ -61,8 +61,10 @@ const initialFormData: ContactFormData = {
 export const ContactForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { user, isPremium, isOnTrial } = useStore();
+  const returnPath = location.state?.from || '/contacts';
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
@@ -118,7 +120,7 @@ export const ContactForm = () => {
       contactsService.createContact(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      navigate('/contacts');
+      navigate(returnPath);
     },
   });
 
@@ -127,7 +129,7 @@ export const ContactForm = () => {
       contactsService.updateContact(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      navigate('/contacts');
+      navigate(returnPath);
     },
   });
 
@@ -179,7 +181,7 @@ export const ContactForm = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <button
-          onClick={() => navigate('/contacts')}
+          onClick={() => navigate(returnPath)}
           className="p-2 -m-2 text-gray-400 hover:text-gray-500"
         >
           <ArrowLeftIcon className="h-5 w-5" />
@@ -421,7 +423,7 @@ export const ContactForm = () => {
       <div className="flex justify-center space-x-4 py-4">
         <button
           type="button"
-          onClick={() => navigate('/contacts')}
+          onClick={() => navigate(returnPath)}
           className="px-6 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
         >
           Cancel
