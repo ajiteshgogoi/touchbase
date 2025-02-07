@@ -1,9 +1,4 @@
 // Service Worker for TouchBase PWA
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...', { timestamp: new Date().toISOString() });
-  self.skipWaiting(); // Ensure the service worker becomes active right away
-});
-
 let initialized = false;
 
 // Global error handler for service worker
@@ -42,6 +37,7 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Installation event
 self.addEventListener('install', (event) => {
   debug('Installing...');
   event.waitUntil(
@@ -220,8 +216,8 @@ self.addEventListener('push', (event) => {
 
         const options = {
           body,
-          icon: '/icon-192.png',
-          badge: '/icon-192.png',
+          icon: `${baseUrl}/icon-192.png`, // Use absolute URL
+          badge: `${baseUrl}/icon-192.png`, // Use absolute URL
           vibrate: [100, 50, 100],
           data: {
             url: fullUrl,
