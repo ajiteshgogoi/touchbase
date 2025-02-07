@@ -184,30 +184,6 @@ export async function runDailyCheckV2() {
       return { message: 'No contacts need attention' };
     }
 
-    // Ensure reminders exist for tomorrow's contacts
-    for (const contact of contacts) {
-      // Check if reminder exists
-      const { data: existingReminder } = await supabaseClient
-        .from('reminders')
-        .select('id')
-        .eq('contact_id', contact.id)
-        .eq('due_date', contact.next_contact_due)
-        .maybeSingle();
-
-      if (!existingReminder) {
-        // Create reminder if it doesn't exist
-        await supabaseClient
-          .from('reminders')
-          .insert({
-            contact_id: contact.id,
-            user_id: contact.user_id,
-            type: contact.preferred_contact_method || 'message',
-            due_date: contact.next_contact_due,
-            description: contact.notes || undefined
-          });
-      }
-    }
-
     // Get successfully processed contacts for tomorrow
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
     const { data: processedContacts, error: processedError } = await supabaseClient

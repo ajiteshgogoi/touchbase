@@ -250,25 +250,26 @@ export class BatchProcessor {
           '<div class="bg-yellow-50 p-3 rounded-lg"><strong>Important:</strong> Upgrade to premium to get advanced AI suggestions!</div>';
       }
 
-      // Update contact using contactsService to ensure proper reminder handling
-      await this.supabase
-        .from('contacts')
-        .update({
-          ai_last_suggestion: suggestions,
-          ai_last_suggestion_date: new Date().toISOString()
-        })
-        .eq('id', contact.id);
+      // Update contact and log success
+      const [updateResult, logResult] = await Promise.all([
+        this.supabase
+          .from('contacts')
+          .update({
+            ai_last_suggestion: suggestions,
+            ai_last_suggestion_date: new Date().toISOString(),
+          })
+          .eq('id', contact.id),
+        this.supabase
+          .from('contact_processing_logs')
+          .update({
+            status: 'success',
+          })
+          .eq('contact_id', contact.id)
+          .eq('batch_id', batchId),
+      ]);
 
-      // Update processing log
-      const { error: logError } = await this.supabase
-        .from('contact_processing_logs')
-        .update({
-          status: 'success',
-        })
-        .eq('contact_id', contact.id)
-        .eq('batch_id', batchId);
-
-      if (logError) throw logError;
+      if (updateResult.error) throw updateResult.error;
+      if (logResult.error) throw logResult.error;
 
       return {
         status: 'success',
