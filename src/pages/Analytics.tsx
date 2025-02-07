@@ -10,6 +10,7 @@ import {
   SparklesIcon,
   ArrowPathIcon,
   ArrowLeftIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 const HeatmapChart = ({ data }: { data: { date: string; count: number }[] }) => {
@@ -148,7 +149,7 @@ export const Analytics = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Relationship Analytics (beta)</h1>
           <p className="mt-1 text-sm text-gray-600">
@@ -158,20 +159,25 @@ export const Analytics = () => {
         <button
           onClick={handleGenerateAnalytics}
           disabled={!canGenerate || isGenerating}
-          className={`inline-flex items-center px-4 py-2 rounded-lg text-white transition-colors ${
+          className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-colors shadow-soft hover:shadow-lg ${
             canGenerate && !isGenerating
               ? 'bg-primary-500 hover:bg-primary-400'
               : 'bg-gray-400 cursor-not-allowed'
           }`}
         >
-          {isGenerating ? (
-            <>
-              <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            'Generate New Analysis'
-          )}
+          <span className="inline-flex items-center justify-center">
+            {isGenerating ? (
+              <>
+                <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+                Generate New Analysis
+              </>
+            )}
+          </span>
         </button>
       </div>
 
