@@ -319,6 +319,36 @@ export const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Account Deletion */}
+      <div className="bg-white rounded-xl shadow-soft p-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          Delete Account
+        </h2>
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Warning: This action cannot be undone. All your data will be permanently deleted.
+          </p>
+          <button
+            onClick={async () => {
+              if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+              if (!confirm('This will permanently delete all your contacts and interaction history. Are you absolutely sure?')) return;
+              
+              try {
+                await import('../services/delete-user').then(m => m.deleteUserService.deleteAccount());
+                toast.success('Account deleted successfully');
+                navigate('/');
+              } catch (error) {
+                console.error('Delete account error:', error);
+                toast.error('Failed to delete account');
+              }
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+          >
+            Delete Account
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
