@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
+import { paymentService } from './payment';
 
 type ContactFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
 type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
@@ -92,11 +93,22 @@ export const contactsService = {
     if (error) throw error;
     return data;
   },
+async checkContactLimit(): Promise<void> {
+  const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+  if (isPremium || isOnTrial) return;
 
-  async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
-   // Use last_contacted as base date if provided, otherwise use current date
-   const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
-   const nextContactDue = getNextContactDate(
+  const contacts = await this.getContacts();
+  if (contacts.length >= 7) {
+    throw new Error('Free tier contact limit reached. Please upgrade to add more contacts.');
+  }
+},
+
+async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
+  await this.checkContactLimit();
+  
+  // Use last_contacted as base date if provided, otherwise use current date
+  const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
+  const nextContactDue = getNextContactDate(
      contact.relationship_level as RelationshipLevel,
      contact.contact_frequency as ContactFrequency | null,
      0,

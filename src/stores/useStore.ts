@@ -8,6 +8,8 @@ interface StoreState {
   isLoading: boolean;
   preferences: UserPreferences | null;
   isPremium: boolean;
+  isOnTrial: boolean;
+  trialDaysRemaining: number | null;
   searchQuery: string;
   contactFilter: 'all' | 'due';
   darkMode: boolean;
@@ -16,6 +18,7 @@ interface StoreState {
   setIsLoading: (isLoading: boolean) => void;
   setPreferences: (preferences: UserPreferences | null) => void;
   setIsPremium: (isPremium: boolean) => void;
+  setTrialStatus: (isOnTrial: boolean, daysRemaining: number | null) => void;
   setSearchQuery: (query: string) => void;
   setContactFilter: (filter: 'all' | 'due') => void;
   setDarkMode: (darkMode: boolean) => void;
@@ -27,6 +30,8 @@ export const useStore = create<StoreState>((set) => ({
   isLoading: false,
   preferences: null,
   isPremium: false,
+  isOnTrial: false,
+  trialDaysRemaining: null,
   searchQuery: '',
   contactFilter: 'all',
   darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
@@ -36,6 +41,7 @@ export const useStore = create<StoreState>((set) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
   setPreferences: (preferences) => set({ preferences }),
   setIsPremium: (isPremium) => set({ isPremium }),
+  setTrialStatus: (isOnTrial, trialDaysRemaining) => set({ isOnTrial, trialDaysRemaining }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setContactFilter: (contactFilter) => set({ contactFilter }),
   setDarkMode: (darkMode) => {

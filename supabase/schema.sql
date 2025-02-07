@@ -80,6 +80,8 @@ create table public.subscriptions (
     status text not null check (status in ('active', 'canceled', 'expired')),
     paypal_subscription_id text unique,
     valid_until timestamp with time zone not null,
+    trial_start_date timestamp with time zone,
+    trial_end_date timestamp with time zone,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );

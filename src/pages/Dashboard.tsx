@@ -12,13 +12,33 @@ import {
   AtSymbolIcon,
   PencilSquareIcon,
   TrashIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Contact, Reminder, Interaction } from '../lib/supabase/types';
 import { QuickInteraction } from '../components/contacts/QuickInteraction';
-
 dayjs.extend(relativeTime);
+
+const TrialBanner = ({ daysRemaining }: { daysRemaining: number }) => (
+  <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-3 rounded-lg shadow-soft mb-6">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center">
+        <SparklesIcon className="h-5 w-5 mr-2" />
+        <p className="text-sm font-medium">
+          You have {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining in your free trial period.
+        </p>
+      </div>
+      <Link
+        to="/settings"
+        className="ml-4 px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
+      >
+        Upgrade Now
+      </Link>
+    </div>
+  </div>
+);
+
 
 const DashboardMetrics = () => {
   const { data: contacts } = useQuery({
@@ -257,16 +277,19 @@ const RecentContacts = () => {
 };
 
 export const Dashboard = () => {
-  const { user, isPremium } = useStore();
+  const { user, isPremium, isOnTrial, trialDaysRemaining } = useStore();
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts
   });
-  const contactLimit = isPremium ? Infinity : 5;
+  const contactLimit = isPremium ? Infinity : (isOnTrial ? Infinity : 7);
   const canAddMore = (contacts?.length || 0) < contactLimit;
 
   return (
     <div className="space-y-8">
+      {isOnTrial && trialDaysRemaining !== null && (
+        <TrialBanner daysRemaining={trialDaysRemaining} />
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
