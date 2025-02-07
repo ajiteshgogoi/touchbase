@@ -284,11 +284,18 @@ class NotificationService {
         throw new Error('Service worker failed to activate after initialization');
       }
 
-      // Create fresh subscription
-      console.log('Creating fresh FCM token...');
-      await this.subscribeToPushNotifications(userId, true);
+      // When sending test notifications as admin, don't update subscription
+      const session = await supabase.auth.getSession();
+      const isAdmin = session.data.session?.user.id === import.meta.env.VITE_ADMIN_USER_ID;
+      const targetingOtherUser = session.data.session?.user.id !== userId;
+
+      // Only create/update subscription if we're not an admin targeting another user
+      if (!isAdmin || !targetingOtherUser) {
+        console.log('Creating fresh FCM token...');
+        await this.subscribeToPushNotifications(userId, true);
+      }
       
-      console.log('FCM token created, sending test notification...');
+      console.log('Sending test notification...');
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
         method: 'POST',
         headers: {
