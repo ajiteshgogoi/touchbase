@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
 import { useStore } from '../../stores/useStore';
 import type { Contact } from '../../lib/supabase/types';
@@ -107,6 +108,11 @@ export const ContactForm = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
+
   const createMutation = useMutation({
     mutationFn: (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => 
       contactsService.createContact(data),
@@ -170,7 +176,20 @@ export const ContactForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl mx-auto">
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate('/contacts')}
+          className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+        >
+          <ArrowLeftIcon className="h-5 w-5" />
+        </button>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Contact Details
+        </h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
       {/* Basic Information */}
       <div className="bg-white rounded-xl shadow-soft p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-6">Basic Information</h2>
@@ -416,6 +435,7 @@ export const ContactForm = () => {
         </button>
       </div>
     </form>
+    </div>
   );
 };
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import moment from 'moment-timezone';
 
@@ -10,7 +11,7 @@ import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
 import { supabase } from '../lib/supabase/client';
 import { notificationService } from '../services/notifications';
 import type { UserPreferences, Database } from '../lib/supabase/types';
-import { CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 interface NotificationSettings {
   notification_enabled: boolean;
@@ -21,6 +22,7 @@ interface NotificationSettings {
 type UserPreferencesUpsert = Database['public']['Tables']['user_preferences']['Insert'];
 
 export const Settings = () => {
+  const navigate = useNavigate();
   const { user, isPremium } = useStore();
   const queryClient = useQueryClient();
   const [selectedPlan] = useState(isPremium ? 'premium' : 'free');
@@ -169,10 +171,20 @@ export const Settings = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-600">
-          Manage your account preferences and subscription
-        </p>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+            <p className="mt-2 text-gray-600">
+              Manage your account preferences and subscription
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Subscription Plans */}

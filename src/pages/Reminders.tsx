@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
 import dayjs from 'dayjs';
 import type { Reminder, Contact, Interaction } from '../lib/supabase/types';
-import { CalendarIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { QuickInteraction } from '../components/contacts/QuickInteraction';
 
 export const Reminders = () => {
+  const navigate = useNavigate();
   const { data: reminders } = useQuery({
     queryKey: ['reminders'],
     queryFn: () => contactsService.getReminders()
@@ -45,10 +46,20 @@ export const Reminders = () => {
     <>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reminders</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Track your upcoming reminders
-          </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+            >
+              <ArrowLeftIcon className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Reminders</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Track your upcoming reminders
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

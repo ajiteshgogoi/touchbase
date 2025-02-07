@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
@@ -10,6 +10,7 @@ import {
   TrashIcon,
   PencilSquareIcon,
   ChevronUpDownIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 import { AtSymbolIcon } from '@heroicons/react/24/outline';
 import type { Contact, Interaction } from '../lib/supabase/types';
@@ -23,6 +24,7 @@ type SortField = 'name' | 'last_contacted' | 'relationship_level';
 type SortOrder = 'asc' | 'desc';
 
 export const Contacts = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
@@ -100,10 +102,20 @@ export const Contacts = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Manage your relationships and stay connected
-          </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+            >
+              <ArrowLeftIcon className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Manage your relationships and stay connected
+              </p>
+            </div>
+          </div>
         </div>
         {canAddMore ? (
           <Link
