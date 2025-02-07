@@ -325,25 +325,20 @@ export const Dashboard = () => {
           </Link>
           {canAddMore ? (
             <Link
-              to={isPremium || isOnTrial ? "/contacts/new" : "/settings"}
-              className={`flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white ${
-                isPremium || isOnTrial ? "bg-primary-500 hover:bg-primary-400" : "bg-gray-400 hover:bg-gray-500"
-              } shadow-soft hover:shadow-lg transition-all`}
+              to="/contacts/new"
+              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
             >
               <span className="inline-flex items-center justify-center">
                 <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-                {isPremium || isOnTrial ? "Add Contact" : "Upgrade to add contacts"}
+                Add Contact
               </span>
             </Link>
           ) : (
-            <Link
-              to="/settings"
-              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg transition-all"
-            >
+            <button className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
               <span className="inline-flex items-center justify-center">
                 Upgrade to add more contacts
               </span>
-            </Link>
+            </button>
           )}
         </div>
       </div>

@@ -107,21 +107,16 @@ export const Contacts = () => {
         </div>
         {canAddMore ? (
           <Link
-            to={isPremium || isOnTrial ? "/contacts/new" : "/settings"}
-            className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white ${
-              isPremium || isOnTrial ? "bg-primary-500 hover:bg-primary-400" : "bg-gray-400 hover:bg-gray-500"
-            } shadow-soft hover:shadow-lg transition-all`}
+            to="/contacts/new"
+            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
           >
             <UserPlusIcon className="h-5 w-5 mr-2" />
-            {isPremium || isOnTrial ? "Add Contact" : "Upgrade to add contacts"}
+            Add Contact
           </Link>
         ) : (
-          <Link
-            to="/settings"
-            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg transition-all"
-          >
+          <button className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
             Upgrade to add more contacts
-          </Link>
+          </button>
         )}
       </div>
 
