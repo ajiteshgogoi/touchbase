@@ -68,7 +68,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">Smart Management</h3>
-            <p className="text-gray-600">Track all interactions with your personal connections in one place</p>
+            <p className="text-gray-600">Track interactions with all your personal connections in one place</p>
           </div>
           
           <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
