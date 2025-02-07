@@ -83,7 +83,14 @@ export async function runDailyCheckV2() {
     // First, handle missed interactions from today
     const { data: missedContacts, error: missedError } = await supabaseClient
       .from('contacts')
-      .select('*')
+      .select(`
+        *,
+        user:user_id (
+          preferences:user_preferences (
+            timezone
+          )
+        )
+      `)
       .gte('next_contact_due', today.toISOString())
       .lte('next_contact_due', todayEnd.toISOString());
 
@@ -92,6 +99,22 @@ export async function runDailyCheckV2() {
     // Handle missed interactions
     if (missedContacts && missedContacts.length > 0) {
       for (const contact of missedContacts) {
+        // Skip if no timezone info
+        if (!contact.user?.preferences?.timezone) continue;
+
+        // Convert next_contact_due to user's timezone
+        const userTimezone = contact.user.preferences.timezone;
+        const dueDate = new Date(contact.next_contact_due);
+        const dueDateInUserTz = new Date(dueDate.toLocaleString('en-US', { timeZone: userTimezone }));
+        dueDateInUserTz.setHours(0, 0, 0, 0);
+
+        // Get today in user's timezone
+        const todayInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+        todayInUserTz.setHours(0, 0, 0, 0);
+
+        // Skip if due date is in the future in user's timezone
+        if (dueDateInUserTz.getTime() > todayInUserTz.getTime()) continue;
+
         // Get latest interaction to verify it's really missed
         const { data: latestInteraction } = await supabaseClient
           .from('interactions')
@@ -101,18 +124,16 @@ export async function runDailyCheckV2() {
           .limit(1)
           .single();
 
-        const missedDate = new Date();
-        missedDate.setHours(0, 0, 0, 0);
-        const dueDate = new Date(contact.next_contact_due);
-        dueDate.setHours(0, 0, 0, 0);
+        // Check if there's an interaction today in user's timezone
+        const hasInteractionToday = latestInteraction && (() => {
+          const interactionDate = new Date(latestInteraction.date);
+          const interactionDateInUserTz = new Date(interactionDate.toLocaleString('en-US', { timeZone: userTimezone }));
+          interactionDateInUserTz.setHours(0, 0, 0, 0);
+          return interactionDateInUserTz.getTime() === todayInUserTz.getTime();
+        })();
 
-        // Only consider as missed if:
-        // 1. Due date is today
-        // 2. AND no interaction today
-        if (dueDate.getTime() === missedDate.getTime() &&
-            (!latestInteraction ||
-             new Date(latestInteraction.date).setHours(0, 0, 0, 0) < missedDate.getTime())) {
-          
+        // Only process if no interaction today
+        if (!hasInteractionToday) {
           const nextContactDue = getNextContactDate(
             contact.relationship_level,
             contact.contact_frequency,
