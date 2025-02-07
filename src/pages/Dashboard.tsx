@@ -279,25 +279,25 @@ export const Dashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <Link
             to="/analytics"
-            className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
+            className={`inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
               isPremium
                 ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                 : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
             } transition-all`}
           >
-            <ChartBarIcon className="h-5 w-5 mr-2" />
+            <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
             Get Detailed Analytics
           </Link>
           {canAddMore ? (
             <Link
               to="/contacts/new"
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
             >
-              <UserPlusIcon className="h-5 w-5 mr-2" />
+              <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
               Add Contact
             </Link>
           ) : (
-            <button className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
+            <button className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 cursor-not-allowed shadow-soft">
               Upgrade to add more contacts
             </button>
           )}
