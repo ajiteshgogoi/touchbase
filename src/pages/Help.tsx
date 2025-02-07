@@ -22,7 +22,7 @@ export const Help = () => {
       <div>
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(-1)}
             className="p-2 -m-2 text-gray-400 hover:text-gray-500"
           >
             <ArrowLeftIcon className="h-5 w-5" />
