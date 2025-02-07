@@ -10,7 +10,7 @@ import {
 } from './batch-types.js';
 import axios, { AxiosError } from 'axios';
 
-const GROQ_API_URL = 'https://openrouter.ai/api/v1'; // LLM API endpoint //
+const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions'; // LLM API endpoint //
 
 export class BatchProcessor {
   private supabase: SupabaseClient;

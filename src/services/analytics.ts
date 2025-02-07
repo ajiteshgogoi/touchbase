@@ -43,7 +43,7 @@ export interface AnalyticsData {
 
 const GENERATION_COOLDOWN_DAYS = 7;
 const MIN_INTERACTIONS_FOR_ANALYSIS = 5;
-const GROQ_API_URL = 'https://openrouter.ai/api/v1'; // Set LLM API URL here //
+const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions'; // Set LLM API URL here //
 
 export const analyticsService = {
   async getLastAnalytics(): Promise<AnalyticsData | null> {
