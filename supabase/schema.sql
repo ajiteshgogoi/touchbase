@@ -202,6 +202,15 @@ create policy "Users can view their own subscription"
     on public.subscriptions for select
     using (auth.uid() = user_id);
 
+create policy "Users can insert their own subscription"
+    on public.subscriptions for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own subscription"
+    on public.subscriptions for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
 create policy "Users can view their own push subscriptions"
     on public.push_subscriptions for select
     using (auth.uid() = user_id);
