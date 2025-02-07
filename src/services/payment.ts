@@ -158,7 +158,7 @@ export const paymentService = {
             user_id: user.id,
             plan_id: 'free',
             status: 'active',
-            valid_until: null,
+            valid_until: new Date('2200-01-01').toISOString(), // Far future date for free plan
             trial_start_date: null,
             trial_end_date: null
           });
