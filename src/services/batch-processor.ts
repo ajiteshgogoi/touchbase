@@ -246,8 +246,7 @@ export class BatchProcessor {
       if (isEligible) {
         suggestions = await this.getLLMSuggestions(contact);
       } else {
-        suggestions =
-          '<div class="bg-yellow-50 p-3 rounded-lg"><strong>Important:</strong> Upgrade to premium to get advanced AI suggestions!</div>';
+        suggestions = 'Upgrade to premium to get advanced AI suggestions!';
       }
 
       // Update contact and log success
