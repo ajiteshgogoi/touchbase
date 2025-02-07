@@ -15,6 +15,49 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
+// Extended notification options type that includes all web notification properties
+interface ExtendedNotificationOptions extends NotificationOptions {
+  renotify?: boolean;
+  requireInteraction?: boolean;
+  tag?: string;
+  actions?: Array<{
+    action: string;
+    title: string;
+  }>;
+  data?: any;
+  vibrate?: number[];
+  silent?: boolean;
+}
+
+// Helper function to show notification
+const showNotification = async (title: string, options: ExtendedNotificationOptions) => {
+  if (!('Notification' in window)) {
+    console.warn('Notifications not supported');
+    return;
+  }
+
+  if (Notification.permission !== 'granted') {
+    console.warn('Notification permission not granted');
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const notificationOptions: ExtendedNotificationOptions = {
+      ...options,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: 'touchbase-notification',
+      renotify: true,
+      requireInteraction: true,
+      vibrate: [100, 50, 100]
+    };
+    await registration.showNotification(title, notificationOptions as NotificationOptions);
+  } catch (error) {
+    console.error('Error showing notification:', error);
+  }
+};
+
 // Helper function to update token in database
 const updateTokenInDatabase = async (userId: string, token: string) => {
   const { error } = await supabase
@@ -34,7 +77,7 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
   }
 };
 
-// Handle token refresh
+// Handle token refresh and message handling
 export const initializeTokenRefresh = async (userId: string) => {
   try {
     // Get current token with existing registration
@@ -47,9 +90,29 @@ export const initializeTokenRefresh = async (userId: string) => {
       await updateTokenInDatabase(userId, currentToken);
     }
 
-    // Set up message handler to catch token changes
-    onMessage(messaging, async (message) => {
-      if (message.data?.type === 'token_change') {
+    // Set up foreground message handler
+    onMessage(messaging, async (payload) => {
+      console.log('Received foreground message:', payload);
+
+      const { notification } = payload;
+      if (notification) {
+        await showNotification(
+          notification.title || 'New Message',
+          {
+            body: notification.body,
+            data: payload.data,
+            actions: [
+              {
+                action: 'view',
+                title: 'View'
+              }
+            ]
+          }
+        );
+      }
+
+      // Handle token changes if needed
+      if (payload.data?.type === 'token_change') {
         try {
           const newToken = await getToken(messaging, {
             vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
