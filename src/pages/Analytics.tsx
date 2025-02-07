@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsService } from '../services/analytics';
 import { useStore } from '../stores/useStore';
@@ -88,6 +88,11 @@ export const Analytics = () => {
   const navigate = useNavigate();
   const { isPremium, isOnTrial } = useStore();
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   const { data: analytics, refetch: refetchAnalytics } = useQuery({
     queryKey: ['analytics'],
