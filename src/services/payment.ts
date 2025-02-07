@@ -98,13 +98,14 @@ export const paymentService = {
       if (!user) throw new Error('No active session');
 
       // Check if user already has a subscription record
+      // First, check if user already has a subscription
       const { data: subscription } = await supabase
         .from('subscriptions')
-        .select('trial_start_date')
+        .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      // Don't start trial if user already used it
+      // If user already has a subscription with trial data, don't start new trial
       if (subscription?.trial_start_date) {
         throw new Error('Trial period already used');
       }
@@ -122,6 +123,8 @@ export const paymentService = {
           valid_until: trialEndDate.toISOString(),
           trial_start_date: trialStartDate.toISOString(),
           trial_end_date: trialEndDate.toISOString()
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
