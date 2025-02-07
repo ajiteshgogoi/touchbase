@@ -339,7 +339,7 @@ export class BatchProcessor {
       '1. Must be specific to their context and personal details — no generic advice',
       '2. Must be actionable within 24-48 hours',
       '3. Must clearly contribute to relationship growth',
-      '4. Each suggestion should start with "[type: call/message/social]"',
+      '4. Each suggestion should start with "[type: 📞 call/💬 message/📱 social]"',
       '5. Keep suggestions concise and impactful',
       '6. If no clear opportunities exist, return no suggestions',
       '',
@@ -354,7 +354,7 @@ export class BatchProcessor {
           {
             role: 'system',
             content:
-              'You are a relationship manager assistant helping users maintain meaningful connections.',
+              'You are an expert relationship manager assistant helping users maintain meaningful connections.',
           },
           {
             role: 'user',
