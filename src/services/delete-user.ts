@@ -11,14 +11,23 @@ export const deleteUserService = {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
       },
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.error || `Failed to delete account (${response.status})`;
-      console.error('Delete account error:', errorData);
+      console.error('Delete account response:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
+      
+      const errorMessage = errorData.error 
+        ? `Failed to delete account: ${errorData.error}` 
+        : `Failed to delete account (${response.status} ${response.statusText})`;
+      
       throw new Error(errorMessage);
     }
 
