@@ -27,7 +27,7 @@ const TrialBanner = ({ daysRemaining }: { daysRemaining: number }) => (
       </p>
       <Link
         to="/settings"
-        className="ml-4 px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-shadow flex items-center justify-center"
+        className="ml-4 px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-shadow inline-flex items-center justify-center min-w-[100px]"
       >
         Upgrade Now
       </Link>
