@@ -31,30 +31,57 @@ class NotificationService {
           updateViaCache: 'none'
         });
 
-      // Wait for the service worker to be ready
-      if (this.registration.installing || this.registration.waiting) {
-        await new Promise<void>((resolve) => {
-          const sw = this.registration!.installing || this.registration!.waiting;
-          if (!sw) {
+      // Ensure service worker is ready and active
+      if (!this.registration) {
+        throw new Error('Service worker registration failed');
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Service worker activation timeout'));
+        }, 10000); // 10 second timeout
+
+        const checkActivation = async () => {
+          if (!this.registration) {
+            clearTimeout(timeout);
+            reject(new Error('Service worker registration lost'));
+            return;
+          }
+
+          if (this.registration.active) {
+            clearTimeout(timeout);
             resolve();
+            return;
+          }
+
+          const sw = this.registration.installing || this.registration.waiting;
+          if (!sw) {
+            clearTimeout(timeout);
+            reject(new Error('No service worker found'));
             return;
           }
 
           sw.addEventListener('statechange', function listener(e) {
             if ((e.target as ServiceWorker).state === 'activated') {
               sw.removeEventListener('statechange', listener);
+              clearTimeout(timeout);
               resolve();
             }
           });
-        });
-      }
+        };
+
+        checkActivation();
+      });
 
       // Update the service worker if needed
-      if (this.registration.active) {
+      if (this.registration) {
         await this.registration.update();
       }
 
       console.log('Firebase service worker successfully registered and activated');
+
+      // A small delay to ensure the service worker is fully ready
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Initialize token refresh mechanism if user is authenticated
       const session = await supabase.auth.getSession();
