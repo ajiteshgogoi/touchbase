@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
+import { useStore } from '../stores/useStore';
 import dayjs from 'dayjs';
 import type { Reminder, Contact, Interaction } from '../lib/supabase/types';
 import { CalendarIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { QuickInteraction } from '../components/contacts/QuickInteraction';
-
 export const Reminders = () => {
   const navigate = useNavigate();
-  const { data: reminders } = useQuery({
+  const { isPremium, isOnTrial } = useStore();
+  const { data: reminders } = useQuery<Reminder[]>({
     queryKey: ['reminders'],
     queryFn: () => contactsService.getReminders()
   });
@@ -112,7 +113,7 @@ export const Reminders = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center sm:self-start">
+                      <div className="flex items-center sm:self-start gap-2">
                         <button
                           onClick={() => setQuickInteraction({
                             isOpen: true,
@@ -125,6 +126,23 @@ export const Reminders = () => {
                         >
                           Log Interaction
                         </button>
+                        {(isPremium || isOnTrial) ? (
+                          <Link
+                            to={`/contacts/${reminder.contact_id}/interactions`}
+                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="View interaction history"
+                          >
+                            View History
+                          </Link>
+                        ) : (
+                          <Link
+                            to={`/contacts/${reminder.contact_id}/interactions`}
+                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="Upgrade to view interaction history"
+                          >
+                            View History
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -177,7 +195,7 @@ export const Reminders = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center sm:self-start">
+                      <div className="flex items-center sm:self-start gap-2">
                         <button
                           onClick={() => setQuickInteraction({
                             isOpen: true,
@@ -190,6 +208,23 @@ export const Reminders = () => {
                         >
                           Log Interaction
                         </button>
+                        {(isPremium || isOnTrial) ? (
+                          <Link
+                            to={`/contacts/${reminder.contact_id}/interactions`}
+                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="View interaction history"
+                          >
+                            View History
+                          </Link>
+                        ) : (
+                          <Link
+                            to={`/contacts/${reminder.contact_id}/interactions`}
+                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="Upgrade to view interaction history"
+                          >
+                            View History
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>

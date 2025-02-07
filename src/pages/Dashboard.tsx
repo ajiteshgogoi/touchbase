@@ -111,6 +111,7 @@ const DashboardMetrics = () => {
 
 const RecentContacts = () => {
   const queryClient = useQueryClient();
+  const { isPremium, isOnTrial } = useStore();
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts
@@ -238,7 +239,7 @@ const RecentContacts = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center sm:self-start mt-3 sm:mt-0">
+                  <div className="flex items-center sm:self-start mt-3 sm:mt-0 gap-2">
                     <button
                       onClick={() => setQuickInteraction({
                         isOpen: true,
@@ -251,6 +252,23 @@ const RecentContacts = () => {
                     >
                       Log Interaction
                     </button>
+                    {(isPremium || isOnTrial) ? (
+                      <Link
+                        to={`/contacts/${contact.id}/interactions`}
+                        className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                        title="View interaction history"
+                      >
+                        View History
+                      </Link>
+                    ) : (
+                      <Link
+                        to={`/contacts/${contact.id}/interactions`}
+                        className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                        title="Upgrade to view interaction history"
+                      >
+                        View History
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
