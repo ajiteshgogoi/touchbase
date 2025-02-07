@@ -37,7 +37,7 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
 // Handle token refresh
 export const initializeTokenRefresh = async (userId: string) => {
   try {
-    // Get current token first
+    // Get current token with existing registration
     const currentToken = await getToken(messaging, {
       vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
     });
