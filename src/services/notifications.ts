@@ -13,12 +13,6 @@ class NotificationService {
     }
 
     try {
-      // Initialize token refresh mechanism if user is authenticated
-      const session = await supabase.auth.getSession();
-      if (session.data.session?.user) {
-        await initializeTokenRefresh(session.data.session.user.id);
-      }
-
       // Set up message listener first
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'PUSH_RECEIVED') {
@@ -30,8 +24,7 @@ class NotificationService {
       console.log('Registering Firebase messaging service worker...');
       const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
       this.fcmRegistration = await navigator.serviceWorker.register(firebaseSWURL, {
-        scope: '/firebase-cloud-messaging-push-scope',
-        type: 'module'
+        scope: '/'
       });
 
       // Wait for Firebase service worker to be active
@@ -102,6 +95,12 @@ class NotificationService {
       }
 
       console.log('Service worker successfully registered and activated');
+
+      // Initialize token refresh mechanism if user is authenticated
+      const session = await supabase.auth.getSession();
+      if (session.data.session?.user) {
+        await initializeTokenRefresh(session.data.session.user.id);
+      }
     } catch (error) {
       console.error('Service Worker registration failed:', error);
     }
