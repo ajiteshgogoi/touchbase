@@ -15,33 +15,6 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
-// Set up foreground message handler
-onMessage(messaging, async (payload) => {
-  console.log('Received foreground message:', payload);
-  try {
-    const { notification, data } = payload;
-    const notificationTitle = notification?.title || 'New Message';
-    const notificationOptions = {
-      body: notification?.body,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      data,
-      requireInteraction: true,
-      actions: [
-        {
-          action: 'view',
-          title: 'View'
-        }
-      ]
-    };
-
-    // Show notification in foreground
-    new Notification(notificationTitle, notificationOptions);
-  } catch (error) {
-    console.error('Error showing foreground notification:', error);
-  }
-});
-
 // Helper function to update token in database
 const updateTokenInDatabase = async (userId: string, token: string) => {
   const { error } = await supabase
