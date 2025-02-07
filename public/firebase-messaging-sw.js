@@ -1,6 +1,6 @@
 // Firebase messaging service worker for background notifications
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
 // Handle activation requests
 self.addEventListener('message', (event) => {
@@ -22,17 +22,37 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // Handle background messages
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(async (payload) => {
   console.log('Received background message:', payload);
 
-  const { notification } = payload;
-  const notificationTitle = notification?.title || 'New Message';
-  const notificationOptions = {
-    body: notification?.body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    data: payload.data
-  };
+  try {
+    const { notification, data } = payload;
+    const notificationTitle = notification?.title || 'New Message';
+    const notificationOptions = {
+      body: notification?.body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      data,
+      requireInteraction: true, // Keep notification visible until user interacts
+      actions: [
+        {
+          action: 'view',
+          title: 'View'
+        }
+      ]
+    };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+    await self.registration.showNotification(notificationTitle, notificationOptions);
+  } catch (error) {
+    console.error('Error showing notification:', error);
+  }
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'view') {
+    clients.openWindow('/');
+  }
 });
