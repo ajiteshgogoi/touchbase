@@ -59,4 +59,4 @@ jobs:
           MAX_RETRY_DELAY: ${{ env.MAX_RETRY_DELAY }}
           BACKOFF_MULTIPLIER: ${{ env.BACKOFF_MULTIPLIER }}
           RATE_LIMIT_STATUS_CODES: ${{ env.RATE_LIMIT_STATUS_CODES }}
-        run: node dist/services/daily-check-v2.js # Using v2 implementation with batch processing
+        run: node dist/services/daily-check.js
