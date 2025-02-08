@@ -1,14 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+function addCorsHeaders(headers: Headers = new Headers()) {
+  headers.set('Access-Control-Allow-Origin', '*');
+  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
+  headers.set('Access-Control-Max-Age', '86400');
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  return headers;
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: addCorsHeaders() })
   }
 
   try {
@@ -154,7 +158,7 @@ serve(async (req) => {
         ).href
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
         status: 200,
       }
     )
@@ -162,7 +166,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
         status: 400,
       }
     )
