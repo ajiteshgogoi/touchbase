@@ -38,56 +38,100 @@ serve(async (req) => {
     if (planId !== 'premium') throw new Error('Invalid plan ID')
 
     // Initialize PayPal client
+    const clientId = Deno.env.get('PAYPAL_CLIENT_ID')
+    const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET')
+
+    if (!clientId || !clientSecret) {
+      throw new Error('PayPal credentials not configured')
+    }
+
     const paypalAuth = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${Deno.env.get('PAYPAL_CLIENT_ID')}:${Deno.env.get('PAYPAL_CLIENT_SECRET')}`)}`,
+        'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
       },
       body: 'grant_type=client_credentials'
     })
 
-    const { access_token: paypalToken } = await paypalAuth.json()
+    if (!paypalAuth.ok) {
+      const errorText = await paypalAuth.text()
+      console.error('PayPal auth error:', errorText)
+      throw new Error('Failed to authenticate with PayPal')
+    }
+
+    const paypalAuthData = await paypalAuth.json()
+    if (!paypalAuthData.access_token) {
+      console.error('PayPal auth response:', paypalAuthData)
+      throw new Error('Invalid PayPal auth response')
+    }
+
+    const paypalToken = paypalAuthData.access_token
 
     // Create subscription with PayPal
+    const planId = Deno.env.get('PREMIUM_PLAN_ID')
+    const appUrl = Deno.env.get('APP_URL')
+
+    if (!planId || !appUrl) {
+      throw new Error('Missing required environment variables')
+    }
+
+    const subscriptionPayload = {
+      plan_id: planId,
+      subscriber: {
+        name: {
+          given_name: user.user_metadata?.full_name?.split(' ')[0] || 'Valued',
+          surname: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'Customer'
+        },
+        email_address: user.email
+      },
+      application_context: {
+        brand_name: 'TouchBase',
+        locale: 'en-US',
+        shipping_preference: 'NO_SHIPPING',
+        user_action: 'SUBSCRIBE_NOW',
+        payment_method: {
+          payer_selected: 'PAYPAL',
+          payee_preferred: 'IMMEDIATE_PAYMENT_REQUIRED'
+        },
+        return_url: `${appUrl}/settings?subscription=success`,
+        cancel_url: `${appUrl}/settings?subscription=cancelled`
+      }
+    }
+
+    console.log('Creating PayPal subscription with payload:', JSON.stringify(subscriptionPayload))
+
     const subscription = await fetch('https://api-m.sandbox.paypal.com/v1/billing/subscriptions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${paypalToken}`,
         'PayPal-Request-Id': crypto.randomUUID(),
+        'Prefer': 'return=representation'
       },
-      body: JSON.stringify({
-        plan_id: Deno.env.get('PREMIUM_PLAN_ID'),
-        subscriber: {
-          name: {
-            given_name: user.user_metadata?.full_name?.split(' ')[0] || 'Valued',
-            surname: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'Customer'
-          },
-          email_address: user.email
-        },
-        application_context: {
-          brand_name: 'TouchBase',
-          locale: 'en-US',
-          shipping_preference: 'NO_SHIPPING',
-          user_action: 'SUBSCRIBE_NOW',
-          payment_method: {
-            payer_selected: 'PAYPAL',
-            payee_preferred: 'IMMEDIATE_PAYMENT_REQUIRED'
-          },
-          return_url: `${Deno.env.get('APP_URL')}/settings?subscription=success`,
-          cancel_url: `${Deno.env.get('APP_URL')}/settings?subscription=cancelled`
-        }
-      })
+      body: JSON.stringify(subscriptionPayload)
     })
 
-    if (!subscription.ok) {
-      console.error('PayPal API Error:', await subscription.text())
-      throw new Error('Failed to create PayPal subscription')
+    let subscriptionData
+    const responseText = await subscription.text()
+
+    try {
+      subscriptionData = JSON.parse(responseText)
+    } catch (e) {
+      console.error('Failed to parse PayPal response:', responseText)
+      throw new Error('Invalid response from PayPal')
     }
 
-    const subscriptionData = await subscription.json()
+    if (!subscription.ok) {
+      console.error('PayPal API Error:', JSON.stringify(subscriptionData, null, 2))
+      throw new Error(subscriptionData.message || 'Failed to create PayPal subscription')
+    }
+
+    if (!subscriptionData.id || !subscriptionData.links) {
+      console.error('Invalid subscription response:', JSON.stringify(subscriptionData, null, 2))
+      throw new Error('Invalid subscription data received from PayPal')
+    }
 
     // Update subscription in database
     const { error: updateError } = await supabaseClient
