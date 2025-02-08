@@ -92,32 +92,34 @@ export async function runDailyCheckV2() {
       (userPreferences || []).map(pref => [pref.user_id, pref.timezone || 'UTC'])
     );
 
-    // Get contacts that might need attention
-    const { data: missedContacts, error: missedError } = await supabaseClient
+    // Get contacts that might need attention - using an extended window to account for timezone differences
+    const { data: potentialMissedContacts, error: missedError } = await supabaseClient
       .from('contacts')
       .select('*')
-      .gte('next_contact_due', today.toISOString())
-      .lte('next_contact_due', todayEnd.toISOString());
+      .lte('next_contact_due', todayEnd.toISOString());  // Get all contacts due up to end of today UTC
 
     if (missedError) throw missedError;
+
+    // Filter contacts based on user timezone
+    const missedContacts = (potentialMissedContacts || []).filter(contact => {
+      const userTimezone = userTimezones.get(contact.user_id) || 'UTC';
+      
+      // Convert next_contact_due to user's timezone
+      const dueDate = new Date(contact.next_contact_due);
+      const dueDateInUserTz = new Date(dueDate.toLocaleString('en-US', { timeZone: userTimezone }));
+      dueDateInUserTz.setHours(0, 0, 0, 0);
+
+      // Get today in user's timezone
+      const todayInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+      todayInUserTz.setHours(0, 0, 0, 0);
+
+      // Only include if due date is today or earlier in user's timezone
+      return dueDateInUserTz.getTime() <= todayInUserTz.getTime();
+    });
 
     // Handle missed interactions
     if (missedContacts && missedContacts.length > 0) {
       for (const contact of missedContacts) {
-        const userTimezone = userTimezones.get(contact.user_id) || 'UTC';
-        
-        // Convert next_contact_due to user's timezone
-        const dueDate = new Date(contact.next_contact_due);
-        const dueDateInUserTz = new Date(dueDate.toLocaleString('en-US', { timeZone: userTimezone }));
-        dueDateInUserTz.setHours(0, 0, 0, 0);
-
-        // Get today in user's timezone
-        const todayInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
-        todayInUserTz.setHours(0, 0, 0, 0);
-
-        // Skip if due date is in the future in user's timezone
-        if (dueDateInUserTz.getTime() > todayInUserTz.getTime()) continue;
-
         // Get latest interaction to verify it's really missed
         const { data: latestInteraction } = await supabaseClient
           .from('interactions')
@@ -126,6 +128,10 @@ export async function runDailyCheckV2() {
           .order('date', { ascending: false })
           .limit(1)
           .single();
+
+        const userTimezone = userTimezones.get(contact.user_id) || 'UTC';
+        const todayInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+        todayInUserTz.setHours(0, 0, 0, 0);
 
         // Check if there's an interaction today in user's timezone
         const hasInteractionToday = latestInteraction && (() => {
