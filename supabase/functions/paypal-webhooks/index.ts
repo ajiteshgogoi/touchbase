@@ -39,6 +39,15 @@ async function verifyPayPalWebhookSignature(
   // This is where you'd implement PayPal's webhook signature verification
   // Reference: https://developer.paypal.com/api/rest/webhooks/#link-verifypaypalwebhooksignature
 
+  console.log('[PayPal Webhook] Verifying signature:', {
+    transmissionId,
+    transmissionTime,
+    webhookId: webhookId.substring(0, 8) + '...', // Log partial ID for security
+    signaturePresent: !!actualSignature,
+    certUrlPresent: !!certUrl,
+    authAlgoPresent: !!actualAuthAlgo
+  });
+
   // For now, we'll assume the signature is valid if the webhookId matches
   // In production, you MUST implement proper signature verification
   const expectedWebhookId = Deno.env.get('PAYPAL_WEBHOOK_ID');
@@ -53,6 +62,7 @@ serve(async (req) => {
     }
 
     if (req.method !== 'POST') {
+      console.log('[PayPal Webhook] Invalid method:', req.method);
       return new Response(
         JSON.stringify({ error: 'Method not allowed' }),
         { status: 405, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
@@ -62,6 +72,7 @@ serve(async (req) => {
     // Verify PayPal webhook signature
     const webhookId = Deno.env.get('PAYPAL_WEBHOOK_ID');
     if (!webhookId) {
+      console.error('[PayPal Webhook] Missing PAYPAL_WEBHOOK_ID environment variable');
       throw new Error('PAYPAL_WEBHOOK_ID not configured');
     }
 
@@ -76,6 +87,13 @@ serve(async (req) => {
     const rawBody = await req.text();
     const event: PayPalWebhookEvent = JSON.parse(rawBody);
 
+    console.log('[PayPal Webhook] Received event:', {
+      eventId: event.id,
+      eventType: event.event_type,
+      resourceId: event.resource.id,
+      createTime: event.create_time
+    });
+
     // Verify webhook signature
     const isValid = await verifyPayPalWebhookSignature(
       transmissionId,
@@ -88,11 +106,14 @@ serve(async (req) => {
     );
 
     if (!isValid) {
+      console.error('[PayPal Webhook] Invalid signature');
       return new Response(
         JSON.stringify({ error: 'Invalid webhook signature' }),
         { status: 401, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
       );
     }
+
+    console.log('[PayPal Webhook] Signature verified successfully');
 
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -103,6 +124,10 @@ serve(async (req) => {
     // Handle different webhook events
     switch (event.event_type) {
       case 'PAYMENT.SALE.COMPLETED': {
+        console.log('[PayPal Webhook] Processing payment completion:', {
+          billingAgreementId: event.resource.billing_agreement_id
+        });
+
         // Fetch subscription from database using billing_agreement_id
         const { data: subscription, error: fetchError } = await supabaseClient
           .from('subscriptions')
@@ -111,6 +136,10 @@ serve(async (req) => {
           .single();
 
         if (fetchError || !subscription) {
+          console.error('[PayPal Webhook] Subscription not found:', {
+            billingAgreementId: event.resource.billing_agreement_id,
+            error: fetchError
+          });
           throw new Error('Subscription not found');
         }
 
@@ -127,12 +156,28 @@ serve(async (req) => {
           })
           .eq('paypal_subscription_id', event.resource.billing_agreement_id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('[PayPal Webhook] Failed to update subscription:', {
+            billingAgreementId: event.resource.billing_agreement_id,
+            error: updateError
+          });
+          throw updateError;
+        }
+
+        console.log('[PayPal Webhook] Successfully processed payment:', {
+          billingAgreementId: event.resource.billing_agreement_id,
+          newValidUntil: currentValidUntil.toISOString()
+        });
         break;
       }
 
       case 'BILLING.SUBSCRIPTION.CANCELLED':
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
+        console.log('[PayPal Webhook] Processing subscription status change:', {
+          eventType: event.event_type,
+          subscriptionId: event.resource.id
+        });
+
         // Update subscription status
         const { error: updateError } = await supabaseClient
           .from('subscriptions')
@@ -141,17 +186,33 @@ serve(async (req) => {
           })
           .eq('paypal_subscription_id', event.resource.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('[PayPal Webhook] Failed to update subscription status:', {
+            subscriptionId: event.resource.id,
+            error: updateError
+          });
+          throw updateError;
+        }
+
+        console.log('[PayPal Webhook] Successfully updated subscription status:', {
+          subscriptionId: event.resource.id,
+          newStatus: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired'
+        });
         break;
       }
     }
+
+    console.log('[PayPal Webhook] Successfully processed event:', event.id);
 
     return new Response(
       JSON.stringify({ received: true }),
       { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('[PayPal Webhook] Error processing webhook:', {
+      error: error.message,
+      stack: error.stack
+    });
     
     return new Response(
       JSON.stringify({ error: error.message }),
