@@ -1,9 +1,23 @@
 // Platform detection utilities
+declare global {
+  interface Window {
+    chrome?: {
+      app?: {
+        window?: unknown;
+      };
+    };
+  }
+}
+
 export const platform = {
   isAndroid(): boolean {
-    // Check if running in TWA
-    return window.matchMedia('(display-mode: standalone)').matches 
-      && /Android/i.test(navigator.userAgent);
+    return (
+      // Check if running in TWA
+      (window.chrome?.app?.window !== undefined || 
+       document.referrer.includes('android-app://')) &&
+      // Verify Android
+      /Android/i.test(navigator.userAgent)
+    );
   },
 
   isWeb(): boolean {
