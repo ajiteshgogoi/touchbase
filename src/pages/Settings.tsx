@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import moment from 'moment-timezone';
 
 const TIMEZONES = moment.tz.names();
-import { PayPalButtons } from '@paypal/react-paypal-js';
 import toast from 'react-hot-toast';
 import { useStore } from '../stores/useStore';
 import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
@@ -233,17 +232,21 @@ export const Settings = () => {
                   ))}
                 </ul>
                 {plan.id === 'premium' && !isPremium && (
-                  <PayPalButtons
-                    createSubscription={(_, actions) => {
-                      return actions.subscription.create({
-                        'plan_id': 'P-XXXXXXXXXXXX' // Replace with your PayPal plan ID
-                      });
+                  <button
+                    onClick={async () => {
+                      try {
+                        await paymentService.createSubscription('premium');
+                        toast.success('Subscription created successfully');
+                        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+                      } catch (error: any) {
+                        console.error('Subscription error:', error);
+                        toast.error(error?.message || 'Failed to create subscription');
+                      }
                     }}
-                    onApprove={() => {
-                      console.log('Subscription approved');
-                      return Promise.resolve();
-                    }}
-                  />
+                    className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+                  >
+                    Subscribe Now
+                  </button>
                 )}
                 {plan.id === 'premium' && isPremium && (
                   <button
