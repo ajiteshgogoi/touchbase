@@ -190,12 +190,15 @@ export const Settings = () => {
 
   const handleCancelSubscription = async () => {
     if (!confirm('Are you sure you want to cancel your subscription?')) return;
+    if (!confirm('You will lose access to premium features at the end of your billing period. Are you absolutely sure?')) return;
     
     try {
       await paymentService.cancelSubscription();
-      // Subscription cancelled, handle success
+      toast.success('Subscription cancelled successfully');
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
     } catch (error) {
       console.error('Cancel subscription error:', error);
+      toast.error('Failed to cancel subscription');
     }
   };
 
