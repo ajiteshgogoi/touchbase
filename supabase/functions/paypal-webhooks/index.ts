@@ -272,6 +272,21 @@ serve(async (req) => {
 
         // Normalize webhook ID and prepare for lookup
         const webhookId = event.resource.id.trim();
+        
+        // Debug: List all subscriptions in the database
+        const { data: allSubs } = await supabaseClient
+          .from('subscriptions')
+          .select('id, paypal_subscription_id, status');
+        
+        console.log('[PayPal Webhook] Database state:', {
+          totalSubscriptions: allSubs?.length ?? 0,
+          subscriptions: allSubs?.map(sub => ({
+            id: sub.id,
+            paypal_id: sub.paypal_subscription_id,
+            status: sub.status
+          }))
+        });
+
         console.log('[PayPal Webhook] Starting subscription lookup:', {
           webhookId,
           withoutPrefix: webhookId.replace('I-', ''),
@@ -288,29 +303,53 @@ serve(async (req) => {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           console.log(`[PayPal Webhook] Lookup attempt ${attempt}/${maxRetries}`);
 
-          // Try finding by subscription ID first
+          // Debug: Quote search values to see whitespace
+          console.log('[PayPal Webhook] Search values:', {
+            webhookId: `"${webhookId}"`,
+            withoutPrefix: `"${webhookId.replace('I-', '')}"`,
+            billingAgreementId: event.resource.billing_agreement_id ? `"${event.resource.billing_agreement_id}"` : undefined
+          });
+
+          // Try exact match first
           let result = await supabaseClient
             .from('subscriptions')
             .select()
-            .eq('paypal_subscription_id', webhookId);
+            .or(`paypal_subscription_id.eq."${webhookId}",paypal_subscription_id.eq."${webhookId.replace('I-', '')}"`);
 
-          // If not found, try with billing agreement ID
+          console.log('[PayPal Webhook] Exact match result:', {
+            query: `paypal_subscription_id.eq."${webhookId}" OR paypal_subscription_id.eq."${webhookId.replace('I-', '')}"`,
+            found: (result.data?.length ?? 0) > 0,
+            matches: result.data
+          });
+
+          // If not found, try case-insensitive match
+          if (!result.data || result.data.length === 0) {
+            console.log('[PayPal Webhook] Trying case-insensitive match');
+            result = await supabaseClient
+              .from('subscriptions')
+              .select()
+              .or(`paypal_subscription_id.ilike."${webhookId}",paypal_subscription_id.ilike."${webhookId.replace('I-', '')}"`);
+
+            console.log('[PayPal Webhook] Case-insensitive match result:', {
+              query: `paypal_subscription_id.ilike."${webhookId}" OR paypal_subscription_id.ilike."${webhookId.replace('I-', '')}"`,
+              found: (result.data?.length ?? 0) > 0,
+              matches: result.data
+            });
+          }
+
+          // If still not found and billing agreement ID exists, try that
           if ((!result.data || result.data.length === 0) && event.resource.billing_agreement_id) {
-            console.log('[PayPal Webhook] Trying billing agreement ID:', event.resource.billing_agreement_id);
+            console.log('[PayPal Webhook] Trying billing agreement ID lookup');
             result = await supabaseClient
               .from('subscriptions')
               .select()
               .eq('paypal_subscription_id', event.resource.billing_agreement_id);
-          }
 
-          // If still not found, try with ID without 'I-' prefix
-          if (!result.data || result.data.length === 0) {
-            const idWithoutPrefix = webhookId.replace('I-', '');
-            console.log('[PayPal Webhook] Trying without I- prefix:', idWithoutPrefix);
-            result = await supabaseClient
-              .from('subscriptions')
-              .select()
-              .eq('paypal_subscription_id', idWithoutPrefix);
+            console.log('[PayPal Webhook] Billing agreement ID result:', {
+              id: event.resource.billing_agreement_id,
+              found: (result.data?.length ?? 0) > 0,
+              matches: result.data
+            });
           }
 
           console.log('[PayPal Webhook] Query result:', {
