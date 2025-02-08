@@ -347,12 +347,16 @@ serve(async (req) => {
           // Get the first match if any
           subscription = result.data?.[0] ?? null;
           fetchError = result.error;
-          
-          subscription = result.data;
-          fetchError = result.error;
-          
-          subscription = result.data;
-          fetchError = result.error;
+
+          // Log what we found for debugging
+          console.log('[PayPal Webhook] Subscription data:', {
+            found: !!subscription,
+            data: subscription ? {
+              id: subscription.id,
+              paypal_subscription_id: subscription.paypal_subscription_id,
+              status: subscription.status
+            } : null
+          });
 
           if (subscription || fetchError) break;
           
@@ -387,13 +391,25 @@ serve(async (req) => {
           throw new Error('Subscription not found');
         }
 
+        // Validate subscription before update
+        if (!subscription?.id) {
+          console.error('[PayPal Webhook] Invalid subscription object:', subscription);
+          throw new Error('Invalid subscription record - missing ID');
+        }
+
+        console.log('[PayPal Webhook] Updating subscription:', {
+          id: subscription.id,
+          currentStatus: subscription.status,
+          newStatus: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired'
+        });
+
         // Update subscription status
         const { error: updateError } = await supabaseClient
           .from('subscriptions')
           .update({
             status: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired'
           })
-          .eq('id', subscription.id);
+          .match({ id: subscription.id });
 
         if (updateError) {
           console.error('[PayPal Webhook] Failed to update subscription status:', {
