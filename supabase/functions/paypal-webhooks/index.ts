@@ -320,21 +320,23 @@ serve(async (req) => {
 
           const webhookId = event.resource.id.trim();
           
-          // First get raw count of all subscriptions
-          const { count: totalCount } = await supabaseClient
-            .from('subscriptions')
-            .select('*', { count: 'exact' });
-
-          console.log('[PayPal Webhook] Total subscriptions in database:', totalCount);
-
-          // Then do a raw text match
-          const result = await supabaseClient
+          // Try finding by subscription ID first
+          let result = await supabaseClient
             .from('subscriptions')
             .select()
             .filter('paypal_subscription_id', 'eq', webhookId);
 
+          // If not found and billing agreement ID exists, try that
+          if ((!result.data || result.data.length === 0) && event.resource.billing_agreement_id) {
+            result = await supabaseClient
+              .from('subscriptions')
+              .select()
+              .filter('paypal_subscription_id', 'eq', event.resource.billing_agreement_id);
+          }
+
           console.log('[PayPal Webhook] Raw query result:', {
             searchId: webhookId,
+            billingAgreementId: event.resource.billing_agreement_id,
             resultCount: result.data?.length,
             firstMatch: result.data?.[0] ? {
               id: result.data[0].id,
