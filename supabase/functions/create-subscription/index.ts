@@ -163,11 +163,11 @@ serve(async (req) => {
       body: JSON.stringify(subscriptionPayload)
     })
 
-    let subscriptionData
+    let paypalSubscription
     const responseText = await subscription.text()
 
     try {
-      subscriptionData = JSON.parse(responseText)
+      paypalSubscription = JSON.parse(responseText)
     } catch (e) {
       console.error('Failed to parse PayPal response:', responseText)
       throw new Error('Invalid response from PayPal')
@@ -177,7 +177,7 @@ serve(async (req) => {
       status: subscription.status,
       statusText: subscription.statusText,
       headers: Object.fromEntries(subscription.headers.entries()),
-      body: subscriptionData
+      body: paypalSubscription
     });
 
     if (!subscription.ok) {
@@ -187,7 +187,7 @@ serve(async (req) => {
       const errorDetails = {
         status: subscription.status,
         statusText: subscription.statusText,
-        response: subscriptionData,
+        response: paypalSubscription,
         responseHeaders: Object.fromEntries(subscription.headers.entries()),
         request: {
           payload: subscriptionPayload,
@@ -197,57 +197,73 @@ serve(async (req) => {
       console.error('PayPal API Error Details:', JSON.stringify(errorDetails, null, 2));
 
       // Extract detailed error message if available
-      if (subscriptionData.details && Array.isArray(subscriptionData.details)) {
-        errorMessage = subscriptionData.details.map((detail: any) => {
+      if (paypalSubscription.details && Array.isArray(paypalSubscription.details)) {
+        errorMessage = paypalSubscription.details.map((detail: any) => {
           return `${detail.issue || ''}: ${detail.description || ''}`;
         }).join('; ');
-      } else if (subscriptionData.message) {
-        errorMessage = subscriptionData.message;
-      } else if (subscriptionData.error_description) {
-        errorMessage = subscriptionData.error_description;
+      } else if (paypalSubscription.message) {
+        errorMessage = paypalSubscription.message;
+      } else if (paypalSubscription.error_description) {
+        errorMessage = paypalSubscription.error_description;
       }
 
       throw new Error(`PayPal API Error: ${errorMessage}`);
     }
 
     // Validate subscription response
-    if (!subscriptionData.id) {
-      console.error('Missing subscription ID in response:', subscriptionData);
+    if (!paypalSubscription.id) {
+      console.error('Missing subscription ID in response:', paypalSubscription);
       throw new Error('PayPal response missing subscription ID');
     }
 
-    if (!subscriptionData.links || !Array.isArray(subscriptionData.links)) {
-      console.error('Missing links array in response:', subscriptionData);
+    if (!paypalSubscription.links || !Array.isArray(paypalSubscription.links)) {
+      console.error('Missing links array in response:', paypalSubscription);
       throw new Error('PayPal response missing links array');
     }
 
     // Find the approval URL
-    const approveLink = subscriptionData.links.find((link: { rel: string; href: string }) => link.rel === 'approve');
+    const approveLink = paypalSubscription.links.find((link: { rel: string; href: string }) => link.rel === 'approve');
     if (!approveLink || !approveLink.href) {
-      console.error('No approval URL found in links:', subscriptionData.links);
+      console.error('No approval URL found in links:', paypalSubscription.links);
       throw new Error('PayPal response missing approval URL');
     }
 
     console.log('Found approval URL:', approveLink.href);
 
-    // Update subscription in database
-    const { error: updateError } = await supabaseClient
+    // First check if subscription exists
+    const { data: existingSubscription, error: fetchError } = await supabaseClient
       .from('subscriptions')
-      .upsert({
-        user_id: user.id,
-        plan_id: 'premium',
-        status: 'pending',
-        paypal_subscription_id: subscriptionData.id,
-        // Set a temporary valid_until 1 hour from now - will be updated when subscription is activated
-        valid_until: new Date(Date.now() + 60 * 60 * 1000).toISOString()
-      })
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (fetchError) throw fetchError
+
+    // Update or create subscription
+    const dbSubscription = {
+      user_id: user.id,
+      plan_id: 'premium',
+      status: 'active',
+      paypal_subscription_id: paypalSubscription.id,
+      // Set a temporary valid_until 20 mins from now - will be updated when payment is complete
+      valid_until: new Date(Date.now() + 20 * 60 * 1000).toISOString()
+    }
+
+    const { error: updateError } = existingSubscription
+      ? await supabaseClient
+          .from('subscriptions')
+          .update(dbSubscription)
+          .eq('user_id', user.id)
+      : await supabaseClient
+          .from('subscriptions')
+          .insert(dbSubscription)
 
     if (updateError) throw updateError
 
     return new Response(
       JSON.stringify({
-        subscriptionId: subscriptionData.id,
-        approvalUrl: subscriptionData.links.find(
+        subscriptionId: paypalSubscription.id,
+        approvalUrl: paypalSubscription.links.find(
           (link: { rel: string }) => link.rel === 'approve'
         ).href
       }),
