@@ -20,7 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
-import com.google.androidbrowserhelper.trusted.TrustedWebActivityCallback;
+import com.google.androidbrowserhelper.trusted.ExtraCommandHandler;
 
 public class LauncherActivity
         extends com.google.androidbrowserhelper.trusted.LauncherActivity {
@@ -52,7 +52,7 @@ public class LauncherActivity
     }
 
     @Override
-    public TrustedWebActivityCallback getTrustedWebActivityCallback() {
+    protected ExtraCommandHandler getExtraCommandHandler() {
         return billing;
     }
 
