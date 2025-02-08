@@ -107,46 +107,8 @@ serve(async (req) => {
     const paypalToken = authData.access_token;
     console.log('Successfully obtained PayPal access token');
 
-    // Get the subscription ID from billing agreement token
-    console.log('Fetching billing agreement details...');
-    const subscriptionIdResponse = await fetch(
-      `https://api-m.sandbox.paypal.com/v1/billing/agreements/${baToken}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${paypalToken}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    )
-
-    const agreementResponseText = await subscriptionIdResponse.text();
-    console.log('PayPal agreement response:', {
-      status: subscriptionIdResponse.status,
-      ok: subscriptionIdResponse.ok,
-      headers: Object.fromEntries(subscriptionIdResponse.headers.entries()),
-      body: agreementResponseText
-    });
-
-    if (!subscriptionIdResponse.ok) {
-      throw new Error(`Failed to get subscription ID from billing agreement: ${subscriptionIdResponse.status} ${agreementResponseText}`)
-    }
-
-    let agreement;
-    try {
-      agreement = JSON.parse(agreementResponseText);
-      console.log('Agreement details:', {
-        ...agreement,
-        subscription_id: agreement.subscription_id ? '[REDACTED]' : 'missing'
-      });
-    } catch (e) {
-      console.error('Failed to parse agreement response:', agreementResponseText);
-      throw new Error('Invalid JSON in agreement response');
-    }
-
-    const subscriptionId = agreement.subscription_id;
-    if (!subscriptionId) {
-      throw new Error('No subscription_id found in agreement response');
-    }
+    // The baToken is actually the subscription ID from the create-subscription response
+    const subscriptionId = baToken;
 
     // Get subscription details from PayPal
     console.log('Fetching subscription details...');

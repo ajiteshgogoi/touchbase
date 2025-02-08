@@ -94,9 +94,9 @@ export const Settings = () => {
     
     // Handle PayPal redirect and subscription activation
     const params = new URLSearchParams(window.location.search);
-    const baToken = params.get('ba_token');
+    const subscriptionId = params.get('subscription_id') || params.get('token');
     
-    if (baToken) {
+    if (subscriptionId) {
       const activateSubscription = async () => {
         try {
           const { data: { session } } = await supabase.auth.getSession();
@@ -108,7 +108,7 @@ export const Settings = () => {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${session.access_token}`
             },
-            body: JSON.stringify({ baToken })
+            body: JSON.stringify({ baToken: subscriptionId })
           });
 
           if (!response.ok) {
