@@ -276,8 +276,7 @@ export const Settings = () => {
                     onClick={async () => {
                       try {
                         await paymentService.createSubscription('premium');
-                        toast.success('Subscription created successfully');
-                        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+                        // Success toast will be shown after PayPal redirect and activation
                       } catch (error: any) {
                         console.error('Subscription error:', error);
                         toast.error(error?.message || 'Failed to create subscription');
