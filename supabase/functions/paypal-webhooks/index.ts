@@ -222,7 +222,7 @@ serve(async (req) => {
         const { data: subscription, error: fetchError } = await supabaseClient
           .from('subscriptions')
           .select('*')
-          .eq('paypal_subscription_id', event.resource.billing_agreement_id)
+          .eq('paypal_subscription_id', event.resource.id)
           .single();
 
         if (fetchError || !subscription) {
