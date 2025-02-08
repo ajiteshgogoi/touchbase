@@ -243,7 +243,7 @@ serve(async (req) => {
     const dbSubscription = {
       user_id: user.id,
       plan_id: 'premium',
-      status: 'active',
+      status: 'canceled',
       paypal_subscription_id: paypalSubscription.id,
       // Set a temporary valid_until 20 mins from now - will be updated when payment is complete
       valid_until: new Date(Date.now() + 20 * 60 * 1000).toISOString()
