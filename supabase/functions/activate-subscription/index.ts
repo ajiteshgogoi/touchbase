@@ -138,9 +138,11 @@ serve(async (req) => {
     try {
       subscriptionDetails = JSON.parse(subscriptionResponseText);
       console.log('Subscription details:', {
-        ...subscriptionDetails,
-        id: '[REDACTED]',
-        status: subscriptionDetails.status || 'missing'
+        id: subscriptionDetails.id,
+        status: subscriptionDetails.status || 'missing',
+        plan_id: subscriptionDetails.plan_id,
+        start_time: subscriptionDetails.start_time,
+        create_time: subscriptionDetails.create_time
       });
     } catch (e) {
       console.error('Failed to parse subscription response:', subscriptionResponseText);
@@ -174,7 +176,13 @@ serve(async (req) => {
       valid_until: validUntil.toISOString()
     }
 
-    console.log('Upserting subscription:', existingSubscription ? 'update' : 'insert');
+    console.log('Upserting subscription:', {
+      operation: existingSubscription ? 'update' : 'insert',
+      data: {
+        ...subscriptionData,
+        user_id: '[REDACTED]'
+      }
+    });
     const { error: upsertError, data: upsertedData } = existingSubscription
       ? await supabaseClient
           .from('subscriptions')
@@ -191,10 +199,39 @@ serve(async (req) => {
       throw upsertError;
     }
 
+    if (!upsertedData?.[0]) {
+      console.error('Failed to get upserted subscription data');
+      throw new Error('Failed to get upserted subscription data');
+    }
+
     console.log('Subscription activated successfully:', {
-      id: upsertedData?.[0]?.id,
-      status: upsertedData?.[0]?.status
+      id: upsertedData[0].id,
+      status: upsertedData[0].status,
+      paypal_subscription_id: upsertedData[0].paypal_subscription_id,
+      valid_until: upsertedData[0].valid_until
     });
+
+    // Verify the subscription was stored correctly
+    const { data: verifyData, error: verifyError } = await supabaseClient
+      .from('subscriptions')
+      .select('*')
+      .eq('paypal_subscription_id', subscriptionDetails.id)
+      .single();
+
+    console.log('Verification check:', {
+      found: !!verifyData,
+      error: verifyError,
+      subscription: verifyData ? {
+        id: verifyData.id,
+        paypal_subscription_id: verifyData.paypal_subscription_id,
+        status: verifyData.status
+      } : null
+    });
+
+    if (!verifyData) {
+      console.error('Failed to verify subscription storage');
+      throw new Error('Failed to verify subscription storage');
+    }
     
     return new Response(
       JSON.stringify({ success: true }),

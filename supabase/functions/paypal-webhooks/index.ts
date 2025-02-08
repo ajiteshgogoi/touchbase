@@ -270,9 +270,21 @@ serve(async (req) => {
           billingAgreementId: event.resource.billing_agreement_id
         });
 
+        // Debug: Query all subscriptions to see what IDs we have
+        const { data: allSubs, error: allSubsError } = await supabaseClient
+          .from('subscriptions')
+          .select('paypal_subscription_id');
+
+        console.log('[PayPal Webhook] All subscription IDs in database:', {
+          subscriptions: allSubs,
+          error: allSubsError
+        });
+
         // Lookup subscription by ID
         console.log('[PayPal Webhook] Looking up subscription:', {
-          subscriptionId: event.resource.id
+          subscriptionId: event.resource.id,
+          resourceType: typeof event.resource.id,
+          resourceDetails: event.resource
         });
 
         const { data: subscription, error: fetchError } = await supabaseClient
