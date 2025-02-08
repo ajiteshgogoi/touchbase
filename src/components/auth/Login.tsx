@@ -156,11 +156,11 @@ export const Login = () => {
 
         <p className="text-sm text-gray-500 text-center mt-6">
           By continuing, you agree to our{' '}
-          <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
+          <a href="/terms" className="text-primary-500 hover:text-primary-400 font-medium">
             Terms of Service
           </a>{' '}
           and{' '}
-          <a href="#" className="text-primary-500 hover:text-primary-400 font-medium">
+          <a href="/privacy" className="text-primary-500 hover:text-primary-400 font-medium">
             Privacy Policy
           </a>
         </p>

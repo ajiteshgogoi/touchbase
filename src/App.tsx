@@ -19,6 +19,8 @@ import { Help } from './pages/Help';
 import { Analytics } from './pages/Analytics';
 import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
 import { ContactForm } from './components/contacts/ContactForm';
 import { InteractionHistory } from './pages/InteractionHistory';
 
@@ -253,6 +255,8 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
               
               {/* Protected Routes */}
               <Route
