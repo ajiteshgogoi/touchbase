@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase/client';
+import { platform } from '../utils/platform';
 
 interface SubscriptionPlan {
   id: string;
@@ -6,6 +7,7 @@ interface SubscriptionPlan {
   price: number;
   contactLimit: number;
   features: string[];
+  googlePlayProductId?: string; // Product ID for Google Play Billing
 }
 
 // Define default free plan constant
@@ -35,13 +37,14 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Daily reminder system',
       '1-tap interaction logging',
       'Intelligent rescheduling for missed interactions'
-        ]
+    ]
   },
   {
     id: 'premium',
     name: 'premium',
     price: 5,
     contactLimit: Infinity,
+    googlePlayProductId: 'touchbase.pro.premium.monthly', // Add your actual Google Play product ID
     features: [
       'Unlimited contacts',
       'Push notifications',
@@ -52,7 +55,6 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Advanced AI suggestions',
       'Detailed analytics',
       'Priority support'
-      
     ]
   }
 ];
@@ -65,8 +67,79 @@ interface SubscriptionStatus {
   trialDaysRemaining: number | null;
 }
 
+declare global {
+  interface Window {
+    google?: {
+      payments: {
+        subscriptions: {
+          subscribe(sku: string): Promise<{ purchaseToken: string }>;
+          acknowledge(token: string): Promise<void>;
+          cancel(token: string): Promise<void>;
+        };
+      };
+    };
+  }
+}
+
 export const paymentService = {
-  async createPayPalSubscription(planId: string): Promise<string> {
+  async createSubscription(planId: string): Promise<string> {
+    try {
+      if (platform.isAndroid()) {
+        return this._createGooglePlaySubscription(planId);
+      } else {
+        return this._createPayPalSubscription(planId);
+      }
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      throw error;
+    }
+  },
+
+  async _createGooglePlaySubscription(planId: string): Promise<string> {
+    try {
+      const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
+      if (!plan?.googlePlayProductId) {
+        throw new Error('Invalid plan for Google Play Billing');
+      }
+
+      if (!window.google?.payments?.subscriptions) {
+        throw new Error('Google Play Billing not available');
+      }
+
+      const { purchaseToken } = await window.google.payments.subscriptions
+        .subscribe(plan.googlePlayProductId);
+
+      // Acknowledge the purchase
+      await window.google.payments.subscriptions.acknowledge(purchaseToken);
+
+      // Update subscription in backend
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session');
+
+      const response = await fetch('/api/verify-google-purchase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          purchaseToken,
+          productId: plan.googlePlayProductId
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to verify purchase');
+      }
+
+      return purchaseToken;
+    } catch (error) {
+      console.error('Error creating Google Play subscription:', error);
+      throw error;
+    }
+  },
+
+  async _createPayPalSubscription(planId: string): Promise<string> {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
@@ -87,7 +160,7 @@ export const paymentService = {
       const data = await response.json();
       return data.subscriptionId;
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      console.error('Error creating PayPal subscription:', error);
       throw error;
     }
   },
@@ -97,15 +170,12 @@ export const paymentService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No active session');
 
-      // Check if user already has a subscription record
-      // First, check if user already has a subscription
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // If user already has a subscription with trial data, don't start new trial
       if (subscription?.trial_start_date) {
         throw new Error('Trial period already used');
       }
@@ -220,6 +290,45 @@ export const paymentService = {
 
   async cancelSubscription(): Promise<void> {
     try {
+      if (platform.isAndroid()) {
+        await this._cancelGooglePlaySubscription();
+      } else {
+        await this._cancelPayPalSubscription();
+      }
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      throw error;
+    }
+  },
+
+  async _cancelGooglePlaySubscription(): Promise<void> {
+    try {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('google_play_token')
+        .single();
+
+      if (!subscription?.google_play_token) {
+        throw new Error('No active Google Play subscription');
+      }
+
+      await window.google?.payments.subscriptions.cancel(subscription.google_play_token);
+
+      await fetch('/api/cancel-google-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token: subscription.google_play_token })
+      });
+    } catch (error) {
+      console.error('Error canceling Google Play subscription:', error);
+      throw error;
+    }
+  },
+
+  async _cancelPayPalSubscription(): Promise<void> {
+    try {
       const response = await fetch('/api/cancel-subscription', {
         method: 'POST',
         headers: {
@@ -231,7 +340,7 @@ export const paymentService = {
         throw new Error('Failed to cancel subscription');
       }
     } catch (error) {
-      console.error('Error canceling subscription:', error);
+      console.error('Error canceling PayPal subscription:', error);
       throw error;
     }
   }
