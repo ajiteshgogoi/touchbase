@@ -49,36 +49,63 @@ serve(async (req) => {
       throw new Error('PayPal credentials not configured')
     }
 
-    const paypalAuth = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    // Log PayPal credentials status (safely)
+    console.log('PayPal Credentials Status:', {
+      hasClientId: !!clientId,
+      hasClientSecret: !!clientSecret,
+      clientIdLength: clientId?.length,
+      clientSecretLength: clientSecret?.length
+    });
+
+    const paypalAuthHeaders = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`
+    };
+
+    console.log('PayPal Auth Request:', {
+      url: 'https://api-m.sandbox.paypal.com/v1/oauth2/token',
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-      },
+        ...paypalAuthHeaders,
+        'Authorization': 'Basic [REDACTED]'
+      }
+    });
+
+    const paypalAuth = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+      method: 'POST',
+      headers: paypalAuthHeaders,
       body: 'grant_type=client_credentials'
-    })
+    });
+
+    const authResponseText = await paypalAuth.text();
+    let paypalAuthData;
+
+    try {
+      paypalAuthData = JSON.parse(authResponseText);
+      console.log('PayPal Auth Response:', {
+        status: paypalAuth.status,
+        ok: paypalAuth.ok,
+        responseData: {
+          ...paypalAuthData,
+          access_token: paypalAuthData.access_token ? '[REDACTED]' : undefined
+        }
+      });
+    } catch (e) {
+      console.error('Failed to parse PayPal auth response:', authResponseText);
+      throw new Error('Invalid JSON in PayPal auth response');
+    }
 
     if (!paypalAuth.ok) {
-      let errorText;
-      try {
-        const errorJson = await paypalAuth.json();
-        console.error('PayPal auth error (JSON):', errorJson);
-        errorText = errorJson.error_description || errorJson.message || 'Unknown error';
-      } catch {
-        errorText = await paypalAuth.text();
-        console.error('PayPal auth error (Text):', errorText);
-      }
-      throw new Error(`PayPal authentication failed: ${errorText}`);
+      throw new Error(`PayPal authentication failed: ${paypalAuthData.error_description || paypalAuthData.message || authResponseText}`);
     }
 
-    const paypalAuthData = await paypalAuth.json()
     if (!paypalAuthData.access_token) {
-      console.error('PayPal auth response:', paypalAuthData)
-      throw new Error('Invalid PayPal auth response')
+      console.error('PayPal auth response:', {...paypalAuthData, access_token: '[REDACTED]'});
+      throw new Error('Invalid PayPal auth response - missing access token');
     }
 
-    const paypalToken = paypalAuthData.access_token
+    const paypalToken = paypalAuthData.access_token;
 
     // Create subscription with PayPal
     const paypalPlanId = Deno.env.get('PREMIUM_PLAN_ID')
@@ -88,12 +115,27 @@ serve(async (req) => {
       throw new Error('Missing required environment variables')
     }
 
+    // Log environment variables
+    console.log('Environment Variables:', {
+      paypalPlanId,
+      appUrl
+    });
+
+    const return_url = new URL('/settings?subscription=success', appUrl).toString();
+    const cancel_url = new URL('/settings?subscription=cancelled', appUrl).toString();
+
+    // Log constructed URLs
+    console.log('Constructed URLs:', {
+      return_url,
+      cancel_url
+    });
+
     const subscriptionPayload = {
       plan_id: paypalPlanId,
       application_context: {
         brand_name: 'TouchBase',
-        return_url: new URL('/settings?subscription=success', appUrl).toString(),
-        cancel_url: new URL('/settings?subscription=cancelled', appUrl).toString(),
+        return_url,
+        cancel_url,
         user_action: 'SUBSCRIBE_NOW',
         shipping_preference: 'NO_SHIPPING'
       }
@@ -137,10 +179,19 @@ serve(async (req) => {
         status: subscription.status,
         statusText: subscription.statusText,
         response: subscriptionData,
-        headers: Object.fromEntries(subscription.headers.entries())
+        headers: Object.fromEntries(subscription.headers.entries()),
+        request: {
+          payload: subscriptionPayload,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer [REDACTED]',
+            'PayPal-Request-Id': crypto.randomUUID(),
+            'Prefer': 'return=representation'
+          }
+        }
       };
       console.error('PayPal API Error Details:', JSON.stringify(errorDetails, null, 2));
-      throw new Error(subscriptionData.message || subscriptionData.error_description || 'Failed to create PayPal subscription');
+      throw new Error(`PayPal API Error: ${subscriptionData.message || subscriptionData.error_description || 'Unknown error'}. Details: ${JSON.stringify(subscriptionData.details || {})}`);
     }
 
     if (!subscriptionData.id || !subscriptionData.links) {
