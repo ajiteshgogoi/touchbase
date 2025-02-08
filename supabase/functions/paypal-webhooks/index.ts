@@ -347,12 +347,6 @@ serve(async (req) => {
           // Get the first match if any
           subscription = result.data?.[0] ?? null;
           fetchError = result.error;
-          
-          subscription = result.data;
-          fetchError = result.error;
-          
-          subscription = result.data;
-          fetchError = result.error;
 
           if (subscription || fetchError) break;
           
