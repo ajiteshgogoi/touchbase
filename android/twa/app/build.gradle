@@ -149,6 +149,9 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            // Keep billing classes
+            proguardFiles file("proguard-rules.pro")
         }
     }
     compileOptions {
@@ -200,6 +203,7 @@ preBuild.dependsOn(generateShorcutsFile)
 repositories {
     google()
     mavenCentral()
+    maven { url 'https://maven.google.com' }
 }
 
 dependencies {
