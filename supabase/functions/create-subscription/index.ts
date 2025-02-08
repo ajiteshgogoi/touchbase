@@ -49,7 +49,7 @@ serve(async (req) => {
       throw new Error('PayPal credentials not configured')
     }
 
-    const paypalAuth = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
+    const paypalAuth = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -100,7 +100,7 @@ serve(async (req) => {
     }
 
     console.log('PayPal API Request:', {
-      url: 'https://api-m.paypal.com/v1/billing/subscriptions',
+      url: 'https://api-m.sandbox.paypal.com/v1/billing/subscriptions',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ serve(async (req) => {
       payload: subscriptionPayload
     });
 
-    const subscription = await fetch('https://api-m.paypal.com/v1/billing/subscriptions', {
+    const subscription = await fetch('https://api-m.sandbox.paypal.com/v1/billing/subscriptions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
