@@ -230,35 +230,8 @@ serve(async (req) => {
 
     console.log('Found approval URL:', approveLink.href);
 
-    // First check if subscription exists
-    const { data: existingSubscription, error: fetchError } = await supabaseClient
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (fetchError) throw fetchError
-
-    // Update or create subscription
-    const dbSubscription = {
-      user_id: user.id,
-      plan_id: 'premium',
-      status: 'canceled',
-      paypal_subscription_id: paypalSubscription.id,
-      // Set a temporary valid_until 20 mins from now - will be updated when payment is complete
-      valid_until: new Date(Date.now() + 20 * 60 * 1000).toISOString()
-    }
-
-    const { error: updateError } = existingSubscription
-      ? await supabaseClient
-          .from('subscriptions')
-          .update(dbSubscription)
-          .eq('user_id', user.id)
-      : await supabaseClient
-          .from('subscriptions')
-          .insert(dbSubscription)
-
-    if (updateError) throw updateError
+    // No need to create subscription record here
+    // It will be created in activate-subscription after PayPal confirms
 
     return new Response(
       JSON.stringify({

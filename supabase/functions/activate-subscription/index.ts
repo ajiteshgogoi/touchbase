@@ -65,20 +65,27 @@ serve(async (req) => {
 
     const { access_token: paypalToken } = await authResponse.json()
 
-    // Get subscription details from database
-    const { data: subscription } = await supabaseClient
-      .from('subscriptions')
-      .select('paypal_subscription_id')
-      .eq('user_id', user.id)
-      .single()
+    // Get the subscription ID from billing agreement token
+    const subscriptionIdResponse = await fetch(
+      `https://api-m.sandbox.paypal.com/v1/billing/agreements/${baToken}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${paypalToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    )
 
-    if (!subscription?.paypal_subscription_id) {
-      throw new Error('No pending subscription found')
+    if (!subscriptionIdResponse.ok) {
+      throw new Error('Failed to get subscription ID from billing agreement')
     }
+
+    const agreement = await subscriptionIdResponse.json()
+    const subscriptionId = agreement.subscription_id
 
     // Get subscription details from PayPal
     const subscriptionResponse = await fetch(
-      `https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscription.paypal_subscription_id}`,
+      `https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}`,
       {
         headers: {
           'Authorization': `Bearer ${paypalToken}`,
@@ -93,7 +100,7 @@ serve(async (req) => {
 
     const subscriptionDetails = await subscriptionResponse.json()
 
-    // Verify subscription is active
+    // Verify subscription is active in PayPal
     if (subscriptionDetails.status !== 'ACTIVE') {
       throw new Error('Subscription is not active')
     }
@@ -102,16 +109,32 @@ serve(async (req) => {
     const validUntil = new Date()
     validUntil.setMonth(validUntil.getMonth() + 1)
 
-    // Update subscription in database
-    const { error: updateError } = await supabaseClient
+    // Check if subscription exists
+    const { data: existingSubscription } = await supabaseClient
       .from('subscriptions')
-      .update({
-        status: 'active',
-        valid_until: validUntil.toISOString()
-      })
+      .select('*')
       .eq('user_id', user.id)
+      .maybeSingle()
 
-    if (updateError) throw updateError
+    // Create or update subscription
+    const subscriptionData = {
+      user_id: user.id,
+      plan_id: 'premium',
+      status: 'active',
+      paypal_subscription_id: subscriptionDetails.id,
+      valid_until: validUntil.toISOString()
+    }
+
+    const { error: upsertError } = existingSubscription
+      ? await supabaseClient
+          .from('subscriptions')
+          .update(subscriptionData)
+          .eq('user_id', user.id)
+      : await supabaseClient
+          .from('subscriptions')
+          .insert(subscriptionData)
+
+    if (upsertError) throw upsertError
 
     return new Response(
       JSON.stringify({ success: true }),
