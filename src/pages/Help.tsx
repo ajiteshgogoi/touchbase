@@ -170,8 +170,16 @@ export const Help = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-600 pt-4">
-          For bugs or feedback, please contact <a href="mailto:ajiteshgogoi@gmail.com" className="text-primary-500 hover:text-primary-600">ajiteshgogoi@gmail.com</a>
+        <div className="text-center text-sm text-gray-600 pt-4 space-y-2">
+          <div>
+            For bugs or feedback, please contact <a href="mailto:ajiteshgogoi@gmail.com" className="text-primary-500 hover:text-primary-600">ajiteshgogoi@gmail.com</a>
+          </div>
+          <div>
+            View our{' '}
+            <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>
+            {' '}and{' '}
+            <a href="/privacy" className="text-primary-500 hover:text-primary-600">Privacy Policy</a>
+          </div>
         </div>
       </div>
     </div>
