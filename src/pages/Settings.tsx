@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { useStore } from '../stores/useStore';
 import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
 import { supabase } from '../lib/supabase/client';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import { notificationService } from '../services/notifications';
 import type { UserPreferences, Database } from '../lib/supabase/types';
 import { CheckIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
@@ -25,6 +26,7 @@ export const Settings = () => {
   const { user, isPremium } = useStore();
   const queryClient = useQueryClient();
   const [selectedPlan] = useState(isPremium ? 'premium' : 'free');
+  const [isSubscribing, setIsSubscribing] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
     theme: 'light',
@@ -275,16 +277,26 @@ export const Settings = () => {
                   <button
                     onClick={async () => {
                       try {
+                        setIsSubscribing(true);
                         await paymentService.createSubscription('premium');
                         // Success toast will be shown after PayPal redirect and activation
                       } catch (error: any) {
                         console.error('Subscription error:', error);
                         toast.error(error?.message || 'Failed to create subscription');
+                        setIsSubscribing(false);
                       }
                     }}
-                    className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+                    disabled={isSubscribing}
+                    className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Subscribe Now
+                    {isSubscribing ? (
+                      <>
+                        <LoadingSpinner />
+                        <span>Redirecting to PayPal...</span>
+                      </>
+                    ) : (
+                      'Subscribe Now'
+                    )}
                   </button>
                 )}
                 {plan.id === 'premium' && isPremium && (
