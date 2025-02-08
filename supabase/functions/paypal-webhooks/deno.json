@@ -1,5 +1,10 @@
 {
   "tasks": {
-    "start": "deno run --allow-net --allow-env index.ts"
+    "start": "deno run --allow-net --allow-env --allow-read index.ts"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
   }
 }
