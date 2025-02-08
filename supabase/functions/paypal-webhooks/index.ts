@@ -194,15 +194,26 @@ serve(async (req) => {
           throw new Error('Subscription not found');
         }
 
-        // Calculate new valid_until date (1 month from current valid_until)
-        const currentValidUntil = new Date(subscription.valid_until);
-        currentValidUntil.setMonth(currentValidUntil.getMonth() + 1);
+        // Check if this payment is on the same day as subscription creation
+        const createdAt = new Date(subscription.created_at);
+        const paymentDate = new Date(event.create_time);
+        const isInitialPayment = createdAt.toDateString() === paymentDate.toDateString();
+
+        let newValidUntil;
+        if (isInitialPayment) {
+          // For initial payment, keep existing valid_until date set during activation
+          newValidUntil = new Date(subscription.valid_until);
+        } else {
+          // For renewal payments, extend by one month from current valid_until
+          newValidUntil = new Date(subscription.valid_until);
+          newValidUntil.setMonth(newValidUntil.getMonth() + 1);
+        }
 
         // Update subscription
         const { error: updateError } = await supabaseClient
           .from('subscriptions')
           .update({
-            valid_until: currentValidUntil.toISOString(),
+            valid_until: newValidUntil.toISOString(),
             status: 'active'
           })
           .eq('paypal_subscription_id', event.resource.billing_agreement_id);
@@ -217,7 +228,8 @@ serve(async (req) => {
 
         console.log('[PayPal Webhook] Successfully processed payment:', {
           billingAgreementId: event.resource.billing_agreement_id,
-          newValidUntil: currentValidUntil.toISOString()
+          paymentType: isInitialPayment ? 'initial' : 'renewal',
+          newValidUntil: newValidUntil.toISOString()
         });
         break;
       }
