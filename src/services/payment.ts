@@ -239,7 +239,7 @@ export const paymentService = {
 
       const { data: subscription, error } = await supabase
         .from('subscriptions')
-        .select('plan_id, valid_until, trial_start_date, trial_end_date')
+        .select('plan_id, status, valid_until, trial_start_date, trial_end_date')
         .eq('user_id', user.id)
         .single();
 
@@ -271,23 +271,26 @@ export const paymentService = {
         plan.id === subscription.plan_id
       ) ?? FREE_PLAN;
 
-      const isPremium = currentPlan.id === 'premium' &&
-        subscription.valid_until &&
-        new Date(subscription.valid_until) > new Date();
-
-      let isOnTrial = false;
-      let trialDaysRemaining = null;
-
-      if (subscription.trial_end_date) {
-        const now = new Date();
-        const trialEnd = new Date(subscription.trial_end_date);
-        
-        if (trialEnd > now) {
-          isOnTrial = true;
-          const diffTime = Math.abs(trialEnd.getTime() - now.getTime());
-          trialDaysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        }
-      }
+      const now = new Date();
+            // Check both plan_id, valid_until date, and status for premium
+            const isPremium = currentPlan.id === 'premium' &&
+              subscription.valid_until &&
+              new Date(subscription.valid_until) > now &&
+              subscription.status === 'active';
+      
+            let isOnTrial = false;
+            let trialDaysRemaining = null;
+      
+            // Only consider trial if user is on free plan AND trial period is active
+            if (subscription.trial_end_date && currentPlan.id === 'free') {
+              const trialEnd = new Date(subscription.trial_end_date);
+              
+              if (trialEnd > now) {
+                isOnTrial = true;
+                const diffTime = Math.abs(trialEnd.getTime() - now.getTime());
+                trialDaysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              }
+            }
 
       return {
         isPremium,
