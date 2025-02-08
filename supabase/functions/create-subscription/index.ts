@@ -60,9 +60,16 @@ serve(async (req) => {
     })
 
     if (!paypalAuth.ok) {
-      const errorText = await paypalAuth.text()
-      console.error('PayPal auth error:', errorText)
-      throw new Error('Failed to authenticate with PayPal')
+      let errorText;
+      try {
+        const errorJson = await paypalAuth.json();
+        console.error('PayPal auth error (JSON):', errorJson);
+        errorText = errorJson.error_description || errorJson.message || 'Unknown error';
+      } catch {
+        errorText = await paypalAuth.text();
+        console.error('PayPal auth error (Text):', errorText);
+      }
+      throw new Error(`PayPal authentication failed: ${errorText}`);
     }
 
     const paypalAuthData = await paypalAuth.json()
@@ -85,14 +92,24 @@ serve(async (req) => {
       plan_id: paypalPlanId,
       application_context: {
         brand_name: 'TouchBase',
-        return_url: `${appUrl}/settings?subscription=success`,
-        cancel_url: `${appUrl}/settings?subscription=cancelled`,
+        return_url: new URL('/settings?subscription=success', appUrl).toString(),
+        cancel_url: new URL('/settings?subscription=cancelled', appUrl).toString(),
         user_action: 'SUBSCRIBE_NOW',
         shipping_preference: 'NO_SHIPPING'
       }
     }
 
-    console.log('Creating PayPal subscription with payload:', JSON.stringify(subscriptionPayload))
+    console.log('PayPal API Request:', {
+      url: 'https://api-m.paypal.com/v1/billing/subscriptions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${paypalToken}`,
+        'PayPal-Request-Id': crypto.randomUUID(),
+        'Prefer': 'return=representation'
+      },
+      payload: subscriptionPayload
+    });
 
     const subscription = await fetch('https://api-m.paypal.com/v1/billing/subscriptions', {
       method: 'POST',
@@ -116,8 +133,14 @@ serve(async (req) => {
     }
 
     if (!subscription.ok) {
-      console.error('PayPal API Error:', JSON.stringify(subscriptionData, null, 2))
-      throw new Error(subscriptionData.message || 'Failed to create PayPal subscription')
+      const errorDetails = {
+        status: subscription.status,
+        statusText: subscription.statusText,
+        response: subscriptionData,
+        headers: Object.fromEntries(subscription.headers.entries())
+      };
+      console.error('PayPal API Error Details:', JSON.stringify(errorDetails, null, 2));
+      throw new Error(subscriptionData.message || subscriptionData.error_description || 'Failed to create PayPal subscription');
     }
 
     if (!subscriptionData.id || !subscriptionData.links) {
