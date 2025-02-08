@@ -34,7 +34,7 @@ serve(async (req) => {
     const client = await auth.getClient()
     const accessToken = await client.getAccessToken()
 
-    // Get subscription details first to get the product ID
+    // Get subscription details
     const { data: subscription } = await supabaseClient
       .from('subscriptions')
       .select('*')
@@ -45,10 +45,15 @@ serve(async (req) => {
       throw new Error('Subscription not found')
     }
 
+    // Get the product ID from the premium plan
+    const premiumPlan = {
+      googlePlayProductId: 'touchbase.pro.premium.monthly'
+    };
+
     // Cancel subscription with Google Play API
     const packageName = Deno.env.get('ANDROID_PACKAGE_NAME')
     const response = await fetch(
-      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${subscription.product_id}/tokens/${token}:cancel`,
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${premiumPlan.googlePlayProductId}/tokens/${token}:cancel`,
       {
         method: 'POST',
         headers: {
