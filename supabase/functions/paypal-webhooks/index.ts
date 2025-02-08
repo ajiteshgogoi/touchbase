@@ -270,28 +270,74 @@ serve(async (req) => {
           billingAgreementId: event.resource.billing_agreement_id
         });
 
-        // Debug: Query all subscriptions to see what IDs we have
+        // Debug: Query all active subscriptions to see what we have
         const { data: allSubs, error: allSubsError } = await supabaseClient
           .from('subscriptions')
-          .select('paypal_subscription_id');
+          .select('*');
 
-        console.log('[PayPal Webhook] All subscription IDs in database:', {
-          subscriptions: allSubs,
-          error: allSubsError
+        console.log('[PayPal Webhook] All subscriptions in database:', {
+          subscriptions: allSubs?.map(sub => ({
+            id: sub.id,
+            user_id: '[REDACTED]',
+            paypal_subscription_id: sub.paypal_subscription_id,
+            plan_id: sub.plan_id,
+            status: sub.status,
+            valid_until: sub.valid_until
+          })),
+          error: allSubsError,
+          webhook: {
+            eventId: event.id,
+            eventType: event.event_type,
+            resourceId: event.resource.id,
+            resourceType: typeof event.resource.id
+          }
         });
 
         // Lookup subscription by ID
-        console.log('[PayPal Webhook] Looking up subscription:', {
-          subscriptionId: event.resource.id,
-          resourceType: typeof event.resource.id,
+        // Debug potential encoding issues
+        const webhookId = event.resource.id.trim();
+        console.log('[PayPal Webhook] ID Analysis:', {
+          raw: event.resource.id,
+          trimmed: webhookId,
+          charCodes: Array.from(webhookId).map(c => c.charCodeAt(0)),
+          length: webhookId.length,
+          base64: btoa(webhookId),
           resourceDetails: event.resource
         });
 
-        const { data: subscription, error: fetchError } = await supabaseClient
-          .from('subscriptions')
-          .select('*')
-          .eq('paypal_subscription_id', event.resource.id)
-          .maybeSingle();
+        // Try to find subscription with retries
+        let subscription = null;
+        let fetchError = null;
+        const maxRetries = 3;
+        const delayMs = 2000; // 2 seconds between retries
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          console.log(`[PayPal Webhook] Lookup attempt ${attempt}/${maxRetries}`);
+          
+          const result = await supabaseClient
+            .from('subscriptions')
+            .select('*')
+            .ilike('paypal_subscription_id', event.resource.id.trim())
+            .maybeSingle();
+          
+          subscription = result.data;
+          fetchError = result.error;
+
+          if (subscription || fetchError) break;
+          
+          console.log(`[PayPal Webhook] Attempt ${attempt} failed, waiting ${delayMs}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+
+        console.log('[PayPal Webhook] Case-insensitive lookup result:', {
+          id: event.resource.id,
+          found: !!subscription,
+          subscriptionData: subscription ? {
+            id: subscription.id,
+            paypal_subscription_id: subscription.paypal_subscription_id,
+            status: subscription.status
+          } : null
+        });
 
         console.log('[PayPal Webhook] Subscription lookup result:', {
           found: !!subscription,

@@ -172,7 +172,7 @@ serve(async (req) => {
       user_id: user.id,
       plan_id: 'premium',
       status: 'active',
-      paypal_subscription_id: subscriptionDetails.id,
+      paypal_subscription_id: subscriptionDetails.id.trim(),
       valid_until: validUntil.toISOString()
     }
 
