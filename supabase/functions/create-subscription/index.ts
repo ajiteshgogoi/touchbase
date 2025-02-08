@@ -130,16 +130,15 @@ serve(async (req) => {
       cancel_url
     });
 
+    // Try minimal subscription request first
     const subscriptionPayload = {
       plan_id: paypalPlanId,
       application_context: {
-        brand_name: 'TouchBase',
         return_url,
         cancel_url,
-        user_action: 'SUBSCRIBE_NOW',
         shipping_preference: 'NO_SHIPPING'
       }
-    }
+    };
 
     console.log('PayPal API Request:', {
       url: 'https://api-m.sandbox.paypal.com/v1/billing/subscriptions',
@@ -174,30 +173,62 @@ serve(async (req) => {
       throw new Error('Invalid response from PayPal')
     }
 
+    console.log('PayPal subscription response:', {
+      status: subscription.status,
+      statusText: subscription.statusText,
+      headers: Object.fromEntries(subscription.headers.entries()),
+      body: subscriptionData
+    });
+
     if (!subscription.ok) {
+      let errorMessage = 'Failed to create PayPal subscription';
+      
+      // Log detailed error information
       const errorDetails = {
         status: subscription.status,
         statusText: subscription.statusText,
         response: subscriptionData,
-        headers: Object.fromEntries(subscription.headers.entries()),
+        responseHeaders: Object.fromEntries(subscription.headers.entries()),
         request: {
           payload: subscriptionPayload,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer [REDACTED]',
-            'PayPal-Request-Id': crypto.randomUUID(),
-            'Prefer': 'return=representation'
-          }
+          url: 'https://api-m.sandbox.paypal.com/v1/billing/subscriptions'
         }
       };
       console.error('PayPal API Error Details:', JSON.stringify(errorDetails, null, 2));
-      throw new Error(`PayPal API Error: ${subscriptionData.message || subscriptionData.error_description || 'Unknown error'}. Details: ${JSON.stringify(subscriptionData.details || {})}`);
+
+      // Extract detailed error message if available
+      if (subscriptionData.details && Array.isArray(subscriptionData.details)) {
+        errorMessage = subscriptionData.details.map((detail: any) => {
+          return `${detail.issue || ''}: ${detail.description || ''}`;
+        }).join('; ');
+      } else if (subscriptionData.message) {
+        errorMessage = subscriptionData.message;
+      } else if (subscriptionData.error_description) {
+        errorMessage = subscriptionData.error_description;
+      }
+
+      throw new Error(`PayPal API Error: ${errorMessage}`);
     }
 
-    if (!subscriptionData.id || !subscriptionData.links) {
-      console.error('Invalid subscription response:', JSON.stringify(subscriptionData, null, 2))
-      throw new Error('Invalid subscription data received from PayPal')
+    // Validate subscription response
+    if (!subscriptionData.id) {
+      console.error('Missing subscription ID in response:', subscriptionData);
+      throw new Error('PayPal response missing subscription ID');
     }
+
+    if (!subscriptionData.links || !Array.isArray(subscriptionData.links)) {
+      console.error('Missing links array in response:', subscriptionData);
+      throw new Error('PayPal response missing links array');
+    }
+
+    // Find the approval URL
+    const approveLink = subscriptionData.links.find((link: { rel: string; href: string }) => link.rel === 'approve');
+    if (!approveLink || !approveLink.href) {
+      console.error('No approval URL found in links:', subscriptionData.links);
+      throw new Error('PayPal response missing approval URL');
+    }
+
+    console.log('Found approval URL:', approveLink.href);
 
     // Update subscription in database
     const { error: updateError } = await supabaseClient

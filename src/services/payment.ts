@@ -158,11 +158,24 @@ export const paymentService = {
         body: JSON.stringify({ planId }),
       });
 
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Failed to create subscription');
+        throw new Error(responseData.error || 'Failed to create subscription');
       }
 
-      const { subscriptionId, approvalUrl } = await response.json();
+      // Log the response for debugging
+      console.log('PayPal subscription response:', responseData);
+
+      const { subscriptionId, approvalUrl } = responseData;
+      
+      if (!approvalUrl) {
+        throw new Error('No approval URL received from PayPal');
+      }
+
+      // Log before redirect
+      console.log('Redirecting to PayPal approval URL:', approvalUrl);
+      
       // Redirect to PayPal approval page
       window.location.href = approvalUrl;
       return subscriptionId;
