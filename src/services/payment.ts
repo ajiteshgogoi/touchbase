@@ -162,8 +162,10 @@ export const paymentService = {
         throw new Error('Failed to create subscription');
       }
 
-      const data = await response.json();
-      return data.subscriptionId;
+      const { subscriptionId, approvalUrl } = await response.json();
+      // Redirect to PayPal approval page
+      window.location.href = approvalUrl;
+      return subscriptionId;
     } catch (error) {
       console.error('Error creating PayPal subscription:', error);
       throw error;

@@ -89,6 +89,21 @@ export const Settings = () => {
   useEffect(() => {
     // Initialize notification service when component mounts
     notificationService.initialize().catch(console.error);
+    
+    // Handle subscription status from URL
+    const params = new URLSearchParams(window.location.search);
+    const subscriptionStatus = params.get('subscription');
+    
+    if (subscriptionStatus === 'success') {
+      toast.success('Subscription activated successfully');
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (subscriptionStatus === 'cancelled') {
+      toast.error('Subscription process cancelled');
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   useEffect(() => {

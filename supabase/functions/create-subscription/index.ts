@@ -49,7 +49,7 @@ serve(async (req) => {
       throw new Error('PayPal credentials not configured')
     }
 
-    const paypalAuth = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    const paypalAuth = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -83,30 +83,18 @@ serve(async (req) => {
 
     const subscriptionPayload = {
       plan_id: paypalPlanId,
-      subscriber: {
-        name: {
-          given_name: user.user_metadata?.full_name?.split(' ')[0] || 'Valued',
-          surname: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'Customer'
-        },
-        email_address: user.email
-      },
       application_context: {
         brand_name: 'TouchBase',
-        locale: 'en-US',
-        shipping_preference: 'NO_SHIPPING',
-        user_action: 'SUBSCRIBE_NOW',
-        payment_method: {
-          payer_selected: 'PAYPAL',
-          payee_preferred: 'IMMEDIATE_PAYMENT_REQUIRED'
-        },
         return_url: `${appUrl}/settings?subscription=success`,
-        cancel_url: `${appUrl}/settings?subscription=cancelled`
+        cancel_url: `${appUrl}/settings?subscription=cancelled`,
+        user_action: 'SUBSCRIBE_NOW',
+        shipping_preference: 'NO_SHIPPING'
       }
     }
 
     console.log('Creating PayPal subscription with payload:', JSON.stringify(subscriptionPayload))
 
-    const subscription = await fetch('https://api-m.sandbox.paypal.com/v1/billing/subscriptions', {
+    const subscription = await fetch('https://api-m.paypal.com/v1/billing/subscriptions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
