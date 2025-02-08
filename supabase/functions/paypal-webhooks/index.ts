@@ -227,11 +227,6 @@ serve(async (req) => {
           isInitialPayment
         });
 
-        console.log('[PayPal Webhook] Payment analysis:', {
-          timeDiffMinutes,
-          isInitialPayment
-        });
-
         let newValidUntil;
         if (isInitialPayment) {
           // For initial payment, keep existing valid_until date set during activation
@@ -275,38 +270,16 @@ serve(async (req) => {
           billingAgreementId: event.resource.billing_agreement_id
         });
 
-        // First try lookup by subscription ID
-        let { data: subscription, error: fetchError } = await supabaseClient
+        // Lookup subscription by ID
+        console.log('[PayPal Webhook] Looking up subscription:', {
+          subscriptionId: event.resource.id
+        });
+
+        const { data: subscription, error: fetchError } = await supabaseClient
           .from('subscriptions')
           .select('*')
           .eq('paypal_subscription_id', event.resource.id)
           .maybeSingle();
-
-        // Log first attempt
-        console.log('[PayPal Webhook] First lookup attempt:', {
-          id: event.resource.id,
-          found: !!subscription,
-          error: fetchError
-        });
-
-        // If not found and billing agreement ID exists, try that
-        if (!subscription && !fetchError && event.resource.billing_agreement_id) {
-          const secondAttempt = await supabaseClient
-            .from('subscriptions')
-            .select('*')
-            .eq('paypal_subscription_id', event.resource.billing_agreement_id)
-            .maybeSingle();
-          
-          subscription = secondAttempt.data;
-          fetchError = secondAttempt.error;
-
-          // Log second attempt
-          console.log('[PayPal Webhook] Second lookup attempt:', {
-            billingAgreementId: event.resource.billing_agreement_id,
-            found: !!subscription,
-            error: fetchError
-          });
-        }
 
         console.log('[PayPal Webhook] Subscription lookup result:', {
           found: !!subscription,
