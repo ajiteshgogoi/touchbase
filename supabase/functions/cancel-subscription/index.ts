@@ -96,40 +96,85 @@ serve(async (req) => {
     const { access_token: paypalToken } = await paypalAuth.json()
     console.log('PayPal authentication successful')
 
-    // Cancel subscription with PayPal
-    console.log('Initiating PayPal subscription cancellation...', {
+    // Check subscription status with PayPal first
+    console.log('Checking PayPal subscription status...', {
       subscriptionId: subscription.paypal_subscription_id
     })
-    const response = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscription.paypal_subscription_id}/cancel`, {
-      method: 'POST',
+    const statusResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscription.paypal_subscription_id}`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${paypalToken}`,
-      },
-      body: JSON.stringify({
-        reason: 'Customer requested cancellation'
-      })
+      }
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('PayPal subscription cancellation failed:', {
+    if (!statusResponse.ok) {
+      const errorText = await statusResponse.text()
+      console.error('Failed to get PayPal subscription status:', {
         error: errorText,
-        status: response.status,
+        status: statusResponse.status,
         subscriptionId: subscription.paypal_subscription_id
       })
-      throw new Error('Failed to cancel PayPal subscription')
+      throw new Error('Failed to verify PayPal subscription status')
     }
-    console.log('PayPal subscription cancelled successfully', {
+
+    const subscriptionDetails = await statusResponse.json()
+    console.log('PayPal subscription status:', {
+      status: subscriptionDetails.status,
       subscriptionId: subscription.paypal_subscription_id
     })
 
-    // Update subscription in database
+    // If subscription is already cancelled/inactive, just update the database
+    if (subscriptionDetails.status === 'CANCELLED' || subscriptionDetails.status === 'EXPIRED') {
+      console.log('Subscription already cancelled in PayPal, updating database...', {
+        subscriptionId: subscription.paypal_subscription_id
+      })
+    } else {
+      // Attempt to cancel subscription with PayPal
+      console.log('Initiating PayPal subscription cancellation...', {
+        subscriptionId: subscription.paypal_subscription_id
+      })
+      const response = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscription.paypal_subscription_id}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${paypalToken}`,
+        },
+        body: JSON.stringify({
+          reason: 'Customer requested cancellation'
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        const errorJson = JSON.parse(errorText)
+        
+        // Handle case where subscription status is invalid for cancellation
+        if (response.status === 422 && errorJson.details?.[0]?.issue === 'SUBSCRIPTION_STATUS_INVALID') {
+          console.log('Subscription already in non-cancellable state:', {
+            status: subscriptionDetails.status,
+            subscriptionId: subscription.paypal_subscription_id
+          })
+        } else {
+          console.error('PayPal subscription cancellation failed:', {
+            error: errorText,
+            status: response.status,
+            subscriptionId: subscription.paypal_subscription_id
+          })
+          throw new Error('Failed to cancel PayPal subscription')
+        }
+      } else {
+        console.log('PayPal subscription cancelled successfully', {
+          subscriptionId: subscription.paypal_subscription_id
+        })
+      }
+    }
+
+    // Update subscription in database regardless of PayPal status
     console.log('Updating subscription status in database...', { userId: user.id })
     const { error: updateError } = await supabaseClient
       .from('subscriptions')
       .update({
-        status: 'cancelled',
+        status: 'canceled',
         paypal_subscription_id: null,
         valid_until: new Date().toISOString() // Immediate cancellation
       })
@@ -144,7 +189,7 @@ serve(async (req) => {
     }
     console.log('Database update successful:', {
       userId: user.id,
-      status: 'cancelled',
+      status: 'canceled',
       validUntil: new Date().toISOString()
     })
 
