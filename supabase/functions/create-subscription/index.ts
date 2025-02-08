@@ -38,8 +38,8 @@ serve(async (req) => {
     if (userError || !user) throw new Error('Invalid user token')
 
     // Get request body
-    const { planId } = await req.json()
-    if (planId !== 'premium') throw new Error('Invalid plan ID')
+    const { planId: requestedPlanId } = await req.json()
+    if (requestedPlanId !== 'premium') throw new Error('Invalid plan ID')
 
     // Initialize PayPal client
     const clientId = Deno.env.get('PAYPAL_CLIENT_ID')
@@ -74,15 +74,15 @@ serve(async (req) => {
     const paypalToken = paypalAuthData.access_token
 
     // Create subscription with PayPal
-    const planId = Deno.env.get('PREMIUM_PLAN_ID')
+    const paypalPlanId = Deno.env.get('PREMIUM_PLAN_ID')
     const appUrl = Deno.env.get('APP_URL')
 
-    if (!planId || !appUrl) {
+    if (!paypalPlanId || !appUrl) {
       throw new Error('Missing required environment variables')
     }
 
     const subscriptionPayload = {
-      plan_id: planId,
+      plan_id: paypalPlanId,
       subscriber: {
         name: {
           given_name: user.user_metadata?.full_name?.split(' ')[0] || 'Valued',
