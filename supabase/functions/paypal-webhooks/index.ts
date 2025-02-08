@@ -271,26 +271,23 @@ serve(async (req) => {
         });
 
         // Debug: Query all active subscriptions to see what we have
+        // List all subscriptions and their raw values
         const { data: allSubs, error: allSubsError } = await supabaseClient
           .from('subscriptions')
           .select('*');
 
-        console.log('[PayPal Webhook] All subscriptions in database:', {
+        console.log('[PayPal Webhook] Database state:', {
+          subscriptionCount: allSubs?.length ?? 0,
           subscriptions: allSubs?.map(sub => ({
             id: sub.id,
-            user_id: '[REDACTED]',
-            paypal_subscription_id: sub.paypal_subscription_id,
-            plan_id: sub.plan_id,
-            status: sub.status,
-            valid_until: sub.valid_until
+            paypal_id_raw: `"${sub.paypal_subscription_id}"`, // Wrap in quotes to see any whitespace
+            paypal_id_length: sub.paypal_subscription_id?.length,
+            paypal_id_trimmed: `"${sub.paypal_subscription_id?.trim()}"`,
+            status: sub.status
           })),
-          error: allSubsError,
-          webhook: {
-            eventId: event.id,
-            eventType: event.event_type,
-            resourceId: event.resource.id,
-            resourceType: typeof event.resource.id
-          }
+          webhook_id_raw: `"${event.resource.id}"`,
+          webhook_id_length: event.resource.id.length,
+          error: allSubsError
         });
 
         // Lookup subscription by ID
@@ -314,11 +311,45 @@ serve(async (req) => {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           console.log(`[PayPal Webhook] Lookup attempt ${attempt}/${maxRetries}`);
           
+          console.log('[PayPal Webhook] Attempting lookup with normalized ID:', {
+            stored: event.resource.id.trim().toLowerCase(),
+            raw: event.resource.id,
+            trimmed: event.resource.id.trim(),
+            lowercased: event.resource.id.toLowerCase()
+          });
+
+          const webhookId = event.resource.id.trim();
+          
+          // First get raw count of all subscriptions
+          const { count: totalCount } = await supabaseClient
+            .from('subscriptions')
+            .select('*', { count: 'exact' });
+
+          console.log('[PayPal Webhook] Total subscriptions in database:', totalCount);
+
+          // Then do a raw text match
           const result = await supabaseClient
             .from('subscriptions')
-            .select('*')
-            .ilike('paypal_subscription_id', event.resource.id.trim())
-            .maybeSingle();
+            .select()
+            .filter('paypal_subscription_id', 'eq', webhookId);
+
+          console.log('[PayPal Webhook] Raw query result:', {
+            searchId: webhookId,
+            resultCount: result.data?.length,
+            firstMatch: result.data?.[0] ? {
+              id: result.data[0].id,
+              paypal_subscription_id: result.data[0].paypal_subscription_id,
+              status: result.data[0].status
+            } : null,
+            error: result.error
+          });
+          
+          // Get the first match if any
+          subscription = result.data?.[0] ?? null;
+          fetchError = result.error;
+          
+          subscription = result.data;
+          fetchError = result.error;
           
           subscription = result.data;
           fetchError = result.error;
