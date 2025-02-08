@@ -40,27 +40,53 @@ async function getPayPalAccessToken(): Promise<string> {
     throw new Error('PayPal client credentials not configured');
   }
 
+  console.log('[PayPal Webhook] Getting access token with environment:', {
+    isProduction,
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret
+  });
+
   const auth = btoa(`${clientId}:${clientSecret}`);
   const url = isProduction
     ? 'https://api.paypal.com/v1/oauth2/token'
     : 'https://api.sandbox.paypal.com/v1/oauth2/token';
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: 'grant_type=client_credentials'
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'grant_type=client_credentials'
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to get PayPal access token: ${error}`);
+    const responseText = await response.text();
+    
+    if (!response.ok) {
+      console.error('[PayPal Webhook] Failed to get access token:', {
+        status: response.status,
+        statusText: response.statusText,
+        response: responseText
+      });
+      throw new Error(`Failed to get PayPal access token: ${responseText}`);
+    }
+
+    try {
+      const data = JSON.parse(responseText);
+      console.log('[PayPal Webhook] Successfully obtained access token');
+      return data.access_token;
+    } catch (error) {
+      console.error('[PayPal Webhook] Failed to parse access token response:', {
+        error,
+        responseText
+      });
+      throw new Error('Invalid access token response format');
+    }
+  } catch (error) {
+    console.error('[PayPal Webhook] Error getting access token:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.access_token;
 }
 
 async function verifyPayPalWebhookSignature(
@@ -72,7 +98,15 @@ async function verifyPayPalWebhookSignature(
   certUrl: string | null,
   actualAuthAlgo: string | null
 ): Promise<boolean> {
+  // Early validation of required parameters
   if (!transmissionId || !transmissionTime || !actualSignature || !certUrl || !actualAuthAlgo) {
+    console.error('[PayPal Webhook] Missing required verification parameters:', {
+      hasTransmissionId: !!transmissionId,
+      hasTransmissionTime: !!transmissionTime,
+      hasSignature: !!actualSignature,
+      hasCertUrl: !!certUrl,
+      hasAuthAlgo: !!actualAuthAlgo
+    });
     return false;
   }
 
@@ -80,6 +114,22 @@ async function verifyPayPalWebhookSignature(
   const verifyUrl = isProduction
     ? 'https://api.paypal.com/v1/notifications/verify-webhook-signature'
     : 'https://api.sandbox.paypal.com/v1/notifications/verify-webhook-signature';
+
+  console.log('[PayPal Webhook] Using verification endpoint:', {
+    url: verifyUrl,
+    isProduction
+  });
+
+  let webhookEvent;
+  try {
+    webhookEvent = JSON.parse(eventBody);
+  } catch (error) {
+    console.error('[PayPal Webhook] Failed to parse webhook event body:', {
+      error,
+      eventBody: eventBody.substring(0, 100) + '...' // Log partial body for debugging
+    });
+    return false;
+  }
 
   try {
     const accessToken = await getPayPalAccessToken();
@@ -91,7 +141,7 @@ async function verifyPayPalWebhookSignature(
       auth_algo: actualAuthAlgo,
       transmission_sig: actualSignature,
       webhook_id: webhookId,
-      webhook_event: JSON.parse(eventBody)
+      webhook_event: webhookEvent
     };
 
     console.log('[PayPal Webhook] Verifying signature with PayPal:', {
@@ -112,16 +162,40 @@ async function verifyPayPalWebhookSignature(
       body: JSON.stringify(verificationData)
     });
 
+    const responseText = await response.text();
+
     if (!response.ok) {
-      const error = await response.text();
-      console.error('[PayPal Webhook] Verification request failed:', error);
+      console.error('[PayPal Webhook] Verification request failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        response: responseText,
+        webhookId: webhookId.substring(0, 8) + '...'
+      });
       return false;
     }
 
-    const result = await response.json() as PayPalVerifyWebhookResponse;
+    let result;
+    try {
+      result = JSON.parse(responseText) as PayPalVerifyWebhookResponse;
+    } catch (error) {
+      console.error('[PayPal Webhook] Failed to parse verification response:', {
+        error,
+        responseText
+      });
+      return false;
+    }
+
+    console.log('[PayPal Webhook] Verification status:', {
+      status: result.verification_status,
+      webhookId: webhookId.substring(0, 8) + '...'
+    });
+
     return result.verification_status === 'SUCCESS';
   } catch (error) {
-    console.error('[PayPal Webhook] Error verifying signature:', error);
+    console.error('[PayPal Webhook] Error during signature verification:', {
+      error,
+      webhookId: webhookId.substring(0, 8) + '...'
+    });
     return false;
   }
 }
