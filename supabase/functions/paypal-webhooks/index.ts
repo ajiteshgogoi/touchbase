@@ -218,13 +218,28 @@ serve(async (req) => {
           subscriptionId: event.resource.id
         });
 
+        // Fetch and update subscription using billing_agreement_id
+        const { data: subscription, error: fetchError } = await supabaseClient
+          .from('subscriptions')
+          .select('*')
+          .eq('paypal_subscription_id', event.resource.billing_agreement_id)
+          .single();
+
+        if (fetchError || !subscription) {
+          console.error('[PayPal Webhook] Subscription not found:', {
+            billingAgreementId: event.resource.billing_agreement_id,
+            error: fetchError
+          });
+          throw new Error('Subscription not found');
+        }
+
         // Update subscription status
         const { error: updateError } = await supabaseClient
           .from('subscriptions')
           .update({
             status: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired'
           })
-          .eq('paypal_subscription_id', event.resource.id);
+          .eq('id', subscription.id);
 
         if (updateError) {
           console.error('[PayPal Webhook] Failed to update subscription status:', {
