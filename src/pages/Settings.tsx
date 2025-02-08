@@ -25,7 +25,7 @@ export const Settings = () => {
   const navigate = useNavigate();
   const { user, isPremium } = useStore();
   const queryClient = useQueryClient();
-  const [selectedPlan] = useState(isPremium ? 'premium' : 'free');
+  const selectedPlan = isPremium ? 'premium' : 'free';
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
