@@ -180,6 +180,10 @@ serve(async (req) => {
         });
 
         // Fetch subscription from database using billing_agreement_id
+        console.log('[PayPal Webhook] Fetching subscription:', {
+          billingAgreementId: event.resource.billing_agreement_id
+        });
+
         const { data: subscription, error: fetchError } = await supabaseClient
           .from('subscriptions')
           .select('*')
@@ -187,6 +191,10 @@ serve(async (req) => {
           .single();
 
         if (fetchError || !subscription) {
+          console.error('[PayPal Webhook] Subscription fetch error:', {
+            error: fetchError,
+            subscription
+          });
           console.error('[PayPal Webhook] Subscription not found:', {
             billingAgreementId: event.resource.billing_agreement_id,
             error: fetchError
@@ -194,10 +202,35 @@ serve(async (req) => {
           throw new Error('Subscription not found');
         }
 
-        // Check if this payment is on the same day as subscription creation
-        const createdAt = new Date(subscription.created_at);
-        const paymentDate = new Date(event.create_time);
-        const isInitialPayment = createdAt.toDateString() === paymentDate.toDateString();
+        // Log timestamps for debugging
+        console.log('[PayPal Webhook] Payment timing:', {
+          subscriptionCreatedAt: subscription.created_at,
+          paymentTime: event.create_time,
+          currentValidUntil: subscription.valid_until
+        });
+
+        // Check if this is an initial payment by verifying valid_until hasn't passed yet
+        // For new subscriptions, valid_until will be in the future
+        // For renewals, valid_until will be in the past or very close to now
+        const currentTime = new Date();
+        const validUntil = new Date(subscription.valid_until);
+        const timeUntilExpiry = validUntil.getTime() - currentTime.getTime();
+        const daysUntilExpiry = timeUntilExpiry / (1000 * 60 * 60 * 24);
+        
+        // Consider it an initial payment if we have more than 15 days until expiry
+        const isInitialPayment = daysUntilExpiry > 15;
+
+        console.log('[PayPal Webhook] Payment analysis:', {
+          currentTime: currentTime.toISOString(),
+          validUntil: validUntil.toISOString(),
+          daysUntilExpiry,
+          isInitialPayment
+        });
+
+        console.log('[PayPal Webhook] Payment analysis:', {
+          timeDiffMinutes,
+          isInitialPayment
+        });
 
         let newValidUntil;
         if (isInitialPayment) {
