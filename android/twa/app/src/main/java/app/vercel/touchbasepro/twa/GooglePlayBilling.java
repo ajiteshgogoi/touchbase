@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.google.androidbrowserhelper.playbilling.digitalgoods.DigitalGoodsRequestHandler;
 import com.google.androidbrowserhelper.trusted.ExtraCommandHandler;
+import com.google.androidbrowserhelper.trusted.ExtraCommandHandler.CommandHandler;
 
 public class GooglePlayBilling implements ExtraCommandHandler {
     private static final String TAG = "GooglePlayBilling";
