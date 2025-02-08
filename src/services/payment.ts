@@ -109,14 +109,19 @@ export const paymentService = {
       const { purchaseToken } = await window.google.payments.subscriptions
         .subscribe(plan.googlePlayProductId);
 
-      // Acknowledge the purchase
-      await window.google.payments.subscriptions.acknowledge(purchaseToken);
+      try {
+        // Acknowledge the purchase
+        await window.google.payments.subscriptions.acknowledge(purchaseToken);
+      } catch (error) {
+        console.error('Error acknowledging purchase:', error);
+        throw new Error('Failed to acknowledge purchase');
+      }
 
       // Update subscription in backend
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
-      const response = await fetch('/api/verify-google-purchase', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-google-purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +149,7 @@ export const paymentService = {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
-      const response = await fetch('/api/create-subscription', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -290,10 +295,13 @@ export const paymentService = {
 
   async cancelSubscription(): Promise<void> {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No active session');
+
       if (platform.isAndroid()) {
-        await this._cancelGooglePlaySubscription();
+        await this._cancelGooglePlaySubscription(session.access_token);
       } else {
-        await this._cancelPayPalSubscription();
+        await this._cancelPayPalSubscription(session.access_token);
       }
     } catch (error) {
       console.error('Error canceling subscription:', error);
@@ -301,7 +309,7 @@ export const paymentService = {
     }
   },
 
-  async _cancelGooglePlaySubscription(): Promise<void> {
+  async _cancelGooglePlaySubscription(accessToken: string): Promise<void> {
     try {
       const { data: subscription } = await supabase
         .from('subscriptions')
@@ -314,10 +322,11 @@ export const paymentService = {
 
       await window.google?.payments.subscriptions.cancel(subscription.google_play_token);
 
-      await fetch('/api/cancel-google-subscription', {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({ token: subscription.google_play_token })
       });
@@ -327,12 +336,13 @@ export const paymentService = {
     }
   },
 
-  async _cancelPayPalSubscription(): Promise<void> {
+  async _cancelPayPalSubscription(accessToken: string): Promise<void> {
     try {
-      const response = await fetch('/api/cancel-subscription', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
         }
       });
 
