@@ -75,9 +75,13 @@ serve(async (req) => {
       );
     }
 
-    // Get the raw body first to ensure we can read it
+    // Get and log the raw body first
     const rawBody = await req.text();
-    console.log('[PayPal Webhook] Raw request body:', rawBody);
+    console.log('[PayPal Webhook] Request details:', {
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries()),
+      rawBody
+    });
 
     // Verify PayPal webhook signature
     const webhookId = Deno.env.get('PAYPAL_WEBHOOK_ID');
@@ -118,8 +122,15 @@ serve(async (req) => {
       eventId: event.id,
       eventType: event.event_type,
       resourceId: event.resource.id,
-      createTime: event.create_time
+      billingAgreementId: event.resource.billing_agreement_id,
+      createTime: event.create_time,
+      resourceDetails: event.resource
     });
+
+    // Log full webhook payload in development
+    if (Deno.env.get('ENVIRONMENT') === 'development') {
+      console.log('[PayPal Webhook] Full event payload:', JSON.stringify(event, null, 2));
+    }
 
     // Verify webhook signature
     const isValid = await verifyPayPalWebhookSignature(
@@ -215,15 +226,51 @@ serve(async (req) => {
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
         console.log('[PayPal Webhook] Processing subscription status change:', {
           eventType: event.event_type,
-          subscriptionId: event.resource.id
+          subscriptionId: event.resource.id,
+          billingAgreementId: event.resource.billing_agreement_id
         });
 
-        // Fetch and update subscription using billing_agreement_id
-        const { data: subscription, error: fetchError } = await supabaseClient
+        // First try lookup by subscription ID
+        let { data: subscription, error: fetchError } = await supabaseClient
           .from('subscriptions')
           .select('*')
           .eq('paypal_subscription_id', event.resource.id)
-          .single();
+          .maybeSingle();
+
+        // Log first attempt
+        console.log('[PayPal Webhook] First lookup attempt:', {
+          id: event.resource.id,
+          found: !!subscription,
+          error: fetchError
+        });
+
+        // If not found and billing agreement ID exists, try that
+        if (!subscription && !fetchError && event.resource.billing_agreement_id) {
+          const secondAttempt = await supabaseClient
+            .from('subscriptions')
+            .select('*')
+            .eq('paypal_subscription_id', event.resource.billing_agreement_id)
+            .maybeSingle();
+          
+          subscription = secondAttempt.data;
+          fetchError = secondAttempt.error;
+
+          // Log second attempt
+          console.log('[PayPal Webhook] Second lookup attempt:', {
+            billingAgreementId: event.resource.billing_agreement_id,
+            found: !!subscription,
+            error: fetchError
+          });
+        }
+
+        console.log('[PayPal Webhook] Subscription lookup result:', {
+          found: !!subscription,
+          error: fetchError,
+          searchedIds: {
+            subscriptionId: event.resource.id,
+            billingAgreementId: event.resource.billing_agreement_id
+          }
+        });
 
         if (fetchError || !subscription) {
           console.error('[PayPal Webhook] Subscription not found:', {
