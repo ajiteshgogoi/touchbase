@@ -212,17 +212,28 @@ serve(async (req) => {
       valid_until: validUntil.toISOString()
     }
 
-    const { error: upsertError } = existingSubscription
+    console.log('Upserting subscription:', existingSubscription ? 'update' : 'insert');
+    const { error: upsertError, data: upsertedData } = existingSubscription
       ? await supabaseClient
           .from('subscriptions')
           .update(subscriptionData)
           .eq('user_id', user.id)
+          .select()
       : await supabaseClient
           .from('subscriptions')
           .insert(subscriptionData)
+          .select()
 
-    if (upsertError) throw upsertError
+    if (upsertError) {
+      console.error('Error upserting subscription:', upsertError);
+      throw upsertError;
+    }
 
+    console.log('Subscription activated successfully:', {
+      id: upsertedData?.[0]?.id,
+      status: upsertedData?.[0]?.status
+    });
+    
     return new Response(
       JSON.stringify({ success: true }),
       {
