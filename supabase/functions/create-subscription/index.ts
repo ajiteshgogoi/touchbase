@@ -238,7 +238,8 @@ serve(async (req) => {
         plan_id: 'premium',
         status: 'pending',
         paypal_subscription_id: subscriptionData.id,
-        valid_until: null // Will be updated when subscription is activated
+        // Set a temporary valid_until 1 hour from now - will be updated when subscription is activated
+        valid_until: new Date(Date.now() + 60 * 60 * 1000).toISOString()
       })
 
     if (updateError) throw updateError

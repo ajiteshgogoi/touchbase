@@ -90,16 +90,41 @@ export const Settings = () => {
     // Initialize notification service when component mounts
     notificationService.initialize().catch(console.error);
     
-    // Handle subscription status from URL
+    // Handle PayPal redirect and subscription activation
     const params = new URLSearchParams(window.location.search);
-    const subscriptionStatus = params.get('subscription');
+    const baToken = params.get('ba_token');
     
-    if (subscriptionStatus === 'success') {
-      toast.success('Subscription activated successfully');
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      // Clean up URL
-      window.history.replaceState({}, '', window.location.pathname);
-    } else if (subscriptionStatus === 'cancelled') {
+    if (baToken) {
+      const activateSubscription = async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) throw new Error('No active session');
+
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-subscription`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({ baToken })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to activate subscription');
+          }
+
+          toast.success('Subscription activated successfully');
+          queryClient.invalidateQueries({ queryKey: ['subscription'] });
+        } catch (error) {
+          console.error('Subscription activation error:', error);
+          toast.error('Failed to activate subscription');
+        }
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      };
+
+      activateSubscription();
+    } else if (params.get('subscription') === 'cancelled') {
       toast.error('Subscription process cancelled');
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
