@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
+import { contentReportsService } from '../services/content-reports';
 import { useStore } from '../stores/useStore';
 import {
   UserPlusIcon,
@@ -10,7 +11,8 @@ import {
   TrashIcon,
   PencilSquareIcon,
   ChevronUpDownIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  FlagIcon
 } from '@heroicons/react/24/outline';
 import { AtSymbolIcon } from '@heroicons/react/24/outline';
 import type { Contact, Interaction } from '../lib/supabase/types';
@@ -54,6 +56,16 @@ export const Contacts = () => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
+
+  const handleReportContent = async (contactId: string, content: string) => {
+    if (confirm('Report this AI suggestion as inappropriate?')) {
+      try {
+        await contentReportsService.reportContent(contactId, content);
+      } catch (error) {
+        console.error('Error reporting content:', error);
+      }
+    }
+  };
 
   const handleDeleteContact = async (contactId: string) => {
     if (confirm('Are you sure you want to delete this contact?')) {
@@ -264,7 +276,18 @@ export const Contacts = () => {
                                   </span>
                                 </div>
                               ) : (
-                                contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')
+                                <span className="group inline-flex items-start gap-1">
+                                  <span className="flex-1">
+                                    {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                  </span>
+                                  <button
+                                    onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
+                                    className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
+                                    title="Report inappropriate suggestion"
+                                  >
+                                    <FlagIcon className="h-4 w-4" />
+                                  </button>
+                                </span>
                               )}
                             </span>
                           </span>
