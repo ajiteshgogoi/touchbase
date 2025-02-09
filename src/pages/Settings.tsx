@@ -12,6 +12,7 @@ import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import { notificationService } from '../services/notifications';
 import type { UserPreferences, Database } from '../lib/supabase/types';
 import { CheckIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { platform } from '../utils/platform';
 
 interface NotificationSettings {
   notification_enabled: boolean;
@@ -328,7 +329,11 @@ export const Settings = () => {
                     {isSubscribing ? (
                       <>
                         <LoadingSpinner />
-                        <span>Redirecting to PayPal...</span>
+                        <span>
+                          {platform.isAndroid()
+                            ? "Processing Google Play purchase..."
+                            : "Redirecting to PayPal..."}
+                        </span>
                       </>
                     ) : (
                       'Subscribe Now'
@@ -366,7 +371,11 @@ export const Settings = () => {
                         {isSubscribing ? (
                           <>
                             <LoadingSpinner />
-                            <span>Redirecting to PayPal...</span>
+                            <span>
+                              {platform.isAndroid()
+                                ? "Processing Google Play purchase..."
+                                : "Redirecting to PayPal..."}
+                            </span>
                           </>
                         ) : (
                           'Resume Subscription'
