@@ -55,7 +55,6 @@ messaging.onBackgroundMessage(async (payload) => {
       tag: 'touchbase-notification', // Prevent duplicate notifications
       renotify: true, // Allow new notifications to override old ones with same tag
       requireInteraction: true, // Keep notification visible until user interacts
-      vibrate: [100, 50, 100], // Vibration pattern
       actions: [
         {
           action: 'view',
