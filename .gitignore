@@ -80,13 +80,13 @@ android/keystore/
 android/twa/app/build/
 android/twa/build/
 android/twa/.gradle/
+android/twa/gradle/
 android/twa/local.properties
 android/twa/*.apk
 android/twa/*.aab
 android/twa/*.keystore
 android/twa/app/release/
 android/twa/app/debug/
-android/twa/gradle/
 android/twa/.idea/
 android/twa/captures/
 android/twa/.externalNativeBuild/
@@ -96,15 +96,16 @@ android/twa/*.iml
 android/twa/app/generated/
 android/twa/app/intermediates/
 android/twa/**/*.hprof
-android/twa/gradlew
-android/twa/gradlew.bat
 android/twa/output.json
 android/twa/output-metadata.json
+
+# Additional Android/Gradle files
+/app/
 
 # Root level Gradle/Android files
 /.gradle/
 /build/
-/app/
+/app/build/
 /gradle/
 /*.iml
 /local.properties
