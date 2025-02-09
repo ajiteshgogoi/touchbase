@@ -1,0 +1,63 @@
+{
+  "packageId": "app.vercel.touchbasepro.twa",
+  "host": "touchbasepro.vercel.app",
+  "name": "TouchBase",
+  "launcherName": "TouchBase",
+  "display": "standalone",
+  "themeColor": "#0EA5E9",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#F9FAFB",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://touchbasepro.vercel.app/icon-512.png",
+  "maskableIconUrl": "https://touchbasepro.vercel.app/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android/twa/android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Add Contact",
+      "shortName": "Add Contact",
+      "url": "https://touchbasepro.vercel.app/contacts/new",
+      "chosenIconUrl": "https://touchbasepro.vercel.app/icon-192.png"
+    },
+    {
+      "name": "View Contacts",
+      "shortName": "Contacts",
+      "url": "https://touchbasepro.vercel.app/contacts",
+      "chosenIconUrl": "https://touchbasepro.vercel.app/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://touchbasepro.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    },
+    "locationDelegation": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": true
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://touchbasepro.vercel.app/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "1"
+}
