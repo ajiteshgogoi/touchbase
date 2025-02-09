@@ -188,34 +188,48 @@ serve(async (req) => {
     // Handle different webhook events
     switch (event.event_type) {
       case 'PAYMENT.SALE.COMPLETED': {
-        const subscriptionId = getSubscriptionId(event);
-        
-        console.log('[PayPal Webhook] Processing payment completion:', {
-          subscriptionId,
-          eventType: event.event_type,
-          resourceId: event.resource.id
-        });
-
-        // Fetch subscription from database
-        console.log('[PayPal Webhook] Fetching subscription:', { subscriptionId });
-
-        const result = await supabaseClient
-          .from('subscriptions')
-          .select('*')
-          .eq('paypal_subscription_id', subscriptionId);
-
-        // Check if we found any matches
-        const subscription = result.data && result.data.length > 0 ? result.data[0] : null;
-        const fetchError = result.error || (!subscription ? new Error('Subscription not found') : null);
-
-        if (fetchError || !subscription) {
-          console.error('[PayPal Webhook] Subscription lookup failed:', {
-            subscriptionId,
-            matchCount: result.data?.length ?? 0,
-            error: fetchError
+        const paypalSubscriptionId = getSubscriptionId(event);
+        let subscription = null;
+        {
+        try {
+          console.log('[PayPal Webhook] Processing payment completion:', {
+            paypalId: paypalSubscriptionId,
+            eventType: event.event_type,
+            resourceId: event.resource.id
           });
-          throw fetchError || new Error('Subscription not found');
-        }
+
+          // Try with trimmed ID first
+          const { data: subscriptions, error: lookupError } = await supabaseClient
+            .from('subscriptions')
+            .select('*')
+            .eq('paypal_subscription_id', paypalSubscriptionId.trim());
+
+          subscription = subscriptions && subscriptions.length > 0 ? subscriptions[0] : null;
+
+          if (!subscription) {
+            // Try without trimming if initial lookup failed
+            const { data: retrySubscriptions, error: retryError } = await supabaseClient
+              .from('subscriptions')
+              .select('*')
+              .eq('paypal_subscription_id', paypalSubscriptionId);
+
+            subscription = retrySubscriptions && retrySubscriptions.length > 0 ? retrySubscriptions[0] : null;
+
+            if (!subscription) {
+              console.error('[PayPal Webhook] All subscription lookups failed:', {
+                paypalId: paypalSubscriptionId,
+                trimmedAttempt: { found: false, error: lookupError },
+                untrimmedAttempt: { found: false, error: retryError }
+              });
+              throw new Error(`Subscription not found for PayPal ID: ${paypalSubscriptionId}`);
+            }
+          }
+
+          console.log('[PayPal Webhook] Found subscription:', {
+            id: subscription.id,
+            paypalId: subscription.paypal_subscription_id,
+            status: subscription.status
+          });
 
         // Log timestamps for debugging
         console.log('[PayPal Webhook] Payment timing:', {
@@ -252,33 +266,55 @@ serve(async (req) => {
           newValidUntil.setMonth(newValidUntil.getMonth() + 1);
         }
 
-        // Update subscription using the subscription ID from the database
+        // Update subscription using the PayPal subscription ID
+        const updateData = {
+          valid_until: newValidUntil.toISOString(),
+          status: 'active'
+        };
+
+        // Log the update operation
+        console.log('[PayPal Webhook] Updating subscription:', {
+          paypalSubscriptionId: subscriptionId,
+          updateData,
+          existingData: {
+            id: subscription.id,
+            paypalId: subscription.paypal_subscription_id,
+            status: subscription.status
+          }
+        });
+
         const { error: updateError } = await supabaseClient
           .from('subscriptions')
-          .update({
-            valid_until: newValidUntil.toISOString(),
-            status: 'active'
-          })
+          .update(updateData)
           .eq('id', subscription.id);
 
         if (updateError) {
           console.error('[PayPal Webhook] Failed to update subscription:', {
             subscriptionId: subscription.id,
+            paypalSubscriptionId: subscription.paypal_subscription_id,
             error: updateError
           });
           throw updateError;
         }
 
         console.log('[PayPal Webhook] Successfully processed payment:', {
-          subscriptionId: subscription.id,
-          paypalId: subscription.paypal_subscription_id,
+          id: subscription.id,
+          paypalId: paypalSubscriptionId,
           paymentType: isInitialPayment ? 'initial' : 'renewal',
           newValidUntil: newValidUntil.toISOString()
         });
-        break;
+      } catch (error) {
+        console.error('[PayPal Webhook] Payment processing error:', {
+          error,
+          paypalId: paypalSubscriptionId
+        });
+        throw error;
       }
+     }
+     break;
+     }
 
-      case 'BILLING.SUBSCRIPTION.CANCELLED':
+     case 'BILLING.SUBSCRIPTION.CANCELLED':
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
         const subscriptionId = getSubscriptionId(event);
 
@@ -288,65 +324,47 @@ serve(async (req) => {
           resourceId: event.resource.id
         });
 
-        // Fetch subscription with retries
+        // Fetch subscription using the same lookup logic as payment handler
         let subscription = null;
-        let fetchError = null;
-        const maxRetries = 3;
-        const delayMs = 2000; // 2 seconds between retries
-
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          console.log(`[PayPal Webhook] Lookup attempt ${attempt}/${maxRetries}`);
-
-          const result = await supabaseClient
+        try {
+          // Try with trimmed ID first
+          const { data: subscriptions, error: lookupError } = await supabaseClient
             .from('subscriptions')
             .select('*')
-            .eq('paypal_subscription_id', subscriptionId);
-          
-          // Check if we found any matches
-          const foundSubscription = result.data && result.data.length > 0 ? result.data[0] : null;
+            .eq('paypal_subscription_id', subscriptionId.trim());
 
-          console.log('[PayPal Webhook] Lookup result:', {
-            attempt,
-            subscriptionId,
-            found: !!foundSubscription,
-            matchCount: result.data?.length ?? 0,
-            error: result.error
-          });
+          subscription = subscriptions && subscriptions.length > 0 ? subscriptions[0] : null;
 
-          if (foundSubscription) {
-            subscription = foundSubscription;
-            break;
+          if (!subscription) {
+            // Try without trimming if initial lookup failed
+            const { data: retrySubscriptions, error: retryError } = await supabaseClient
+              .from('subscriptions')
+              .select('*')
+              .eq('paypal_subscription_id', subscriptionId);
+
+            subscription = retrySubscriptions && retrySubscriptions.length > 0 ? retrySubscriptions[0] : null;
+
+            if (!subscription) {
+              console.error('[PayPal Webhook] All subscription lookups failed for cancellation:', {
+                paypalId: subscriptionId,
+                trimmedAttempt: { found: false, error: lookupError },
+                untrimmedAttempt: { found: false, error: retryError }
+              });
+              throw new Error(`Subscription not found for PayPal ID: ${subscriptionId}`);
+            }
           }
 
-          fetchError = result.error || new Error('Subscription not found');
-
-          if (attempt < maxRetries) {
-            console.log(`[PayPal Webhook] Attempt ${attempt} failed, waiting ${delayMs}ms before retry...`);
-            await new Promise(resolve => setTimeout(resolve, delayMs));
-          }
-        }
-
-        console.log('[PayPal Webhook] Final lookup result:', {
-          found: !!subscription,
-          error: fetchError,
-          subscriptionId,
-          matchedSubscription: subscription ? {
+          console.log('[PayPal Webhook] Found subscription for cancellation:', {
             id: subscription.id,
-            paypal_subscription_id: subscription.paypal_subscription_id,
+            paypalId: subscription.paypal_subscription_id,
             status: subscription.status
-          } : null
-        });
-
-        if (fetchError || !subscription) {
-          console.error('[PayPal Webhook] Subscription lookup failed:', {
-            subscriptionId,
-            eventType: event.event_type,
-            error: fetchError,
-            lookupAttempts: attempt,
-            matchCount: result.data?.length ?? 0
           });
-          throw fetchError || new Error(`Subscription not found: ${subscriptionId}`);
+        } catch (error) {
+          console.error('[PayPal Webhook] Error looking up subscription:', error);
+          throw error;
         }
+
+        // We already have subscription from the lookup above, just continue with the update
 
         // Update subscription status
         const { error: updateError } = await supabaseClient

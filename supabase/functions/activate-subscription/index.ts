@@ -215,7 +215,7 @@ serve(async (req) => {
     const { data: verifyData, error: verifyError } = await supabaseClient
       .from('subscriptions')
       .select('*')
-      .eq('paypal_subscription_id', subscriptionDetails.id)
+      .eq('paypal_subscription_id', subscriptionDetails.id.trim())
       .single();
 
     console.log('Verification check:', {
