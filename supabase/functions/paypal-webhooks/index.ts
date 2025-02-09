@@ -71,7 +71,7 @@ async function verifyPayPalWebhookSignature(
 ): Promise<boolean> {
   const clientId = Deno.env.get('PAYPAL_CLIENT_ID');
   const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
-  const baseUrl = Deno.env.get('PAYPAL_API_URL') || 'https://api-m.sandbox.paypal.com';
+  const baseUrl = Deno.env.get('PAYPAL_API_URL') || 'https://api-m.paypal.com';
 
   if (!clientId || !clientSecret) {
     throw new Error('PayPal API credentials not configured');
