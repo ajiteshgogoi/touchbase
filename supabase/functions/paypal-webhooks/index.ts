@@ -21,14 +21,21 @@ interface PayPalWebhookEvent {
 
 // Helper function to extract the PayPal subscription ID from various event formats
 function getSubscriptionId(event: PayPalWebhookEvent): string {
-  // PAYMENT.SALE.COMPLETED events use billing_agreement_id
-  if (event.event_type === 'PAYMENT.SALE.COMPLETED') {
-    return event.resource.billing_agreement_id || '';
-  }
+  // For all events, try to get the subscription ID in order of likelihood
+  const subscriptionId = event.resource.subscription_id || // New PayPal API
+                        event.resource.id ||              // Direct resource ID
+                        event.resource.billing_agreement_id || // Old PayPal API
+                        '';
 
-  // For cancellation/expiry events, the ID is directly in resource.id
-  // These IDs match the billing_agreement_id we stored during creation
-  return event.resource.id || event.resource.subscription_id || '';
+  console.log('[PayPal Webhook] Extracted subscription ID:', {
+    eventType: event.event_type,
+    foundId: subscriptionId,
+    subscriptionId: event.resource.subscription_id,
+    resourceId: event.resource.id,
+    billingAgreementId: event.resource.billing_agreement_id
+  });
+
+  return subscriptionId;
 }
 
 function addCorsHeaders(headers: Headers = new Headers()) {
@@ -316,11 +323,11 @@ serve(async (req) => {
 
      case 'BILLING.SUBSCRIPTION.CANCELLED':
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
-        const subscriptionId = getSubscriptionId(event);
+        const paypalSubscriptionId = getSubscriptionId(event);
 
         console.log('[PayPal Webhook] Processing subscription status change:', {
           eventType: event.event_type,
-          subscriptionId,
+          paypalId: paypalSubscriptionId,
           resourceId: event.resource.id
         });
 
@@ -331,7 +338,7 @@ serve(async (req) => {
           const { data: subscriptions, error: lookupError } = await supabaseClient
             .from('subscriptions')
             .select('*')
-            .eq('paypal_subscription_id', subscriptionId.trim());
+            .eq('paypal_subscription_id', paypalSubscriptionId.trim());
 
           subscription = subscriptions && subscriptions.length > 0 ? subscriptions[0] : null;
 
@@ -340,17 +347,17 @@ serve(async (req) => {
             const { data: retrySubscriptions, error: retryError } = await supabaseClient
               .from('subscriptions')
               .select('*')
-              .eq('paypal_subscription_id', subscriptionId);
+              .eq('paypal_subscription_id', paypalSubscriptionId);
 
             subscription = retrySubscriptions && retrySubscriptions.length > 0 ? retrySubscriptions[0] : null;
 
             if (!subscription) {
               console.error('[PayPal Webhook] All subscription lookups failed for cancellation:', {
-                paypalId: subscriptionId,
+                paypalId: paypalSubscriptionId,
                 trimmedAttempt: { found: false, error: lookupError },
                 untrimmedAttempt: { found: false, error: retryError }
               });
-              throw new Error(`Subscription not found for PayPal ID: ${subscriptionId}`);
+              throw new Error(`Subscription not found for PayPal ID: ${paypalSubscriptionId}`);
             }
           }
 
@@ -376,15 +383,15 @@ serve(async (req) => {
 
         if (updateError) {
           console.error('[PayPal Webhook] Failed to update subscription status:', {
-            id: event.resource.id,
-            paypalId: subscription.paypal_subscription_id,
+            id: subscription.id,
+            paypalId: paypalSubscriptionId,
             error: updateError
           });
           throw updateError;
         }
 
         console.log('[PayPal Webhook] Successfully updated subscription status:', {
-          subscriptionId: subscription.id,
+          id: subscription.id,
           paypalId: subscription.paypal_subscription_id,
           oldStatus: subscription.status,
           newStatus: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired',
