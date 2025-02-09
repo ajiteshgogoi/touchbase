@@ -65,6 +65,10 @@ messaging.onBackgroundMessage(async (payload) => {
 
     await self.registration.showNotification(notificationTitle, notificationOptions);
     debug('Custom notification displayed successfully');
+    
+    // Return true to signal that we'll handle the notification
+    // This prevents Firebase from showing its default notification
+    return true;
   } catch (error) {
     debug('Error showing notification:', {
       error: error.toString(),
