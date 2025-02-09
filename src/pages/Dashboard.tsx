@@ -249,7 +249,7 @@ const RecentContacts = () => {
                                   </span>
                                   <button
                                     onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
-                                    className="flex-shrink-0 p-1 mt-0.5 text-gray-400 hover:text-red-500 transition-colors"
+                                    className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
                                     title="Report inappropriate suggestion"
                                   >
                                     <FlagIcon className="h-4 w-4" />
