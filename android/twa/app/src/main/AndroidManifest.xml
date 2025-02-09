@@ -88,7 +88,7 @@
                 android:value="true" />
                 
             <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE_OPTIONS"
-                android:value="minimal-ui" />
+                android:value="standalone" />
 
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
