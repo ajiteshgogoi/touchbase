@@ -146,12 +146,21 @@ android {
         resValue "bool", "enableSiteSettingsShortcut", twaManifest.enableSiteSettingsShortcut
         resValue "string", "orientation", twaManifest.orientation
     }
+    signingConfigs {
+        release {
+            storeFile file("../../keystore/touchbase.keystore")
+            storePassword 'touchbase123'
+            keyAlias 'touchbase'
+            keyPassword 'touchbase123'
+        }
+    }
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
             // Keep billing classes
             proguardFiles file("proguard-rules.pro")
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
