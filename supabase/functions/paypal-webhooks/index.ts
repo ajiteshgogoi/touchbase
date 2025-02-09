@@ -274,7 +274,7 @@ serve(async (req) => {
 
         // Log the update operation
         console.log('[PayPal Webhook] Updating subscription:', {
-          paypalSubscriptionId: subscriptionId,
+          paypalSubscriptionId,
           updateData,
           existingData: {
             id: subscription.id,
@@ -290,8 +290,8 @@ serve(async (req) => {
 
         if (updateError) {
           console.error('[PayPal Webhook] Failed to update subscription:', {
-            subscriptionId: subscription.id,
-            paypalSubscriptionId: subscription.paypal_subscription_id,
+            id: subscription.id,
+            paypalId: subscription.paypal_subscription_id,
             error: updateError
           });
           throw updateError;
@@ -376,7 +376,8 @@ serve(async (req) => {
 
         if (updateError) {
           console.error('[PayPal Webhook] Failed to update subscription status:', {
-            subscriptionId: event.resource.id,
+            id: event.resource.id,
+            paypalId: subscription.paypal_subscription_id,
             error: updateError
           });
           throw updateError;
