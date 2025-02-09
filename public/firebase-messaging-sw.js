@@ -44,17 +44,28 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(async (payload) => {
   debug('Received background message:', payload);
 
+  // Return true immediately to prevent default notification
+  return true;
+});
+
+// Handle push events directly
+self.addEventListener('push', async (event) => {
+  debug('Received push event:', event);
+
   try {
-    const { notification } = payload;
+    const data = event.data?.json();
+    if (!data) return;
+
+    const { notification } = data;
     const notificationTitle = notification?.title || 'New Message';
     const notificationOptions = {
       body: notification?.body,
       icon: self.location.origin + '/icon-192.png',
       badge: self.location.origin + '/icon-192.png',
-      data: payload.data,
-      tag: 'touchbase-notification', // Prevent duplicate notifications
-      renotify: true, // Allow new notifications to override old ones with same tag
-      requireInteraction: true, // Keep notification visible until user interacts
+      data: data.data,
+      tag: 'touchbase-notification',
+      renotify: true,
+      requireInteraction: true,
       actions: [
         {
           action: 'view',
@@ -63,11 +74,9 @@ messaging.onBackgroundMessage(async (payload) => {
       ]
     };
 
-    // Show our custom notification and prevent default
-    await Promise.all([
-      self.registration.showNotification(notificationTitle, notificationOptions),
-      Promise.resolve(true) // Explicitly return true to prevent default notification
-    ]);
+    event.waitUntil(
+      self.registration.showNotification(notificationTitle, notificationOptions)
+    );
     debug('Custom notification displayed successfully');
   } catch (error) {
     debug('Error showing notification:', {
