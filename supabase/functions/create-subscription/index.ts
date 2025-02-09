@@ -72,7 +72,7 @@ serve(async (req) => {
       }
     });
 
-    const paypalAuth = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
+    const paypalAuth = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: paypalAuthHeaders,
       body: 'grant_type=client_credentials'
@@ -141,7 +141,7 @@ serve(async (req) => {
     };
 
     console.log('PayPal API Request:', {
-      url: 'https://api-m.paypal.com/v1/billing/subscriptions',
+      url: 'https://api-m.sandbox.paypal.com/v1/billing/subscriptions',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ serve(async (req) => {
       payload: subscriptionPayload
     });
 
-    const subscription = await fetch('https://api-m.paypal.com/v1/billing/subscriptions', {
+    const subscription = await fetch('https://api-m.sandbox.paypal.com/v1/billing/subscriptions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ serve(async (req) => {
         responseHeaders: Object.fromEntries(subscription.headers.entries()),
         request: {
           payload: subscriptionPayload,
-          url: 'https://api-m.paypal.com/v1/billing/subscriptions'
+          url: 'https://api-m.sandbox.paypal.com/v1/billing/subscriptions'
         }
       };
       console.error('PayPal API Error Details:', JSON.stringify(errorDetails, null, 2));
