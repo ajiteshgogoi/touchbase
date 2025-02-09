@@ -71,24 +71,9 @@
         <activity android:name="LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:label="@string/launcherName"
-            android:exported="true"
-            android:theme="@android:style/Theme.NoTitleBar"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize">
+            android:exported="true">
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="@string/launchUrl" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.TWA_LAUNCH_MODE"
-                android:value="standalone" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE"
-                android:value="immersive" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.SHOW_IN_RECENTS"
-                android:value="true" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE_OPTIONS"
-                android:value="minimal-ui" />
 
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
