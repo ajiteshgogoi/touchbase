@@ -68,27 +68,15 @@
             </activity>
         
 
-        <activity android:name="LauncherActivity"
+        <activity android:name=".LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:label="@string/launcherName"
             android:exported="true"
             android:theme="@android:style/Theme.NoTitleBar"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
-            <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
+            <meta-data android:name="android.app.default_url"
                 android:value="@string/launchUrl" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.TWA_LAUNCH_MODE"
-                android:value="standalone" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE"
-                android:value="immersive" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.SHOW_IN_RECENTS"
-                android:value="true" />
-                
-            <meta-data android:name="android.support.customtabs.trusted.DISPLAY_MODE_OPTIONS"
-                android:value="standalone" />
 
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
@@ -176,29 +164,25 @@
         </provider>
 
         <service
-            android:name=".DelegationService"
-            android:enabled="@bool/enableNotification"
-            android:exported="@bool/enableNotification">
-
-            
-                <meta-data
-                    android:name="android.support.customtabs.trusted.SMALL_ICON"
-                    android:resource="@drawable/ic_notification_icon" />
-            
-
+            android:name=".NotificationService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <meta-data
+                android:name="android.app.notification_icon"
+                android:resource="@drawable/ic_notification_icon" />
             <intent-filter>
-                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
 
-        
-            <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
-        
+        <activity android:name=".NotificationPermissionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false" />
 
-        
-            <activity android:name=
-        "com.google.androidbrowserhelper.locationdelegation.PermissionRequestActivity"/>
+        <activity android:name=".LocationPermissionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false" />
         
             
         <activity
