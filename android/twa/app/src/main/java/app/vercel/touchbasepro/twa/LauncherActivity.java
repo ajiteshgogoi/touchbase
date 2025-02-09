@@ -39,7 +39,9 @@ public class LauncherActivity extends com.google.androidbrowserhelper.trusted.La
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
-        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        }
         webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webSettings.setDomStorageEnabled(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
@@ -48,14 +50,22 @@ public class LauncherActivity extends com.google.androidbrowserhelper.trusted.La
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             webSettings.setForceDark(WebSettings.FORCE_DARK_OFF);
         }
+        // Enable modern features
+        webSettings.setJavaScriptEnabled(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            webSettings.setAlgorithmicDarkeningAllowed(false);
+        }
         
         // Set WebViewClient to handle page loading
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
-                    view.loadUrl(url);
-                    return true;
+            public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    String url = request.getUrl().toString();
+                    if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                        view.loadUrl(url);
+                        return true;
+                    }
                 }
                 return false;
             }

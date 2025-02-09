@@ -3,6 +3,6 @@
   "target": {
     "namespace": "android_app",
     "package_name": "app.vercel.touchbasepro.twa",
-    "sha256_cert_fingerprints": ["2209ce653c4a31084352b1bb3a58728fa840e2f55b8f69d9ae2e609afca566"]
+    "sha256_cert_fingerprints": ["2209ce653c4a31084352b1bb3a58728fa840e2f55b8f69d9ae2e609afca56661"]
   }
 }]

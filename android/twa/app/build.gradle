@@ -167,10 +167,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-    lintOptions {
-        checkReleaseBuilds false
-        baseline file("lint-baseline.xml")
-        abortOnError false
+    lint {
+        baseline = file("lint-baseline.xml")
+        abortOnError = false
+        checkReleaseBuilds = false
+        xmlReport = false
+        warningsAsErrors = false
     }
 }
 
