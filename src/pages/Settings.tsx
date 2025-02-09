@@ -36,7 +36,7 @@ export const Settings = () => {
 
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('valid_until')
+        .select('valid_until, status')
         .eq('user_id', user.id)
         .single();
 
@@ -45,6 +45,17 @@ export const Settings = () => {
     },
     enabled: !!user?.id && isPremium
   });
+
+  const handleResumeSubscription = async () => {
+    if (!confirm('Would you like to resume your subscription?')) return;
+    
+    try {
+      await paymentService.createSubscription('premium');
+    } catch (error) {
+      console.error('Resume subscription error:', error);
+      toast.error('Failed to resume subscription');
+    }
+  };
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
     theme: 'light',
@@ -328,14 +339,28 @@ export const Settings = () => {
                         <span className="font-medium text-gray-900">
                           {moment(subscription.valid_until).tz(notificationSettings.timezone).format('MMMM D, YYYY')}
                         </span>
+                        {subscription.status === 'canceled' && (
+                          <span className="block mt-1 text-red-600">
+                            Your subscription will not renew after this date
+                          </span>
+                        )}
                       </div>
                     )}
-                    <button
-                      onClick={handleCancelSubscription}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                    >
-                      Cancel Subscription
-                    </button>
+                    {subscription?.status === 'active' ? (
+                      <button
+                        onClick={handleCancelSubscription}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                      >
+                        Cancel Subscription
+                      </button>
+                    ) : subscription?.status === 'canceled' && (
+                      <button
+                        onClick={handleResumeSubscription}
+                        className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+                      >
+                        Resume Subscription
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

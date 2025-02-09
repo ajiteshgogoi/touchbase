@@ -174,8 +174,8 @@ serve(async (req) => {
     const { error: updateError } = await supabaseClient
       .from('subscriptions')
       .update({
-        status: 'canceled',
-        valid_until: new Date().toISOString() // Immediate cancellation
+        status: 'canceled'
+        // Keep existing valid_until to maintain access until end of billing period
         // Don't null out paypal_subscription_id yet - we need it for webhook handling
       })
       .eq('user_id', user.id)
