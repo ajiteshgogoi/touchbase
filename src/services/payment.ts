@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import { platform } from '../utils/platform';
+import { subscriptionValidator } from './subscription-validator';
 
 interface SubscriptionPlan {
   id: string;
@@ -84,6 +85,9 @@ declare global {
 export const paymentService = {
   async createSubscription(planId: string): Promise<string> {
     try {
+      // Validate platform matches subscription type
+      await subscriptionValidator.validateSubscriptionPlatform();
+
       if (platform.isAndroid()) {
         return this._createGooglePlaySubscription(planId);
       } else {
@@ -312,6 +316,9 @@ export const paymentService = {
 
   async cancelSubscription(): Promise<void> {
     try {
+      // Validate platform matches subscription type
+      await subscriptionValidator.validateSubscriptionPlatform();
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 

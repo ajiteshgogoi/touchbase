@@ -46,16 +46,6 @@ export const Settings = () => {
     enabled: !!user?.id && isPremium
   });
 
-  const handleResumeSubscription = async () => {
-    if (!confirm('Would you like to resume your subscription?')) return;
-    
-    try {
-      await paymentService.createSubscription('premium');
-    } catch (error) {
-      console.error('Resume subscription error:', error);
-      toast.error('Failed to resume subscription');
-    }
-  };
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
     theme: 'light',
@@ -225,9 +215,22 @@ export const Settings = () => {
       await paymentService.cancelSubscription();
       toast.success('Subscription cancelled successfully');
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Cancel subscription error:', error);
-      toast.error('Failed to cancel subscription');
+      // Show the platform-specific error message to the user
+      toast.error(error.message || 'Failed to cancel subscription');
+    }
+  };
+
+  const handleResumeSubscription = async () => {
+    try {
+      await paymentService.createSubscription('premium');
+      // Success toast will be shown after PayPal redirect and activation
+    } catch (error: any) {
+      console.error('Resume subscription error:', error);
+      // Show the platform-specific error message to the user
+      toast.error(error.message || 'Failed to resume subscription');
+      setIsSubscribing(false);
     }
   };
 
