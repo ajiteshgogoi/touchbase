@@ -149,7 +149,14 @@ export async function runDailyCheckV2() {
             (contact.missed_interactions || 0) + 1
           );
 
-          // Update contact first
+          // Get the old reminder for reference
+          const { data: oldReminder } = await supabaseClient
+            .from('reminders')
+            .select('*')
+            .eq('contact_id', contact.id)
+            .single();
+
+          // Update contact with new missed count and due date
           await supabaseClient
             .from('contacts')
             .update({
@@ -158,22 +165,31 @@ export async function runDailyCheckV2() {
             })
             .eq('id', contact.id);
 
-          // Then delete old reminder
-          await supabaseClient
-            .from('reminders')
-            .delete()
-            .eq('contact_id', contact.id);
+          // Only update reminder if it exists and is for today or earlier
+          if (oldReminder) {
+            const oldDueDate = new Date(oldReminder.due_date);
+            const oldDueDateInUserTz = new Date(oldDueDate.toLocaleString('en-US', { timeZone: userTimezone }));
+            oldDueDateInUserTz.setHours(0, 0, 0, 0);
 
-          // Finally create new reminder
-          await supabaseClient
-            .from('reminders')
-            .insert({
-              contact_id: contact.id,
-              user_id: contact.user_id,
-              type: contact.preferred_contact_method || 'message',
-              due_date: nextContactDue.toISOString(),
-              description: contact.notes || undefined
-            });
+            if (oldDueDateInUserTz.getTime() <= todayInUserTz.getTime()) {
+              // First create new reminder to avoid gaps
+              await supabaseClient
+                .from('reminders')
+                .insert({
+                  contact_id: contact.id,
+                  user_id: contact.user_id,
+                  type: contact.preferred_contact_method || 'message',
+                  due_date: nextContactDue.toISOString(),
+                  description: contact.notes || undefined
+                });
+
+              // Then delete old reminder
+              await supabaseClient
+                .from('reminders')
+                .delete()
+                .eq('id', oldReminder.id);
+            }
+          }
         }
       }
     }
