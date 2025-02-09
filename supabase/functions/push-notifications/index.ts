@@ -156,6 +156,21 @@ async function sendFcmNotification(fcmToken: string, title: string, body: string
             body
           },
           webpush: {
+            notification: {
+              title,
+              body,
+              icon: '/icon-192.png',
+              badge: '/icon-192.png',
+              requireInteraction: true,
+              tag: 'touchbase-notification',
+              renotify: true,
+              actions: [
+                {
+                  action: 'view',
+                  title: 'View'
+                }
+              ]
+            },
             fcm_options: {
               link: url
             }

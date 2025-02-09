@@ -45,25 +45,45 @@ messaging.onBackgroundMessage(async (payload) => {
   debug('Received background message:', payload);
 
   try {
-    const { notification } = payload;
-    const notificationTitle = notification?.title || 'New Message';
-    const notificationOptions = {
-      body: notification?.body,
-      icon: self.location.origin + '/icon-192.png',
-      badge: self.location.origin + '/icon-192.png',
-      data: payload.data,
-      tag: 'touchbase-notification',
-      renotify: true,
-      requireInteraction: true,
-      actions: [
-        {
-          action: 'view',
-          title: 'View'
-        }
-      ]
-    };
+    // Don't show a notification if the payload doesn't have one
+    if (!payload.notification) {
+      debug('No notification in payload, skipping display');
+      return true;
+    }
 
-    await self.registration.showNotification(notificationTitle, notificationOptions);
+    const { notification } = payload;
+    
+    // Use notification from webpush config if available
+    const webPushNotification = payload.webpush?.notification;
+    if (webPushNotification) {
+      debug('Using webpush notification configuration');
+      await self.registration.showNotification(webPushNotification.title, {
+        ...webPushNotification,
+        icon: self.location.origin + webPushNotification.icon,
+        badge: self.location.origin + webPushNotification.badge,
+        data: payload.data
+      });
+    } else {
+      debug('Using default notification configuration');
+      const notificationTitle = notification?.title || 'New Message';
+      const notificationOptions = {
+        body: notification?.body,
+        icon: self.location.origin + '/icon-192.png',
+        badge: self.location.origin + '/icon-192.png',
+        data: payload.data,
+        tag: 'touchbase-notification',
+        renotify: true,
+        requireInteraction: true,
+        actions: [
+          {
+            action: 'view',
+            title: 'View'
+          }
+        ]
+      };
+
+      await self.registration.showNotification(notificationTitle, notificationOptions);
+    }
     debug('Custom notification displayed successfully');
     
     // Return true to signal that we'll handle the notification
