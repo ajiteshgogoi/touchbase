@@ -199,22 +199,22 @@ serve(async (req) => {
         // Fetch subscription from database
         console.log('[PayPal Webhook] Fetching subscription:', { subscriptionId });
 
-        const { data: subscription, error: fetchError } = await supabaseClient
+        const result = await supabaseClient
           .from('subscriptions')
           .select('*')
-          .eq('paypal_subscription_id', subscriptionId)
-          .single();
+          .eq('paypal_subscription_id', subscriptionId);
+
+        // Check if we found any matches
+        const subscription = result.data && result.data.length > 0 ? result.data[0] : null;
+        const fetchError = result.error || (!subscription ? new Error('Subscription not found') : null);
 
         if (fetchError || !subscription) {
-          console.error('[PayPal Webhook] Subscription fetch error:', {
-            error: fetchError,
-            subscription
-          });
-          console.error('[PayPal Webhook] Subscription not found:', {
-            billingAgreementId: event.resource.billing_agreement_id,
+          console.error('[PayPal Webhook] Subscription lookup failed:', {
+            subscriptionId,
+            matchCount: result.data?.length ?? 0,
             error: fetchError
           });
-          throw new Error('Subscription not found');
+          throw fetchError || new Error('Subscription not found');
         }
 
         // Log timestamps for debugging
@@ -300,22 +300,25 @@ serve(async (req) => {
           const result = await supabaseClient
             .from('subscriptions')
             .select('*')
-            .eq('paypal_subscription_id', subscriptionId)
-            .single();
+            .eq('paypal_subscription_id', subscriptionId);
+          
+          // Check if we found any matches
+          const foundSubscription = result.data && result.data.length > 0 ? result.data[0] : null;
 
           console.log('[PayPal Webhook] Lookup result:', {
             attempt,
             subscriptionId,
-            found: !!result.data,
+            found: !!foundSubscription,
+            matchCount: result.data?.length ?? 0,
             error: result.error
           });
 
-          if (result.data) {
-            subscription = result.data;
+          if (foundSubscription) {
+            subscription = foundSubscription;
             break;
           }
 
-          fetchError = result.error;
+          fetchError = result.error || new Error('Subscription not found');
 
           if (attempt < maxRetries) {
             console.log(`[PayPal Webhook] Attempt ${attempt} failed, waiting ${delayMs}ms before retry...`);
@@ -335,11 +338,14 @@ serve(async (req) => {
         });
 
         if (fetchError || !subscription) {
-          console.error('[PayPal Webhook] Subscription not found:', {
-            billingAgreementId: event.resource.billing_agreement_id,
-            error: fetchError
+          console.error('[PayPal Webhook] Subscription lookup failed:', {
+            subscriptionId,
+            eventType: event.event_type,
+            error: fetchError,
+            lookupAttempts: attempt,
+            matchCount: result.data?.length ?? 0
           });
-          throw new Error('Subscription not found');
+          throw fetchError || new Error(`Subscription not found: ${subscriptionId}`);
         }
 
         // Update subscription status
