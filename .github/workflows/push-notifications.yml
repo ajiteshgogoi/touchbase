@@ -11,118 +11,24 @@ jobs:
   trigger-push-notifications:
     runs-on: ubuntu-latest
     timeout-minutes: 30  # 30 minutes timeout
-
-    env:
-      MAX_RETRIES: 3  # Maximum retries for failed batches
-      DELAY_BETWEEN_BATCHES: 3  # Seconds between batch processing
-
     steps:
-      - name: Process User Batches
+      - name: Get all user IDs
+        id: get-users
         run: |
-          process_batch() {
-            local batch_data="$1"
-            local retries=0
-            local max_retries=$2
-            local success=false
+          # Fetch and directly process users without storing in outputs
+          curl --request GET \
+            --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
+            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
+            --silent | \
+          jq -c '.[]' | while read -r user_id; do
+            # Remove quotes from user_id
+            user_id=$(echo $user_id | tr -d '"')
+            echo "Processing user: $user_id"
             
-            while [ $retries -lt $max_retries ] && [ "$success" = false ]; do
-              if [ $retries -gt 0 ]; then
-                echo "Retrying batch after failure (Attempt $((retries + 1)))"
-                sleep 3
-              fi
-              
-              # Process each user in the batch
-              echo "$batch_data" | jq -c '.users[]' | while read -r user; do
-                user_id=$(echo "$user" | jq -r '.user_id')
-                window=$(echo "$user" | jq -r '.window')
-                echo "Processing user $user_id (Window: $window)"
-                
-                response=$(curl --fail --silent --show-error \
-                  --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
-                  --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
-                  --header 'Content-Type: application/json' \
-                  --data "{\"userId\": \"$user_id\"}")
-                
-                if [ $? -eq 0 ]; then
-                  echo "Successfully processed user $user_id"
-                else
-                  echo "Failed to process user $user_id: $response"
-                  return 1
-                fi
-                
-                # Small delay between users
-                sleep 1
-              done
-              
-              if [ $? -eq 0 ]; then
-                success=true
-                break
-              fi
-              
-              retries=$((retries + 1))
-            done
-            
-            return $([ "$success" = true ] && echo 0 || echo 1)
-          }
-
-          last_processed_id=""
-          has_more=true
-          batch_number=1
-          total_processed=0
-          total_success=0
-          total_failed=0
-          
-          while [ "$has_more" = true ]; do
-            echo "Fetching batch #$batch_number..."
-            
-            # Get next batch of users - no batch size specified, using function's default
-            response=$(curl --fail --silent --show-error \
-              --url "https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users?lastProcessedUserId=$last_processed_id" \
-              --header "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}")
-            
-            if [ $? -ne 0 ]; then
-              echo "Failed to fetch users batch"
-              exit 1
-            fi
-            
-            # Extract batch information
-            users_count=$(echo "$response" | jq -r '.users | length')
-            has_more=$(echo "$response" | jq -r '.hasMore')
-            last_processed_id=$(echo "$response" | jq -r '.lastProcessedUserId')
-            
-            if [ "$users_count" -eq 0 ]; then
-              echo "No eligible users found in this batch"
-              break
-            fi
-            
-            echo "Processing $users_count users in batch #$batch_number"
-            total_processed=$((total_processed + users_count))
-            
-            if process_batch "$response" $MAX_RETRIES; then
-              total_success=$((total_success + users_count))
-              echo "Successfully processed batch #$batch_number"
-            else
-              total_failed=$((total_failed + users_count))
-              echo "Failed to process some users in batch #$batch_number"
-            fi
-            
-            batch_number=$((batch_number + 1))
-            
-            # Delay between batches
-            if [ "$has_more" = true ]; then
-              echo "Waiting $DELAY_BETWEEN_BATCHES seconds before next batch..."
-              sleep $DELAY_BETWEEN_BATCHES
-            fi
-            
-            # Safety check - stop if running too long
-            if [ $SECONDS -gt 1500 ]; then
-              echo "Approaching workflow timeout, stopping..."
-              break
-            fi
+            response=$(curl --request POST \
+              --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
+              --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
+              --header 'Content-Type: application/json' \
+              --data "{\"userId\": \"$user_id\"}")
+            echo "Push notification response for $user_id: $response"
           done
-          
-          echo "Processing completed"
-          echo "Total batches: $((batch_number - 1))"
-          echo "Total processed: $total_processed"
-          echo "Successfully processed: $total_success"
-          echo "Failed: $total_failed"

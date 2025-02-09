@@ -10,18 +10,6 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-// Fixed batch size optimized for edge function performance
-const BATCH_SIZE = 25;
-
-type NotificationWindow = 'morning' | 'afternoon' | 'evening';
-
-function getCurrentWindow(hour: number): NotificationWindow | null {
-  if (hour >= 8 && hour < 10) return 'morning';
-  if (hour >= 13 && hour < 15) return 'afternoon';
-  if (hour >= 18 && hour < 20) return 'evening';
-  return null;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -34,117 +22,65 @@ serve(async (req) => {
   }
 
   try {
-    // Get pagination cursor
-    const url = new URL(req.url);
-    const lastProcessedUserId = url.searchParams.get('lastProcessedUserId') || '';
-
-    console.log(`Fetching next batch after user ID: ${lastProcessedUserId}`);
-
-    // Get users with active FCM tokens and their timezone preferences
-    const { data: users, error: usersError } = await supabase
+    console.log('Fetching users with FCM tokens');
+    
+    // Get total count of FCM tokens for debugging
+    const { count: totalCount, error: countError } = await supabase
       .from('push_subscriptions')
-      .select(`
-        user_id,
-        fcm_token,
-        user_preferences!inner(timezone)
-      `)
-      .not('fcm_token', 'is', null)
-      .order('user_id')
-      .gt('user_id', lastProcessedUserId)
-      .limit(BATCH_SIZE);
+      .select('fcm_token', { count: 'exact' })
+      .not('fcm_token', 'is', null);
 
-    if (usersError) {
-      console.error('Error fetching users:', usersError);
-      throw usersError;
+    if (countError) {
+      console.error('Error getting total count:', countError);
+    } else {
+      console.log(`Total FCM tokens in database: ${totalCount}`);
     }
 
-    if (!users?.length) {
-      return new Response(
-        JSON.stringify({
-          users: [],
-          hasMore: false,
-          lastProcessedUserId: null
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+    // Log token stats for debugging
+    const { data: tokenStats, error: statsError } = await supabase
+      .from('push_subscriptions')
+      .select('user_id, created_at');
+    
+    if (statsError) {
+      console.error('Error getting token stats:', statsError);
+    } else {
+      console.log('Token stats:', tokenStats.map(s => ({
+        user_id: s.user_id,
+        created_at: s.created_at
+      })));
     }
 
-    const now = new Date();
-    const eligibleUsers = [];
+    // Get all users who have FCM tokens
+    const { data: users, error } = await supabase
+      .from('push_subscriptions')
+      .select('user_id, fcm_token')
+      .not('fcm_token', 'is', null);
 
-    // Process each user
-    for (const user of users) {
-      const timezone = user.user_preferences?.timezone || 'UTC';
-      const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
-      const userHour = userTime.getHours();
-      const currentWindow = getCurrentWindow(userHour);
-
-      // Skip if not in a notification window
-      if (!currentWindow) {
-        continue;
-      }
-
-      // Check if already notified in this window
-      const { data: recentNotification } = await supabase
-        .from('notification_history')
-        .select('id')
-        .eq('user_id', user.user_id)
-        .eq('notification_type', currentWindow)
-        .gte('sent_at', userTime.toISOString().split('T')[0])
-        .maybeSingle();
-
-      if (recentNotification) {
-        continue;
-      }
-
-      // For afternoon and evening windows, check for due reminders
-      if (currentWindow !== 'morning') {
-        const { count: dueCount } = await supabase
-          .from('reminders')
-          .select('id', { count: 'exact' })
-          .eq('user_id', user.user_id)
-          .eq('completed', false)
-          .lte('due_date', userTime.toISOString().split('T')[0]);
-
-        if (!dueCount) {
-          continue;
-        }
-      }
-
-      eligibleUsers.push({
-        user_id: user.user_id,
-        fcm_token: user.fcm_token,
-        timezone,
-        window: currentWindow
-      });
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw error;
     }
 
-    const lastId = users[users.length - 1].user_id;
-    const hasMore = users.length === BATCH_SIZE;
+    const userIds = users.map(u => u.user_id);
+    console.log(`Found ${userIds.length} users with active FCM tokens`);
+    
+    // Log FCM token details for debugging
+    users.forEach(user => {
+      console.log(`\nUser ${user.user_id}:`);
+      console.log('Has FCM token:', !!user.fcm_token);
+    });
 
     return new Response(
-      JSON.stringify({
-        users: eligibleUsers,
-        hasMore,
-        lastProcessedUserId: lastId,
-        timestamp: now.toISOString()
-      }),
-      { 
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      }
-    );
-
-  } catch (error) {
-    console.error('Error processing users:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        status: 500,
+      JSON.stringify(userIds),
+      {
         headers: { 'Content-Type': 'application/json' }
       }
+    );
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
     );
   }
 });
