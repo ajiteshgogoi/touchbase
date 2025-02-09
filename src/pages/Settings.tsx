@@ -27,6 +27,24 @@ export const Settings = () => {
   const queryClient = useQueryClient();
   const selectedPlan = isPremium ? 'premium' : 'free';
   const [isSubscribing, setIsSubscribing] = useState(false);
+
+  // Get subscription details
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('valid_until')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && isPremium
+  });
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
     theme: 'light',
@@ -303,12 +321,22 @@ export const Settings = () => {
                   </button>
                 )}
                 {plan.id === 'premium' && isPremium && (
-                  <button
-                    onClick={handleCancelSubscription}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel Subscription
-                  </button>
+                  <div className="space-y-4">
+                    {subscription?.valid_until && (
+                      <div className="text-gray-600 text-sm bg-gray-50 rounded-lg p-4">
+                        Your premium access is valid until{' '}
+                        <span className="font-medium text-gray-900">
+                          {moment(subscription.valid_until).tz(notificationSettings.timezone).format('MMMM D, YYYY')}
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      onClick={handleCancelSubscription}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                    >
+                      Cancel Subscription
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
