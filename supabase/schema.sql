@@ -79,6 +79,7 @@ create table public.subscriptions (
     plan_id text not null check (plan_id in ('free', 'premium')),
     status text not null check (status in ('active', 'canceled', 'expired')),
     paypal_subscription_id text unique,
+    google_play_token text unique,
     valid_until timestamp with time zone not null,
     trial_start_date timestamp with time zone,
     trial_end_date timestamp with time zone,
