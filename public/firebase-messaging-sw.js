@@ -45,45 +45,32 @@ messaging.onBackgroundMessage(async (payload) => {
   debug('Received background message:', payload);
 
   try {
-    // Don't show a notification if the payload doesn't have one
-    if (!payload.notification) {
-      debug('No notification in payload, skipping display');
-      return true;
-    }
-
-    const { notification } = payload;
+    debug('Received payload:', payload);
     
-    // Use notification from webpush config if available
-    const webPushNotification = payload.webpush?.notification;
-    if (webPushNotification) {
-      debug('Using webpush notification configuration');
-      await self.registration.showNotification(webPushNotification.title, {
-        ...webPushNotification,
-        icon: self.location.origin + webPushNotification.icon,
-        badge: self.location.origin + webPushNotification.badge,
-        data: payload.data
-      });
-    } else {
-      debug('Using default notification configuration');
-      const notificationTitle = notification?.title || 'New Message';
-      const notificationOptions = {
-        body: notification?.body,
-        icon: self.location.origin + '/icon-192.png',
-        badge: self.location.origin + '/icon-192.png',
-        data: payload.data,
-        tag: 'touchbase-notification',
-        renotify: true,
-        requireInteraction: true,
-        actions: [
-          {
-            action: 'view',
-            title: 'View'
-          }
-        ]
-      };
+    // For background messages, FCM puts the data in a different structure
+    const notificationData = payload.notification || payload.data || {};
+    debug('Extracted notification data:', notificationData);
 
-      await self.registration.showNotification(notificationTitle, notificationOptions);
-    }
+    const notificationTitle = notificationData.title || 'New Message';
+    const notificationOptions = {
+      body: notificationData.body,
+      icon: self.location.origin + '/icon-192.png',
+      badge: self.location.origin + '/icon-192.png',
+      data: payload.data || {},
+      tag: 'touchbase-notification',
+      renotify: true,
+      requireInteraction: true,
+      actions: [
+        {
+          action: 'view',
+          title: 'View'
+        }
+      ]
+    };
+
+    debug('Showing notification with:', { title: notificationTitle, options: notificationOptions });
+    await self.registration.showNotification(notificationTitle, notificationOptions);
+    debug('Notification shown successfully');
     debug('Custom notification displayed successfully');
     
     // Return true to signal that we'll handle the notification
