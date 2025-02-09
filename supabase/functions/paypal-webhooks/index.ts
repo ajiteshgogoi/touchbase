@@ -8,6 +8,7 @@ interface PayPalWebhookEvent {
   resource: {
     id: string;
     billing_agreement_id?: string;
+    subscription_id?: string; // Some events use this instead of id
     status?: string;
     end_time?: string;
     amount?: {
@@ -16,6 +17,18 @@ interface PayPalWebhookEvent {
     };
   };
   create_time: string;
+}
+
+// Helper function to extract the PayPal subscription ID from various event formats
+function getSubscriptionId(event: PayPalWebhookEvent): string {
+  // PAYMENT.SALE.COMPLETED events use billing_agreement_id
+  if (event.event_type === 'PAYMENT.SALE.COMPLETED') {
+    return event.resource.billing_agreement_id || '';
+  }
+
+  // For cancellation/expiry events, the ID is directly in resource.id
+  // These IDs match the billing_agreement_id we stored during creation
+  return event.resource.id || event.resource.subscription_id || '';
 }
 
 function addCorsHeaders(headers: Headers = new Headers()) {
@@ -175,19 +188,21 @@ serve(async (req) => {
     // Handle different webhook events
     switch (event.event_type) {
       case 'PAYMENT.SALE.COMPLETED': {
+        const subscriptionId = getSubscriptionId(event);
+        
         console.log('[PayPal Webhook] Processing payment completion:', {
-          billingAgreementId: event.resource.billing_agreement_id
+          subscriptionId,
+          eventType: event.event_type,
+          resourceId: event.resource.id
         });
 
-        // Fetch subscription from database using billing_agreement_id
-        console.log('[PayPal Webhook] Fetching subscription:', {
-          billingAgreementId: event.resource.billing_agreement_id
-        });
+        // Fetch subscription from database
+        console.log('[PayPal Webhook] Fetching subscription:', { subscriptionId });
 
         const { data: subscription, error: fetchError } = await supabaseClient
           .from('subscriptions')
           .select('*')
-          .eq('paypal_subscription_id', event.resource.billing_agreement_id)
+          .eq('paypal_subscription_id', subscriptionId)
           .single();
 
         if (fetchError || !subscription) {
@@ -237,25 +252,26 @@ serve(async (req) => {
           newValidUntil.setMonth(newValidUntil.getMonth() + 1);
         }
 
-        // Update subscription
+        // Update subscription using the subscription ID from the database
         const { error: updateError } = await supabaseClient
           .from('subscriptions')
           .update({
             valid_until: newValidUntil.toISOString(),
             status: 'active'
           })
-          .eq('paypal_subscription_id', event.resource.billing_agreement_id);
+          .eq('id', subscription.id);
 
         if (updateError) {
           console.error('[PayPal Webhook] Failed to update subscription:', {
-            billingAgreementId: event.resource.billing_agreement_id,
+            subscriptionId: subscription.id,
             error: updateError
           });
           throw updateError;
         }
 
         console.log('[PayPal Webhook] Successfully processed payment:', {
-          billingAgreementId: event.resource.billing_agreement_id,
+          subscriptionId: subscription.id,
+          paypalId: subscription.paypal_subscription_id,
           paymentType: isInitialPayment ? 'initial' : 'renewal',
           newValidUntil: newValidUntil.toISOString()
         });
@@ -264,37 +280,15 @@ serve(async (req) => {
 
       case 'BILLING.SUBSCRIPTION.CANCELLED':
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
+        const subscriptionId = getSubscriptionId(event);
+
         console.log('[PayPal Webhook] Processing subscription status change:', {
           eventType: event.event_type,
-          subscriptionId: event.resource.id,
-          billingAgreementId: event.resource.billing_agreement_id
+          subscriptionId,
+          resourceId: event.resource.id
         });
 
-        // Normalize webhook ID and prepare for lookup
-        const webhookId = event.resource.id.trim();
-        
-        // Debug: List all subscriptions in the database
-        const { data: allSubs } = await supabaseClient
-          .from('subscriptions')
-          .select('id, paypal_subscription_id, status');
-        
-        console.log('[PayPal Webhook] Database state:', {
-          totalSubscriptions: allSubs?.length ?? 0,
-          subscriptions: allSubs?.map(sub => ({
-            id: sub.id,
-            paypal_id: sub.paypal_subscription_id,
-            status: sub.status
-          }))
-        });
-
-        console.log('[PayPal Webhook] Starting subscription lookup:', {
-          webhookId,
-          withoutPrefix: webhookId.replace('I-', ''),
-          billingAgreementId: event.resource.billing_agreement_id,
-          eventType: event.event_type
-        });
-
-        // Try to find subscription with retries
+        // Fetch subscription with retries
         let subscription = null;
         let fetchError = null;
         const maxRetries = 3;
@@ -303,72 +297,26 @@ serve(async (req) => {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           console.log(`[PayPal Webhook] Lookup attempt ${attempt}/${maxRetries}`);
 
-          // Debug: Quote search values to see whitespace
-          console.log('[PayPal Webhook] Search values:', {
-            webhookId: `"${webhookId}"`,
-            withoutPrefix: `"${webhookId.replace('I-', '')}"`,
-            billingAgreementId: event.resource.billing_agreement_id ? `"${event.resource.billing_agreement_id}"` : undefined
-          });
-
-          // Try exact match first
-          let result = await supabaseClient
+          const result = await supabaseClient
             .from('subscriptions')
-            .select()
-            .or(`paypal_subscription_id.eq."${webhookId}",paypal_subscription_id.eq."${webhookId.replace('I-', '')}"`);
+            .select('*')
+            .eq('paypal_subscription_id', subscriptionId)
+            .single();
 
-          console.log('[PayPal Webhook] Exact match result:', {
-            query: `paypal_subscription_id.eq."${webhookId}" OR paypal_subscription_id.eq."${webhookId.replace('I-', '')}"`,
-            found: (result.data?.length ?? 0) > 0,
-            matches: result.data
-          });
-
-          // If not found, try case-insensitive match
-          if (!result.data || result.data.length === 0) {
-            console.log('[PayPal Webhook] Trying case-insensitive match');
-            result = await supabaseClient
-              .from('subscriptions')
-              .select()
-              .or(`paypal_subscription_id.ilike."${webhookId}",paypal_subscription_id.ilike."${webhookId.replace('I-', '')}"`);
-
-            console.log('[PayPal Webhook] Case-insensitive match result:', {
-              query: `paypal_subscription_id.ilike."${webhookId}" OR paypal_subscription_id.ilike."${webhookId.replace('I-', '')}"`,
-              found: (result.data?.length ?? 0) > 0,
-              matches: result.data
-            });
-          }
-
-          // If still not found and billing agreement ID exists, try that
-          if ((!result.data || result.data.length === 0) && event.resource.billing_agreement_id) {
-            console.log('[PayPal Webhook] Trying billing agreement ID lookup');
-            result = await supabaseClient
-              .from('subscriptions')
-              .select()
-              .eq('paypal_subscription_id', event.resource.billing_agreement_id);
-
-            console.log('[PayPal Webhook] Billing agreement ID result:', {
-              id: event.resource.billing_agreement_id,
-              found: (result.data?.length ?? 0) > 0,
-              matches: result.data
-            });
-          }
-
-          console.log('[PayPal Webhook] Query result:', {
+          console.log('[PayPal Webhook] Lookup result:', {
             attempt,
-            variant: result.data?.length === 0 ? 'trying next variant' : 'found match',
-            resultCount: result.data?.length,
-            firstMatch: result.data?.[0] ? {
-              id: result.data[0].id,
-              paypal_subscription_id: result.data[0].paypal_subscription_id,
-              status: result.data[0].status
-            } : null,
+            subscriptionId,
+            found: !!result.data,
             error: result.error
           });
-          
-          subscription = result.data?.[0] ?? null;
+
+          if (result.data) {
+            subscription = result.data;
+            break;
+          }
+
           fetchError = result.error;
 
-          if (subscription || fetchError) break;
-          
           if (attempt < maxRetries) {
             console.log(`[PayPal Webhook] Attempt ${attempt} failed, waiting ${delayMs}ms before retry...`);
             await new Promise(resolve => setTimeout(resolve, delayMs));
@@ -376,19 +324,15 @@ serve(async (req) => {
         }
 
         console.log('[PayPal Webhook] Final lookup result:', {
-            found: !!subscription,
-            error: fetchError,
-            searchedIds: {
-              webhookId,
-              withoutPrefix: webhookId.replace('I-', ''),
-              billingAgreementId: event.resource.billing_agreement_id
-            },
-            matchedSubscription: subscription ? {
-              id: subscription.id,
-              paypal_subscription_id: subscription.paypal_subscription_id,
-              status: subscription.status
-            } : null
-          });
+          found: !!subscription,
+          error: fetchError,
+          subscriptionId,
+          matchedSubscription: subscription ? {
+            id: subscription.id,
+            paypal_subscription_id: subscription.paypal_subscription_id,
+            status: subscription.status
+          } : null
+        });
 
         if (fetchError || !subscription) {
           console.error('[PayPal Webhook] Subscription not found:', {
@@ -415,8 +359,11 @@ serve(async (req) => {
         }
 
         console.log('[PayPal Webhook] Successfully updated subscription status:', {
-          subscriptionId: event.resource.id,
-          newStatus: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired'
+          subscriptionId: subscription.id,
+          paypalId: subscription.paypal_subscription_id,
+          oldStatus: subscription.status,
+          newStatus: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired',
+          eventType: event.event_type
         });
         break;
       }
