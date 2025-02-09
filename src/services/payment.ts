@@ -272,11 +272,10 @@ export const paymentService = {
       ) ?? FREE_PLAN;
 
       const now = new Date();
-            // Check both plan_id, valid_until date, and status for premium
+            // Check only plan_id and valid_until date for premium
             const isPremium = currentPlan.id === 'premium' &&
               subscription.valid_until &&
-              new Date(subscription.valid_until) > now &&
-              subscription.status === 'active';
+              new Date(subscription.valid_until) > now;
       
             let isOnTrial = false;
             let trialDaysRemaining = null;

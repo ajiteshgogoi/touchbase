@@ -175,8 +175,8 @@ serve(async (req) => {
       .from('subscriptions')
       .update({
         status: 'canceled',
-        paypal_subscription_id: null,
         valid_until: new Date().toISOString() // Immediate cancellation
+        // Don't null out paypal_subscription_id yet - we need it for webhook handling
       })
       .eq('user_id', user.id)
 

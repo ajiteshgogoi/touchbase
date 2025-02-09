@@ -21,19 +21,32 @@ interface PayPalWebhookEvent {
 
 // Helper function to extract the PayPal subscription ID from various event formats
 function getSubscriptionId(event: PayPalWebhookEvent): string {
-  // For all events, try to get the subscription ID in order of likelihood
-  const subscriptionId = event.resource.subscription_id || // New PayPal API
-                        event.resource.id ||              // Direct resource ID
-                        event.resource.billing_agreement_id || // Old PayPal API
-                        '';
+  // For payment events, we want the billing_agreement_id since that's the subscription ID
+  if (event.event_type === 'PAYMENT.SALE.COMPLETED') {
+    return event.resource.billing_agreement_id || '';
+  }
 
-  console.log('[PayPal Webhook] Extracted subscription ID:', {
-    eventType: event.event_type,
-    foundId: subscriptionId,
-    subscriptionId: event.resource.subscription_id,
-    resourceId: event.resource.id,
-    billingAgreementId: event.resource.billing_agreement_id
-  });
+  // For cancellation events, use resource.id if it's in I-* format
+  const resourceId = event.resource.id || event.resource.subscription_id;
+  if (resourceId && resourceId.startsWith('I-')) {
+    return resourceId;
+  }
+  return '';
+
+  // Add clear logging for ID selection
+  if (event.event_type === 'PAYMENT.SALE.COMPLETED') {
+    console.log('[PayPal Webhook] Payment event - using billing_agreement_id:', {
+      eventType: event.event_type,
+      billingAgreementId: event.resource.billing_agreement_id,
+      resourceId: event.resource.id
+    });
+  } else {
+    console.log('[PayPal Webhook] Subscription event - using direct resource ID:', {
+      eventType: event.event_type,
+      resourceId: event.resource.id,
+      subscriptionId: event.resource.subscription_id
+    });
+  }
 
   return subscriptionId;
 }
@@ -377,7 +390,8 @@ serve(async (req) => {
         const { error: updateError } = await supabaseClient
           .from('subscriptions')
           .update({
-            status: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired'
+            status: event.event_type === 'BILLING.SUBSCRIPTION.CANCELLED' ? 'canceled' : 'expired',
+            paypal_subscription_id: null  // Now safe to remove PayPal ID after webhook confirmation
           })
           .eq('id', subscription.id);
 
