@@ -49,8 +49,8 @@ const showNotification = async (title: string, options: ExtendedNotificationOpti
       badge: '/icon-192.png',
       tag: 'touchbase-notification',
       renotify: true,
-      requireInteraction: true,
-      vibrate: [100, 50, 100]
+      requireInteraction: true
+      // Remove vibrate pattern since we're using silent notifications
     };
     await registration.showNotification(title, notificationOptions as NotificationOptions);
   } catch (error) {
