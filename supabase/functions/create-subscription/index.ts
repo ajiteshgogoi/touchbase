@@ -64,7 +64,7 @@ serve(async (req) => {
     };
 
     console.log('PayPal Auth Request:', {
-      url: 'https://api-m.sandbox.paypal.com/v1/oauth2/token',
+      url: 'https://api-m.paypal.com/v1/oauth2/token',
       method: 'POST',
       headers: {
         ...paypalAuthHeaders,
