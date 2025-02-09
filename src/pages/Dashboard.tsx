@@ -143,7 +143,7 @@ const RecentContacts = () => {
   };
 
   const handleReportContent = async (contactId: string, content: string) => {
-    if (confirm('Report this suggestion as inappropriate?')) {
+    if (confirm('Report this AI suggestion as inappropriate?')) {
       try {
         await contentReportsService.reportContent(contactId, content);
       } catch (error) {
@@ -243,12 +243,14 @@ const RecentContacts = () => {
                                   </span>
                                 </div>
                               ) : (
-                                <span className="group relative">
-                                  {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                <span className="group inline-flex items-start gap-1">
+                                  <span className="flex-1">
+                                    {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                  </span>
                                   <button
                                     onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
-                                    className="opacity-0 group-hover:opacity-100 absolute -right-6 top-0 p-1 text-gray-400 hover:text-red-500 transition-opacity"
-                                    title="Report inappropriate content"
+                                    className="flex-shrink-0 p-1 mt-0.5 text-gray-400 hover:text-red-500 transition-colors"
+                                    title="Report inappropriate suggestion"
                                   >
                                     <FlagIcon className="h-4 w-4" />
                                   </button>
