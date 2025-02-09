@@ -67,6 +67,14 @@ export interface ContactProcessingLog {
   created_at: string;
 }
 
+export interface ContentReport {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  content: string;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -99,6 +107,11 @@ export interface Database {
         Row: ContactProcessingLog;
         Insert: Omit<ContactProcessingLog, 'id' | 'created_at'>;
         Update: Partial<Omit<ContactProcessingLog, 'id' | 'created_at'>>;
+      };
+      content_reports: {
+        Row: ContentReport;
+        Insert: Omit<ContentReport, 'id' | 'created_at'>;
+        Update: Partial<Omit<ContentReport, 'id' | 'created_at'>>;
       };
     };
   };

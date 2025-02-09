@@ -103,6 +103,14 @@ create table public.contact_analytics (
     created_at timestamp with time zone default now() not null
 );
 
+create table public.content_reports (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null,
+    contact_id uuid references public.contacts on delete cascade not null,
+    content text not null,
+    created_at timestamp with time zone default now()
+);
+
 -- Create indexes
 create index contacts_user_id_idx on public.contacts(user_id);
 create index contacts_last_contacted_idx on public.contacts(last_contacted);
@@ -122,6 +130,8 @@ create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id
 create index notification_history_user_time_idx on public.notification_history(user_id, sent_at);
 create index contact_analytics_user_id_idx on public.contact_analytics(user_id);
 create index contact_analytics_generated_at_idx on public.contact_analytics(generated_at);
+create index content_reports_user_id_idx on public.content_reports(user_id);
+create index content_reports_contact_id_idx on public.content_reports(contact_id);
 
 -- Enable Row Level Security
 alter table public.contacts enable row level security;
@@ -133,6 +143,7 @@ alter table public.contact_processing_logs enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.notification_history enable row level security;
 alter table public.contact_analytics enable row level security;
+alter table public.content_reports enable row level security;
 
 -- Create policies
 create policy "Users can view their own contacts"
@@ -249,6 +260,15 @@ create policy "Users can update their own analytics"
 create policy "Users can delete their own analytics"
     on public.contact_analytics for delete
     using (auth.uid() = user_id);
+
+-- Content reports policies
+create policy "Users can view their own content reports"
+    on public.content_reports for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert content reports"
+    on public.content_reports for insert
+    with check (auth.uid() = user_id);
 
 -- Allow service role to read necessary tables for push notifications
 create policy "Service role can read user preferences"

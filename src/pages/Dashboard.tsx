@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
+import { contentReportsService } from '../services/content-reports';
 import { useStore } from '../stores/useStore';
 import {
   UserPlusIcon,
@@ -12,6 +13,7 @@ import {
   AtSymbolIcon,
   PencilSquareIcon,
   TrashIcon,
+  FlagIcon,
 } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -140,6 +142,16 @@ const RecentContacts = () => {
     }
   };
 
+  const handleReportContent = async (contactId: string, content: string) => {
+    if (confirm('Report this suggestion as inappropriate?')) {
+      try {
+        await contentReportsService.reportContent(contactId, content);
+      } catch (error) {
+        console.error('Error reporting content:', error);
+      }
+    }
+  };
+
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
     contactId: string;
@@ -231,7 +243,16 @@ const RecentContacts = () => {
                                   </span>
                                 </div>
                               ) : (
-                                contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')
+                                <span className="group relative">
+                                  {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                  <button
+                                    onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
+                                    className="opacity-0 group-hover:opacity-100 absolute -right-6 top-0 p-1 text-gray-400 hover:text-red-500 transition-opacity"
+                                    title="Report inappropriate content"
+                                  >
+                                    <FlagIcon className="h-4 w-4" />
+                                  </button>
+                                </span>
                               )}
                             </span>
                           </span>
