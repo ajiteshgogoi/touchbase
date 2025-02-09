@@ -40,29 +40,18 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background messages
+// Handle background messages - this is now the only handler for background notifications
 messaging.onBackgroundMessage(async (payload) => {
   debug('Received background message:', payload);
 
-  // Return true immediately to prevent default notification
-  return true;
-});
-
-// Handle push events directly
-self.addEventListener('push', async (event) => {
-  debug('Received push event:', event);
-
   try {
-    const data = event.data?.json();
-    if (!data) return;
-
-    const { notification } = data;
+    const { notification } = payload;
     const notificationTitle = notification?.title || 'New Message';
     const notificationOptions = {
       body: notification?.body,
       icon: self.location.origin + '/icon-192.png',
       badge: self.location.origin + '/icon-192.png',
-      data: data.data,
+      data: payload.data,
       tag: 'touchbase-notification',
       renotify: true,
       requireInteraction: true,
@@ -74,9 +63,7 @@ self.addEventListener('push', async (event) => {
       ]
     };
 
-    event.waitUntil(
-      self.registration.showNotification(notificationTitle, notificationOptions)
-    );
+    await self.registration.showNotification(notificationTitle, notificationOptions);
     debug('Custom notification displayed successfully');
   } catch (error) {
     debug('Error showing notification:', {
@@ -85,11 +72,6 @@ self.addEventListener('push', async (event) => {
       message: error.message,
       stack: error.stack
     });
-    // Still return true even on error to prevent default notification
-    return Promise.all([
-      Promise.reject(error), // Re-throw to ensure Firebase knows of the failure
-      Promise.resolve(true) // Prevent default notification
-    ]);
   }
 });
 
