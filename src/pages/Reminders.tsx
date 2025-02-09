@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
+import { contentReportsService } from '../services/content-reports';
 import { useStore } from '../stores/useStore';
 import dayjs from 'dayjs';
 import type { Reminder, Contact, Interaction } from '../lib/supabase/types';
-import { CalendarIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, ArrowLeftIcon, FlagIcon } from '@heroicons/react/24/outline';
 import { QuickInteraction } from '../components/contacts/QuickInteraction';
+
 export const Reminders = () => {
   const navigate = useNavigate();
   const { isPremium, isOnTrial } = useStore();
@@ -19,6 +21,16 @@ export const Reminders = () => {
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts
   });
+
+  const handleReportContent = async (contactId: string, content: string) => {
+    if (confirm('Report this AI suggestion as inappropriate?')) {
+      try {
+        await contentReportsService.reportContent(contactId, content);
+      } catch (error) {
+        console.error('Error reporting content:', error);
+      }
+    }
+  };
 
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
@@ -106,7 +118,21 @@ export const Reminders = () => {
                                     </span>
                                   </div>
                                 ) : (
-                                  contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'
+                                  <span className="group inline-flex items-start gap-1">
+                                    <span className="flex-1">
+                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'}
+                                    </span>
+                                    <button
+                                      onClick={() => handleReportContent(
+                                        reminder.contact_id,
+                                        contactsMap[reminder.contact_id]?.ai_last_suggestion || ''
+                                      )}
+                                      className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
+                                      title="Report inappropriate suggestion"
+                                    >
+                                      <FlagIcon className="h-4 w-4" />
+                                    </button>
+                                  </span>
                                 )}
                               </span>
                             </span>
@@ -188,7 +214,21 @@ export const Reminders = () => {
                                     </span>
                                   </div>
                                 ) : (
-                                  contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'
+                                  <span className="group inline-flex items-start gap-1">
+                                    <span className="flex-1">
+                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'}
+                                    </span>
+                                    <button
+                                      onClick={() => handleReportContent(
+                                        reminder.contact_id,
+                                        contactsMap[reminder.contact_id]?.ai_last_suggestion || ''
+                                      )}
+                                      className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
+                                      title="Report inappropriate suggestion"
+                                    >
+                                      <FlagIcon className="h-4 w-4" />
+                                    </button>
+                                  </span>
                                 )}
                               </span>
                             </span>
