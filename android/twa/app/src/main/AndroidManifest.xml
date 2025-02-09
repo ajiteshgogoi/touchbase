@@ -176,7 +176,11 @@
             </intent-filter>
         </service>
 
-        <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity"
+        <activity android:name=".NotificationPermissionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false" />
+
+        <activity android:name=".LocationPermissionActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:exported="false" />
         
