@@ -69,7 +69,7 @@ serve(async (req) => {
 
     // Get PayPal access token
     console.log('Requesting PayPal access token...');
-    const authResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    const authResponse = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -113,7 +113,7 @@ serve(async (req) => {
     // Get subscription details from PayPal
     console.log('Fetching subscription details...');
     const subscriptionResponse = await fetch(
-      `https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}`,
+      `https://api-m.paypal.com/v1/billing/subscriptions/${subscriptionId}`,
       {
         headers: {
           'Authorization': `Bearer ${paypalToken}`,
