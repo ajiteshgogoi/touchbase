@@ -53,8 +53,8 @@ serve(async (req) => {
       .select('user_id, status, retry_count')
       .gte('sent_at', todayStart.toISOString())
       .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
-      .not('status', 'in', ['success']) // Exclude successful notifications
-      .not('retry_count', 'gte', 2) // Exclude attempts >= 2 (cap at 3 total attempts)
+      .neq('status', 'success') // Include only non-successful notifications
+      .lt('retry_count', 2) // Allow up to 2 retries (3 total attempts)
       .order('sent_at', { ascending: false }); // Get latest attempt
 
     if (notifiedError) {
