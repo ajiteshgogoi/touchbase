@@ -216,7 +216,7 @@ async function sendFcmNotification(
       userId,
       error: error.message
     });
-    await recordNotificationAttempt(userId, windowType, 'error', error.message, batchId);
+    await recordNotificationAttempt(userId, windowType, 'error', error.message, batchId, prevAttempt);
     throw error;
   }
 }
