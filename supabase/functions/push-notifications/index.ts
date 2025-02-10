@@ -20,72 +20,33 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 type NotificationType = 'morning' | 'afternoon' | 'evening';
 type NotificationStatus = 'success' | 'error' | 'invalid_token';
 
-function logStep(step: string, data?: any) {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${step}`);
-  if (data) {
-    console.log(`[${timestamp}] Data:`, JSON.stringify(data, null, 2));
-  }
-}
-
 async function getFcmAccessToken(): Promise<string> {
-  logStep('Getting FCM access token');
+  console.log('Getting FCM access token');
   const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'RS256', typ: 'JWT' };
-  const payload = {
-    iss: FIREBASE_CLIENT_EMAIL,
-    sub: FIREBASE_CLIENT_EMAIL,
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600,
-    scope: 'https://www.googleapis.com/auth/firebase.messaging'
-  };
-
+  
   try {
-    const encode = (obj: any) => btoa(JSON.stringify(obj));
-    const message = `${encode(header)}.${encode(payload)}`;
-
-    const cleanedKey = FIREBASE_PRIVATE_KEY
-      .replace(/^"/, '')
-      .replace(/"$/, '')
-      .replace(/\\n/g, '\n');
-
-    const base64Key = cleanedKey
-      .replace('-----BEGIN PRIVATE KEY-----\n', '')
-      .replace('\n-----END PRIVATE KEY-----', '')
-      .replace(/\n/g, '');
-
-    const signature = new Uint8Array(await crypto.subtle.sign(
-      { name: 'RSASSA-PKCS1-v1_5' },
-      await crypto.subtle.importKey(
-        'pkcs8',
-        new Uint8Array(atob(base64Key).split('').map(c => c.charCodeAt(0))),
-        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-        false,
-        ['sign']
-      ),
-      new TextEncoder().encode(message)
-    ));
-
-    const jwt = `${message}.${btoa(String.fromCharCode(...signature))}`;
     const response = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: jwt
+        assertion: createJWT(now)
       })
     });
 
     const data = await response.json();
     if (!response.ok) {
+      console.error('FCM token error:', {
+        status: response.status,
+        error: data.error_description || data.error || 'Unknown error'
+      });
       throw new Error(`OAuth token request failed: ${data.error_description || data.error || 'Unknown error'}`);
     }
 
-    logStep('FCM token acquired successfully');
+    console.log('FCM token acquired successfully');
     return data.access_token;
   } catch (error) {
-    logStep('FCM token error', error);
+    console.error('FCM token error:', error);
     throw error;
   }
 }
@@ -98,8 +59,13 @@ async function recordNotificationAttempt(
   batchId?: string
 ): Promise<void> {
   try {
-    logStep('Recording notification attempt', { userId, windowType, status, error, batchId });
-    
+    console.log('Recording notification attempt:', {
+      userId,
+      windowType,
+      status,
+      batchId
+    });
+
     const { error: dbError } = await supabase
       .from('notification_history')
       .insert({
@@ -112,12 +78,15 @@ async function recordNotificationAttempt(
       });
 
     if (dbError) {
-      logStep('Error recording notification attempt', dbError);
+      console.error('Error recording notification attempt:', {
+        error: dbError,
+        details: dbError.message
+      });
     } else {
-      logStep('Notification attempt recorded successfully');
+      console.log('Notification attempt recorded successfully');
     }
   } catch (err) {
-    logStep('Failed to record notification attempt', err);
+    console.error('Failed to record notification attempt:', err);
   }
 }
 
@@ -130,7 +99,7 @@ async function sendFcmNotification(
   windowType: NotificationType,
   batchId?: string
 ): Promise<void> {
-  logStep('Sending FCM notification', { userId, windowType, title });
+  console.log('Preparing FCM notification:', { userId, windowType, title });
   
   try {
     const accessToken = await getFcmAccessToken();
@@ -156,12 +125,7 @@ async function sendFcmNotification(
                 requireInteraction: true,
                 tag: 'touchbase-notification',
                 renotify: true,
-                actions: [
-                  {
-                    action: 'view',
-                    title: 'View'
-                  }
-                ]
+                actions: [{ action: 'view', title: 'View' }]
               },
               fcm_options: { link: url }
             }
@@ -172,15 +136,19 @@ async function sendFcmNotification(
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('FCM API error:', {
+        status: response.status,
+        error: error.error.message
+      });
       throw new Error(`FCM API error: ${error.error.message}`);
     }
 
-    logStep('FCM notification sent successfully', { userId });
+    console.log('FCM notification sent successfully:', { userId });
     await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId);
 
   } catch (error) {
     if (error.message.includes('registration-token-not-registered')) {
-      logStep('Invalid FCM token, removing subscription', { userId });
+      console.log('Invalid FCM token, removing subscription:', { userId });
       await Promise.all([
         recordNotificationAttempt(userId, windowType, 'invalid_token', error.message, batchId),
         supabase
@@ -191,14 +159,17 @@ async function sendFcmNotification(
       throw new Error('FCM token invalid - resubscription required');
     }
 
-    logStep('Error sending FCM notification', { userId, error });
+    console.error('Error sending FCM notification:', {
+      userId,
+      error: error.message
+    });
     await recordNotificationAttempt(userId, windowType, 'error', error.message, batchId);
     throw error;
   }
 }
 
 async function getUserData(userId: string): Promise<{ username: string; fcmToken: string }> {
-  logStep('Getting user data', { userId });
+  console.log('Fetching user data:', { userId });
   
   const [userData, subscription] = await Promise.all([
     supabase.auth.admin.getUserById(userId),
@@ -212,11 +183,16 @@ async function getUserData(userId: string): Promise<{ username: string; fcmToken
   const username = userData.data?.user?.user_metadata?.name || 'Friend';
   
   if (!subscription?.data?.fcm_token) {
-    logStep('No FCM token found', { userId });
+    console.error('No FCM token found:', { userId });
     throw new Error(`No FCM token found for user: ${userId}`);
   }
 
-  logStep('User data retrieved', { userId, hasToken: true });
+  console.log('User data retrieved:', { 
+    userId,
+    hasUsername: !!username,
+    hasToken: true
+  });
+  
   return {
     username,
     fcmToken: subscription.data.fcm_token
@@ -224,7 +200,7 @@ async function getUserData(userId: string): Promise<{ username: string; fcmToken
 }
 
 async function getDueRemindersCount(userId: string): Promise<number> {
-  logStep('Getting due reminders count', { userId });
+  console.log('Getting due reminders:', { userId });
   
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -237,17 +213,63 @@ async function getDueRemindersCount(userId: string): Promise<number> {
     .lte('due_date', today.toISOString());
 
   if (error) {
-    logStep('Error fetching reminders', { userId, error });
+    console.error('Error fetching reminders:', {
+      userId,
+      error: error.message
+    });
     return 0;
   }
 
-  logStep('Due reminders count retrieved', { userId, count: reminders?.length || 0 });
+  console.log('Due reminders retrieved:', {
+    userId,
+    count: reminders?.length || 0
+  });
+  
   return reminders?.length || 0;
+}
+
+function createJWT(now: number): string {
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const payload = {
+    iss: FIREBASE_CLIENT_EMAIL,
+    sub: FIREBASE_CLIENT_EMAIL,
+    aud: 'https://oauth2.googleapis.com/token',
+    iat: now,
+    exp: now + 3600,
+    scope: 'https://www.googleapis.com/auth/firebase.messaging'
+  };
+
+  const encode = (obj: any) => btoa(JSON.stringify(obj));
+  const message = `${encode(header)}.${encode(payload)}`;
+
+  const cleanedKey = FIREBASE_PRIVATE_KEY
+    .replace(/^"/, '')
+    .replace(/"$/, '')
+    .replace(/\\n/g, '\n');
+
+  const base64Key = cleanedKey
+    .replace('-----BEGIN PRIVATE KEY-----\n', '')
+    .replace('\n-----END PRIVATE KEY-----', '')
+    .replace(/\n/g, '');
+
+  const signature = new Uint8Array(crypto.subtle.sign(
+    { name: 'RSASSA-PKCS1-v1_5' },
+    crypto.subtle.importKey(
+      'pkcs8',
+      new Uint8Array(atob(base64Key).split('').map(c => c.charCodeAt(0))),
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['sign']
+    ),
+    new TextEncoder().encode(message)
+  ));
+
+  return `${message}.${btoa(String.fromCharCode(...signature))}`;
 }
 
 serve(async (req) => {
   const batchId = crypto.randomUUID();
-  logStep('Starting push notification request', { batchId });
+  console.log('Starting push notification request:', { batchId });
   
   try {
     if (req.method === 'OPTIONS') {
@@ -258,7 +280,7 @@ serve(async (req) => {
     // Handle test notifications
     if (url.pathname.endsWith('/test')) {
       const { userId, message } = await req.json();
-      logStep('Processing test notification', { userId });
+      console.log('Processing test notification:', { userId });
       
       if (!userId) {
         return new Response(
@@ -281,7 +303,7 @@ serve(async (req) => {
         batchId
       );
 
-      logStep('Test notification completed', { userId });
+      console.log('Test notification completed:', { userId });
       return new Response(
         JSON.stringify({ 
           message: 'Test notification sent successfully',
@@ -293,7 +315,7 @@ serve(async (req) => {
 
     // Handle regular notifications
     const { userId, windowType } = await req.json();
-    logStep('Processing notification request', { userId, windowType });
+    console.log('Processing notification:', { userId, windowType });
     
     if (!userId || !windowType) {
       return new Response(
@@ -325,7 +347,7 @@ serve(async (req) => {
       batchId
     );
 
-    logStep('Notification processing completed', { userId, windowType });
+    console.log('Notification processing completed:', { userId, windowType });
     return new Response(
       JSON.stringify({ 
         message: 'Notification sent successfully',
@@ -335,9 +357,9 @@ serve(async (req) => {
       { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   } catch (error) {
-    logStep('Push notification error', {
+    console.error('Push notification error:', {
       error: error.message,
-      name: error.name,
+      stack: error.stack,
       batchId
     });
     

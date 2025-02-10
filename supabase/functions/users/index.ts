@@ -23,14 +23,6 @@ type NotificationType = NotificationWindow['type'];
 // Window buffer in hours - how long past the window's hour we'll still consider valid
 const WINDOW_BUFFER_HOURS = 2;
 
-function logStep(step: string, data?: any) {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${step}`);
-  if (data) {
-    console.log(`[${timestamp}] Data:`, JSON.stringify(data, null, 2));
-  }
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -43,13 +35,17 @@ serve(async (req) => {
   }
 
   try {
-    logStep('Starting notification eligibility check');
+    console.log('Starting notification eligibility check');
     
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
 
-    logStep('Fetching notification history');
+    console.log('Fetching notification history', {
+      from: todayStart.toISOString(),
+      windowTypes: NOTIFICATION_WINDOWS.map(w => w.type)
+    });
+
     // Get today's notifications to exclude already notified users
     const { data: notifiedUsers, error: notifiedError } = await supabase
       .from('notification_history')
@@ -58,16 +54,21 @@ serve(async (req) => {
       .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type));
 
     if (notifiedError) {
-      logStep('Error fetching notification history', notifiedError);
+      console.error('Error fetching notification history:', {
+        error: notifiedError,
+        details: notifiedError.message
+      });
       throw notifiedError;
     }
 
-    logStep(`Found ${notifiedUsers?.length || 0} users already notified today`);
+    console.log('Notification history results:', {
+      notifiedCount: notifiedUsers?.length || 0
+    });
 
     // Create set of notified user IDs for efficient lookup
     const notifiedUserIds = new Set(notifiedUsers?.map(u => u.user_id) || []);
 
-    logStep('Fetching push subscriptions');
+    console.log('Fetching push subscriptions');
     // Get users with valid FCM tokens
     const { data: subscriptions, error: subsError } = await supabase
       .from('push_subscriptions')
@@ -75,21 +76,26 @@ serve(async (req) => {
       .not('fcm_token', 'is', null);
 
     if (subsError) {
-      logStep('Error fetching push subscriptions', subsError);
+      console.error('Error fetching push subscriptions:', {
+        error: subsError,
+        details: subsError.message
+      });
       throw subsError;
     }
 
     if (!subscriptions?.length) {
-      logStep('No subscribed users found');
+      console.log('No subscribed users found');
       return new Response(
         JSON.stringify([]),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    logStep(`Found ${subscriptions.length} users with valid FCM tokens`);
+    console.log('Push subscription results:', {
+      totalSubscriptions: subscriptions.length
+    });
 
-    logStep('Fetching user preferences');
+    console.log('Fetching user preferences');
     // Get user preferences
     const { data: preferences, error: prefError } = await supabase
       .from('user_preferences')
@@ -97,18 +103,28 @@ serve(async (req) => {
       .in('user_id', subscriptions.map(s => s.user_id));
 
     if (prefError) {
-      logStep('Error fetching user preferences', prefError);
+      console.error('Error fetching user preferences:', {
+        error: prefError,
+        details: prefError.message
+      });
       throw prefError;
     }
 
-    logStep(`Found ${preferences?.length || 0} user preferences`);
+    console.log('User preferences results:', {
+      totalPreferences: preferences?.length || 0,
+      timezones: [...new Set(preferences?.map(p => p.timezone) || [])]
+    });
 
     // Create map of user preferences for efficient lookup
     const preferenceMap = new Map(
       preferences?.map(p => [p.user_id, p.timezone]) || []
     );
 
-    logStep('Processing time windows');
+    console.log('Processing time windows', {
+      currentTime: now.toISOString(),
+      buffer: WINDOW_BUFFER_HOURS
+    });
+
     // Filter users who:
     // 1. Haven't been notified today
     // 2. Are in their notification window
@@ -138,10 +154,9 @@ serve(async (req) => {
       return acc;
     }, []);
 
-    logStep(`Found ${eligibleUsers.length} users eligible for notifications`, {
-      eligibleUserCount: eligibleUsers.length,
-      firstWindow: eligibleUsers[0]?.windowType,
-      userTimezones: [...preferenceMap.values()]
+    console.log('Eligibility check completed:', {
+      totalEligible: eligibleUsers.length,
+      windowTypes: [...new Set(eligibleUsers.map(u => u.windowType))]
     });
     
     return new Response(
@@ -154,7 +169,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    logStep('Error in users function', {
+    console.error('Error in users function:', {
       error: error.message,
       stack: error.stack
     });
