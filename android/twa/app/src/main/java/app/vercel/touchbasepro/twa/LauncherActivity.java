@@ -28,34 +28,40 @@ import androidx.core.app.ActivityCompat;
 public class LauncherActivity
         extends com.google.androidbrowserhelper.trusted.LauncherActivity {
 
-    private static final String PREFS_NAME = "TouchBasePrefs";
-    private static final String PREF_FIRST_RUN = "firstRun";
-
     private boolean permissionHandled = false;
+    private boolean splashShown = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Setting an orientation crashes the app due to the transparent background on Android 8.0
-        // Oreo and below. We only set the orientation on Oreo and above. This only affects the
-        // splash screen and Chrome will still respect the orientation.
+        // Setting orientation for Android O and above
+        // This only affects the splash screen and Chrome will still respect the orientation.
         // See https://github.com/GoogleChromeLabs/bubblewrap/issues/496 for details.
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
-        } else {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            getWindow().getAttributes().screenOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                // Permission not granted, request it
-                Application.requestNotificationPermission(this);
-                return; // Don't proceed until permission is handled
+        // Show splash screen first
+        launchTwa();
+
+        // Delay for splash screen visibility
+        android.os.Handler handler = new android.os.Handler(getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                splashShown = true;
+                // Check and request permissions if needed
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(LauncherActivity.this, Manifest.permission.POST_NOTIFICATIONS)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        Application.requestNotificationPermission(LauncherActivity.this);
+                        return;
+                    }
+                }
+                permissionHandled = true;
+                launchTwa();
             }
-        }
-        permissionHandled = true;
-        launchTwa(); // Launch TWA if permission granted or not needed
+        }, 500); // 500ms delay for splash screen
     }
 
     @Override
@@ -64,22 +70,29 @@ public class LauncherActivity
         Uri uri = super.getLaunchingUrl();
         return uri;
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == Application.NOTIFICATION_PERMISSION_CODE) {
-            permissionHandled = true;
-            // Now that permission is handled, launch TWA
-            launchTwa();
-        }
+@Override
+public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    if (requestCode == Application.NOTIFICATION_PERMISSION_CODE) {
+        permissionHandled = true;
+        launchTwa();
     }
+}
+
 @Override
 protected void launchTwa() {
-    if (!permissionHandled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        // Don't launch until permission is handled
+    if (!splashShown) {
+        // First call - just show splash screen
+        super.launchTwa();
         return;
     }
-    super.launchTwa();
+
+    // Second call - only proceed if permission is handled
+    if (!permissionHandled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        return;
     }
+
+    // Permission is handled or not needed, load URL
+    super.launchTwa();
+}
 }
