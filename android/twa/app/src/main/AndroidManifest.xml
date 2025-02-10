@@ -171,6 +171,10 @@
                     android:resource="@drawable/ic_notification_icon" />
     
                 <meta-data
+                    android:name="android.support.customtabs.trusted.NOTIFICATION_CHANNEL_NAME"
+                    android:value="TouchBase Notifications" />
+    
+                <meta-data
                     android:name="android.support.customtabs.trusted.NOTIFICATION_CHANNEL_ID"
                     android:value="touchbase_channel" />
             
