@@ -19,9 +19,13 @@ import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.content.SharedPreferences;
 
 public class LauncherActivity
         extends com.google.androidbrowserhelper.trusted.LauncherActivity {
+
+    private static final String PREFS_NAME = "TouchBasePrefs";
+    private static final String PREF_FIRST_RUN = "firstRun";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +38,20 @@ public class LauncherActivity
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        }
+
+        // Check if this is the first run
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        boolean isFirstRun = prefs.getBoolean(PREF_FIRST_RUN, true);
+
+        if (isFirstRun) {
+            // Request notification permission on first run
+            Application.requestNotificationPermission(this);
+
+            // Mark first run complete
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean(PREF_FIRST_RUN, false);
+            editor.apply();
         }
     }
 
