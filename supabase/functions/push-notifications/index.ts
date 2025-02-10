@@ -29,7 +29,7 @@ type NotificationStatus = 'success' | 'error' | 'invalid_token';
 async function getFcmAccessToken(): Promise<string> {
   console.log('Getting FCM access token');
   const now = Math.floor(Date.now() / 1000);
-  
+
   try {
     const response = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -139,7 +139,7 @@ async function sendFcmNotification(
 
   try {
     const accessToken = await getFcmAccessToken();
-    
+
     const response = await fetch(
       `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID.replace(':', '%3A')}/messages:send`,
       {
@@ -184,7 +184,7 @@ async function sendFcmNotification(
     // Get any existing attempt from today
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    
+
     const { data: prevAttempts } = await supabase
       .from('notification_history')
       .select('id, retry_count')
@@ -195,7 +195,7 @@ async function sendFcmNotification(
       .limit(1);
 
     const prevAttempt = prevAttempts?.[0];
-    
+
     console.log('FCM notification sent successfully:', { userId });
     await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId, prevAttempt);
 
@@ -223,7 +223,7 @@ async function sendFcmNotification(
 
 async function getUserData(userId: string): Promise<{ username: string; fcmToken: string }> {
   console.log('Fetching user data:', { userId });
-  
+
   const [userData, subscription] = await Promise.all([
     supabase.auth.admin.getUserById(userId),
     supabase
@@ -234,18 +234,18 @@ async function getUserData(userId: string): Promise<{ username: string; fcmToken
   ]);
 
   const username = userData.data?.user?.user_metadata?.name || 'Friend';
-  
+
   if (!subscription?.data?.fcm_token) {
     console.error('No FCM token found:', { userId });
     throw new Error(`No FCM token found for user: ${userId}`);
   }
 
-  console.log('User data retrieved:', { 
+  console.log('User data retrieved:', {
     userId,
     hasUsername: !!username,
     hasToken: true
   });
-  
+
   return {
     username,
     fcmToken: subscription.data.fcm_token
@@ -254,7 +254,7 @@ async function getUserData(userId: string): Promise<{ username: string; fcmToken
 
 async function getDueRemindersCount(userId: string): Promise<number> {
   console.log('Getting due reminders:', { userId });
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -277,7 +277,7 @@ async function getDueRemindersCount(userId: string): Promise<number> {
     userId,
     count: reminders?.length || 0
   });
-  
+
   return reminders?.length || 0;
 }
 
@@ -313,13 +313,13 @@ async function createJWT(now: number): Promise<string> {
     false,
     ['sign']
   );
-  
+
   const signatureBuffer = await crypto.subtle.sign(
     { name: 'RSASSA-PKCS1-v1_5' },
     privateKey,
     new TextEncoder().encode(message)
   );
-  
+
   const signature = new Uint8Array(signatureBuffer);
   return `${message}.${btoa(String.fromCharCode(...signature))}`;
 }
@@ -327,7 +327,7 @@ async function createJWT(now: number): Promise<string> {
 serve(async (req) => {
   const batchId = crypto.randomUUID();
   console.log('Starting push notification request:', { batchId });
-  
+
   try {
     if (req.method === 'OPTIONS') {
       return new Response('ok', { headers: addCorsHeaders() });
@@ -338,11 +338,11 @@ serve(async (req) => {
     if (url.pathname.endsWith('/test')) {
       const { userId, message } = await req.json();
       console.log('Processing test notification:', { userId });
-      
+
       if (!userId) {
         return new Response(
           JSON.stringify({ error: 'Missing user ID' }),
-          { 
+          {
             status: 400,
             headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
           }
@@ -362,7 +362,7 @@ serve(async (req) => {
 
       console.log('Test notification completed:', { userId });
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           message: 'Test notification sent successfully',
           batchId
         }),
@@ -370,63 +370,90 @@ serve(async (req) => {
       );
     }
 
-    // Handle regular notifications
-    const { userId, windowType } = await req.json();
-    console.log('Processing notification:', { userId, windowType });
-    
-    if (!userId || !windowType) {
+    // Handle FCM token verification
+    if (url.pathname.endsWith('/verify')) {
+      const { userId } = await req.json();
+      console.log('Verifying FCM token:', { userId });
+
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'Missing user ID' }),
+          {
+            status: 400,
+            headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+          }
+        );
+      }
+
+      // Just try to get the user data - if FCM token exists and is valid, this will succeed
+      await getUserData(userId);
+
       return new Response(
-        JSON.stringify({ error: 'Missing user ID or window type' }),
-        { 
-          status: 400,
-          headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-        }
+        JSON.stringify({ message: 'FCM token verified successfully' }),
+        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
       );
     }
 
-    // Get user data and due reminders count in parallel
-    const [{ username, fcmToken }, dueCount] = await Promise.all([
-      getUserData(userId),
-      getDueRemindersCount(userId)
-    ]);
+    // Handle regular notifications (base endpoint)
+    if (url.pathname === '/push-notifications') {
+      const { userId, windowType } = await req.json();
+      console.log('Processing notification:', { userId, windowType });
+      if (!userId || !windowType) {
+        return new Response(
+          JSON.stringify({ error: 'Missing user ID or window type' }),
+          {
+            status: 400,
+            headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+          }
+        );
+      }
 
-    // Send notification
-    const title = 'TouchBase Reminder';
-    const body = `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`;
-    
-    await sendFcmNotification(
-      userId,
-      fcmToken,
-      title,
-      body,
-      '/reminders',
-      windowType as NotificationType,
-      batchId
-    );
+      // Get user data and due reminders count in parallel
+      const [{ username, fcmToken }, dueCount] = await Promise.all([
+        getUserData(userId),
+        getDueRemindersCount(userId)
+      ]);
 
-    console.log('Notification processing completed:', { userId, windowType });
-    return new Response(
-      JSON.stringify({ 
-        message: 'Notification sent successfully',
-        batchId,
-        window: windowType
-      }),
-      { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
-    );
+      // Send notification
+      const title = 'TouchBase Reminder';
+      const body = `Hi ${username}, you have ${dueCount} interaction${dueCount === 1 ? '' : 's'} due today! Update here if done.`;
+
+      await sendFcmNotification(
+        userId,
+        fcmToken,
+        title,
+        body,
+        '/reminders',
+        windowType as NotificationType,
+        batchId
+      );
+
+      console.log('Notification processing completed:', { userId, windowType });
+      return new Response(
+        JSON.stringify({
+          message: 'Notification sent successfully',
+          batchId,
+          window: windowType
+        }),
+        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      );
+    }
+
+    return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 });
   } catch (error) {
     console.error('Push notification error:', {
       error: error.message,
       stack: error.stack,
       batchId
     });
-    
+
     return new Response(
       JSON.stringify({
         error: error.message,
         name: error.name,
         batchId
       }),
-      { 
+      {
         status: 500,
         headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
       }

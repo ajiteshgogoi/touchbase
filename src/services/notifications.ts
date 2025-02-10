@@ -209,7 +209,7 @@ class NotificationService {
       }
 
       // If we have a token, verify it with the server
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
