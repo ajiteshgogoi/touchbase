@@ -42,9 +42,10 @@ jobs:
             --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
             --silent)
           
-          # Check for errors
-          if echo "$response" | jq -e 'has("error")' > /dev/null; then
-            echo "Error getting users: $(echo "$response" | jq -r '.error')"
+          # Check response type
+          if ! echo "$response" | jq -e 'type == "array"' > /dev/null; then
+            error_msg=$(echo "$response" | jq -r '.error // "Unknown error"')
+            echo "Error getting users: $error_msg"
             echo "Details: $(echo "$response" | jq -r '.details // "No details provided"')"
             exit 1
           fi
@@ -57,6 +58,12 @@ jobs:
       - name: Process users in batches
         if: success()
         run: |
+          total=$(cat eligible_users.json | jq '. | length')
+          if [ "$total" -eq 0 ]; then
+            echo "No eligible users found, skipping processing"
+            exit 0
+          fi
+
           total_processed=0
           batch_num=1
           
@@ -80,7 +87,10 @@ jobs:
                 --data "{\"userId\": \"$user_id\", \"windowType\": \"$window_type\"}" \
                 --silent)
 
-              if echo "$response" | jq -e "has(\"error\")" > /dev/null; then
+              # Check response type
+              if ! echo "$response" | jq -e "type == \"object\" and (.message != null or .error != null)" > /dev/null; then
+                echo "Invalid response format for user $user_id"
+              elif echo "$response" | jq -e ".error" > /dev/null; then
                 echo "Error processing user $user_id: $(echo "$response" | jq -r ".error")"
               fi
             '

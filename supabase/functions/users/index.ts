@@ -56,39 +56,51 @@ serve(async (req) => {
     // Create set of notified user IDs for efficient lookup
     const notifiedUserIds = new Set(notifiedUsers?.map(u => u.user_id) || []);
 
-    // Get users with valid FCM tokens and timezone preferences
-    const { data: users, error: usersError } = await supabase
+    // Get users with valid FCM tokens
+    const { data: subscriptions, error: subsError } = await supabase
       .from('push_subscriptions')
-      .select(`
-        user_id,
-        fcm_token,
-        preferences:user_preferences(timezone)
-      `)
+      .select('user_id, fcm_token')
       .not('fcm_token', 'is', null);
 
-    if (usersError) {
-      console.error('Error fetching users:', usersError);
-      throw usersError;
+    if (subsError) {
+      console.error('Error fetching subscriptions:', subsError);
+      throw subsError;
     }
 
-    if (!users) {
-      console.log('No users found');
+    if (!subscriptions?.length) {
+      console.log('No subscribed users found');
       return new Response(
         JSON.stringify([]),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    // Get user preferences
+    const { data: preferences, error: prefError } = await supabase
+      .from('user_preferences')
+      .select('user_id, timezone')
+      .in('user_id', subscriptions.map(s => s.user_id));
+
+    if (prefError) {
+      console.error('Error fetching preferences:', prefError);
+      throw prefError;
+    }
+
+    // Create map of user preferences for efficient lookup
+    const preferenceMap = new Map(
+      preferences?.map(p => [p.user_id, p.timezone]) || []
+    );
+
     // Filter users who:
     // 1. Haven't been notified today
     // 2. Are in their notification window
-    const eligibleUsers = users.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
+    const eligibleUsers = subscriptions.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, sub) => {
       // Skip if already notified today
-      if (notifiedUserIds.has(user.user_id)) {
+      if (notifiedUserIds.has(sub.user_id)) {
         return acc;
       }
 
-      const timezone = user.preferences?.timezone || 'UTC';
+      const timezone = preferenceMap.get(sub.user_id) || 'UTC';
       const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
       const currentHour = userTime.getHours();
       
@@ -100,7 +112,7 @@ serve(async (req) => {
 
       if (currentWindow) {
         acc.push({
-          userId: user.user_id,
+          userId: sub.user_id,
           windowType: currentWindow.type
         });
       }
