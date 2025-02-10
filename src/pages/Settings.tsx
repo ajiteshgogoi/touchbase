@@ -315,8 +315,12 @@ export const Settings = () => {
                     onClick={async () => {
                       try {
                         setIsSubscribing(true);
+                        // Check if Google Play Billing is properly initialized in TWA
+                        if (platform.isAndroid() && !window.google?.payments?.subscriptions?.subscribe) {
+                          throw new Error('Google Play Billing is not available. Please try refreshing the app.');
+                        }
                         await paymentService.createSubscription('premium');
-                        // Success toast will be shown after PayPal redirect and activation
+                        // Success toast will be shown after PayPal redirect or Google Play purchase
                       } catch (error: any) {
                         console.error('Subscription error:', error);
                         toast.error(error?.message || 'Failed to create subscription');
@@ -364,7 +368,20 @@ export const Settings = () => {
                       </button>
                     ) : subscription?.status === 'canceled' && (
                       <button
-                        onClick={handleResumeSubscription}
+                        onClick={async () => {
+                          try {
+                            setIsSubscribing(true);
+                            // Check if Google Play Billing is properly initialized in TWA
+                            if (platform.isAndroid() && !window.google?.payments?.subscriptions?.subscribe) {
+                              throw new Error('Google Play Billing is not available. Please try refreshing the app.');
+                            }
+                            await handleResumeSubscription();
+                          } catch (error: any) {
+                            console.error('Resume subscription error:', error);
+                            toast.error(error?.message || 'Failed to resume subscription');
+                            setIsSubscribing(false);
+                          }
+                        }}
                         disabled={isSubscribing}
                         className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >

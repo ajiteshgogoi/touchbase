@@ -11,11 +11,9 @@ declare global {
 
 export const platform = {
   isAndroid(): boolean {
-    return (
-      // Check if running in TWA
-      (window.chrome?.app?.window !== undefined || 
-       document.referrer.includes('android-app://')) &&
-      // Verify Android
+    // More reliable check - verify if Google Play Billing is available
+    return !!(
+      window.google?.payments?.subscriptions?.subscribe &&
       /Android/i.test(navigator.userAgent)
     );
   },
