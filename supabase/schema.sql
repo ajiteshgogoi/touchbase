@@ -98,6 +98,7 @@ create table public.notification_history (
     status notification_status not null default 'success',
     error_message text,
     batch_id uuid,
+    retry_count integer default 0,
     created_at timestamp with time zone default now()
 );
 
@@ -109,6 +110,7 @@ create index if not exists idx_notification_status on public.notification_histor
 comment on column public.notification_history.status is 'Status of the notification attempt';
 comment on column public.notification_history.error_message is 'Error message if notification failed';
 comment on column public.notification_history.batch_id is 'UUID to group notifications processed in the same batch';
+comment on column public.notification_history.retry_count is 'Number of retry attempts for failed notifications';
 
 create table public.contact_analytics (
     id uuid default uuid_generate_v4() primary key,
