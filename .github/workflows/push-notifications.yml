@@ -46,8 +46,15 @@ jobs:
             exit 1
           fi
           
+          # Store users for next step
+          echo "$response" > eligible_users.json
+          echo "Found $(echo "$response" | jq '. | length') eligible users"
+
+      - name: Process users
+        if: success()
+        run: |
           # Process users in configurable batches
-          echo "$response" | \
+          cat eligible_users.json | \
           jq -c ". | _nwise($BATCH_SIZE)" | while read -r batch; do
             echo "Processing batch of users..."
             
