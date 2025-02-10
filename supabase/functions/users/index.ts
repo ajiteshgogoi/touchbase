@@ -38,23 +38,18 @@ serve(async (req) => {
     console.log('Starting notification eligibility check');
     
     const now = new Date();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
+    console.log('Fetching notification history');
 
-    console.log('Fetching notification history', {
-      from: todayStart.toISOString(),
-      windowTypes: NOTIFICATION_WINDOWS.map(w => w.type)
-    });
+    // Get all notifications from the last 24 hours to account for different timezones
+    const oneDayAgo = new Date(now);
+    oneDayAgo.setHours(oneDayAgo.getHours() - 24);
 
-    // Get today's notifications to exclude already notified users
-    // Get users who were successfully notified or reached max retries
-    const { data: notifiedUsers, error: notifiedError } = await supabase
+    // Get notifications for all users
+    const { data: notifications, error: notifiedError } = await supabase
       .from('notification_history')
-      .select('user_id, status, retry_count')
-      .gte('sent_at', todayStart.toISOString())
+      .select('user_id, status, retry_count, sent_at')
+      .gte('sent_at', oneDayAgo.toISOString())
       .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
-      .neq('status', 'success') // Include only non-successful notifications
-      .lt('retry_count', 2) // Allow up to 2 retries (3 total attempts)
       .order('sent_at', { ascending: false }); // Get latest attempt
 
     if (notifiedError) {
@@ -65,12 +60,17 @@ serve(async (req) => {
       throw notifiedError;
     }
 
-    console.log('Notification history results:', {
-      notifiedCount: notifiedUsers?.length || 0
+    // Group notifications by user ID for efficient lookup
+    const notificationsByUser = new Map();
+    notifications?.forEach(notification => {
+      const existing = notificationsByUser.get(notification.user_id) || [];
+      notificationsByUser.set(notification.user_id, [...existing, notification]);
     });
 
-    // Create set of notified user IDs for efficient lookup
-    const notifiedUserIds = new Set(notifiedUsers?.map(u => u.user_id) || []);
+    console.log('Notification history results:', {
+      totalNotifications: notifications?.length || 0,
+      uniqueUsers: notificationsByUser.size
+    });
 
     console.log('Fetching push subscriptions');
     // Get users with valid FCM tokens
@@ -174,13 +174,30 @@ serve(async (req) => {
     }
 
     const eligibleUsers = subscriptions.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, sub) => {
-      // Skip if already notified today
-      if (notifiedUserIds.has(sub.user_id)) {
-        return acc;
-      }
-
       const timezone = preferenceMap.get(sub.user_id) || 'UTC';
       const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+      
+      // Get start of day in user's timezone
+      const userTodayStart = new Date(userTime);
+      userTodayStart.setHours(0, 0, 0, 0);
+      
+      // Check notifications for this user
+      const userNotifications = notificationsByUser.get(sub.user_id) || [];
+      
+      // Find notifications from today in user's timezone
+      const todayNotifications = userNotifications.filter(notification => {
+        const notificationTime = new Date(notification.sent_at);
+        const userNotificationTime = new Date(notificationTime.toLocaleString('en-US', { timeZone: timezone }));
+        return userNotificationTime >= userTodayStart;
+      });
+
+      // Check if user has successful notification today or hit retry limit
+      const hasSuccessToday = todayNotifications.some(n => n.status === 'success');
+      const hasMaxRetries = todayNotifications.some(n => n.retry_count >= 2);
+      
+      if (hasSuccessToday || hasMaxRetries) {
+        return acc;
+      }
       const currentHour = userTime.getHours();
       
       // Find appropriate notification window
@@ -211,10 +228,14 @@ serve(async (req) => {
       totalEligible: eligibleUsers.length,
       windowTypes: [...new Set(eligibleUsers.map(u => u.windowType))],
       skippedUsers: {
-        alreadyNotified: notifiedUsers?.length || 0,
+        alreadyNotified: notifications?.filter(n => n.status === 'success').length || 0,
+        maxRetries: notifications?.filter(n => n.retry_count >= 2).length || 0,
         noDueReminders: currentWindows.some(w => w.requiresDueReminders) ?
-          subscriptions.length - eligibleUsers.length - (notifiedUsers?.length || 0) : 0
-      }
+          subscriptions.length - eligibleUsers.length - (
+            notifications?.filter(n => n.status === 'success' || n.retry_count >= 2).length || 0
+          ) : 0
+      },
+      timezones: [...new Set(eligibleUsers.map(u => preferenceMap.get(u.userId) || 'UTC'))]
     });
     
     return new Response(
