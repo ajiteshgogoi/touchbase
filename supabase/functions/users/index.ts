@@ -144,15 +144,24 @@ serve(async (req) => {
     
     if (currentWindows.some(w => w.requiresDueReminders)) {
       console.log('Fetching due reminders for users');
-      // Get start of day in UTC since due_date is stored in UTC
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
-
+      
       const { data: dueReminders, error: remindersError } = await supabase
         .from('reminders')
-        .select('user_id')
-        .eq('completed', false)
-        .lte('due_date', today.toISOString());
+        .select('user_id, due_date')
+        .eq('completed', false);
+
+      // Filter reminders based on user's timezone
+      const dueRemindersFiltered = dueReminders?.filter(reminder => {
+        const timezone = preferenceMap.get(reminder.user_id) || 'UTC';
+        const userToday = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+        userToday.setHours(0, 0, 0, 0);
+        
+        const dueDate = new Date(reminder.due_date);
+        const userDueDate = new Date(dueDate.toLocaleString('en-US', { timeZone: timezone }));
+        userDueDate.setHours(0, 0, 0, 0);
+        
+        return userDueDate <= userToday;
+      });
 
       if (remindersError) {
         console.error('Error fetching due reminders:', {
@@ -162,8 +171,8 @@ serve(async (req) => {
         throw remindersError;
       }
 
-      // Count due reminders per user
-      dueReminders?.forEach(reminder => {
+      // Count due reminders per user from filtered results
+      dueRemindersFiltered?.forEach(reminder => {
         dueRemindersMap.set(
           reminder.user_id,
           (dueRemindersMap.get(reminder.user_id) || 0) + 1
@@ -172,7 +181,9 @@ serve(async (req) => {
 
       console.log('Due reminders found:', {
         usersWithDue: dueRemindersMap.size,
-        totalDue: dueReminders?.length || 0
+        totalDue: dueRemindersFiltered?.length || 0,
+        totalReminders: dueReminders?.length || 0,
+        message: 'Filtered by user timezone'
       });
     }
 
