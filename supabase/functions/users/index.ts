@@ -41,42 +41,43 @@ serve(async (req) => {
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
 
-    // Get users who:
-    // 1. Have valid FCM tokens
-    // 2. Haven't been notified today
-    // 3. Have timezone preferences set
-    const { data: users, error } = await supabase
+    // First get all users with valid FCM tokens and timezone preferences
+    const { data: users, error: usersError } = await supabase
       .from('push_subscriptions')
       .select(`
         user_id,
+        fcm_token,
         user_preferences!inner(timezone)
       `)
-      .not('fcm_token', 'is', null)
-      .not(
-        'user_id', 'in',
-        supabase
-          .from('notification_history')
-          .select('user_id')
-          .gte('sent_at', todayStart.toISOString())
-          .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
-      );
+      .not('fcm_token', 'is', null);
 
-    if (error) {
-      console.error('Error fetching users:', error);
-      throw error;
+    if (usersError) {
+      console.error('Error fetching users:', usersError);
+      throw usersError;
     }
 
-    if (!users) {
-      console.log('No users found');
-      return new Response(
-        JSON.stringify([]),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+    // Get users who have already been notified today
+    const { data: notifiedUsers, error: notifiedError } = await supabase
+      .from('notification_history')
+      .select('user_id')
+      .gte('sent_at', todayStart.toISOString())
+      .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type));
+
+    if (notifiedError) {
+      console.error('Error fetching notified users:', notifiedError);
+      throw notifiedError;
     }
 
-    // Filter users who are currently in their notification window
-    // and include the window type for each user
-    const eligibleUsers = users.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
+    // Create set of notified user IDs for efficient lookup
+    const notifiedUserIds = new Set(notifiedUsers?.map(u => u.user_id) || []);
+
+    // Filter users who haven't been notified today and are in their notification window
+    const eligibleUsers = users?.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
+      // Skip if already notified today
+      if (notifiedUserIds.has(user.user_id)) {
+        return acc;
+      }
+
       const timezone = user.user_preferences?.timezone || 'UTC';
       const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
       const currentHour = userTime.getHours();
@@ -97,10 +98,10 @@ serve(async (req) => {
       return acc;
     }, []);
 
-    console.log(`Found ${eligibleUsers.length} users eligible for notifications`);
+    console.log(`Found ${eligibleUsers?.length || 0} users eligible for notifications`);
     
     return new Response(
-      JSON.stringify(eligibleUsers),
+      JSON.stringify(eligibleUsers || []),
       { 
         headers: { 
           'Content-Type': 'application/json',
