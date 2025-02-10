@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.touchbasepro.twa",
+    "sha256_cert_fingerprints": [
+      "22:09:CE:65:3C:4A:31:08:43:52:69:B1:BB:3A:58:72:8F:A8:40:E2:F5:5B:8F:69:D9:AE:2E:60:9A:FC:A5:66"
+    ]
+  }
+}]
