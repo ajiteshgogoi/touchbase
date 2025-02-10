@@ -15,6 +15,12 @@ if (!FIREBASE_PROJECT_ID || !FIREBASE_PRIVATE_KEY || !FIREBASE_CLIENT_EMAIL) {
   throw new Error('Missing Firebase environment variables');
 }
 
+console.log('Firebase configuration:', {
+  projectId: FIREBASE_PROJECT_ID,
+  hasPrivateKey: !!FIREBASE_PRIVATE_KEY,
+  hasClientEmail: !!FIREBASE_CLIENT_EMAIL
+});
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 type NotificationType = 'morning' | 'afternoon' | 'evening';
@@ -30,7 +36,7 @@ async function getFcmAccessToken(): Promise<string> {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: createJWT(now)
+        assertion: await createJWT(now)
       })
     });
 
@@ -43,7 +49,12 @@ async function getFcmAccessToken(): Promise<string> {
       throw new Error(`OAuth token request failed: ${data.error_description || data.error || 'Unknown error'}`);
     }
 
-    console.log('FCM token acquired successfully');
+    console.log('FCM token response:', {
+      status: response.status,
+      tokenType: data.token_type,
+      expiresIn: data.expires_in,
+      scope: data.scope
+    });
     return data.access_token;
   } catch (error) {
     console.error('FCM token error:', error);
@@ -56,34 +67,59 @@ async function recordNotificationAttempt(
   windowType: NotificationType,
   status: NotificationStatus,
   error?: string,
-  batchId?: string
+  batchId?: string,
+  prevAttempt?: { id: number; retry_count: number }
 ): Promise<void> {
   try {
     console.log('Recording notification attempt:', {
       userId,
       windowType,
       status,
-      batchId
+      batchId,
+      retryCount: prevAttempt ? prevAttempt.retry_count + 1 : 0
     });
 
-    const { error: dbError } = await supabase
-      .from('notification_history')
-      .insert({
-        user_id: userId,
-        notification_type: windowType,
-        sent_at: new Date().toISOString(),
-        status: status,
-        error_message: error,
-        batch_id: batchId
-      });
+    if (prevAttempt) {
+      // Update existing attempt with incremented retry count
+      const { error: dbError } = await supabase
+        .from('notification_history')
+        .update({
+          status: status,
+          error_message: error,
+          retry_count: prevAttempt.retry_count + 1
+        })
+        .eq('id', prevAttempt.id);
 
-    if (dbError) {
-      console.error('Error recording notification attempt:', {
-        error: dbError,
-        details: dbError.message
-      });
+      if (dbError) {
+        console.error('Error updating notification attempt:', {
+          error: dbError,
+          details: dbError.message
+        });
+      } else {
+        console.log('Notification attempt updated successfully');
+      }
     } else {
-      console.log('Notification attempt recorded successfully');
+      // Create new attempt
+      const { error: dbError } = await supabase
+        .from('notification_history')
+        .insert({
+          user_id: userId,
+          notification_type: windowType,
+          sent_at: new Date().toISOString(),
+          status: status,
+          error_message: error,
+          batch_id: batchId,
+          retry_count: 0
+        });
+
+      if (dbError) {
+        console.error('Error recording notification attempt:', {
+          error: dbError,
+          details: dbError.message
+        });
+      } else {
+        console.log('Notification attempt recorded successfully');
+      }
     }
   } catch (err) {
     console.error('Failed to record notification attempt:', err);
@@ -100,12 +136,12 @@ async function sendFcmNotification(
   batchId?: string
 ): Promise<void> {
   console.log('Preparing FCM notification:', { userId, windowType, title });
-  
+
   try {
     const accessToken = await getFcmAccessToken();
     
     const response = await fetch(
-      `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/messages:send`,
+      `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID.replace(':', '%3A')}/messages:send`,
       {
         method: 'POST',
         headers: {
@@ -134,23 +170,40 @@ async function sendFcmNotification(
       }
     );
 
+    const responseData = await response.json();
     if (!response.ok) {
-      const error = await response.json();
       console.error('FCM API error:', {
         status: response.status,
-        error: error.error.message
+        responseData,
+        url: `https://fcm.googleapis.com/fcm/v1/projects/${FIREBASE_PROJECT_ID}/messages:send`,
+        projectId: FIREBASE_PROJECT_ID
       });
-      throw new Error(`FCM API error: ${error.error.message}`);
+      throw new Error(`FCM API error: ${responseData.error?.message || JSON.stringify(responseData)}`);
     }
 
+    // Get any existing attempt from today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const { data: prevAttempts } = await supabase
+      .from('notification_history')
+      .select('id, retry_count')
+      .eq('user_id', userId)
+      .eq('notification_type', windowType)
+      .gte('sent_at', todayStart.toISOString())
+      .order('sent_at', { ascending: false })
+      .limit(1);
+
+    const prevAttempt = prevAttempts?.[0];
+    
     console.log('FCM notification sent successfully:', { userId });
-    await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId);
+    await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId, prevAttempt);
 
   } catch (error) {
     if (error.message.includes('registration-token-not-registered')) {
       console.log('Invalid FCM token, removing subscription:', { userId });
       await Promise.all([
-        recordNotificationAttempt(userId, windowType, 'invalid_token', error.message, batchId),
+        recordNotificationAttempt(userId, windowType, 'invalid_token', error.message, batchId, prevAttempt),
         supabase
           .from('push_subscriptions')
           .delete()
@@ -228,7 +281,7 @@ async function getDueRemindersCount(userId: string): Promise<number> {
   return reminders?.length || 0;
 }
 
-function createJWT(now: number): string {
+async function createJWT(now: number): Promise<string> {
   const header = { alg: 'RS256', typ: 'JWT' };
   const payload = {
     iss: FIREBASE_CLIENT_EMAIL,
@@ -252,18 +305,22 @@ function createJWT(now: number): string {
     .replace('\n-----END PRIVATE KEY-----', '')
     .replace(/\n/g, '');
 
-  const signature = new Uint8Array(crypto.subtle.sign(
+  const privateKeyData = new Uint8Array(atob(base64Key).split('').map(c => c.charCodeAt(0)));
+  const privateKey = await crypto.subtle.importKey(
+    'pkcs8',
+    privateKeyData,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signatureBuffer = await crypto.subtle.sign(
     { name: 'RSASSA-PKCS1-v1_5' },
-    crypto.subtle.importKey(
-      'pkcs8',
-      new Uint8Array(atob(base64Key).split('').map(c => c.charCodeAt(0))),
-      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-      false,
-      ['sign']
-    ),
+    privateKey,
     new TextEncoder().encode(message)
-  ));
-
+  );
+  
+  const signature = new Uint8Array(signatureBuffer);
   return `${message}.${btoa(String.fromCharCode(...signature))}`;
 }
 
