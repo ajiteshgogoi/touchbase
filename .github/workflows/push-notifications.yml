@@ -1,5 +1,10 @@
 name: Push Notifications
 
+# Add concurrency control to prevent multiple workflows running simultaneously
+concurrency:
+  group: push-notifications
+  cancel-in-progress: false
+
 # Configuration
 # BATCH_SIZE: Number of users to process in each batch (default: 50)
 #   - Increase to process more users per batch if notifications are sending quickly
