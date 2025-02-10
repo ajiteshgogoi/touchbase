@@ -20,7 +20,16 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 type NotificationType = 'morning' | 'afternoon' | 'evening';
 type NotificationStatus = 'success' | 'error' | 'invalid_token';
 
+function logStep(step: string, data?: any) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${step}`);
+  if (data) {
+    console.log(`[${timestamp}] Data:`, JSON.stringify(data, null, 2));
+  }
+}
+
 async function getFcmAccessToken(): Promise<string> {
+  logStep('Getting FCM access token');
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: 'RS256', typ: 'JWT' };
   const payload = {
@@ -73,9 +82,10 @@ async function getFcmAccessToken(): Promise<string> {
       throw new Error(`OAuth token request failed: ${data.error_description || data.error || 'Unknown error'}`);
     }
 
+    logStep('FCM token acquired successfully');
     return data.access_token;
   } catch (error) {
-    console.error('FCM token error:', error);
+    logStep('FCM token error', error);
     throw error;
   }
 }
@@ -88,6 +98,8 @@ async function recordNotificationAttempt(
   batchId?: string
 ): Promise<void> {
   try {
+    logStep('Recording notification attempt', { userId, windowType, status, error, batchId });
+    
     const { error: dbError } = await supabase
       .from('notification_history')
       .insert({
@@ -100,10 +112,12 @@ async function recordNotificationAttempt(
       });
 
     if (dbError) {
-      console.error('Error recording notification attempt:', dbError);
+      logStep('Error recording notification attempt', dbError);
+    } else {
+      logStep('Notification attempt recorded successfully');
     }
   } catch (err) {
-    console.error('Failed to record notification attempt:', err);
+    logStep('Failed to record notification attempt', err);
   }
 }
 
@@ -116,6 +130,8 @@ async function sendFcmNotification(
   windowType: NotificationType,
   batchId?: string
 ): Promise<void> {
+  logStep('Sending FCM notification', { userId, windowType, title });
+  
   try {
     const accessToken = await getFcmAccessToken();
     
@@ -159,10 +175,12 @@ async function sendFcmNotification(
       throw new Error(`FCM API error: ${error.error.message}`);
     }
 
+    logStep('FCM notification sent successfully', { userId });
     await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId);
 
   } catch (error) {
     if (error.message.includes('registration-token-not-registered')) {
+      logStep('Invalid FCM token, removing subscription', { userId });
       await Promise.all([
         recordNotificationAttempt(userId, windowType, 'invalid_token', error.message, batchId),
         supabase
@@ -173,21 +191,15 @@ async function sendFcmNotification(
       throw new Error('FCM token invalid - resubscription required');
     }
 
+    logStep('Error sending FCM notification', { userId, error });
     await recordNotificationAttempt(userId, windowType, 'error', error.message, batchId);
     throw error;
   }
 }
 
-function addCorsHeaders(headers: Headers = new Headers()) {
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  return headers;
-}
-
 async function getUserData(userId: string): Promise<{ username: string; fcmToken: string }> {
+  logStep('Getting user data', { userId });
+  
   const [userData, subscription] = await Promise.all([
     supabase.auth.admin.getUserById(userId),
     supabase
@@ -200,9 +212,11 @@ async function getUserData(userId: string): Promise<{ username: string; fcmToken
   const username = userData.data?.user?.user_metadata?.name || 'Friend';
   
   if (!subscription?.data?.fcm_token) {
+    logStep('No FCM token found', { userId });
     throw new Error(`No FCM token found for user: ${userId}`);
   }
 
+  logStep('User data retrieved', { userId, hasToken: true });
   return {
     username,
     fcmToken: subscription.data.fcm_token
@@ -210,6 +224,8 @@ async function getUserData(userId: string): Promise<{ username: string; fcmToken
 }
 
 async function getDueRemindersCount(userId: string): Promise<number> {
+  logStep('Getting due reminders count', { userId });
+  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -221,15 +237,17 @@ async function getDueRemindersCount(userId: string): Promise<number> {
     .lte('due_date', today.toISOString());
 
   if (error) {
-    console.error('Error fetching reminders:', error);
+    logStep('Error fetching reminders', { userId, error });
     return 0;
   }
 
+  logStep('Due reminders count retrieved', { userId, count: reminders?.length || 0 });
   return reminders?.length || 0;
 }
 
 serve(async (req) => {
-  const batchId = crypto.randomUUID(); // Generate unique batch ID for tracking
+  const batchId = crypto.randomUUID();
+  logStep('Starting push notification request', { batchId });
   
   try {
     if (req.method === 'OPTIONS') {
@@ -240,6 +258,7 @@ serve(async (req) => {
     // Handle test notifications
     if (url.pathname.endsWith('/test')) {
       const { userId, message } = await req.json();
+      logStep('Processing test notification', { userId });
       
       if (!userId) {
         return new Response(
@@ -258,10 +277,11 @@ serve(async (req) => {
         'Test Notification',
         message || 'This is a test notification',
         '/reminders',
-        'morning', // Use morning as default for tests
+        'morning',
         batchId
       );
 
+      logStep('Test notification completed', { userId });
       return new Response(
         JSON.stringify({ 
           message: 'Test notification sent successfully',
@@ -273,6 +293,8 @@ serve(async (req) => {
 
     // Handle regular notifications
     const { userId, windowType } = await req.json();
+    logStep('Processing notification request', { userId, windowType });
+    
     if (!userId || !windowType) {
       return new Response(
         JSON.stringify({ error: 'Missing user ID or window type' }),
@@ -303,6 +325,7 @@ serve(async (req) => {
       batchId
     );
 
+    logStep('Notification processing completed', { userId, windowType });
     return new Response(
       JSON.stringify({ 
         message: 'Notification sent successfully',
@@ -312,7 +335,11 @@ serve(async (req) => {
       { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
     );
   } catch (error) {
-    console.error('Push notification error:', error);
+    logStep('Push notification error', {
+      error: error.message,
+      name: error.name,
+      batchId
+    });
     
     return new Response(
       JSON.stringify({
@@ -327,3 +354,12 @@ serve(async (req) => {
     );
   }
 });
+
+function addCorsHeaders(headers: Headers = new Headers()) {
+  headers.set('Access-Control-Allow-Origin', '*');
+  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  headers.set('Access-Control-Max-Age', '86400');
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  return headers;
+}
