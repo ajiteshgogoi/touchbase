@@ -204,7 +204,7 @@ serve(async (req) => {
       // Check if user has successful notification today for this window or hit retry limit
       const hasSuccessForWindow = todayWindowNotifications.some(n => n.status === 'success');
       const hasMaxRetriesForWindow = todayWindowNotifications.some(n => n.retry_count >= 2);
-      
+
       if (hasSuccessForWindow || hasMaxRetriesForWindow) {
         return acc;
       }
@@ -217,16 +217,16 @@ serve(async (req) => {
         }
       }
       const currentHour = userTime.getHours();
-      
+
       // Find appropriate notification window
-      const currentWindow = NOTIFICATION_WINDOWS.find(w => {
+      const userWindow = NOTIFICATION_WINDOWS.find(w => {
         const hourDiff = (currentHour - w.hour + 24) % 24;
         return hourDiff <= WINDOW_BUFFER_HOURS;
       });
 
-      if (currentWindow) {
+      if (userWindow) {
         // For windows requiring due reminders, check if user has any
-        if (currentWindow.requiresDueReminders) {
+        if (userWindow.requiresDueReminders) {
           const dueCount = dueRemindersMap.get(sub.user_id) || 0;
           if (dueCount === 0) {
             return acc; // Skip users with no due reminders for afternoon/evening windows
@@ -235,10 +235,10 @@ serve(async (req) => {
 
         acc.push({
           userId: sub.user_id,
-          windowType: currentWindow.type
+          windowType: userWindow.type
         });
       }
-      
+
       return acc;
     }, []);
 
