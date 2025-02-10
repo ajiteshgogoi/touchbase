@@ -20,7 +20,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 type NotificationType = 'morning' | 'afternoon' | 'evening';
 type NotificationStatus = 'success' | 'error' | 'invalid_token';
 
-// FCM OAuth token management
 async function getFcmAccessToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: 'RS256', typ: 'JWT' };
@@ -88,23 +87,26 @@ async function recordNotificationAttempt(
   error?: string,
   batchId?: string
 ): Promise<void> {
-  const { error: dbError } = await supabase
-    .from('notification_history')
-    .insert({
-      user_id: userId,
-      notification_type: windowType,
-      sent_at: new Date().toISOString(),
-      status: status,
-      error_message: error,
-      batch_id: batchId
-    });
+  try {
+    const { error: dbError } = await supabase
+      .from('notification_history')
+      .insert({
+        user_id: userId,
+        notification_type: windowType,
+        sent_at: new Date().toISOString(),
+        status: status,
+        error_message: error,
+        batch_id: batchId
+      });
 
-  if (dbError) {
-    console.error('Error recording notification attempt:', dbError);
+    if (dbError) {
+      console.error('Error recording notification attempt:', dbError);
+    }
+  } catch (err) {
+    console.error('Failed to record notification attempt:', err);
   }
 }
 
-// FCM notification sender
 async function sendFcmNotification(
   userId: string,
   fcmToken: string,
@@ -157,12 +159,10 @@ async function sendFcmNotification(
       throw new Error(`FCM API error: ${error.error.message}`);
     }
 
-    // Record successful notification
     await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId);
 
   } catch (error) {
     if (error.message.includes('registration-token-not-registered')) {
-      // Record invalid token and delete it
       await Promise.all([
         recordNotificationAttempt(userId, windowType, 'invalid_token', error.message, batchId),
         supabase
@@ -173,7 +173,6 @@ async function sendFcmNotification(
       throw new Error('FCM token invalid - resubscription required');
     }
 
-    // Record other errors
     await recordNotificationAttempt(userId, windowType, 'error', error.message, batchId);
     throw error;
   }
@@ -230,13 +229,13 @@ async function getDueRemindersCount(userId: string): Promise<number> {
 }
 
 serve(async (req) => {
+  const batchId = crypto.randomUUID(); // Generate unique batch ID for tracking
+  
   try {
     if (req.method === 'OPTIONS') {
       return new Response('ok', { headers: addCorsHeaders() });
     }
 
-    const batchId = crypto.randomUUID(); // Generate unique batch ID
-    
     const url = new URL(req.url);
     // Handle test notifications
     if (url.pathname.endsWith('/test')) {
@@ -277,7 +276,10 @@ serve(async (req) => {
     if (!userId || !windowType) {
       return new Response(
         JSON.stringify({ error: 'Missing user ID or window type' }),
-        { status: 400 }
+        { 
+          status: 400,
+          headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+        }
       );
     }
 
@@ -315,9 +317,13 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         error: error.message,
-        name: error.name
+        name: error.name,
+        batchId
       }),
-      { status: 500, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      { 
+        status: 500,
+        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+      }
     );
   }
 });

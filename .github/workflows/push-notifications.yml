@@ -33,31 +33,42 @@ jobs:
       - name: Get eligible users
         id: get-users
         run: |
-          # Get all eligible users first
-          # Returns array of objects with userId and windowType
-          users=$(curl --request GET \
+          # Get users eligible for notifications
+          response=$(curl --request GET \
             --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
             --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
             --silent)
           
+          # Check for errors
+          if echo "$response" | jq -e 'has("error")' > /dev/null; then
+            echo "Error getting users: $(echo "$response" | jq -r '.error')"
+            echo "Details: $(echo "$response" | jq -r '.details // "No details provided"')"
+            exit 1
+          fi
+          
           # Process users in configurable batches
-          echo "$users" | \
+          echo "$response" | \
           jq -c ". | _nwise($BATCH_SIZE)" | while read -r batch; do
             echo "Processing batch of users..."
             
             # Process users in batch with configured concurrency
             echo "$batch" | jq -c '.[]' | parallel -j "$CONCURRENT_NOTIFICATIONS" "
-              user_data=\$(echo {} | tr -d '\"')
+              user_data='{}'
               user_id=\$(echo \$user_data | jq -r '.userId')
               window_type=\$(echo \$user_data | jq -r '.windowType')
-              echo \"Processing user: \$user_id for window: \$window_type\"
+              echo \"Processing user \$user_id for window \$window_type\"
               
-              curl --request POST \
+              response=\$(curl --request POST \
                 --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
                 --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
                 --header 'Content-Type: application/json' \
-                --data '{\"userId\": \"\$user_id\", \"windowType\": \"\$window_type\"}' \
-                --silent
+                --data \"{\\\"userId\\\": \\\"\$user_id\\\", \\\"windowType\\\": \\\"\$window_type\\\"}\" \
+                --silent)
+              
+              # Check for errors in push notification
+              if echo \"\$response\" | jq -e 'has(\"error\")' > /dev/null; then
+                echo \"Error processing user \$user_id: \$(echo \"\$response\" | jq -r '.error')\"
+              fi
             "
             
             # Configurable delay between batches

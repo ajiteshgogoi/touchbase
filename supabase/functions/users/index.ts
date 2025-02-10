@@ -11,25 +11,16 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // Notification window configuration
-// Each window defines when notifications can be sent in the user's local timezone
-// - type: Identifier for the notification window
-// - hour: Hour in 24-hour format when this window starts
-// - requiresDueReminders: Whether notifications in this window require due reminders
-//
-// Adjust these windows based on your notification strategy:
-// - Add/remove windows for different notification frequencies
-// - Adjust hours based on user engagement patterns
-// - Modify requiresDueReminders based on notification urgency
 const NOTIFICATION_WINDOWS = [
   { type: 'morning', hour: 9, requiresDueReminders: false },
   { type: 'afternoon', hour: 14, requiresDueReminders: true },
   { type: 'evening', hour: 19, requiresDueReminders: true }
-];
+] as const;
 
-// Window buffer in hours
-// How much past the window's hour we'll still consider valid
-// Increase if GitHub Actions timing is inconsistent
-// Decrease for stricter timing adherence
+type NotificationWindow = typeof NOTIFICATION_WINDOWS[number];
+type NotificationType = NotificationWindow['type'];
+
+// Window buffer in hours - how long past the window's hour we'll still consider valid
 const WINDOW_BUFFER_HOURS = 2;
 
 serve(async (req) => {
@@ -55,7 +46,7 @@ serve(async (req) => {
     // 2. Haven't been notified today
     // 3. Have timezone preferences set
     const { data: users, error } = await supabase
-      .from('push_subscriptions AS ps')
+      .from('push_subscriptions')
       .select(`
         user_id,
         user_preferences!inner(timezone)
@@ -68,30 +59,39 @@ serve(async (req) => {
           .select('user_id')
           .gte('sent_at', todayStart.toISOString())
           .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
-      )
-      .order('user_id');
+      );
 
     if (error) {
       console.error('Error fetching users:', error);
       throw error;
     }
 
+    if (!users) {
+      console.log('No users found');
+      return new Response(
+        JSON.stringify([]),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Filter users who are currently in their notification window
     // and include the window type for each user
-    const eligibleUsers = users.reduce((acc: Array<{userId: string, windowType: string}>, user) => {
+    const eligibleUsers = users.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
       const timezone = user.user_preferences?.timezone || 'UTC';
       const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
       const currentHour = userTime.getHours();
       
-      for (const window of NOTIFICATION_WINDOWS) {
-        const hourDiff = (currentHour - window.hour + 24) % 24;
-        if (hourDiff <= WINDOW_BUFFER_HOURS) {
-          acc.push({
-            userId: user.user_id,
-            windowType: window.type
-          });
-          break; // User is only eligible for one window at a time
-        }
+      // Find appropriate notification window
+      const currentWindow = NOTIFICATION_WINDOWS.find(w => {
+        const hourDiff = (currentHour - w.hour + 24) % 24;
+        return hourDiff <= WINDOW_BUFFER_HOURS;
+      });
+
+      if (currentWindow) {
+        acc.push({
+          userId: user.user_id,
+          windowType: currentWindow.type
+        });
       }
       
       return acc;
@@ -101,13 +101,27 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify(eligibleUsers),
-      { headers: { 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        } 
+      }
     );
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('Error in users function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500 }
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
+      { 
+        status: 500,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      }
     );
   }
 });
