@@ -47,38 +47,34 @@ serve(async (req) => {
       .select(`
         user_id,
         fcm_token,
-        user_preferences!inner(timezone)
+        preferences:user_preferences(timezone)
       `)
-      .not('fcm_token', 'is', null);
+      .not('fcm_token', 'is', null)
+      .not('user_id', 'in', 
+        supabase
+          .from('notification_history')
+          .select('user_id')
+          .gte('sent_at', todayStart.toISOString())
+          .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
+      );
 
     if (usersError) {
       console.error('Error fetching users:', usersError);
       throw usersError;
     }
 
-    // Get users who have already been notified today
-    const { data: notifiedUsers, error: notifiedError } = await supabase
-      .from('notification_history')
-      .select('user_id')
-      .gte('sent_at', todayStart.toISOString())
-      .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type));
-
-    if (notifiedError) {
-      console.error('Error fetching notified users:', notifiedError);
-      throw notifiedError;
+    if (!users) {
+      console.log('No users found');
+      return new Response(
+        JSON.stringify([]),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Create set of notified user IDs for efficient lookup
-    const notifiedUserIds = new Set(notifiedUsers?.map(u => u.user_id) || []);
-
-    // Filter users who haven't been notified today and are in their notification window
-    const eligibleUsers = users?.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
-      // Skip if already notified today
-      if (notifiedUserIds.has(user.user_id)) {
-        return acc;
-      }
-
-      const timezone = user.user_preferences?.timezone || 'UTC';
+    // Filter users who are currently in their notification window
+    // and include the window type for each user
+    const eligibleUsers = users.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
+      const timezone = user.preferences?.timezone || 'UTC';
       const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
       const currentHour = userTime.getHours();
       
@@ -98,10 +94,10 @@ serve(async (req) => {
       return acc;
     }, []);
 
-    console.log(`Found ${eligibleUsers?.length || 0} users eligible for notifications`);
+    console.log(`Found ${eligibleUsers.length} users eligible for notifications`);
     
     return new Response(
-      JSON.stringify(eligibleUsers || []),
+      JSON.stringify(eligibleUsers),
       { 
         headers: { 
           'Content-Type': 'application/json',

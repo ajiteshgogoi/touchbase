@@ -48,38 +48,54 @@ jobs:
           
           # Store users for next step
           echo "$response" > eligible_users.json
-          echo "Found $(echo "$response" | jq '. | length') eligible users"
+          total=$(echo "$response" | jq '. | length')
+          echo "Found $total eligible users"
 
-      - name: Process users
+      - name: Process users in batches
         if: success()
         run: |
+          total_processed=0
+          batch_num=1
+          
           # Process users in configurable batches
           cat eligible_users.json | \
           jq -c ". | _nwise($BATCH_SIZE)" | while read -r batch; do
-            echo "Processing batch of users..."
+            batch_size=$(echo "$batch" | jq '. | length')
+            echo "Processing batch $batch_num ($batch_size users)..."
             
             # Process users in batch with configured concurrency
-            echo "$batch" | jq -c '.[]' | parallel -j "$CONCURRENT_NOTIFICATIONS" '
-              user_data={}
-              user_id=$(echo "$user_data" | jq -r ".userId")
-              window_type=$(echo "$user_data" | jq -r ".windowType")
-              echo "Processing user $user_id for window $window_type"
-              
-              response=$(curl --request POST \
-                --url "https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications" \
-                --header "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-                --header "Content-Type: application/json" \
-                --data "{\"userId\": \"$user_id\", \"windowType\": \"$window_type\"}" \
-                --silent)
-              
-              # Check for errors in push notification
-              if echo "$response" | jq -e "has(\"error\")" > /dev/null; then
-                echo "Error processing user $user_id: $(echo "$response" | jq -r ".error")"
-              fi
-            '
+            echo "$batch" | jq -c '.[]' | while read -r user; do
+              sem -j "$CONCURRENT_NOTIFICATIONS" "
+                user_id=\$(echo '$user' | jq -r '.userId')
+                window_type=\$(echo '$user' | jq -r '.windowType')
+                
+                echo \"Processing user \$user_id for window \$window_type\"
+                response=\$(curl --request POST \
+                  --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
+                  --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
+                  --header 'Content-Type: application/json' \
+                  --data \"{\\\"userId\\\": \\\"\$user_id\\\", \\\"windowType\\\": \\\"\$window_type\\\"}\" \
+                  --silent)
+
+                if echo \"\$response\" | jq -e 'has(\"error\")' > /dev/null; then
+                  echo \"Error processing user \$user_id: \$(echo \"\$response\" | jq -r '.error')\"
+                fi
+              "
+            done
+            
+            # Wait for all parallel jobs in this batch to complete
+            sem --wait
+
+            # Update counters
+            total_processed=$((total_processed + batch_size))
+            batch_num=$((batch_num + 1))
+            echo "Completed batch. Total processed: $total_processed"
             
             # Configurable delay between batches
-            sleep "$BATCH_DELAY"
+            if [ "$total_processed" -lt "$total" ]; then
+              echo "Waiting $BATCH_DELAY seconds before next batch..."
+              sleep "$BATCH_DELAY"
+            fi
           done
 
       - name: Report completion
