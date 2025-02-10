@@ -12,6 +12,10 @@ concurrency:
   group: daily-check
   cancel-in-progress: false
 
+# Security controls
+permissions:
+  contents: read
+
 env:
   # Batch processing configuration for LLM rate limiting
   BATCH_SIZE: 40                     # Process 40 contacts at a time
@@ -25,7 +29,23 @@ env:
   RATE_LIMIT_STATUS_CODES: '429,503' # HTTP status codes that indicate rate limiting
 
 jobs:
+  verify-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository check
+        if: github.repository != 'ajiteshgogoi/touchbase'
+        run: |
+          echo "This workflow can only run in ajiteshgogoi/touchbase repository"
+          exit 1
+
+      - name: Fork check
+        if: github.event_name == 'workflow_dispatch' && github.repository_owner != 'ajiteshgogoi'
+        run: |
+          echo "Manual workflow execution is only allowed by repository owner ajiteshgogoi"
+          exit 1
+
   run-daily-check:
+    needs: verify-security
     runs-on: ubuntu-latest
     timeout-minutes: 45  # Extended timeout for reliable batch processing
 

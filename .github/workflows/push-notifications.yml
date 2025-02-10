@@ -25,13 +25,33 @@ on:
     - cron: '*/30 * * * *'
   workflow_dispatch:
 
+# Security controls
+permissions:
+  contents: read
+
 env:
   BATCH_SIZE: 50
   CONCURRENT_NOTIFICATIONS: 10
   BATCH_DELAY: 2
 
 jobs:
+  verify-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository check
+        if: github.repository != 'ajiteshgogoi/touchbase'
+        run: |
+          echo "This workflow can only run in ajiteshgogoi/touchbase repository"
+          exit 1
+
+      - name: Fork check
+        if: github.event_name == 'workflow_dispatch' && github.repository_owner != 'ajiteshgogoi'
+        run: |
+          echo "Manual workflow execution is only allowed by repository owner ajiteshgogoi"
+          exit 1
+
   trigger-push-notifications:
+    needs: verify-security
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
