@@ -144,11 +144,15 @@ serve(async (req) => {
     
     if (currentWindows.some(w => w.requiresDueReminders)) {
       console.log('Fetching due reminders for users');
+      // Get start of day in UTC since due_date is stored in UTC
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+
       const { data: dueReminders, error: remindersError } = await supabase
         .from('reminders')
         .select('user_id')
         .eq('completed', false)
-        .lte('due_date', todayStart.toISOString());
+        .lte('due_date', today.toISOString());
 
       if (remindersError) {
         console.error('Error fetching due reminders:', {
