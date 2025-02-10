@@ -47,9 +47,8 @@ serve(async (req) => {
     // Get notifications for all users
     const { data: notifications, error: notifiedError } = await supabase
       .from('notification_history')
-      .select('user_id, status, retry_count, sent_at')
+      .select('user_id, status, retry_count, sent_at, notification_type')
       .gte('sent_at', oneDayAgo.toISOString())
-      .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
       .order('sent_at', { ascending: false }); // Get latest attempt
 
     if (notifiedError) {
@@ -184,19 +183,38 @@ serve(async (req) => {
       // Check notifications for this user
       const userNotifications = notificationsByUser.get(sub.user_id) || [];
       
-      // Find notifications from today in user's timezone
-      const todayNotifications = userNotifications.filter(notification => {
-        const notificationTime = new Date(notification.sent_at);
-        const userNotificationTime = new Date(notificationTime.toLocaleString('en-US', { timeZone: timezone }));
-        return userNotificationTime >= userTodayStart;
+      // Find appropriate notification window
+      const currentWindow = NOTIFICATION_WINDOWS.find(w => {
+        const hourDiff = (userTime.getHours() - w.hour + 24) % 24;
+        return hourDiff <= WINDOW_BUFFER_HOURS;
       });
 
-      // Check if user has successful notification today or hit retry limit
-      const hasSuccessToday = todayNotifications.some(n => n.status === 'success');
-      const hasMaxRetries = todayNotifications.some(n => n.retry_count >= 2);
+      if (!currentWindow) {
+        return acc; // No current window
+      }
+
+      // Find notifications from today in user's timezone for the current window type
+      const todayWindowNotifications = userNotifications.filter(notification => {
+        const notificationTime = new Date(notification.sent_at);
+        const userNotificationTime = new Date(notificationTime.toLocaleString('en-US', { timeZone: timezone }));
+        return userNotificationTime >= userTodayStart &&
+               notification.notification_type === currentWindow.type;
+      });
+
+      // Check if user has successful notification today for this window or hit retry limit
+      const hasSuccessForWindow = todayWindowNotifications.some(n => n.status === 'success');
+      const hasMaxRetriesForWindow = todayWindowNotifications.some(n => n.retry_count >= 2);
       
-      if (hasSuccessToday || hasMaxRetries) {
+      if (hasSuccessForWindow || hasMaxRetriesForWindow) {
         return acc;
+      }
+
+      // For windows requiring due reminders, check if user has any
+      if (currentWindow.requiresDueReminders) {
+        const dueCount = dueRemindersMap.get(sub.user_id) || 0;
+        if (dueCount === 0) {
+          return acc; // Skip users with no due reminders for afternoon/evening windows
+        }
       }
       const currentHour = userTime.getHours();
       
@@ -224,16 +242,31 @@ serve(async (req) => {
       return acc;
     }, []);
 
+    // Group notifications by window type for logging
+    const notificationsByWindow = new Map<NotificationType, typeof notifications>();
+    NOTIFICATION_WINDOWS.forEach(w => {
+      notificationsByWindow.set(w.type, notifications?.filter(n => n.notification_type === w.type) || []);
+    });
+
     console.log('Eligibility check completed:', {
       totalEligible: eligibleUsers.length,
-      windowTypes: [...new Set(eligibleUsers.map(u => u.windowType))],
+      currentWindows: currentWindows.map(w => ({
+        type: w.type,
+        stats: {
+          total: notificationsByWindow.get(w.type)?.length || 0,
+          success: notificationsByWindow.get(w.type)?.filter(n => n.status === 'success').length || 0,
+          maxRetries: notificationsByWindow.get(w.type)?.filter(n => n.retry_count >= 2).length || 0
+        }
+      })),
       skippedUsers: {
-        alreadyNotified: notifications?.filter(n => n.status === 'success').length || 0,
-        maxRetries: notifications?.filter(n => n.retry_count >= 2).length || 0,
         noDueReminders: currentWindows.some(w => w.requiresDueReminders) ?
-          subscriptions.length - eligibleUsers.length - (
-            notifications?.filter(n => n.status === 'success' || n.retry_count >= 2).length || 0
-          ) : 0
+          subscriptions.length - eligibleUsers.length -
+          currentWindows.reduce((acc, w) => {
+            const windowNotifications = notificationsByWindow.get(w.type) || [];
+            return acc + windowNotifications.filter(n =>
+              n.status === 'success' || n.retry_count >= 2
+            ).length;
+          }, 0) : 0
       },
       timezones: [...new Set(eligibleUsers.map(u => preferenceMap.get(u.userId) || 'UTC'))]
     });
