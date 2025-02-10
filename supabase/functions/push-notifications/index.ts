@@ -137,21 +137,6 @@ async function sendFcmNotification(
 ): Promise<void> {
   console.log('Preparing FCM notification:', { userId, windowType, title });
 
-  // Get any existing attempt from today first, so it's available for both success and error cases
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const { data: prevAttempts } = await supabase
-    .from('notification_history')
-    .select('id, retry_count')
-    .eq('user_id', userId)
-    .eq('notification_type', windowType)
-    .gte('sent_at', todayStart.toISOString())
-    .order('sent_at', { ascending: false })
-    .limit(1);
-
-  const prevAttempt = prevAttempts?.[0];
-
   try {
     const accessToken = await getFcmAccessToken();
 
@@ -195,6 +180,21 @@ async function sendFcmNotification(
       });
       throw new Error(`FCM API error: ${responseData.error?.message || JSON.stringify(responseData)}`);
     }
+
+    // Get any existing attempt from today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const { data: prevAttempts } = await supabase
+      .from('notification_history')
+      .select('id, retry_count')
+      .eq('user_id', userId)
+      .eq('notification_type', windowType)
+      .gte('sent_at', todayStart.toISOString())
+      .order('sent_at', { ascending: false })
+      .limit(1);
+
+    const prevAttempt = prevAttempts?.[0];
 
     console.log('FCM notification sent successfully:', { userId });
     await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId, prevAttempt);
