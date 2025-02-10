@@ -10,6 +10,28 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// Notification window configuration
+// Each window defines when notifications can be sent in the user's local timezone
+// - type: Identifier for the notification window
+// - hour: Hour in 24-hour format when this window starts
+// - requiresDueReminders: Whether notifications in this window require due reminders
+//
+// Adjust these windows based on your notification strategy:
+// - Add/remove windows for different notification frequencies
+// - Adjust hours based on user engagement patterns
+// - Modify requiresDueReminders based on notification urgency
+const NOTIFICATION_WINDOWS = [
+  { type: 'morning', hour: 9, requiresDueReminders: false },
+  { type: 'afternoon', hour: 14, requiresDueReminders: true },
+  { type: 'evening', hour: 19, requiresDueReminders: true }
+];
+
+// Window buffer in hours
+// How much past the window's hour we'll still consider valid
+// Increase if GitHub Actions timing is inconsistent
+// Decrease for stricter timing adherence
+const WINDOW_BUFFER_HOURS = 2;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -22,59 +44,64 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Fetching users with FCM tokens');
+    console.log('Fetching users needing notifications');
     
-    // Get total count of FCM tokens for debugging
-    const { count: totalCount, error: countError } = await supabase
-      .from('push_subscriptions')
-      .select('fcm_token', { count: 'exact' })
-      .not('fcm_token', 'is', null);
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
 
-    if (countError) {
-      console.error('Error getting total count:', countError);
-    } else {
-      console.log(`Total FCM tokens in database: ${totalCount}`);
-    }
-
-    // Log token stats for debugging
-    const { data: tokenStats, error: statsError } = await supabase
-      .from('push_subscriptions')
-      .select('user_id, created_at');
-    
-    if (statsError) {
-      console.error('Error getting token stats:', statsError);
-    } else {
-      console.log('Token stats:', tokenStats.map(s => ({
-        user_id: s.user_id,
-        created_at: s.created_at
-      })));
-    }
-
-    // Get all users who have FCM tokens
+    // Get users who:
+    // 1. Have valid FCM tokens
+    // 2. Haven't been notified today
+    // 3. Have timezone preferences set
     const { data: users, error } = await supabase
-      .from('push_subscriptions')
-      .select('user_id, fcm_token')
-      .not('fcm_token', 'is', null);
+      .from('push_subscriptions AS ps')
+      .select(`
+        user_id,
+        user_preferences!inner(timezone)
+      `)
+      .not('fcm_token', 'is', null)
+      .not(
+        'user_id', 'in',
+        supabase
+          .from('notification_history')
+          .select('user_id')
+          .gte('sent_at', todayStart.toISOString())
+          .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
+      )
+      .order('user_id');
 
     if (error) {
       console.error('Error fetching users:', error);
       throw error;
     }
 
-    const userIds = users.map(u => u.user_id);
-    console.log(`Found ${userIds.length} users with active FCM tokens`);
-    
-    // Log FCM token details for debugging
-    users.forEach(user => {
-      console.log(`\nUser ${user.user_id}:`);
-      console.log('Has FCM token:', !!user.fcm_token);
-    });
-
-    return new Response(
-      JSON.stringify(userIds),
-      {
-        headers: { 'Content-Type': 'application/json' }
+    // Filter users who are currently in their notification window
+    // and include the window type for each user
+    const eligibleUsers = users.reduce((acc: Array<{userId: string, windowType: string}>, user) => {
+      const timezone = user.user_preferences?.timezone || 'UTC';
+      const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+      const currentHour = userTime.getHours();
+      
+      for (const window of NOTIFICATION_WINDOWS) {
+        const hourDiff = (currentHour - window.hour + 24) % 24;
+        if (hourDiff <= WINDOW_BUFFER_HOURS) {
+          acc.push({
+            userId: user.user_id,
+            windowType: window.type
+          });
+          break; // User is only eligible for one window at a time
+        }
       }
+      
+      return acc;
+    }, []);
+
+    console.log(`Found ${eligibleUsers.length} users eligible for notifications`);
+    
+    return new Response(
+      JSON.stringify(eligibleUsers),
+      { headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error fetching users:', error);

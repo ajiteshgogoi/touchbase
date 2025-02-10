@@ -1,34 +1,69 @@
 name: Push Notifications
 
+# Configuration
+# BATCH_SIZE: Number of users to process in each batch (default: 50)
+#   - Increase to process more users per batch if notifications are sending quickly
+#   - Decrease if you see timeouts or errors
+#   - Remember edge function has 60s timeout limit
+#
+# CONCURRENT_NOTIFICATIONS: Number of notifications to send in parallel within each batch (default: 10)
+#   - Increase for faster processing if Firebase can handle the load
+#   - Decrease if you see rate limiting or errors from Firebase
+#   - Keep significantly lower than BATCH_SIZE
+#
+# BATCH_DELAY: Delay in seconds between processing batches (default: 2)
+#   - Increase if you see rate limiting or system stress
+#   - Decrease for faster overall processing if system can handle it
+
 on:
   schedule:
-    # Runs every 30 minutes
     - cron: '*/30 * * * *'
-  # Allow manual triggers for testing
   workflow_dispatch:
+
+env:
+  BATCH_SIZE: 50
+  CONCURRENT_NOTIFICATIONS: 10
+  BATCH_DELAY: 2
 
 jobs:
   trigger-push-notifications:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 30 minutes timeout
+    timeout-minutes: 30
     steps:
-      - name: Get all user IDs
+      - name: Get eligible users
         id: get-users
         run: |
-          # Fetch and directly process users without storing in outputs
-          curl --request GET \
+          # Get all eligible users first
+          # Returns array of objects with userId and windowType
+          users=$(curl --request GET \
             --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
             --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
-            --silent | \
-          jq -c '.[]' | while read -r user_id; do
-            # Remove quotes from user_id
-            user_id=$(echo $user_id | tr -d '"')
-            echo "Processing user: $user_id"
+            --silent)
+          
+          # Process users in configurable batches
+          echo "$users" | \
+          jq -c ". | _nwise($BATCH_SIZE)" | while read -r batch; do
+            echo "Processing batch of users..."
             
-            response=$(curl --request POST \
-              --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
-              --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
-              --header 'Content-Type: application/json' \
-              --data "{\"userId\": \"$user_id\"}")
-            echo "Push notification response for $user_id: $response"
+            # Process users in batch with configured concurrency
+            echo "$batch" | jq -c '.[]' | parallel -j "$CONCURRENT_NOTIFICATIONS" "
+              user_data=\$(echo {} | tr -d '\"')
+              user_id=\$(echo \$user_data | jq -r '.userId')
+              window_type=\$(echo \$user_data | jq -r '.windowType')
+              echo \"Processing user: \$user_id for window: \$window_type\"
+              
+              curl --request POST \
+                --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
+                --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
+                --header 'Content-Type: application/json' \
+                --data '{\"userId\": \"\$user_id\", \"windowType\": \"\$window_type\"}' \
+                --silent
+            "
+            
+            # Configurable delay between batches
+            sleep "$BATCH_DELAY"
           done
+
+      - name: Report completion
+        if: success()
+        run: echo "Push notification processing completed successfully"

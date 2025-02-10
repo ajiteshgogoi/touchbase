@@ -1,6 +1,9 @@
 -- Enable necessary extensions
 create extension if not exists "uuid-ossp";
 
+-- Add notification status enum type
+create type public.notification_status as enum ('success', 'error', 'invalid_token');
+
 -- Create tables with Row Level Security (RLS)
 create table public.contacts (
     id uuid primary key default uuid_generate_v4(),
@@ -92,8 +95,20 @@ create table public.notification_history (
     user_id uuid references auth.users not null,
     notification_type text not null check (notification_type in ('morning', 'afternoon', 'evening')),
     sent_at timestamp with time zone not null,
+    status notification_status not null default 'success',
+    error_message text,
+    batch_id uuid,
     created_at timestamp with time zone default now()
 );
+
+-- Add indexes for notification tracking
+create index if not exists idx_notification_batch on public.notification_history(batch_id);
+create index if not exists idx_notification_status on public.notification_history(status);
+
+-- Add column descriptions
+comment on column public.notification_history.status is 'Status of the notification attempt';
+comment on column public.notification_history.error_message is 'Error message if notification failed';
+comment on column public.notification_history.batch_id is 'UUID to group notifications processed in the same batch';
 
 create table public.contact_analytics (
     id uuid default uuid_generate_v4() primary key,
