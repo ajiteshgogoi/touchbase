@@ -39,6 +39,12 @@ TouchBase is an intelligent relationship management tool that helps you maintain
 - Processing: Supabase Edge Functions
 - Push Notifications: Web Push API
 
+## Policies & Standards
+
+TouchBase maintains strict policies to ensure user safety and prevent misuse:
+
+- [Child Sexual Abuse and Exploitation Prevention Policy](CSAE-POLICY.md)
+
 ## Support
 
 For bugs or feedback, please contact ajiteshgogoi@gmail.com.
