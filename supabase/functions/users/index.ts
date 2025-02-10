@@ -41,7 +41,22 @@ serve(async (req) => {
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
 
-    // First get all users with valid FCM tokens and timezone preferences
+    // Get today's notifications to exclude already notified users
+    const { data: notifiedUsers, error: notifiedError } = await supabase
+      .from('notification_history')
+      .select('user_id')
+      .gte('sent_at', todayStart.toISOString())
+      .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type));
+
+    if (notifiedError) {
+      console.error('Error fetching notified users:', notifiedError);
+      throw notifiedError;
+    }
+
+    // Create set of notified user IDs for efficient lookup
+    const notifiedUserIds = new Set(notifiedUsers?.map(u => u.user_id) || []);
+
+    // Get users with valid FCM tokens and timezone preferences
     const { data: users, error: usersError } = await supabase
       .from('push_subscriptions')
       .select(`
@@ -49,14 +64,7 @@ serve(async (req) => {
         fcm_token,
         preferences:user_preferences(timezone)
       `)
-      .not('fcm_token', 'is', null)
-      .not('user_id', 'in', 
-        supabase
-          .from('notification_history')
-          .select('user_id')
-          .gte('sent_at', todayStart.toISOString())
-          .in('notification_type', NOTIFICATION_WINDOWS.map(w => w.type))
-      );
+      .not('fcm_token', 'is', null);
 
     if (usersError) {
       console.error('Error fetching users:', usersError);
@@ -71,9 +79,15 @@ serve(async (req) => {
       );
     }
 
-    // Filter users who are currently in their notification window
-    // and include the window type for each user
+    // Filter users who:
+    // 1. Haven't been notified today
+    // 2. Are in their notification window
     const eligibleUsers = users.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
+      // Skip if already notified today
+      if (notifiedUserIds.has(user.user_id)) {
+        return acc;
+      }
+
       const timezone = user.preferences?.timezone || 'UTC';
       const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
       const currentHour = userTime.getHours();

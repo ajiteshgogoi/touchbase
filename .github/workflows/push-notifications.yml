@@ -30,6 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Install GNU parallel
+        run: sudo apt-get install -y parallel
+
       - name: Get eligible users
         id: get-users
         run: |
@@ -64,28 +67,24 @@ jobs:
             echo "Processing batch $batch_num ($batch_size users)..."
             
             # Process users in batch with configured concurrency
-            echo "$batch" | jq -c '.[]' | while read -r user; do
-              sem -j "$CONCURRENT_NOTIFICATIONS" "
-                user_id=\$(echo '$user' | jq -r '.userId')
-                window_type=\$(echo '$user' | jq -r '.windowType')
-                
-                echo \"Processing user \$user_id for window \$window_type\"
-                response=\$(curl --request POST \
-                  --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications' \
-                  --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
-                  --header 'Content-Type: application/json' \
-                  --data \"{\\\"userId\\\": \\\"\$user_id\\\", \\\"windowType\\\": \\\"\$window_type\\\"}\" \
-                  --silent)
+            echo "$batch" | jq -c '.[]' | parallel --jobs "$CONCURRENT_NOTIFICATIONS" '
+              user=$(echo "{}")
+              user_id=$(echo "$user" | jq -r ".userId")
+              window_type=$(echo "$user" | jq -r ".windowType")
+              
+              echo "Processing user $user_id for window $window_type"
+              response=$(curl --request POST \
+                --url "https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications" \
+                --header "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+                --header "Content-Type: application/json" \
+                --data "{\"userId\": \"$user_id\", \"windowType\": \"$window_type\"}" \
+                --silent)
 
-                if echo \"\$response\" | jq -e 'has(\"error\")' > /dev/null; then
-                  echo \"Error processing user \$user_id: \$(echo \"\$response\" | jq -r '.error')\"
-                fi
-              "
-            done
+              if echo "$response" | jq -e "has(\"error\")" > /dev/null; then
+                echo "Error processing user $user_id: $(echo "$response" | jq -r ".error")"
+              fi
+            '
             
-            # Wait for all parallel jobs in this batch to complete
-            sem --wait
-
             # Update counters
             total_processed=$((total_processed + batch_size))
             batch_num=$((batch_num + 1))
