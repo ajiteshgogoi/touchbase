@@ -24,7 +24,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.annotation.NonNull;
 
 public class Application extends android.app.Application {
-    private static final int NOTIFICATION_PERMISSION_CODE = 100;
+    public static final int NOTIFICATION_PERMISSION_CODE = 100;
 
     @Override
     public void onCreate() {
@@ -42,3 +42,4 @@ public class Application extends android.app.Application {
         }
     }
 }
+

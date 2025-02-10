@@ -16,16 +16,22 @@
 package app.vercel.touchbasepro.twa;
 
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.Manifest;
 import android.content.SharedPreferences;
+import androidx.core.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
 
 public class LauncherActivity
         extends com.google.androidbrowserhelper.trusted.LauncherActivity {
 
     private static final String PREFS_NAME = "TouchBasePrefs";
     private static final String PREF_FIRST_RUN = "firstRun";
+
+    private boolean permissionHandled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,19 +46,16 @@ public class LauncherActivity
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
 
-        // Check if this is the first run
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean isFirstRun = prefs.getBoolean(PREF_FIRST_RUN, true);
-
-        if (isFirstRun) {
-            // Request notification permission on first run
-            Application.requestNotificationPermission(this);
-
-            // Mark first run complete
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean(PREF_FIRST_RUN, false);
-            editor.apply();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Permission not granted, request it
+                Application.requestNotificationPermission(this);
+                return; // Don't proceed until permission is handled
+            }
         }
+        permissionHandled = true;
+        launchTwa(); // Launch TWA if permission granted or not needed
     }
 
     @Override
@@ -60,5 +63,23 @@ public class LauncherActivity
         // Get the original launch Url.
         Uri uri = super.getLaunchingUrl();
         return uri;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == Application.NOTIFICATION_PERMISSION_CODE) {
+            permissionHandled = true;
+            // Now that permission is handled, launch TWA
+            launchTwa();
+        }
+    }
+@Override
+protected void launchTwa() {
+    if (!permissionHandled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // Don't launch until permission is handled
+        return;
+    }
+    super.launchTwa();
     }
 }
