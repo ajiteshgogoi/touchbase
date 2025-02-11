@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { InstallModal } from './InstallModal';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../stores/useStore';
 import type { User } from '@supabase/supabase-js';
@@ -10,6 +11,7 @@ export const Login = () => {
   const { user, setUser } = useStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -146,30 +148,26 @@ export const Login = () => {
             Privacy Policy
           </a>
         </p>
+      </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="text-center">
-            <h3 className="text-sm font-medium text-gray-900">Install TouchBase App</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              For the best experience, install TouchBase on your phone:
-            </p>
-            <div className="mt-4 space-y-4 text-sm text-gray-600">
-              <div className="space-y-2">
-                <p className="font-medium">iOS:</p>
-                <p>1. On Safari, tap the <span className="text-primary-500">Share</span> button</p>
-                <p>2. Select <span className="text-primary-500">Add to Home Screen</span></p>
-                <p>3. Tap <span className="text-primary-500">Add</span> to install</p>
-              </div>
-              <div className="space-y-2">
-                <p className="font-medium">Android:</p>
-                <p>1. Tap the install prompt when it appears, or</p>
-                <p>2. Open menu (3 dots) and select</p>
-                <p>3. <span className="text-primary-500">Install app</span> or <span className="text-primary-500">Add to Home screen</span></p>
-              </div>
-            </div>
-          </div>
+      <div className="bg-gradient-to-b from-white/50 to-white/30 backdrop-blur-sm px-12 py-6 rounded-2xl shadow-soft max-w-sm mt-8">
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            💙 For the best experience, install TouchBase on your phone.{' '}
+            <button
+              onClick={() => setIsInstallModalOpen(true)}
+              className="text-primary-500 hover:text-primary-400 font-medium"
+            >
+              Click to learn how
+            </button>.
+          </p>
         </div>
       </div>
+
+      <InstallModal
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+      />
     </div>
   );
 };
