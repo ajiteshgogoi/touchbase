@@ -150,18 +150,16 @@ export const Login = () => {
         </p>
       </div>
 
-      <div className="bg-gradient-to-b from-white/50 to-white/30 backdrop-blur-sm px-12 py-10 rounded-2xl shadow-soft max-w-sm mt-12">
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            💙 For the best experience, install TouchBase on your phone.{' '}
-            <button
-              onClick={() => setIsInstallModalOpen(true)}
-              className="text-primary-500 hover:text-primary-400 font-medium"
-            >
-              Click to learn how
-            </button>.
-          </p>
-        </div>
+      <div className="mt-12 text-center max-w-sm">
+        <p className="text-sm text-gray-600">
+          💙 For the best experience, install TouchBase on your phone.{' '}
+          <button
+            onClick={() => setIsInstallModalOpen(true)}
+            className="text-primary-500 hover:text-primary-400 font-medium"
+          >
+            Click to learn how
+          </button>
+        </p>
       </div>
 
       <InstallModal
