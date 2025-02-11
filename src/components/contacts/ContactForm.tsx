@@ -33,13 +33,11 @@ const isValidSocialHandle = (handle: string) => {
   return handle === '' || handle.startsWith('@');
 };
 
-const formatLocalDateTime = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+const formatLocalDateTime = (date: Date, timezone: string) => {
+  // Convert the date to the user's timezone and format it
+  const userDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+  // Format in ISO format which will be converted to UTC when stored
+  return userDate.toISOString().slice(0, -8); // Remove seconds and timezone
 };
 
 const initialFormData: ContactFormData = {
@@ -51,7 +49,7 @@ const initialFormData: ContactFormData = {
   relationship_level: 3,
   contact_frequency: null,
   user_id: '',
-  last_contacted: formatLocalDateTime(new Date()),
+  last_contacted: formatLocalDateTime(new Date(), 'UTC'),
   next_contact_due: null,
   ai_last_suggestion: null,
   ai_last_suggestion_date: null,
@@ -62,7 +60,8 @@ export const ContactForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, isPremium, isOnTrial } = useStore();
+  const { user, isPremium, isOnTrial, preferences } = useStore();
+  const timezone = preferences?.timezone || 'UTC';
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
@@ -224,7 +223,7 @@ export const ContactForm = () => {
                   if (value && !isValidPhoneNumber(value)) {
                     setErrors(prev => ({
                       ...prev,
-                      phone: 'Please enter a valid phone number (e.g., 123-456-7890)'
+                      phone: 'Please enter a valid phone number (e.g., +91-1234567890)'
                     }));
                   } else {
                     setErrors(prev => ({ ...prev, phone: '' }));
@@ -322,7 +321,7 @@ export const ContactForm = () => {
             <input
               type="datetime-local"
               id="last_contacted"
-              max={formatLocalDateTime(new Date())}
+              max={formatLocalDateTime(new Date(), timezone)}
               value={formData.last_contacted || ''}
               onChange={(e) => {
                 const selectedDate = e.target.value ? new Date(e.target.value) : null;
@@ -332,12 +331,12 @@ export const ContactForm = () => {
                   // If future date/time selected, set to current date/time
                   setFormData({
                     ...formData,
-                    last_contacted: formatLocalDateTime(now)
+                    last_contacted: formatLocalDateTime(now, timezone)
                   });
                 } else {
                   setFormData({
                     ...formData,
-                    last_contacted: selectedDate ? formatLocalDateTime(selectedDate) : null
+                    last_contacted: selectedDate ? formatLocalDateTime(selectedDate, timezone) : null
                   });
                 }
               }}
