@@ -335,12 +335,12 @@ export class BatchProcessor {
       }`,
       '',
       'Rules for Suggestions:',
-      '1. Must be specific to their context and personal details. Absolutely no generic advice',
-      '2. Must be actionable within 24-48 hours',
-      '3. Must clearly contribute to relationship growth',
-      '4. Each suggestion should start with "[type: 📞 call/💬 message/📱 social]"',
-      '5. Keep suggestions concise and impactful',
-      '6. If no clear opportunities exist, return no suggestions',
+      '1. Be casual and friendly. Write like you\'re giving advice to a friend',
+      '2. Must be actionable today or tomorrow',
+      '3. For future dates (birthdays, anniversaries), suggest planning ahead instead of belated wishes',
+      '4. Each suggestion starts with [📞 call], [💬 text], or [📱 social]',
+      '5. Keep it short and simple — no explanations needed',
+      '6. Skip if nothing meaningful to suggest',
       '',
       'Provide ONLY the most impactful 1-2 suggestions, each on a new line starting with "•"',
     ].join('\n');
@@ -352,16 +352,15 @@ export class BatchProcessor {
         messages: [
           {
             role: 'system',
-            content:
-              'You are an expert relationship manager assistant helping users maintain meaningful connections.',
+            content: 'You help people stay in touch with friends and family by suggesting natural, casual ways to reach out.',
           },
           {
             role: 'user',
             content: userMessage,
           },
         ],
-        temperature: 0.7,
-        max_tokens: 250,
+        temperature: 0.5, // Set LLM temperature here //
+        max_tokens: 500, //Set LLM max tokens here //
       },
       {
         headers: {
