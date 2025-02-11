@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
   headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
   headers.set('Access-Control-Max-Age', '86400');
   headers.set('Access-Control-Allow-Credentials', 'true');
   return headers;
@@ -17,16 +17,23 @@ interface CheckDuplicateRequest {
 }
 
 serve(async (req) => {
+  const requestId = crypto.randomUUID();
+  console.log('Starting duplicate check request:', { requestId });
+
   // Handle CORS
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request:', { requestId });
     return new Response('ok', { headers: addCorsHeaders() });
   }
 
   try {
+    console.log('Processing request:', { requestId, method: req.method });
     const { name, user_id, contact_id } = await req.json() as CheckDuplicateRequest;
+    console.log('Request params:', { requestId, name, userId: user_id, hasContactId: !!contact_id });
 
     // Input validation
     if (!name || !user_id) {
+      console.log('Invalid request - missing required fields:', { requestId, name: !!name, userId: !!user_id });
       return new Response(
         JSON.stringify({ error: 'Name and user_id are required' }),
         {
@@ -41,8 +48,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+    console.log('Supabase client created:', {
+      requestId,
+      hasUrl: !!Deno.env.get('SUPABASE_URL'),
+      hasServiceKey: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    });
 
     // Build query to check for existing contacts with same name for this user
+    console.log('Building duplicate check query:', { requestId });
     let query = supabaseClient
       .from('contacts')
       .select('id, name')
@@ -51,13 +64,20 @@ serve(async (req) => {
 
     // If contact_id provided (update case), exclude the current contact
     if (contact_id) {
+      console.log('Excluding current contact from check:', { requestId, contact_id });
       query = query.neq('id', contact_id);
     }
 
+    console.log('Executing duplicate check query:', { requestId });
     const { data: existingContacts, error } = await query;
 
     if (error) {
-      console.error('Error checking for duplicates:', error);
+      console.error('Database error checking for duplicates:', {
+        requestId,
+        error: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       return new Response(
         JSON.stringify({ error: 'Error checking for duplicates' }),
         {
@@ -68,6 +88,13 @@ serve(async (req) => {
     }
 
     // Return the list of existing contacts with similar names
+    console.log('Duplicate check results:', {
+      requestId,
+      hasDuplicates: existingContacts.length > 0,
+      duplicateCount: existingContacts.length,
+      duplicates: existingContacts.map(c => ({ id: c.id, name: c.name }))
+    });
+
     return new Response(
       JSON.stringify({
         hasDuplicate: existingContacts.length > 0,
@@ -79,7 +106,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Check duplicate contact error:', error);
+    console.error('Duplicate check error:', {
+      requestId,
+      error: error.message,
+      stack: error.stack,
+      type: error.name
+    });
     return new Response(
       JSON.stringify({ error: error.message }),
       {
