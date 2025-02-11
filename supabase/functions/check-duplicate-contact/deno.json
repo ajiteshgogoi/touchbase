@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "fmt": {
+    "options": {
+      "lineWidth": 100,
+      "indentWidth": 2
+    }
+  }
+}

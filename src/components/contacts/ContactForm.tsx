@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
+import { contactValidationService } from '../../services/contact-validation';
 import { useStore } from '../../stores/useStore';
 import type { Contact } from '../../lib/supabase/types';
 
@@ -64,6 +65,7 @@ export const ContactForm = () => {
     user_id: user?.id || '',
   });
   const [errors, setErrors] = useState({
+    name: '',
     phone: '',
     social_media_handle: '',
   });
@@ -153,6 +155,24 @@ export const ContactForm = () => {
     }
 
     try {
+      // Check for duplicate names
+      const { hasDuplicate, duplicates } = await contactValidationService.checkDuplicateName({
+        name: formData.name.trim(),
+        userId: user.id,
+        contactId: isEditMode ? id : undefined
+      });
+
+      if (hasDuplicate) {
+        setErrors(prev => ({
+          ...prev,
+          name: contactValidationService.formatDuplicateMessage(duplicates)
+        }));
+        return;
+      }
+
+      // Clear any previous name error
+      setErrors(prev => ({ ...prev, name: '' }));
+
       if (isEditMode && id) {
         await updateMutation.mutateAsync({ id, updates: formData });
       } else {
@@ -200,9 +220,16 @@ export const ContactForm = () => {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+              className={`mt-1 block w-full rounded-lg px-4 py-2.5 shadow-sm transition-colors ${
+                errors.name
+                  ? 'border-red-300 focus:border-red-400 focus:ring-red-400 hover:border-red-400'
+                  : 'border-gray-200 focus:border-primary-400 focus:ring-primary-400 hover:border-gray-300'
+              }`}
               placeholder="Enter full name"
             />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
