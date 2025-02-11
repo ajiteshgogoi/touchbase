@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
 import { contactValidationService } from '../../services/contact-validation';
 import { useStore } from '../../stores/useStore';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 import type { Contact } from '../../lib/supabase/types';
 
 interface ContactFormData {
@@ -451,10 +452,15 @@ export const ContactForm = () => {
         </button>
         <button
           type="submit"
-          className="px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors font-medium shadow-soft hover:shadow-lg"
+          className="px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors font-medium shadow-soft hover:shadow-lg flex items-center justify-center gap-2"
           disabled={createMutation.isPending || updateMutation.isPending}
         >
-          {createMutation.isPending || updateMutation.isPending ? 'Saving...' : 'Save Contact'}
+          {createMutation.isPending || updateMutation.isPending ? (
+            <>
+              <LoadingSpinner />
+              <span>Saving contact...</span>
+            </>
+          ) : 'Save Contact'}
         </button>
       </div>
     </form>
