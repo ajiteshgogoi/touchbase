@@ -37,11 +37,11 @@ export const contactValidationService = {
     if (names.length === 0) return '';
     
     if (names.length === 1) {
-      return `You already have a contact named "${names[0]}". Please add a differentiator (like a last name or nickname) to avoid confusion.`;
+      return `You already have a contact named '${names[0]}'. Please add a differentiator (like a last name or nickname) to avoid confusion.`;
     }
     
     const lastPart = names.slice(-1)[0];
     const otherParts = names.slice(0, -1);
-    return `You already have contacts named ${otherParts.map(n => `"${n}"`).join(', ')} and "${lastPart}". Please add a differentiator (like a last name or nickname) to avoid confusion.`;
+    return `You already have contacts named ${otherParts.map(n => `'${n}'`).join(', ')} and '${lastPart}'. Please add a differentiator (like a last name or nickname) to avoid confusion.`;
   }
 };
