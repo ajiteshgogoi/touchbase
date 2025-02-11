@@ -228,9 +228,6 @@ export const ContactForm = () => {
               }`}
               placeholder="Enter full name"
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -452,7 +449,7 @@ export const ContactForm = () => {
         </button>
         <button
           type="submit"
-          className="px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors font-medium shadow-soft hover:shadow-lg flex items-center justify-center gap-2"
+          className="px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors font-medium shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           disabled={createMutation.isPending || updateMutation.isPending}
         >
           {createMutation.isPending || updateMutation.isPending ? (
@@ -463,6 +460,12 @@ export const ContactForm = () => {
           ) : 'Save Contact'}
         </button>
       </div>
+      {/* Error Messages Section */}
+      {errors.name && (
+        <div className="mt-4 p-4 bg-red-50 rounded-lg">
+          <p className="text-sm text-red-600 text-center">{errors.name}</p>
+        </div>
+      )}
     </form>
     </div>
   );
