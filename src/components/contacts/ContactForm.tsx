@@ -439,7 +439,7 @@ export const ContactForm = () => {
       </div>
 
       {/* Action Buttons and Error Messages */}
-      <div className="space-y-2">
+      <div className="space-y-4">
         <div className="flex justify-center space-x-4">
           <button
             type="button"
