@@ -130,21 +130,20 @@ export const ContactForm = () => {
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const [isValidating, setIsValidating] = useState(false);
+
+  const validateForm = async () => {
     if (!user?.id) {
       console.error('No user ID available');
-      return;
+      return false;
     }
 
-    // Validate phone and social media handle if they are provided
     if (formData.phone && !isValidPhoneNumber(formData.phone)) {
       setErrors(prev => ({
         ...prev,
         phone: 'Please enter a valid phone number (e.g., +91-9999955555)'
       }));
-      return;
+      return false;
     }
 
     if (formData.social_media_handle && !isValidSocialHandle(formData.social_media_handle)) {
@@ -152,11 +151,10 @@ export const ContactForm = () => {
         ...prev,
         social_media_handle: 'Social media handle must start with @'
       }));
-      return;
+      return false;
     }
 
     try {
-      // Check for duplicate names
       const { hasDuplicate, duplicates } = await contactValidationService.checkDuplicateName({
         name: formData.name.trim(),
         userId: user.id,
@@ -168,11 +166,27 @@ export const ContactForm = () => {
           ...prev,
           name: contactValidationService.formatDuplicateMessage(duplicates)
         }));
-        return;
+        return false;
       }
 
-      // Clear any previous name error
       setErrors(prev => ({ ...prev, name: '' }));
+      return true;
+    } catch (error) {
+      console.error('Validation error:', error);
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsValidating(true);
+    
+    try {
+      const isValid = await validateForm();
+      if (!isValid) {
+        setIsValidating(false);
+        return;
+      }
 
       if (isEditMode && id) {
         await updateMutation.mutateAsync({ id, updates: formData });
@@ -181,6 +195,7 @@ export const ContactForm = () => {
       }
     } catch (error) {
       console.error('Error saving contact:', error);
+      setIsValidating(false);
     }
   };
 
@@ -451,9 +466,9 @@ export const ContactForm = () => {
           <button
             type="submit"
             className="px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors font-medium shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            disabled={createMutation.isPending || updateMutation.isPending}
+            disabled={isValidating || createMutation.isPending || updateMutation.isPending}
           >
-            {createMutation.isPending || updateMutation.isPending ? (
+            {isValidating || createMutation.isPending || updateMutation.isPending ? (
               <>
                 <LoadingSpinner />
                 <span>Saving contact...</span>
