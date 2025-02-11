@@ -48,8 +48,8 @@ export const InstallModal = ({ isOpen, onClose }: InstallModalProps) => {
                   <div className="space-y-2">
                     <p className="font-medium">Android:</p>
                     <p>1. Tap the install prompt when it appears, or</p>
-                    <p>2. Open menu (3 dots) and select</p>
-                    <p>3. <span className="text-primary-500">Install app</span> or <span className="text-primary-500">Add to Home screen</span></p>
+                    <p>2. Open menu (3 dots on top right corner)</p>
+                    <p>3. Select <span className="text-primary-500">Install app</span> or <span className="text-primary-500">Add to home screen</span></p>
                   </div>
                 </div>
 
