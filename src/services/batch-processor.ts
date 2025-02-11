@@ -340,7 +340,8 @@ export class BatchProcessor {
       '3. For future dates (birthdays, anniversaries), suggest planning ahead instead of belated wishes',
       '4. Each suggestion starts with [📞 call], [💬 text], or [📱 social]',
       '5. Keep it short and simple — no explanations needed',
-      '6. Skip if nothing meaningful to suggest',
+      '6. Avoid adding any addtional text before or after the suggestions (eg. "Okay here\'s how you can reconnect..."',
+      '7. Skip if nothing meaningful to suggest',
       '',
       'Provide ONLY the most impactful 1-2 suggestions, each on a new line starting with "•"',
     ].join('\n');
