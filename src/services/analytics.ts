@@ -166,7 +166,7 @@ export const analyticsService = {
         const response = await axios.post(
           GROQ_API_URL,
           {
-            model: 'meta-llama/llama-3.3-70b-instruct', // Set LLM model here //
+            model: 'google/gemini-2.0-flash-001', // Set LLM model here //
             messages: [
               {
                 role: 'system',
