@@ -2,43 +2,7 @@ import { BatchProcessor } from './batch-processor.js';
 import { Contact, BatchConfig, DEFAULT_BATCH_CONFIG } from './batch-types.js';
 import { createClient } from '@supabase/supabase-js';
 
-function getNextContactDate(
-  relationshipLevel: number,
-  frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null,
-  missedInteractions: number,
-  userTimezone: string
-): Date {
-  // Get current date in user's timezone
-  const now = new Date();
-  const userNow = new Date(now.toLocaleString('en-US', { timeZone: userTimezone }));
-  let daysUntilNext = 7;
-
-  if (frequency === 'daily') daysUntilNext = 1;
-  else if (frequency === 'weekly') daysUntilNext = 7;
-  else if (frequency === 'fortnightly') daysUntilNext = 14;
-  else if (frequency === 'monthly') daysUntilNext = 30;
-  else if (frequency === 'quarterly') daysUntilNext = 90;
-
-  const levelMultiplier = 1 - (relationshipLevel - 1) * 0.1;
-  daysUntilNext = Math.round(daysUntilNext * levelMultiplier);
-
-  // Reduce interval for missed interactions (more urgent follow-up)
-  if (missedInteractions > 0) {
-    const urgencyMultiplier = Math.max(0.3, 1 - missedInteractions * 0.2);
-    daysUntilNext = Math.max(1, Math.round(daysUntilNext * urgencyMultiplier));
-  }
-
-  // Set the next contact date in user's timezone
-  const nextDate = new Date(userNow);
-  nextDate.setDate(userNow.getDate() + daysUntilNext);
-  
-  // Convert back to UTC for storage
-  const nextDateUTC = new Date(nextDate.toLocaleString('en-US', { timeZone: userTimezone }));
-  const offset = new Date().getTimezoneOffset();
-  nextDateUTC.setMinutes(nextDateUTC.getMinutes() + offset);
-  
-  return nextDateUTC;
-}
+import { calculateNextContactDate, getCurrentTimeInTimezone, isBeforeToday, isEndOfDay, normalizeToUserTimezone, isToday } from '../utils/date';
 
 export async function runDailyCheckV2() {
   try {
@@ -113,27 +77,18 @@ export async function runDailyCheckV2() {
     const missedContacts = (potentialMissedContacts || []).filter(contact => {
       const userTimezone = userTimezones.get(contact.user_id) || 'UTC';
       
-      // Convert next_contact_due to user's timezone
       const dueDate = new Date(contact.next_contact_due);
-      const dueDateInUserTz = new Date(dueDate.toLocaleString('en-US', { timeZone: userTimezone }));
-      
-      // Get current time in user's timezone
-      const nowInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
-      
-      // Get start of today in user's timezone
-      const todayStartInUserTz = new Date(nowInUserTz);
-      todayStartInUserTz.setHours(0, 0, 0, 0);
-      
+      const dueDateInUserTz = normalizeToUserTimezone(dueDate, userTimezone);
+      const todayStartInUserTz = normalizeToUserTimezone(getCurrentTimeInTimezone(userTimezone));
+
       // If due date is from yesterday or earlier, it's definitely missed
-      if (dueDateInUserTz < todayStartInUserTz) {
+      if (isBeforeToday(dueDate, userTimezone)) {
         return true;
       }
       
       // If due date is today, only count as missed if it's past end of day
-      if (dueDateInUserTz.getFullYear() === todayStartInUserTz.getFullYear() &&
-          dueDateInUserTz.getMonth() === todayStartInUserTz.getMonth() &&
-          dueDateInUserTz.getDate() === todayStartInUserTz.getDate()) {
-        return nowInUserTz.getHours() >= 23 && nowInUserTz.getMinutes() >= 59;
+      if (dueDateInUserTz.getTime() === todayStartInUserTz.getTime()) {
+        return isEndOfDay(userTimezone);
       }
       
       return false;
@@ -158,23 +113,16 @@ export async function runDailyCheckV2() {
         // Check if there's an interaction today in user's timezone
         const hasInteractionToday = latestInteraction && (() => {
           const interactionDate = new Date(latestInteraction.date);
-          const interactionDateInUserTz = new Date(interactionDate.toLocaleString('en-US', { timeZone: userTimezone }));
-          const todayStartInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
-          todayStartInUserTz.setHours(0, 0, 0, 0);
-          
-          return (
-            interactionDateInUserTz.getFullYear() === todayStartInUserTz.getFullYear() &&
-            interactionDateInUserTz.getMonth() === todayStartInUserTz.getMonth() &&
-            interactionDateInUserTz.getDate() === todayStartInUserTz.getDate()
-          );
+          return isToday(interactionDate, userTimezone);
         })();
 
         // Only process if no interaction today
         if (!hasInteractionToday) {
-          const nextContactDue = getNextContactDate(
-            contact.relationship_level,
+          const nextContactDue = calculateNextContactDate(
+            contact.relationship_level as 1 | 2 | 3 | 4 | 5,
             contact.contact_frequency,
             (contact.missed_interactions || 0) + 1,
+            null,
             userTimezone
           );
 

@@ -3,96 +3,23 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 import { paymentService } from './payment';
+import { calculateNextContactDate, RelationshipLevel, ContactFrequency, normalizeToUserTimezone, isToday } from '../utils/date';
 
 // Extend dayjs with the relativeTime plugin
 dayjs.extend(relativeTime);
-
-type ContactFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
-type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
-
-// Calculate next contact date based on relationship level, contact frequency, missed interactions, and base date
-const getNextContactDate = (
-  level: RelationshipLevel,
-  frequency: ContactFrequency | null,
-  missedInteractions: number = 0,
-  baseDate?: Date | null
-): Date => {
-  // Use provided base date, fall back to current date
-  const referenceDate = baseDate || new Date();
-  // Base intervals in days
-  const baseIntervals: Record<RelationshipLevel, number> = {
-    1: 90,  // Acquaintance: ~3 months
-    2: 60,  // Casual friend: ~2 months
-    3: 30,  // Friend: ~1 month
-    4: 14,  // Close friend: ~2 weeks
-    5: 7    // Very close: ~1 week
-  };
-
-  // Default to base interval for the relationship level
-  let days = baseIntervals[level];
-
-  // Adjust based on specified frequency if provided
-  if (frequency) {
-    const frequencyDays: Record<ContactFrequency, number> = {
-      daily: 1,
-      weekly: 7,
-      fortnightly: 14,
-      monthly: 30,
-      quarterly: 90
-    };
-    
-    // Use the more frequent of the two options
-    days = Math.min(days, frequencyDays[frequency]);
-  }
-
-  // Adjust interval based on missed interactions using exponential backoff
-  if (missedInteractions > 0) {
-    // Calculate reduced interval: divide by 2^missedInteractions
-    // But ensure it doesn't go below 1 day to avoid overwhelming
-    const reducedDays = Math.max(1, Math.floor(days / Math.pow(2, missedInteractions)));
-    days = reducedDays;
-  }
-
-  // Helper to strip time and normalize to start of day
-  const normalizeDate = (date: Date): Date => {
-    const normalized = new Date(date);
-    normalized.setHours(0, 0, 0, 0);
-    return normalized;
-  };
-
-  // Get normalized reference and current dates
-  const normalizedRef = normalizeDate(referenceDate);
-  const normalizedNow = normalizeDate(new Date());
-
-  // Calculate initial next date from reference
-  const nextDate = new Date(normalizedRef);
-  nextDate.setDate(nextDate.getDate() + days);
-  
-  // If calculated date would be in the past, use current date as base instead
-  if (normalizeDate(nextDate) <= normalizedNow) {
-    nextDate.setTime(normalizedNow.getTime());
-    nextDate.setDate(nextDate.getDate() + days);
-  }
-
-  return normalizeDate(nextDate);
-};
 
 // Format the next contact due date in a user-friendly way
 const formatDueDate = (dueDate: string | null): string => {
   if (!dueDate) return 'Not set';
   
   const due = new Date(dueDate);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // Use timezone-aware date normalization
+  const userToday = normalizeToUserTimezone(new Date());
+  const userTomorrow = new Date(userToday);
+  userTomorrow.setDate(userTomorrow.getDate() + 1);
   
-  // Normalize dates to midnight for comparison
-  due.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-  tomorrow.setHours(0, 0, 0, 0);
-  
-  if (due.getTime() === today.getTime()) return 'Today';
-  if (due.getTime() === tomorrow.getTime()) return 'Tomorrow';
+  if (isToday(due)) return 'Today';
+  if (normalizeToUserTimezone(due).getTime() === normalizeToUserTimezone(userTomorrow).getTime()) return 'Tomorrow';
   return dayjs(dueDate).fromNow();
 };
 
@@ -119,54 +46,56 @@ export const contactsService = {
     if (error) throw error;
     return data;
   },
-async checkContactLimit(): Promise<void> {
-  const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
-  if (isPremium || isOnTrial) return;
 
-  const contacts = await this.getContacts();
-  if (contacts.length >= 12) {
-    throw new Error('Free tier contact limit reached. Please upgrade to add more contacts.');
-  }
-},
+  async checkContactLimit(): Promise<void> {
+    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+    if (isPremium || isOnTrial) return;
 
-async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
-  await this.checkContactLimit();
-  
-  // Use last_contacted as base date if provided, otherwise use current date
-  const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
-  const nextContactDue = getNextContactDate(
-     contact.relationship_level as RelationshipLevel,
-     contact.contact_frequency as ContactFrequency | null,
-     0,
-     baseDate
-   ).toISOString();
+    const contacts = await this.getContacts();
+    if (contacts.length >= 12) {
+      throw new Error('Free tier contact limit reached. Please upgrade to add more contacts.');
+    }
+  },
 
-   // First create the contact to get its ID
-   const { data, error } = await supabase
-    .from('contacts')
-    .insert({
-      ...contact,
-      next_contact_due: nextContactDue,
-      missed_interactions: 0
-    })
-    .select()
-    .single();
+  async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
+    await this.checkContactLimit();
     
-   if (error) throw error;
+    // Use last_contacted as base date if provided, otherwise use current date
+    const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
+    const nextContactDue = calculateNextContactDate(
+      contact.relationship_level as RelationshipLevel,
+      contact.contact_frequency as ContactFrequency | null,
+      0,
+      baseDate
+    ).toISOString();
 
-   // Then create the initial reminder
-   const { error: reminderError } = await supabase
-     .from('reminders')
-     .insert({
-       contact_id: data.id,
-       user_id: data.user_id,
-       type: data.preferred_contact_method || 'message',
-       due_date: nextContactDue
-     });
+    // First create the contact to get its ID
+    const { data, error } = await supabase
+      .from('contacts')
+      .insert({
+        ...contact,
+        next_contact_due: nextContactDue,
+        missed_interactions: 0
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
 
-   if (reminderError) throw reminderError;
-   
-   return data;
+    // Then create the initial reminder
+    const { error: reminderError } = await supabase
+      .from('reminders')
+      .insert({
+        contact_id: data.id,
+        user_id: data.user_id,
+        type: data.preferred_contact_method || 'message',
+        due_date: nextContactDue,
+        description: contact.notes || undefined
+      });
+
+    if (reminderError) throw reminderError;
+    
+    return data;
   },
 
   async updateContact(id: string, updates: Partial<Contact>): Promise<Contact> {
@@ -187,7 +116,7 @@ async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>):
                       contact.last_contacted ? new Date(contact.last_contacted) : null;
       
       if (baseDate) {
-        updatedFields.next_contact_due = getNextContactDate(
+        updatedFields.next_contact_due = calculateNextContactDate(
           level,
           frequency,
           0, // Reset missed interactions when updating contact
@@ -354,7 +283,6 @@ async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>):
     if (error) throw error;
   },
 
-  // New method to handle missed interaction
   async handleMissedInteraction(contactId: string): Promise<void> {
     const contact = await this.getContact(contactId);
     if (!contact) throw new Error('Contact not found');
@@ -362,7 +290,7 @@ async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>):
     const newMissedCount = (contact.missed_interactions || 0) + 1;
     // For missed interactions, use last_contacted as base date if available
     const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
-    const nextContactDue = getNextContactDate(
+    const nextContactDue = calculateNextContactDate(
       contact.relationship_level as RelationshipLevel,
       contact.contact_frequency as ContactFrequency | null,
       newMissedCount,
