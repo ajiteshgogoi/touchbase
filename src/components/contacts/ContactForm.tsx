@@ -248,7 +248,7 @@ export const ContactForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Phone (optional)
+                Phone Number
               </label>
               <input
                 type="tel"
@@ -276,7 +276,7 @@ export const ContactForm = () => {
 
             <div>
               <label htmlFor="social_media_handle" className="block text-sm font-medium text-gray-700">
-                Social Media Handle (optional)
+                Social Media Handle
               </label>
               <input
                 type="text"
