@@ -124,7 +124,7 @@ async checkContactLimit(): Promise<void> {
   if (isPremium || isOnTrial) return;
 
   const contacts = await this.getContacts();
-  if (contacts.length >= 7) {
+  if (contacts.length >= 12) {
     throw new Error('Free tier contact limit reached. Please upgrade to add more contacts.');
   }
 },

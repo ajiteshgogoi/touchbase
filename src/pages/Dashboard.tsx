@@ -329,7 +329,7 @@ export const Dashboard = () => {
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts
   });
-  const contactLimit = isPremium ? Infinity : (isOnTrial ? Infinity : 7);
+  const contactLimit = isPremium ? Infinity : (isOnTrial ? Infinity : 12);
   const canAddMore = (contacts?.length || 0) < contactLimit;
 
   useEffect(() => {
