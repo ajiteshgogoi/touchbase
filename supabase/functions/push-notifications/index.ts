@@ -137,18 +137,37 @@ async function sendFcmNotification(
 ): Promise<void> {
   console.log('Preparing FCM notification:', { userId, windowType, title });
 
-  // Get any existing attempt from today first, so it's available for both success and error cases
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  // Get user's timezone preference first
+  const { data: userPref } = await supabase
+    .from('user_preferences')
+    .select('timezone')
+    .eq('user_id', userId)
+    .single();
+  
+  const timezone = userPref?.timezone || 'UTC';
+  const now = new Date();
+  
+  // Get today's start in user's timezone
+  const userToday = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+  userToday.setHours(0, 0, 0, 0);
 
+  // Get any existing attempt from today in user's timezone
   const { data: prevAttempts } = await supabase
     .from('notification_history')
-    .select('id, retry_count')
+    .select('id, retry_count, sent_at')
     .eq('user_id', userId)
     .eq('notification_type', windowType)
-    .gte('sent_at', todayStart.toISOString())
-    .order('sent_at', { ascending: false })
-    .limit(1);
+    .order('sent_at', { ascending: false });
+
+  // Filter attempts based on user's timezone
+  const todayAttempts = prevAttempts?.filter(attempt => {
+    const attemptDate = new Date(attempt.sent_at);
+    const userAttemptDate = new Date(attemptDate.toLocaleString('en-US', { timeZone: timezone }));
+    userAttemptDate.setHours(0, 0, 0, 0);
+    return userAttemptDate.getTime() === userToday.getTime();
+  });
+
+  const prevAttempt = todayAttempts?.[0];
 
   const prevAttempt = prevAttempts?.[0];
 
@@ -255,15 +274,25 @@ async function getUserData(userId: string): Promise<{ username: string; fcmToken
 async function getDueRemindersCount(userId: string): Promise<number> {
   console.log('Getting due reminders:', { userId });
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // First get user's timezone preference
+  const { data: userPref } = await supabase
+    .from('user_preferences')
+    .select('timezone')
+    .eq('user_id', userId)
+    .single();
+  
+  const timezone = userPref?.timezone || 'UTC';
+  const now = new Date();
+  
+  // Get today's start in user's timezone
+  const userToday = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+  userToday.setHours(0, 0, 0, 0);
 
   const { data: reminders, error } = await supabase
     .from('reminders')
-    .select('id')
+    .select('id, due_date')
     .eq('user_id', userId)
-    .eq('completed', false)
-    .lte('due_date', today.toISOString());
+    .eq('completed', false);
 
   if (error) {
     console.error('Error fetching reminders:', {
@@ -273,12 +302,22 @@ async function getDueRemindersCount(userId: string): Promise<number> {
     return 0;
   }
 
-  console.log('Due reminders retrieved:', {
-    userId,
-    count: reminders?.length || 0
+  // Filter reminders based on user's timezone
+  const dueReminders = reminders?.filter(reminder => {
+    const dueDate = new Date(reminder.due_date);
+    const userDueDate = new Date(dueDate.toLocaleString('en-US', { timeZone: timezone }));
+    userDueDate.setHours(0, 0, 0, 0);
+    return userDueDate <= userToday;
   });
 
-  return reminders?.length || 0;
+  console.log('Due reminders retrieved:', {
+    userId,
+    timezone,
+    totalReminders: reminders?.length || 0,
+    dueCount: dueReminders?.length || 0
+  });
+
+  return dueReminders?.length || 0;
 }
 
 async function createJWT(now: number): Promise<string> {

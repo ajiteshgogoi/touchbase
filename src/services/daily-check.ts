@@ -5,9 +5,12 @@ import { createClient } from '@supabase/supabase-js';
 function getNextContactDate(
   relationshipLevel: number,
   frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null,
-  missedInteractions: number
+  missedInteractions: number,
+  userTimezone: string
 ): Date {
-  const today = new Date();
+  // Get current date in user's timezone
+  const now = new Date();
+  const userNow = new Date(now.toLocaleString('en-US', { timeZone: userTimezone }));
   let daysUntilNext = 7;
 
   if (frequency === 'daily') daysUntilNext = 1;
@@ -25,10 +28,16 @@ function getNextContactDate(
     daysUntilNext = Math.max(1, Math.round(daysUntilNext * urgencyMultiplier));
   }
 
-  // Set the next contact date
-  const nextDate = new Date(today);
-  nextDate.setDate(today.getDate() + daysUntilNext);
-  return nextDate;
+  // Set the next contact date in user's timezone
+  const nextDate = new Date(userNow);
+  nextDate.setDate(userNow.getDate() + daysUntilNext);
+  
+  // Convert back to UTC for storage
+  const nextDateUTC = new Date(nextDate.toLocaleString('en-US', { timeZone: userTimezone }));
+  const offset = new Date().getTimezoneOffset();
+  nextDateUTC.setMinutes(nextDateUTC.getMinutes() + offset);
+  
+  return nextDateUTC;
 }
 
 export async function runDailyCheckV2() {
@@ -107,14 +116,27 @@ export async function runDailyCheckV2() {
       // Convert next_contact_due to user's timezone
       const dueDate = new Date(contact.next_contact_due);
       const dueDateInUserTz = new Date(dueDate.toLocaleString('en-US', { timeZone: userTimezone }));
-      dueDateInUserTz.setHours(0, 0, 0, 0);
-
-      // Get today in user's timezone
-      const todayInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
-      todayInUserTz.setHours(0, 0, 0, 0);
-
-      // Only include if due date is today or earlier in user's timezone
-      return dueDateInUserTz.getTime() <= todayInUserTz.getTime();
+      
+      // Get current time in user's timezone
+      const nowInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+      
+      // Get start of today in user's timezone
+      const todayStartInUserTz = new Date(nowInUserTz);
+      todayStartInUserTz.setHours(0, 0, 0, 0);
+      
+      // If due date is from yesterday or earlier, it's definitely missed
+      if (dueDateInUserTz < todayStartInUserTz) {
+        return true;
+      }
+      
+      // If due date is today, only count as missed if it's past end of day
+      if (dueDateInUserTz.getFullYear() === todayStartInUserTz.getFullYear() &&
+          dueDateInUserTz.getMonth() === todayStartInUserTz.getMonth() &&
+          dueDateInUserTz.getDate() === todayStartInUserTz.getDate()) {
+        return nowInUserTz.getHours() >= 23 && nowInUserTz.getMinutes() >= 59;
+      }
+      
+      return false;
     });
 
     // Handle missed interactions
@@ -137,8 +159,14 @@ export async function runDailyCheckV2() {
         const hasInteractionToday = latestInteraction && (() => {
           const interactionDate = new Date(latestInteraction.date);
           const interactionDateInUserTz = new Date(interactionDate.toLocaleString('en-US', { timeZone: userTimezone }));
-          interactionDateInUserTz.setHours(0, 0, 0, 0);
-          return interactionDateInUserTz.getTime() === todayInUserTz.getTime();
+          const todayStartInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+          todayStartInUserTz.setHours(0, 0, 0, 0);
+          
+          return (
+            interactionDateInUserTz.getFullYear() === todayStartInUserTz.getFullYear() &&
+            interactionDateInUserTz.getMonth() === todayStartInUserTz.getMonth() &&
+            interactionDateInUserTz.getDate() === todayStartInUserTz.getDate()
+          );
         })();
 
         // Only process if no interaction today
@@ -146,7 +174,8 @@ export async function runDailyCheckV2() {
           const nextContactDue = getNextContactDate(
             contact.relationship_level,
             contact.contact_frequency,
-            (contact.missed_interactions || 0) + 1
+            (contact.missed_interactions || 0) + 1,
+            userTimezone
           );
 
           // Get the old reminder for reference
