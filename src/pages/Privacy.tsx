@@ -30,7 +30,7 @@ export const Privacy = () => {
             We use the information we collect to:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>Provide, maintain, and improve our services</li>
+            <li>Provide, maintain and improve our services</li>
             <li>Send you notifications and reminders</li>
             <li>Generate analytics and insights</li>
             <li>Protect against fraud and abuse</li>
@@ -52,7 +52,7 @@ export const Privacy = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">4. Data Security</h2>
           <p className="text-gray-700">
-            We implement appropriate technical and organizational measures to protect your information. However, no method of transmission over the Internet is 100% secure.
+            We implement appropriate technical and organisational measures to protect your information. However, no method of transmission over the Internet is 100% secure.
           </p>
         </section>
 
