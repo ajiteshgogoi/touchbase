@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 import { paymentService } from './payment';
-import { calculateNextContactDate, RelationshipLevel, ContactFrequency, normalizeToUserTimezone, isToday } from '../utils/date';
+import { calculateNextContactDate, RelationshipLevel, ContactFrequency} from '../utils/date';
 
 // Extend dayjs with the relativeTime plugin
 dayjs.extend(relativeTime);
@@ -12,15 +12,12 @@ dayjs.extend(relativeTime);
 const formatDueDate = (dueDate: string | null): string => {
   if (!dueDate) return 'Not set';
   
-  const due = new Date(dueDate);
-  // Use timezone-aware date normalization
-  const userToday = normalizeToUserTimezone(new Date());
-  const userTomorrow = new Date(userToday);
-  userTomorrow.setDate(userTomorrow.getDate() + 1);
+  const due = dayjs(dueDate);
+  const today = dayjs();
   
-  if (isToday(due)) return 'Today';
-  if (normalizeToUserTimezone(due).getTime() === normalizeToUserTimezone(userTomorrow).getTime()) return 'Tomorrow';
-  return dayjs(dueDate).fromNow();
+  if (due.isSame(today, 'day')) return 'Today';
+  if (due.isSame(today.add(1, 'day'), 'day')) return 'Tomorrow';
+  return due.fromNow();
 };
 
 export const contactsService = {
