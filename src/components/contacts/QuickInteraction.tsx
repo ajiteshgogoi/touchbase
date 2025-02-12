@@ -129,9 +129,11 @@ export const QuickInteraction = ({
             .single();
 
           if (latestInteraction && new Date(latestInteraction.date) <= new Date(selectedDate.toISOString())) {
+            // Include current frequency to trigger next_contact_due recalculation
             await contactsService.updateContact(contactId, {
               last_contacted: selectedDate.toISOString(),
-              missed_interactions: 0  // Reset missed interactions counter when logging a new interaction
+              missed_interactions: 0,  // Reset missed interactions counter when logging a new interaction
+              contact_frequency: contact.contact_frequency  // Include current frequency to trigger recalculation
             });
           }
         }
