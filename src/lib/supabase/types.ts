@@ -31,9 +31,10 @@ export interface Interaction {
 export interface Reminder {
   id: string;
   contact_id: string;
-  due_date: string;
+  user_id: string;
   type: 'call' | 'message' | 'social';
-  description: string | null;
+  due_date: string;
+  completed: boolean;
   created_at: string;
 }
 

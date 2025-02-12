@@ -193,6 +193,7 @@ export const ContactForm = () => {
       } else {
         await createMutation.mutateAsync(formData);
       }
+      setIsValidating(false); // Reset validation state on success
     } catch (error) {
       console.error('Error saving contact:', error);
       setIsValidating(false);
