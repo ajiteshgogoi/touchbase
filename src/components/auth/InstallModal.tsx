@@ -56,7 +56,7 @@ export const InstallModal = ({ isOpen, onClose }: InstallModalProps) => {
                 <div className="mt-6 text-center">
                   <button
                     type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-primary-100 px-4 py-2 text-sm font-medium text-primary-900 hover:bg-primary-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                    className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
                     onClick={onClose}
                   >
                     Got it
