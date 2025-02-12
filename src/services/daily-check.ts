@@ -2,7 +2,7 @@ import { BatchProcessor } from './batch-processor.js';
 import { Contact, BatchConfig, DEFAULT_BATCH_CONFIG } from './batch-types.js';
 import { createClient } from '@supabase/supabase-js';
 
-import { calculateNextContactDate, getCurrentTimeInTimezone, isBeforeToday, isEndOfDay, normalizeToUserTimezone, isToday } from '../utils/date';
+import { calculateNextContactDate, getCurrentTimeInTimezone, isBeforeToday, isEndOfDay, normalizeToUserTimezone, isToday } from '../utils/date.js';
 
 export async function runDailyCheckV2() {
   try {
