@@ -157,7 +157,7 @@ export async function runDailyCheckV2() {
                   user_id: contact.user_id,
                   type: contact.preferred_contact_method || 'message',
                   due_date: nextContactDue.toISOString(),
-                  description: contact.notes || undefined
+                  completed: false
                 });
 
               // Then delete old reminder
