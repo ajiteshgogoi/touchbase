@@ -241,14 +241,14 @@ export const ContactForm = () => {
                   ? 'border-red-300 focus:border-red-400 focus:ring-red-400 hover:border-red-400'
                   : 'border-gray-200 focus:border-primary-400 focus:ring-primary-400 hover:border-gray-300'
               }`}
-              placeholder="Enter full name"
+              placeholder="Enter name"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Phone
+                Phone (optional)
               </label>
               <input
                 type="tel"
@@ -276,7 +276,7 @@ export const ContactForm = () => {
 
             <div>
               <label htmlFor="social_media_handle" className="block text-sm font-medium text-gray-700">
-                Social Media Handle
+                Social Media Handle (optional)
               </label>
               <input
                 type="text"
