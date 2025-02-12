@@ -130,7 +130,8 @@ export const QuickInteraction = ({
 
           if (latestInteraction && new Date(latestInteraction.date) <= new Date(selectedDate.toISOString())) {
             await contactsService.updateContact(contactId, {
-              last_contacted: selectedDate.toISOString()
+              last_contacted: selectedDate.toISOString(),
+              missed_interactions: 0  // Reset missed interactions counter when logging a new interaction
             });
           }
         }
