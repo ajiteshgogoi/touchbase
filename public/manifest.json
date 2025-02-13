@@ -26,14 +26,14 @@
       "name": "Add Contact",
       "short_name": "Add Contact",
       "description": "Add a new contact",
-      "url": "https://touchbase.site/contacts/new",
+      "url": "/contacts/new",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "View Contacts",
       "short_name": "Contacts",
       "description": "View your contacts",
-      "url": "https://touchbase.site/contacts",
+      "url": "/contacts",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ],
