@@ -13,8 +13,8 @@
   "backgroundColor": "#F9FAFB",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://touchbasepro.vercel.app/icon-512.png",
-  "maskableIconUrl": "https://touchbasepro.vercel.app/icon-512.png",
+  "iconUrl": "https://touchbase.site/icon-512.png",
+  "maskableIconUrl": "https://touchbase.site/icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android/twa/android.keystore",
@@ -27,13 +27,13 @@
       "name": "Add Contact",
       "shortName": "Add Contact",
       "url": "https://touchbase.site/contacts/new",
-      "chosenIconUrl": "https://touchbasepro.vercel.app/icon-192.png"
+      "chosenIconUrl": "https://touchbase.site/icon-192.png"
     },
     {
       "name": "View Contacts",
       "shortName": "Contacts",
       "url": "https://touchbase.site/contacts",
-      "chosenIconUrl": "https://touchbasepro.vercel.app/icon-192.png"
+      "chosenIconUrl": "https://touchbase.site/icon-192.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",
@@ -45,14 +45,14 @@
     },
     "locationDelegation": {
       "enabled": true
-    }
+    },
+    "alphaDependencies": {
+      "enabled": true
+    },
+    "enableSiteSettingsShortcut": true,
+    "isChromeOSOnly": false,
+    "isMetaQuest": false
   },
-  "alphaDependencies": {
-    "enabled": true
-  },
-  "enableSiteSettingsShortcut": true,
-  "isChromeOSOnly": false,
-  "isMetaQuest": false,
   "fullScopeUrl": "https://touchbase.site/",
   "minSdkVersion": 21,
   "orientation": "portrait",
