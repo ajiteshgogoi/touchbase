@@ -169,8 +169,6 @@ async function sendFcmNotification(
 
   const prevAttempt = todayAttempts?.[0];
 
-  const prevAttempt = prevAttempts?.[0];
-
   try {
     const accessToken = await getFcmAccessToken();
 
