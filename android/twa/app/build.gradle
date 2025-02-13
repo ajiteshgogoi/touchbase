@@ -52,9 +52,9 @@ def twaManifest = [
 
 android {
     compileSdkVersion 34
-    namespace "app.vercel.touchbasepro.twa"
+    namespace "app.touchbase.site.twa"
     defaultConfig {
-        applicationId "app.vercel.touchbasepro.twa"
+        applicationId "app.touchbase.site.twa"
         minSdkVersion 21
         targetSdkVersion 34
         versionCode 3  // Increment this number for each new release

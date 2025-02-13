@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package app.vercel.touchbasepro.twa;
+package app.touchbase.site.twa;
 
 import android.Manifest;
 import android.os.Build;
@@ -42,4 +42,3 @@ public class Application extends android.app.Application {
         }
     }
 }
-
