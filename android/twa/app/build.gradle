@@ -21,8 +21,8 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'app.vercel.touchbasepro.twa',
-    hostName: 'touchbasepro.vercel.app', // The domain being opened in the TWA.
+    applicationId: 'app.touchbase.site.twa',
+    hostName: 'touchbase.site', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'TouchBase', // The application name.
     launcherName: 'TouchBase', // The name shown on the Android Launcher.
@@ -39,7 +39,7 @@ def twaManifest = [
     // - short_name: Shorter string used if |name| is too long.
     // - url: Absolute path of the URL to launch the app with (e.g '/create').
     // - icon: Name of the resource in the drawable folder to use as an icon.
-    shortcuts: [[name:'Add Contact', short_name:'Add Contact', url:'https://touchbasepro.vercel.app/contacts/new', icon:'shortcut_0'],[name:'View Contacts', short_name:'Contacts', url:'https://touchbasepro.vercel.app/contacts', icon:'shortcut_1']],
+    shortcuts: [[name:'Add Contact', short_name:'Add Contact', url:'https://touchbase.site/contacts/new', icon:'shortcut_0'],[name:'View Contacts', short_name:'Contacts', url:'https://touchbase.site/contacts', icon:'shortcut_1']],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
     splashScreenFadeOutDuration: 300,
     generatorApp: 'bubblewrap-cli', // Application that generated the Android Project
@@ -74,12 +74,12 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'https://touchbasepro.vercel.app/manifest.json'
+            resValue "string", "webManifestUrl", 'https://touchbase.site/manifest.json'
         
 
         
             // This is used by Meta Quest.
-            resValue "string", "fullScopeUrl", 'https://touchbasepro.vercel.app/'
+            resValue "string", "fullScopeUrl", 'https://touchbase.site/'
         
 
         

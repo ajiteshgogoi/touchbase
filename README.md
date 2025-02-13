@@ -2,7 +2,7 @@
 
 TouchBase is an intelligent relationship management tool that helps you maintain meaningful connections with your network. It provides smart reminders and interaction tracking to ensure you stay in touch with the people who matter most.
 
-💙 **[Try TouchBase](https://touchbasepro.vercel.app/)**
+💙 **[Try TouchBase](https://touchbase.site/)**
 
 ## Key Features
 
