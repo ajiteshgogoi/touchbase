@@ -434,8 +434,10 @@ serve(async (req) => {
 
     // Handle test notifications
     if (url.pathname.endsWith('/test')) {
-      const { userId, message, batchId } = requestData;
-      console.log('Processing test notification:', { userId, batchId });
+      const { userId, message } = requestData;
+      // Generate test batch ID
+      const testBatchId = crypto.randomUUID();
+      console.log('Processing test notification:', { userId, testBatchId });
 
       if (!userId) {
         return new Response(
