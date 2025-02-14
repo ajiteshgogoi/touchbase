@@ -35,9 +35,20 @@ const NOTIFICATION_WINDOWS = [
 
 type NotificationWindow = typeof NOTIFICATION_WINDOWS[number];
 type NotificationType = NotificationWindow['type'];
+type NotificationStatus = 'success' | 'error' | 'invalid_token';
+
+// Match schema's notification_status enum
+const NOTIFICATION_STATUSES = {
+  SUCCESS: 'success' as const,
+  ERROR: 'error' as const,
+  INVALID_TOKEN: 'invalid_token' as const
+};
 
 // Window buffer in hours
 const WINDOW_BUFFER_HOURS = 2;
+
+// Maximum retry attempts per window period
+const MAX_RETRY_ATTEMPTS = 3;
 
 // Match workflow batch size
 const BATCH_SIZE = 50;
@@ -106,35 +117,32 @@ serve(async (req) => {
 
     // For retry runs, only get users with failed notifications
     // For regular runs, get all eligible users
-    const query = supabase
-      .from('push_subscriptions')
+    // Build base query with proper join conditions
+    const baseQuery = supabase.from('push_subscriptions')
       .select(`
         user_id,
         fcm_token,
-        user_preferences (
-          timezone
-        ),
-        notification_history (
+        user_preferences!inner (timezone),
+        notification_history!left (
           notification_type,
           status,
           retry_count,
           sent_at
         )
       `)
-      .not('fcm_token', 'is', null);
-
-    // Add filters for retry runs
-    if (isRetry) {
-      query
-        .eq('notification_history.status', 'error')
-        .lt('notification_history.retry_count', 3)
-        .order('notification_history.sent_at', { ascending: true });
-    } else {
-      query.order('notification_history.status', { ascending: true, nullsLast: true });
-    }
-
-    const { data: subscribedUsers, error: subsError } = await query
+      .not('fcm_token', 'is', null)
       .range(startIndex, startIndex + BATCH_SIZE - 1);
+
+    // Add specific filters for retry runs
+    const { data: subscribedUsers, error: subsError } = await (isRetry
+      ? baseQuery
+          .eq('notification_history.status', 'error')
+          .lt('notification_history.retry_count', 3)
+          .gte('notification_history.sent_at', oneDayAgo.toISOString())
+          .order('notification_history.sent_at', { ascending: true })
+      : baseQuery
+          .order('notification_history.sent_at', { ascending: false })
+    );
 
     if (subsError) {
       console.error('Error fetching subscribed users:', {
@@ -257,14 +265,20 @@ serve(async (req) => {
           // Get notifications for this window
           const windowNotifications = notificationsByType.get(window.type) || [];
           
-          // Count total attempts and check success
-          const hasSuccess = windowNotifications.some(n => n.status === 'success');
+          // Check notification status using schema-aligned constants
+          const hasSuccess = windowNotifications.some(n => n.status === NOTIFICATION_STATUSES.SUCCESS);
+          const hasError = windowNotifications.some(n => n.status === NOTIFICATION_STATUSES.ERROR);
           const totalAttempts = windowNotifications.length;
 
-          // Allow max 3 attempts (original + 2 retries) only during window period
-          const hasMaxRetries = totalAttempts >= 3;
+          // Only allow retries if:
+          // 1. No successful notification
+          // 2. Haven't reached max attempts
+          // 3. Has error status (for retry runs)
+          const canRetry = !hasSuccess &&
+            totalAttempts < MAX_RETRY_ATTEMPTS &&
+            (!isRetry || hasError);
 
-          if (!hasSuccess && !hasMaxRetries) {
+          if (canRetry) {
             // For windows requiring due reminders, check count
             if (!window.requiresDueReminders || dueRemindersMap.get(user.user_id) > 0) {
               acc.push({
