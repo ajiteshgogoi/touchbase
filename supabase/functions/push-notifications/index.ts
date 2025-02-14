@@ -164,28 +164,50 @@ async function sendFcmNotification(
   const timezone = userPref?.timezone || 'UTC';
   const now = new Date();
   
-  // Get today's start in user's timezone
-  const userToday = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+  // Get user's current time and start of day
+  const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+  const userToday = new Date(userTime);
   userToday.setHours(0, 0, 0, 0);
 
-  // Get previous attempts for this window, excluding current batch
+  // Validate notification window
+  const currentHour = userTime.getHours();
+  const window = NOTIFICATION_WINDOWS.find(w => w.type === windowType);
+  if (!window) {
+    throw new Error(`Invalid window type: ${windowType}`);
+  }
+
+  const hourDiff = (currentHour - window.hour + 24) % 24;
+  if (hourDiff > WINDOW_BUFFER_HOURS) {
+    throw new Error(`Outside notification window for ${windowType}`);
+  }
+
+  // Get all previous attempts for today
   const { data: prevAttempts } = await supabase
     .from('notification_history')
-    .select('id, retry_count, sent_at')
+    .select('id, retry_count, sent_at, status')
     .eq('user_id', userId)
     .eq('notification_type', windowType)
-    .neq('batch_id', batchId)
     .order('sent_at', { ascending: false });
 
-  // Filter attempts based on user's timezone
+  // Filter attempts for today in user's timezone
   const todayAttempts = prevAttempts?.filter(attempt => {
     const attemptDate = new Date(attempt.sent_at);
     const userAttemptDate = new Date(attemptDate.toLocaleString('en-US', { timeZone: timezone }));
     userAttemptDate.setHours(0, 0, 0, 0);
     return userAttemptDate.getTime() === userToday.getTime();
-  });
+  }) || [];
 
-  const prevAttempt = todayAttempts?.[0];
+  // Check if already successfully notified today
+  if (todayAttempts.some(attempt => attempt.status === 'success')) {
+    throw new Error('Already successfully notified today');
+  }
+
+  // Check retry limit (max 3 attempts)
+  if (todayAttempts.length >= 3) {
+    throw new Error('Maximum retry attempts reached');
+  }
+
+  const prevAttempt = todayAttempts[0];
 
   try {
     const accessToken = await getFcmAccessToken();

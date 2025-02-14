@@ -103,7 +103,7 @@ serve(async (req) => {
       );
     }
 
-    // Get users with their preferences, excluding those already notified in the current batch
+    // Get users with their preferences and all notification history
     const { data: subscribedUsers, error: subsError } = await supabase
       .from('push_subscriptions')
       .select(`
@@ -112,7 +112,7 @@ serve(async (req) => {
         user_preferences (
           timezone
         ),
-        notification_history!inner (
+        notification_history (
           notification_type,
           status,
           retry_count,
@@ -120,7 +120,6 @@ serve(async (req) => {
         )
       `)
       .not('fcm_token', 'is', null)
-      .not('notification_history.batch_id', 'eq', batchId)
       .range(startIndex, startIndex + BATCH_SIZE - 1);
 
     if (subsError) {
@@ -215,23 +214,41 @@ serve(async (req) => {
     const eligibleUsers = subscribedUsers.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
       const { currentHour } = userTimezones.get(user.user_id)!;
       
-      // Group notifications by type for efficient lookup
+      const userToday = new Date(now.toLocaleString('en-US', {
+        timeZone: userTimezones.get(user.user_id)!.timezone
+      }));
+      userToday.setHours(0, 0, 0, 0);
+
+      // Filter notifications to today only and group by type
       const notificationsByType = new Map<NotificationType, typeof user.notification_history>();
       user.notification_history.forEach(n => {
-        const existing = notificationsByType.get(n.notification_type as NotificationType) || [];
-        notificationsByType.set(n.notification_type as NotificationType, [...existing, n]);
+        const notificationTime = new Date(n.sent_at);
+        const userNotificationTime = new Date(notificationTime.toLocaleString('en-US', {
+          timeZone: userTimezones.get(user.user_id)!.timezone
+        }));
+        userNotificationTime.setHours(0, 0, 0, 0);
+
+        if (userNotificationTime.getTime() === userToday.getTime()) {
+          const existing = notificationsByType.get(n.notification_type as NotificationType) || [];
+          notificationsByType.set(n.notification_type as NotificationType, [...existing, n]);
+        }
       });
       
       // Check each window
       NOTIFICATION_WINDOWS.forEach(window => {
         const hourDiff = (currentHour - window.hour + 24) % 24;
+        
+        // Only process if still within window period
         if (hourDiff <= WINDOW_BUFFER_HOURS) {
           // Get notifications for this window
           const windowNotifications = notificationsByType.get(window.type) || [];
           
-          // Skip if already notified or max retries reached
+          // Count total attempts and check success
           const hasSuccess = windowNotifications.some(n => n.status === 'success');
-          const hasMaxRetries = windowNotifications.some(n => n.retry_count >= 2);
+          const totalAttempts = windowNotifications.length;
+
+          // Allow max 3 attempts (original + 2 retries) only during window period
+          const hasMaxRetries = totalAttempts >= 3;
 
           if (!hasSuccess && !hasMaxRetries) {
             // For windows requiring due reminders, check count
