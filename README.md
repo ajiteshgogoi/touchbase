@@ -17,7 +17,7 @@ TouchBase is an intelligent relationship management tool that helps you maintain
 ## How It Works
 
 1. **Add Contacts**: 
-   - Import or manually add contacts
+   - Fill up contact details
    - Set relationship levels and preferred contact frequency
    - Add notes and interaction preferences
 
