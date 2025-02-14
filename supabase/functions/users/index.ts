@@ -144,13 +144,9 @@ serve(async (req) => {
       );
     }
 
-    // For retry runs, only get users with failed notifications
-    // For regular runs, get all eligible users
-    // Build base query with proper ordering
     // Get active push subscriptions with their preferences
-    // First get active subscribers
     const { data: subscribedUsers, error: subsError } = await supabase
-      .from<PushSubscription>('push_subscriptions')
+      .from('push_subscriptions')
       .select('user_id, fcm_token')
       .not('fcm_token', 'is', null)
       .range(startIndex, startIndex + BATCH_SIZE - 1)
@@ -164,115 +160,74 @@ serve(async (req) => {
       );
     }
 
-    // Then get their timezone preferences
-    const { data: preferences } = await supabase
-      .from('profiles')
-      .select('id, timezone')
-      .in('id', subscribedUsers.map(u => u.user_id));
+    // Get their timezone preferences from user_preferences table
+    const { data: preferences, error: prefError } = await supabase
+      .from('user_preferences')
+      .select('user_id, timezone')
+      .in('user_id', subscribedUsers.map(u => u.user_id));
+
+    if (prefError) throw prefError;
 
     // Create timezone map for quick lookup
     const timezoneMap = new Map(
-      preferences?.map(p => [p.id, p.timezone || 'UTC']) || []
+      preferences?.map(p => [p.user_id, p.timezone || 'UTC']) || []
     );
 
-    // Attach timezone to each user
-    subscribedUsers.forEach(user => {
-      (user as any).user_preferences = { timezone: timezoneMap.get(user.user_id) || 'UTC' };
-    });
+    // Fetch notifications for these users
+    let notificationQuery = supabase
+      .from('notification_history')
+      .select('*')
+      .in('user_id', subscribedUsers.map(u => u.user_id))
+      .gte('sent_at', oneDayAgo.toISOString());
 
-    if (subsError) {
-      throw subsError;
+    // Add retry-specific filters if this is a retry run
+    if (isRetry) {
+      notificationQuery = notificationQuery
+        .eq('status', NOTIFICATION_STATUSES.ERROR)
+        .lt('retry_count', MAX_RETRY_ATTEMPTS);
     }
 
-    // Separately fetch notifications for these users
-    if (subscribedUsers?.length > 0) {
-      // Build query based on retry status
-      let query = supabase
-        .from('notification_history')
-        .select('*')
-        .in('user_id', subscribedUsers.map(u => u.user_id))
-        .gte('sent_at', oneDayAgo.toISOString());
+    // Add final ordering
+    const { data: notifications, error: notifyError } = await notificationQuery
+      .order('sent_at', isRetry ? 'asc' : 'desc');
 
-      // Add retry-specific filters if this is a retry run
-      if (isRetry) {
-        query = query
-          .eq('status', NOTIFICATION_STATUSES.ERROR)
-          .lt('retry_count', MAX_RETRY_ATTEMPTS);
-      }
-
-      // Add final ordering
-      const { data: notifications, error: notifyError } = await query
-        .order('sent_at', isRetry ? 'asc' : 'desc');
-
-      if (notifyError) {
-        console.error('Error fetching notifications:', {
-          error: notifyError,
-          details: notifyError.message
-        });
-        throw notifyError;
-      }
-
-      // Convert base subscriptions to extended user type with notifications
-      const extendedUsers: UserWithNotifications[] = subscribedUsers.map(user => ({
-        ...user,
-        user_preferences: { timezone: timezoneMap.get(user.user_id) || 'UTC' },
-        notification_history: notifications
-          ?.filter(n => n.user_id === user.user_id)
-          .map(n => ({
-            ...n,
-            status: n.status as NotificationStatus,
-            notification_type: n.notification_type as NotificationType,
-            retry_count: n.retry_count || 0
-          })) || []
-      }));
-
-      return new Response(
-        JSON.stringify({
-          data: extendedUsers,
-          hasMore: subscribedUsers.length === BATCH_SIZE,
-          batchId
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (subsError) {
-      console.error('Error fetching subscribed users:', {
-        error: subsError,
-        details: subsError.message
+    if (notifyError) {
+      console.error('Error fetching notifications:', {
+        error: notifyError,
+        details: notifyError.message
       });
-      throw subsError;
+      throw notifyError;
     }
 
-    if (!subscribedUsers?.length) {
-      console.log('No more subscribed users to process');
-      return new Response(
-        JSON.stringify({ data: [], hasMore: false }),
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Processing batch of users:', {
-      batchSize: subscribedUsers.length,
-      page,
-      batchId
-    });
+    // Convert to extended user type with notifications
+    const extendedUsers: UserWithNotifications[] = subscribedUsers.map(user => ({
+      ...user,
+      user_preferences: { timezone: timezoneMap.get(user.user_id) || 'UTC' },
+      notification_history: (notifications || [])
+        .filter(n => n.user_id === user.user_id)
+        .map(n => ({
+          ...n,
+          status: n.status as NotificationStatus,
+          notification_type: n.notification_type as NotificationType,
+          retry_count: n.retry_count || 0
+        }))
+    }));
 
     // Calculate current hour in each user's timezone
     const userTimezones = new Map(
-      subscribedUsers.map(user => [
+      extendedUsers.map(user => [
         user.user_id,
         {
-          timezone: user.user_preferences?.timezone || 'UTC',
+          timezone: user.user_preferences.timezone,
           currentHour: new Date(now.toLocaleString('en-US', {
-            timeZone: user.user_preferences?.timezone || 'UTC'
+            timeZone: user.user_preferences.timezone
           })).getHours()
         }
       ])
     );
 
     // Only fetch due reminders for users who might need them
-    const usersNeedingReminders = subscribedUsers.filter(user => {
+    const usersNeedingReminders = extendedUsers.filter(user => {
       const { currentHour } = userTimezones.get(user.user_id)!;
       return NOTIFICATION_WINDOWS.some(window => {
         const hourDiff = (currentHour - window.hour + 24) % 24;
@@ -324,7 +279,7 @@ serve(async (req) => {
       });
     }
 
-    // Determine eligible users from extended user data
+    // Determine eligible users
     const eligibleUsers = extendedUsers.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
       const userToday = new Date(now.toLocaleString('en-US', {
         timeZone: user.user_preferences.timezone
@@ -332,7 +287,7 @@ serve(async (req) => {
       const currentHour = userToday.getHours();
       
       // Filter notifications to today only and group by type
-      const notificationsByType = new Map<NotificationType, NotificationHistory>();
+      const notificationsByType = new Map<NotificationType, NotificationHistory[]>();
       user.notification_history.forEach(n => {
         const notificationTime = new Date(n.sent_at);
         const userNotificationTime = new Date(notificationTime.toLocaleString('en-US', {
@@ -405,6 +360,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    const params = req.method === 'POST' ? await req.json() : {};
+    const batchId = params.batchId;
+
     console.error('Error in users function:', {
       error: error.message,
       stack: error.stack
@@ -412,7 +370,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.stack
+        details: error.stack,
+        batchId 
       }),
       { 
         status: 500,
