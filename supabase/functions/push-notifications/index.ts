@@ -457,14 +457,14 @@ serve(async (req) => {
         message || 'This is a test notification',
         '/reminders',
         'morning',
-        batchId
+        testBatchId
       );
 
-      console.log('Test notification completed:', { userId, batchId });
+      console.log('Test notification completed:', { userId, testBatchId });
       return new Response(
         JSON.stringify({
           message: 'Test notification sent successfully',
-          batchId
+          batchId: testBatchId
         }),
         { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
       );
