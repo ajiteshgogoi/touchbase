@@ -19,6 +19,16 @@ const FIREBASE_PROJECT_ID = Deno.env.get('VITE_FIREBASE_PROJECT_ID');
 const FIREBASE_PRIVATE_KEY = Deno.env.get('VITE_FIREBASE_PRIVATE_KEY');
 const FIREBASE_CLIENT_EMAIL = Deno.env.get('VITE_FIREBASE_CLIENT_EMAIL');
 
+// Notification window configuration
+const NOTIFICATION_WINDOWS = [
+  { type: 'morning' as const, hour: 9 },
+  { type: 'afternoon' as const, hour: 14 },
+  { type: 'evening' as const, hour: 19 }
+];
+
+// Window buffer in hours
+const WINDOW_BUFFER_HOURS = 2;
+
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing Supabase environment variables');
 }
@@ -402,16 +412,17 @@ async function createJWT(now: number): Promise<string> {
 }
 
 serve(async (req) => {
+  let requestData;
   try {
     if (req.method === 'OPTIONS') {
       return new Response('ok', { headers: addCorsHeaders() });
     }
 
     const url = new URL(req.url);
-    const requestData = await req.json();
+    requestData = await req.json();
 
-    // Validate batch ID (required for all endpoints except verify)
-    if (!url.pathname.endsWith('/verify') && !requestData.batchId) {
+    // Validate batch ID (required for base endpoint only)
+    if (url.pathname === '/push-notifications' && !requestData.batchId) {
       return new Response(
         JSON.stringify({ error: 'Missing batch ID' }),
         {
