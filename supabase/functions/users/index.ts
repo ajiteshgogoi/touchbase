@@ -33,15 +33,38 @@ const NOTIFICATION_WINDOWS = [
   { type: 'evening', hour: 19, requiresDueReminders: true }
 ] as const;
 
+// Types aligned with database schema
 type NotificationWindow = typeof NOTIFICATION_WINDOWS[number];
 type NotificationType = NotificationWindow['type'];
 type NotificationStatus = 'success' | 'error' | 'invalid_token';
 
+interface NotificationHistory {
+  id: string;
+  user_id: string;
+  notification_type: NotificationType;
+  status: NotificationStatus;
+  retry_count: number;
+  sent_at: string;
+  batch_id?: string;
+  error_message?: string;
+}
+
+interface UserPreferences {
+  timezone: string;
+}
+
+interface PushSubscription {
+  user_id: string;
+  fcm_token: string;
+  user_preferences: UserPreferences;
+  notification_history: NotificationHistory[];
+}
+
 // Match schema's notification_status enum
 const NOTIFICATION_STATUSES = {
-  SUCCESS: 'success' as const,
-  ERROR: 'error' as const,
-  INVALID_TOKEN: 'invalid_token' as const
+  SUCCESS: 'success' as NotificationStatus,
+  ERROR: 'error' as NotificationStatus,
+  INVALID_TOKEN: 'invalid_token' as NotificationStatus
 };
 
 // Window buffer in hours
@@ -117,32 +140,87 @@ serve(async (req) => {
 
     // For retry runs, only get users with failed notifications
     // For regular runs, get all eligible users
-    // Build base query with proper join conditions
-    const baseQuery = supabase.from('push_subscriptions')
-      .select(`
-        user_id,
-        fcm_token,
-        user_preferences!inner (timezone),
-        notification_history!left (
-          notification_type,
-          status,
-          retry_count,
-          sent_at
-        )
-      `)
+    // Build base query with proper ordering
+    // Get active push subscriptions with their preferences
+    // First get active subscribers
+    const { data: subscribedUsers, error: subsError } = await supabase
+      .from<PushSubscription>('push_subscriptions')
+      .select('user_id, fcm_token')
       .not('fcm_token', 'is', null)
-      .range(startIndex, startIndex + BATCH_SIZE - 1);
+      .range(startIndex, startIndex + BATCH_SIZE - 1)
+      .order('user_id', { ascending: true });
 
-    // Add specific filters for retry runs
-    const { data: subscribedUsers, error: subsError } = await (isRetry
-      ? baseQuery
-          .eq('notification_history.status', 'error')
-          .lt('notification_history.retry_count', 3)
-          .gte('notification_history.sent_at', oneDayAgo.toISOString())
-          .order('notification_history.sent_at', { ascending: true })
-      : baseQuery
-          .order('notification_history.sent_at', { ascending: false })
+    if (subsError) throw subsError;
+    if (!subscribedUsers?.length) {
+      return new Response(
+        JSON.stringify({ data: [], hasMore: false }),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Then get their timezone preferences
+    const { data: preferences } = await supabase
+      .from('profiles')
+      .select('id, timezone')
+      .in('id', subscribedUsers.map(u => u.user_id));
+
+    // Create timezone map for quick lookup
+    const timezoneMap = new Map(
+      preferences?.map(p => [p.id, p.timezone || 'UTC']) || []
     );
+
+    // Attach timezone to each user
+    subscribedUsers.forEach(user => {
+      (user as any).user_preferences = { timezone: timezoneMap.get(user.user_id) || 'UTC' };
+    });
+
+    if (subsError) {
+      throw subsError;
+    }
+
+    // Separately fetch notifications for these users
+    if (subscribedUsers?.length > 0) {
+      // Fetch notifications with appropriate filters for retry/regular runs
+      const { data: notifications, error: notifyError } = await supabase
+        .from('notification_history')
+        .select('*')
+        .in('user_id', subscribedUsers.map(u => u.user_id))
+        .gte('sent_at', oneDayAgo.toISOString())
+        .when(isRetry, query => query
+          .eq('status', NOTIFICATION_STATUSES.ERROR)
+          .lt('retry_count', MAX_RETRY_ATTEMPTS)
+        )
+        .order('sent_at', isRetry ? 'asc' : 'desc');
+
+      if (notifyError) {
+        console.error('Error fetching notifications:', {
+          error: notifyError,
+          details: notifyError.message
+        });
+        throw notifyError;
+      }
+
+      // Attach notifications to users with proper typing
+      if (notifications) {
+        subscribedUsers.forEach(user => {
+          // Group notifications by user and validate against schema
+          const userNotifications = notifications
+            .filter(n => n.user_id === user.user_id)
+            .map(n => ({
+              ...n,
+              status: n.status as NotificationStatus,
+              notification_type: n.notification_type as NotificationType,
+              retry_count: n.retry_count || 0
+            }));
+          (user as PushSubscription).notification_history = userNotifications;
+        });
+      } else {
+        // Initialize empty notification history if none found
+        subscribedUsers.forEach(user => {
+          (user as PushSubscription).notification_history = [];
+        });
+      }
+    }
 
     if (subsError) {
       console.error('Error fetching subscribed users:', {
