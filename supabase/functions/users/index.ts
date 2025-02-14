@@ -49,14 +49,20 @@ interface NotificationHistory {
   error_message?: string;
 }
 
-interface UserPreferences {
-  timezone: string;
+interface Profile {
+  id: string;
+  timezone: string | null;
 }
 
 interface PushSubscription {
   user_id: string;
   fcm_token: string;
-  user_preferences: UserPreferences;
+}
+
+interface UserWithNotifications extends PushSubscription {
+  user_preferences: {
+    timezone: string;
+  };
   notification_history: NotificationHistory[];
 }
 
@@ -200,26 +206,28 @@ serve(async (req) => {
         throw notifyError;
       }
 
-      // Attach notifications to users with proper typing
-      if (notifications) {
-        subscribedUsers.forEach(user => {
-          // Group notifications by user and validate against schema
-          const userNotifications = notifications
-            .filter(n => n.user_id === user.user_id)
-            .map(n => ({
-              ...n,
-              status: n.status as NotificationStatus,
-              notification_type: n.notification_type as NotificationType,
-              retry_count: n.retry_count || 0
-            }));
-          (user as PushSubscription).notification_history = userNotifications;
-        });
-      } else {
-        // Initialize empty notification history if none found
-        subscribedUsers.forEach(user => {
-          (user as PushSubscription).notification_history = [];
-        });
-      }
+      // Convert base subscriptions to extended user type with notifications
+      const extendedUsers: UserWithNotifications[] = subscribedUsers.map(user => ({
+        ...user,
+        user_preferences: { timezone: timezoneMap.get(user.user_id) || 'UTC' },
+        notification_history: notifications
+          ?.filter(n => n.user_id === user.user_id)
+          .map(n => ({
+            ...n,
+            status: n.status as NotificationStatus,
+            notification_type: n.notification_type as NotificationType,
+            retry_count: n.retry_count || 0
+          })) || []
+      }));
+
+      return new Response(
+        JSON.stringify({
+          data: extendedUsers,
+          hasMore: subscribedUsers.length === BATCH_SIZE,
+          batchId
+        }),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     if (subsError) {
