@@ -1,28 +1,44 @@
 name: Push Notifications
 
-# Add concurrency control to prevent multiple workflows running simultaneously
+# Add concurrency control with separate groups for regular and retry runs
 concurrency:
-  group: push-notifications
+  group: push-notifications-${{ github.event.schedule == '*/5 * * * *' && 'retry' || 'regular' }}
   cancel-in-progress: false
 
-# Configuration
-# BATCH_SIZE: Number of users to process in each batch (default: 50)
-#   - Increase to process more users per batch if notifications are sending quickly
-#   - Decrease if you see timeouts or errors
-#   - Remember edge function has 60s timeout limit
+# Configuration:
 #
-# CONCURRENT_NOTIFICATIONS: Number of notifications to send in parallel within each batch (default: 10)
-#   - Increase for faster processing if Firebase can handle the load
-#   - Decrease if you see rate limiting or errors from Firebase
-#   - Keep significantly lower than BATCH_SIZE
+# Execution Schedule:
+# - Regular runs: Every 30 minutes for all eligible users
+# - Retry runs:   Every 5 minutes for failed notifications only
 #
-# BATCH_DELAY: Delay in seconds between processing batches (default: 2)
-#   - Increase if you see rate limiting or system stress
-#   - Decrease for faster overall processing if system can handle it
+# Batch Processing:
+# BATCH_SIZE: Users per batch (default: 50)
+#   - Increase if notifications are sending quickly
+#   - Decrease if seeing timeouts/errors
+#   - Edge function has 60s timeout limit
+#
+# CONCURRENT_NOTIFICATIONS: Parallel notifications per batch (default: 10)
+#   - Increase if Firebase can handle more load
+#   - Decrease if seeing rate limiting
+#   - Keep lower than BATCH_SIZE
+#
+# Delays:
+# BATCH_DELAY: Regular batch delay (default: 2s)
+# RETRY_BATCH_DELAY: Retry batch delay (default: 1s)
+#   - Shorter for retries to process failures faster
+#   - Adjust based on system load
+#
+# Concurrency:
+# - Regular and retry runs use separate concurrency groups
+# - Won't block or interfere with each other
+# - Each maintains their own queue
 
 on:
   schedule:
+    # Regular check every 30 minutes
     - cron: '*/30 * * * *'
+    # Retry check every 5 minutes
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 # Security controls
@@ -33,6 +49,10 @@ env:
   BATCH_SIZE: 50
   CONCURRENT_NOTIFICATIONS: 10
   BATCH_DELAY: 2
+  # Shorter delay for retry batches
+  RETRY_BATCH_DELAY: 1
+  # Flag to identify retry runs (every 5 minutes)
+  IS_RETRY_RUN: ${{ github.event.schedule == '*/5 * * * *' }}
 
 jobs:
   verify-security:
@@ -50,10 +70,12 @@ jobs:
           echo "Manual workflow execution is only allowed by repository owner ajiteshgogoi"
           exit 1
 
-  trigger-push-notifications:
+  process-notifications:
     needs: verify-security
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Add run type to job name for better visibility
+    name: ${{ github.event.schedule == '*/5 * * * *' && 'Process Retry Notifications' || 'Process Regular Notifications' }}
     env:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     
@@ -89,11 +111,12 @@ jobs:
           while [ "$has_more" = true ]; do
             echo "::group::Fetching batch page $page"
             
+            # Add retry parameter for retry runs
             response=$(curl --request POST \
               --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
               --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
               --header 'Content-Type: application/json' \
-              --data "{\"page\": $page, \"batchId\": \"$BATCH_ID\"}" \
+              --data "{\"page\": $page, \"batchId\": \"$BATCH_ID\", \"isRetry\": $IS_RETRY_RUN}" \
               --silent)
             
             if ! echo "$response" | jq -e 'type == "object" and (.data != null and .hasMore != null)' > /dev/null; then
@@ -175,21 +198,33 @@ jobs:
           rm "${{ steps.fetch-users.outputs.batch_file }}"
           
           if [ "$has_more" = true ]; then
-            echo "Waiting $BATCH_DELAY seconds before next batch..."
-            sleep "$BATCH_DELAY"
+            # Use shorter delay for retry runs
+            if [ "$IS_RETRY_RUN" = true ]; then
+              echo "Waiting $RETRY_BATCH_DELAY seconds before next retry batch..."
+              sleep "$RETRY_BATCH_DELAY"
+            else
+              echo "Waiting $BATCH_DELAY seconds before next batch..."
+              sleep "$BATCH_DELAY"
+            fi
           fi
 
       # Step 5: Report completion
       - name: Report completion
         run: |
           echo "::group::Notification Processing Summary"
+          echo "Run type: ${{ github.event.schedule == '*/5 * * * *' && 'RETRY' || 'REGULAR' }}"
           echo "Batch ID: $BATCH_ID"
           echo "Total users processed: $total_processed"
           echo "Total batches: $page"
+          echo "Batch delay: ${{ github.event.schedule == '*/5 * * * *' && env.RETRY_BATCH_DELAY || env.BATCH_DELAY }}s"
           echo "::endgroup::"
           
           if [ "$total_processed" -eq 0 ]; then
-            echo "::notice::No notifications were sent - no eligible users found"
+            echo "::notice::No notifications were sent - no eligible users found for ${{ github.event.schedule == '*/5 * * * *' && 'retry run' || 'regular run' }}"
           else
-            echo "::notice::Successfully processed $total_processed users across $page batches"
+            if [ "$IS_RETRY_RUN" = true ]; then
+              echo "::notice::Successfully processed $total_processed retry notifications across $page batches"
+            else
+              echo "::notice::Successfully processed $total_processed regular notifications across $page batches"
+            fi
           fi

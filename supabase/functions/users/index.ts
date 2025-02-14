@@ -56,7 +56,8 @@ serve(async (req) => {
   try {
     const params = req.method === 'POST' ? await req.json() : {};
     const page = params.page || 0;
-    const batchId = params.batchId; // Required batch ID from workflow
+    const batchId = params.batchId;
+    const isRetry = params.isRetry || false;
     const startIndex = page * BATCH_SIZE;
     
     if (!batchId) {
@@ -103,8 +104,9 @@ serve(async (req) => {
       );
     }
 
-    // Get users with their preferences and all notification history
-    const { data: subscribedUsers, error: subsError } = await supabase
+    // For retry runs, only get users with failed notifications
+    // For regular runs, get all eligible users
+    const query = supabase
       .from('push_subscriptions')
       .select(`
         user_id,
@@ -119,7 +121,19 @@ serve(async (req) => {
           sent_at
         )
       `)
-      .not('fcm_token', 'is', null)
+      .not('fcm_token', 'is', null);
+
+    // Add filters for retry runs
+    if (isRetry) {
+      query
+        .eq('notification_history.status', 'error')
+        .lt('notification_history.retry_count', 3)
+        .order('notification_history.sent_at', { ascending: true });
+    } else {
+      query.order('notification_history.status', { ascending: true, nullsLast: true });
+    }
+
+    const { data: subscribedUsers, error: subsError } = await query
       .range(startIndex, startIndex + BATCH_SIZE - 1);
 
     if (subsError) {
