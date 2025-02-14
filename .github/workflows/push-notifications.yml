@@ -54,101 +54,142 @@ jobs:
     needs: verify-security
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    
     steps:
-      - name: Install GNU parallel
-        run: sudo apt-get install -y parallel
-
-      - name: Get eligible users
-        id: get-users
+      # Step 1: Setup required tools and initialize batch processing
+      - name: Setup dependencies
         run: |
-          # Get users eligible for notifications
-          response=$(curl --request GET \
-            --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
-            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' \
-            --silent)
-          
-          # Check response type
-          if ! echo "$response" | jq -e 'type == "array"' > /dev/null; then
-            error_msg=$(echo "$response" | jq -r '.error // "Unknown error"')
-            echo "Error getting users: $error_msg"
-            echo "Details: $(echo "$response" | jq -r '.details // "No details provided"')"
-            exit 1
-          fi
-          
-          # Store users for next step
-          echo "$response" > eligible_users.json
-          total=$(echo "$response" | jq '. | length')
-          echo "Found $total eligible users"
+          sudo apt-get update
+          sudo apt-get install -y parallel jq curl
 
-      - name: Process users in batches
-        if: success()
+      # Generate a unique batch ID for this workflow run
+      # This will be used to track all notifications sent in this run
+      - name: Generate batch ID
+        id: batch
         run: |
-          total=$(cat eligible_users.json | jq '. | length')
-          if [ "$total" -eq 0 ]; then
-            echo "No eligible users found, skipping processing"
-            exit 0
-          fi
+          batch_id=$(uuidgen)
+          echo "BATCH_ID=$batch_id" >> $GITHUB_ENV
+          echo "batch_id=$batch_id" >> $GITHUB_OUTPUT
+          echo "Generated batch ID: $batch_id"
 
-          total_processed=0
-          batch_num=1
-          
-          # Process users in configurable batches
-          cat eligible_users.json | \
-          jq -c ". | _nwise($BATCH_SIZE)" | while read -r batch; do
-            batch_size=$(echo "$batch" | jq '. | length')
-            echo "Processing batch $batch_num ($batch_size users)..."
+      # Initialize batch processing variables
+      - name: Initialize batch processing
+        id: init
+        run: |
+          echo "total_processed=0" >> $GITHUB_ENV
+          echo "page=0" >> $GITHUB_ENV
+          echo "has_more=true" >> $GITHUB_ENV
+
+      # Step 2: Fetch eligible users for current batch
+      - name: Fetch eligible users batch
+        id: fetch-users
+        run: |
+          while [ "$has_more" = true ]; do
+            echo "::group::Fetching batch page $page"
             
-            # Process users in batch with configured concurrency
-            echo "$batch" | jq -c '.[]' | while read -r user; do
-              # Extract user data outside of parallel to ensure proper parsing
-              user_id=$(echo "$user" | jq -r '.userId')
-              window_type=$(echo "$user" | jq -r '.windowType')
-              
-              if [ -z "$user_id" ] || [ -z "$window_type" ]; then
-                echo "Skipping invalid user data: $user"
-                continue
-              fi
-
-              (
-                echo "Processing user $user_id for window $window_type"
-                response=$(curl --request POST \
-                  --url "https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications" \
-                  --header "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-                  --header "Content-Type: application/json" \
-                  --data "{\"userId\": \"$user_id\", \"windowType\": \"$window_type\"}" \
-                  --silent)
-
-                # Validate response format
-                if ! echo "$response" | jq -e 'type == "object" and (.message != null or .error != null)' > /dev/null; then
-                  echo "Invalid response format for user $user_id"
-                elif echo "$response" | jq -e '.error' > /dev/null; then
-                  echo "Error processing user $user_id: $(echo "$response" | jq -r '.error')"
-                else
-                  echo "Successfully processed user $user_id"
-                fi
-              ) &
-
-              # Control concurrency
-              while [ $(jobs -r | wc -l) -ge "$CONCURRENT_NOTIFICATIONS" ]; do
-                sleep 0.1
-              done
-            done
-
-            # Wait for all background jobs to complete
-            wait
+            response=$(curl --request POST \
+              --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
+              --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+              --header 'Content-Type: application/json' \
+              --data "{\"page\": $page, \"batchId\": \"$BATCH_ID\"}" \
+              --silent)
             
-            # Update counters
-            total_processed=$((total_processed + batch_size))
-            batch_num=$((batch_num + 1))
-            echo "Completed batch. Total processed: $total_processed"
-            
-            # Configurable delay between batches
-            if [ "$total_processed" -lt "$total" ]; then
-              echo "Waiting $BATCH_DELAY seconds before next batch..."
-              sleep "$BATCH_DELAY"
+            if ! echo "$response" | jq -e 'type == "object" and (.data != null and .hasMore != null)' > /dev/null; then
+              echo "::error::Invalid response format"
+              echo "Error: $(echo "$response" | jq -r '.error // "Unknown error"')"
+              echo "Details: $(echo "$response" | jq -r '.details // "No details provided"')"
+              exit 1
             fi
+
+            echo "$response" | jq -r '.data' > "batch_$page.json"
+            has_more=$(echo "$response" | jq -r '.hasMore')
+            batch_size=$(echo "$response" | jq -r '.data | length')
+
+            if [ "$batch_size" -eq 0 ]; then
+              echo "No eligible users in this batch"
+              break
+            fi
+
+            echo "Found $batch_size eligible users in batch $page"
+            echo "::endgroup::"
+
+            echo "batch_file=batch_$page.json" >> $GITHUB_OUTPUT
+            echo "batch_size=$batch_size" >> $GITHUB_OUTPUT
+            break
           done
 
+      # Step 3: Process notifications for current batch
+      - name: Process notifications batch
+        if: steps.fetch-users.outputs.batch_size > 0
+        run: |
+          echo "::group::Processing batch $page notifications"
+          batch_file="${{ steps.fetch-users.outputs.batch_file }}"
+          
+          cat "$batch_file" | jq -c '.[]' | while read -r user; do
+            user_id=$(echo "$user" | jq -r '.userId')
+            window_type=$(echo "$user" | jq -r '.windowType')
+            
+            if [ -z "$user_id" ] || [ -z "$window_type" ]; then
+              echo "::warning::Skipping invalid user data: $user"
+              continue
+            fi
+
+            (
+              echo "Processing user $user_id for window $window_type"
+              response=$(curl --request POST \
+                --url "https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications" \
+                --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+                --header "Content-Type: application/json" \
+                --data "{\"userId\": \"$user_id\", \"windowType\": \"$window_type\", \"batchId\": \"$BATCH_ID\"}" \
+                --silent)
+
+              if ! echo "$response" | jq -e 'type == "object" and (.message != null or .error != null)' > /dev/null; then
+                echo "::warning::Invalid response format for user $user_id"
+              elif echo "$response" | jq -e '.error' > /dev/null; then
+                echo "::error::Failed to process user $user_id: $(echo "$response" | jq -r '.error')"
+              else
+                echo "Successfully processed user $user_id"
+              fi
+            ) &
+
+            while [ $(jobs -r | wc -l) -ge "$CONCURRENT_NOTIFICATIONS" ]; do
+              sleep 0.1
+            done
+          done
+
+          wait
+          echo "::endgroup::"
+
+      # Step 4: Update progress and prepare for next batch
+      - name: Update batch progress
+        if: steps.fetch-users.outputs.batch_size > 0
+        run: |
+          total_processed=$((total_processed + ${{ steps.fetch-users.outputs.batch_size }}))
+          page=$((page + 1))
+          
+          echo "total_processed=$total_processed" >> $GITHUB_ENV
+          echo "page=$page" >> $GITHUB_ENV
+          
+          rm "${{ steps.fetch-users.outputs.batch_file }}"
+          
+          if [ "$has_more" = true ]; then
+            echo "Waiting $BATCH_DELAY seconds before next batch..."
+            sleep "$BATCH_DELAY"
+          fi
+
+      # Step 5: Report completion
       - name: Report completion
-        if: success()
-        run: echo "Push notification processing completed successfully"
+        run: |
+          echo "::group::Notification Processing Summary"
+          echo "Batch ID: $BATCH_ID"
+          echo "Total users processed: $total_processed"
+          echo "Total batches: $page"
+          echo "::endgroup::"
+          
+          if [ "$total_processed" -eq 0 ]; then
+            echo "::notice::No notifications were sent - no eligible users found"
+          else
+            echo "::notice::Successfully processed $total_processed users across $page batches"
+          fi

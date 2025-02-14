@@ -1,3 +1,19 @@
+/**
+ * Push Notification User Eligibility Service
+ * 
+ * This service determines which users should receive push notifications based on:
+ * - Their current time window (morning/afternoon/evening)
+ * - Their timezone-specific time
+ * - Their due reminders status (required for afternoon/evening)
+ * - Their previous notification history
+ * 
+ * Uses batch processing for scalability:
+ * - Tracks notifications by batch_id to prevent duplicates
+ * - Supports pagination for handling large user bases
+ * - Uses database-level joins to minimize queries
+ * - Filters users early to reduce processing
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -20,148 +36,149 @@ const NOTIFICATION_WINDOWS = [
 type NotificationWindow = typeof NOTIFICATION_WINDOWS[number];
 type NotificationType = NotificationWindow['type'];
 
-// Window buffer in hours - how long past the window's hour we'll still consider valid
+// Window buffer in hours
 const WINDOW_BUFFER_HOURS = 2;
+
+// Match workflow batch size
+const BATCH_SIZE = 50;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Methods': 'GET, POST',
         'Access-Control-Allow-Headers': 'Authorization',
       },
     });
   }
 
   try {
-    console.log('Starting notification eligibility check');
+    const params = req.method === 'POST' ? await req.json() : {};
+    const page = params.page || 0;
+    const batchId = params.batchId; // Required batch ID from workflow
+    const startIndex = page * BATCH_SIZE;
+    
+    if (!batchId) {
+      return new Response(
+        JSON.stringify({ error: 'Missing batch ID' }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log('Starting notification eligibility check', {
+      page,
+      batchSize: BATCH_SIZE,
+      startIndex,
+      batchId
+    });
     
     const now = new Date();
-    console.log('Fetching notification history');
-
-    // Get all notifications from the last 24 hours to account for different timezones
     const oneDayAgo = new Date(now);
     oneDayAgo.setHours(oneDayAgo.getHours() - 24);
 
-    // Get notifications for all users
-    const { data: notifications, error: notifiedError } = await supabase
+    // First verify this batch hasn't been processed
+    const { data: existingNotifications, error: batchError } = await supabase
       .from('notification_history')
-      .select('user_id, status, retry_count, sent_at, notification_type')
-      .gte('sent_at', oneDayAgo.toISOString())
-      .order('sent_at', { ascending: false }); // Get latest attempt
+      .select('id')
+      .eq('batch_id', batchId)
+      .limit(1);
 
-    if (notifiedError) {
-      console.error('Error fetching notification history:', {
-        error: notifiedError,
-        details: notifiedError.message
-      });
-      throw notifiedError;
+    if (batchError) {
+      throw batchError;
     }
 
-    // Group notifications by user ID for efficient lookup
-    const notificationsByUser = new Map();
-    notifications?.forEach(notification => {
-      const existing = notificationsByUser.get(notification.user_id) || [];
-      notificationsByUser.set(notification.user_id, [...existing, notification]);
-    });
+    if (existingNotifications?.length > 0) {
+      console.log('Batch already processed:', { batchId });
+      return new Response(
+        JSON.stringify({ 
+          data: [],
+          hasMore: false,
+          message: 'Batch already processed'
+        }),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
-    console.log('Notification history results:', {
-      totalNotifications: notifications?.length || 0,
-      uniqueUsers: notificationsByUser.size
-    });
-
-    console.log('Fetching push subscriptions');
-    // Get users with valid FCM tokens
-    const { data: subscriptions, error: subsError } = await supabase
+    // Get users with their preferences, excluding those already notified in the current batch
+    const { data: subscribedUsers, error: subsError } = await supabase
       .from('push_subscriptions')
-      .select('user_id, fcm_token')
-      .not('fcm_token', 'is', null);
+      .select(`
+        user_id,
+        fcm_token,
+        user_preferences (
+          timezone
+        ),
+        notification_history!inner (
+          notification_type,
+          status,
+          retry_count,
+          sent_at
+        )
+      `)
+      .not('fcm_token', 'is', null)
+      .not('notification_history.batch_id', 'eq', batchId)
+      .range(startIndex, startIndex + BATCH_SIZE - 1);
 
     if (subsError) {
-      console.error('Error fetching push subscriptions:', {
+      console.error('Error fetching subscribed users:', {
         error: subsError,
         details: subsError.message
       });
       throw subsError;
     }
 
-    if (!subscriptions?.length) {
-      console.log('No subscribed users found');
+    if (!subscribedUsers?.length) {
+      console.log('No more subscribed users to process');
       return new Response(
-        JSON.stringify([]),
+        JSON.stringify({ data: [], hasMore: false }),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Push subscription results:', {
-      totalSubscriptions: subscriptions.length
+    console.log('Processing batch of users:', {
+      batchSize: subscribedUsers.length,
+      page,
+      batchId
     });
 
-    console.log('Fetching user preferences');
-    // Get user preferences
-    const { data: preferences, error: prefError } = await supabase
-      .from('user_preferences')
-      .select('user_id, timezone')
-      .in('user_id', subscriptions.map(s => s.user_id));
-
-    if (prefError) {
-      console.error('Error fetching user preferences:', {
-        error: prefError,
-        details: prefError.message
-      });
-      throw prefError;
-    }
-
-    console.log('User preferences results:', {
-      totalPreferences: preferences?.length || 0,
-      timezones: [...new Set(preferences?.map(p => p.timezone) || [])]
-    });
-
-    // Create map of user preferences for efficient lookup
-    const preferenceMap = new Map(
-      preferences?.map(p => [p.user_id, p.timezone]) || []
+    // Calculate current hour in each user's timezone
+    const userTimezones = new Map(
+      subscribedUsers.map(user => [
+        user.user_id,
+        {
+          timezone: user.user_preferences?.timezone || 'UTC',
+          currentHour: new Date(now.toLocaleString('en-US', {
+            timeZone: user.user_preferences?.timezone || 'UTC'
+          })).getHours()
+        }
+      ])
     );
 
-    console.log('Processing time windows', {
-      currentTime: now.toISOString(),
-      buffer: WINDOW_BUFFER_HOURS
+    // Only fetch due reminders for users who might need them
+    const usersNeedingReminders = subscribedUsers.filter(user => {
+      const { currentHour } = userTimezones.get(user.user_id)!;
+      return NOTIFICATION_WINDOWS.some(window => {
+        const hourDiff = (currentHour - window.hour + 24) % 24;
+        return hourDiff <= WINDOW_BUFFER_HOURS && window.requiresDueReminders;
+      });
     });
 
-    // Filter users who:
-    // 1. Haven't been successfully notified today or haven't reached max retries (3 attempts)
-    // 2. Are in their notification window
-    // 3. Have due reminders (only required for afternoon/evening windows)
     const dueRemindersMap = new Map<string, number>();
     
-    // Only fetch due reminders if we're in a window that requires them
-    const currentWindows = NOTIFICATION_WINDOWS.filter(w => {
-      const userTime = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-      const currentHour = userTime.getHours();
-      const hourDiff = (currentHour - w.hour + 24) % 24;
-      return hourDiff <= WINDOW_BUFFER_HOURS;
-    });
-    
-    if (currentWindows.some(w => w.requiresDueReminders)) {
-      console.log('Fetching due reminders for users');
-      
+    if (usersNeedingReminders.length > 0) {
+      console.log('Fetching due reminders for filtered users:', {
+        userCount: usersNeedingReminders.length
+      });
+
       const { data: dueReminders, error: remindersError } = await supabase
         .from('reminders')
         .select('user_id, due_date')
+        .in('user_id', usersNeedingReminders.map(u => u.user_id))
         .eq('completed', false);
-
-      // Filter reminders based on user's timezone
-      const dueRemindersFiltered = dueReminders?.filter(reminder => {
-        const timezone = preferenceMap.get(reminder.user_id) || 'UTC';
-        const userToday = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
-        userToday.setHours(0, 0, 0, 0);
-        
-        const dueDate = new Date(reminder.due_date);
-        const userDueDate = new Date(dueDate.toLocaleString('en-US', { timeZone: timezone }));
-        userDueDate.setHours(0, 0, 0, 0);
-        
-        return userDueDate <= userToday;
-      });
 
       if (remindersError) {
         console.error('Error fetching due reminders:', {
@@ -171,123 +188,79 @@ serve(async (req) => {
         throw remindersError;
       }
 
-      // Count due reminders per user from filtered results
-      dueRemindersFiltered?.forEach(reminder => {
-        dueRemindersMap.set(
-          reminder.user_id,
-          (dueRemindersMap.get(reminder.user_id) || 0) + 1
-        );
+      // Process due reminders in user's timezone
+      dueReminders?.forEach(reminder => {
+        const { timezone } = userTimezones.get(reminder.user_id)!;
+        const userToday = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+        userToday.setHours(0, 0, 0, 0);
+        
+        const dueDate = new Date(reminder.due_date);
+        const userDueDate = new Date(dueDate.toLocaleString('en-US', { timeZone: timezone }));
+        userDueDate.setHours(0, 0, 0, 0);
+        
+        if (userDueDate <= userToday) {
+          dueRemindersMap.set(
+            reminder.user_id,
+            (dueRemindersMap.get(reminder.user_id) || 0) + 1
+          );
+        }
       });
 
-      console.log('Due reminders found:', {
-        usersWithDue: dueRemindersMap.size,
-        totalDue: dueRemindersFiltered?.length || 0,
-        totalReminders: dueReminders?.length || 0,
-        message: 'Filtered by user timezone'
+      console.log('Due reminders processed:', {
+        usersWithDue: dueRemindersMap.size
       });
     }
 
-    const eligibleUsers = subscriptions.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, sub) => {
-      const timezone = preferenceMap.get(sub.user_id) || 'UTC';
-      const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+    // Determine eligible users
+    const eligibleUsers = subscribedUsers.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
+      const { currentHour } = userTimezones.get(user.user_id)!;
       
-      // Get start of day in user's timezone
-      const userTodayStart = new Date(userTime);
-      userTodayStart.setHours(0, 0, 0, 0);
+      // Group notifications by type for efficient lookup
+      const notificationsByType = new Map<NotificationType, typeof user.notification_history>();
+      user.notification_history.forEach(n => {
+        const existing = notificationsByType.get(n.notification_type as NotificationType) || [];
+        notificationsByType.set(n.notification_type as NotificationType, [...existing, n]);
+      });
       
-      // Check notifications for this user
-      const userNotifications = notificationsByUser.get(sub.user_id) || [];
-      
-      // Find appropriate notification window
-      const currentWindow = NOTIFICATION_WINDOWS.find(w => {
-        const hourDiff = (userTime.getHours() - w.hour + 24) % 24;
-        return hourDiff <= WINDOW_BUFFER_HOURS;
-      });
+      // Check each window
+      NOTIFICATION_WINDOWS.forEach(window => {
+        const hourDiff = (currentHour - window.hour + 24) % 24;
+        if (hourDiff <= WINDOW_BUFFER_HOURS) {
+          // Get notifications for this window
+          const windowNotifications = notificationsByType.get(window.type) || [];
+          
+          // Skip if already notified or max retries reached
+          const hasSuccess = windowNotifications.some(n => n.status === 'success');
+          const hasMaxRetries = windowNotifications.some(n => n.retry_count >= 2);
 
-      if (!currentWindow) {
-        return acc; // No current window
-      }
-
-      // Find notifications from today in user's timezone for the current window type
-      const todayWindowNotifications = userNotifications.filter(notification => {
-        const notificationTime = new Date(notification.sent_at);
-        const userNotificationTime = new Date(notificationTime.toLocaleString('en-US', { timeZone: timezone }));
-        return userNotificationTime >= userTodayStart &&
-               notification.notification_type === currentWindow.type;
-      });
-
-      // Check if user has successful notification today for this window or hit retry limit
-      const hasSuccessForWindow = todayWindowNotifications.some(n => n.status === 'success');
-      const hasMaxRetriesForWindow = todayWindowNotifications.some(n => n.retry_count >= 2);
-
-      if (hasSuccessForWindow || hasMaxRetriesForWindow) {
-        return acc;
-      }
-
-      // For windows requiring due reminders, check if user has any
-      if (currentWindow.requiresDueReminders) {
-        const dueCount = dueRemindersMap.get(sub.user_id) || 0;
-        if (dueCount === 0) {
-          return acc; // Skip users with no due reminders for afternoon/evening windows
-        }
-      }
-      const currentHour = userTime.getHours();
-
-      // Find appropriate notification window
-      const userWindow = NOTIFICATION_WINDOWS.find(w => {
-        const hourDiff = (currentHour - w.hour + 24) % 24;
-        return hourDiff <= WINDOW_BUFFER_HOURS;
-      });
-
-      if (userWindow) {
-        // For windows requiring due reminders, check if user has any
-        if (userWindow.requiresDueReminders) {
-          const dueCount = dueRemindersMap.get(sub.user_id) || 0;
-          if (dueCount === 0) {
-            return acc; // Skip users with no due reminders for afternoon/evening windows
+          if (!hasSuccess && !hasMaxRetries) {
+            // For windows requiring due reminders, check count
+            if (!window.requiresDueReminders || dueRemindersMap.get(user.user_id) > 0) {
+              acc.push({
+                userId: user.user_id,
+                windowType: window.type
+              });
+            }
           }
         }
-
-        acc.push({
-          userId: sub.user_id,
-          windowType: userWindow.type
-        });
-      }
+      });
 
       return acc;
     }, []);
 
-    // Group notifications by window type for logging
-    const notificationsByWindow = new Map<NotificationType, typeof notifications>();
-    NOTIFICATION_WINDOWS.forEach(w => {
-      notificationsByWindow.set(w.type, notifications?.filter(n => n.notification_type === w.type) || []);
+    console.log('Batch processing completed:', {
+      batchId,
+      batchSize: subscribedUsers.length,
+      eligible: eligibleUsers.length,
+      hasMore: subscribedUsers.length === BATCH_SIZE
     });
 
-    console.log('Eligibility check completed:', {
-      totalEligible: eligibleUsers.length,
-      currentWindows: currentWindows.map(w => ({
-        type: w.type,
-        stats: {
-          total: notificationsByWindow.get(w.type)?.length || 0,
-          success: notificationsByWindow.get(w.type)?.filter(n => n.status === 'success').length || 0,
-          maxRetries: notificationsByWindow.get(w.type)?.filter(n => n.retry_count >= 2).length || 0
-        }
-      })),
-      skippedUsers: {
-        noDueReminders: currentWindows.some(w => w.requiresDueReminders) ?
-          subscriptions.length - eligibleUsers.length -
-          currentWindows.reduce((acc, w) => {
-            const windowNotifications = notificationsByWindow.get(w.type) || [];
-            return acc + windowNotifications.filter(n =>
-              n.status === 'success' || n.retry_count >= 2
-            ).length;
-          }, 0) : 0
-      },
-      timezones: [...new Set(eligibleUsers.map(u => preferenceMap.get(u.userId) || 'UTC'))]
-    });
-    
     return new Response(
-      JSON.stringify(eligibleUsers),
+      JSON.stringify({
+        data: eligibleUsers,
+        hasMore: subscribedUsers.length === BATCH_SIZE,
+        batchId
+      }),
       { 
         headers: { 
           'Content-Type': 'application/json',
@@ -295,6 +268,7 @@ serve(async (req) => {
         } 
       }
     );
+
   } catch (error) {
     console.error('Error in users function:', {
       error: error.message,

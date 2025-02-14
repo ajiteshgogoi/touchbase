@@ -1,3 +1,15 @@
+/**
+ * Push Notification Service
+ * 
+ * Handles sending notifications to users through Firebase Cloud Messaging (FCM).
+ * Records notification attempts in notification_history with batch tracking.
+ * 
+ * Schema alignment:
+ * - Uses batch_id (uuid) from notification_history table
+ * - Records notification status and retry counts
+ * - Handles multiple notification windows (morning/afternoon/evening)
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -70,6 +82,10 @@ async function recordNotificationAttempt(
   batchId?: string,
   prevAttempt?: { id: number; retry_count: number }
 ): Promise<void> {
+  if (!batchId) {
+    throw new Error('Missing batch ID for notification attempt');
+  }
+
   try {
     console.log('Recording notification attempt:', {
       userId,
@@ -86,7 +102,8 @@ async function recordNotificationAttempt(
         .update({
           status: status,
           error_message: error,
-          retry_count: prevAttempt.retry_count + 1
+          retry_count: prevAttempt.retry_count + 1,
+          batch_id: batchId // Ensure batch_id is set on update
         })
         .eq('id', prevAttempt.id);
 
@@ -133,7 +150,7 @@ async function sendFcmNotification(
   body: string,
   url: string,
   windowType: NotificationType,
-  batchId?: string
+  batchId: string
 ): Promise<void> {
   console.log('Preparing FCM notification:', { userId, windowType, title });
 
@@ -151,12 +168,13 @@ async function sendFcmNotification(
   const userToday = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
   userToday.setHours(0, 0, 0, 0);
 
-  // Get any existing attempt from today in user's timezone
+  // Get previous attempts for this window, excluding current batch
   const { data: prevAttempts } = await supabase
     .from('notification_history')
     .select('id, retry_count, sent_at')
     .eq('user_id', userId)
     .eq('notification_type', windowType)
+    .neq('batch_id', batchId)
     .order('sent_at', { ascending: false });
 
   // Filter attempts based on user's timezone
@@ -362,19 +380,29 @@ async function createJWT(now: number): Promise<string> {
 }
 
 serve(async (req) => {
-  const batchId = crypto.randomUUID();
-  console.log('Starting push notification request:', { batchId });
-
   try {
     if (req.method === 'OPTIONS') {
       return new Response('ok', { headers: addCorsHeaders() });
     }
 
     const url = new URL(req.url);
+    const requestData = await req.json();
+
+    // Validate batch ID (required for all endpoints except verify)
+    if (!url.pathname.endsWith('/verify') && !requestData.batchId) {
+      return new Response(
+        JSON.stringify({ error: 'Missing batch ID' }),
+        {
+          status: 400,
+          headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+        }
+      );
+    }
+
     // Handle test notifications
     if (url.pathname.endsWith('/test')) {
-      const { userId, message } = await req.json();
-      console.log('Processing test notification:', { userId });
+      const { userId, message, batchId } = requestData;
+      console.log('Processing test notification:', { userId, batchId });
 
       if (!userId) {
         return new Response(
@@ -397,7 +425,7 @@ serve(async (req) => {
         batchId
       );
 
-      console.log('Test notification completed:', { userId });
+      console.log('Test notification completed:', { userId, batchId });
       return new Response(
         JSON.stringify({
           message: 'Test notification sent successfully',
@@ -409,7 +437,7 @@ serve(async (req) => {
 
     // Handle FCM token verification
     if (url.pathname.endsWith('/verify')) {
-      const { userId } = await req.json();
+      const { userId } = requestData;
       console.log('Verifying FCM token:', { userId });
 
       if (!userId) {
@@ -422,7 +450,6 @@ serve(async (req) => {
         );
       }
 
-      // Just try to get the user data - if FCM token exists and is valid, this will succeed
       await getUserData(userId);
 
       return new Response(
@@ -433,8 +460,9 @@ serve(async (req) => {
 
     // Handle regular notifications (base endpoint)
     if (url.pathname === '/push-notifications') {
-      const { userId, windowType } = await req.json();
-      console.log('Processing notification:', { userId, windowType });
+      const { userId, windowType, batchId } = requestData;
+      console.log('Processing notification:', { userId, windowType, batchId });
+
       if (!userId || !windowType) {
         return new Response(
           JSON.stringify({ error: 'Missing user ID or window type' }),
@@ -465,7 +493,7 @@ serve(async (req) => {
         batchId
       );
 
-      console.log('Notification processing completed:', { userId, windowType });
+      console.log('Notification processing completed:', { userId, windowType, batchId });
       return new Response(
         JSON.stringify({
           message: 'Notification sent successfully',
@@ -476,19 +504,25 @@ serve(async (req) => {
       );
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 });
+    return new Response(
+      JSON.stringify({ error: 'Invalid request' }),
+      {
+        status: 400,
+        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
+      }
+    );
+
   } catch (error) {
     console.error('Push notification error:', {
       error: error.message,
-      stack: error.stack,
-      batchId
+      stack: error.stack
     });
 
     return new Response(
       JSON.stringify({
         error: error.message,
         name: error.name,
-        batchId
+        batchId: requestData?.batchId
       }),
       {
         status: 500,
