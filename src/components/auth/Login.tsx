@@ -60,7 +60,7 @@ export const Login = () => {
           Welcome to TouchBase
         </h2>
         <p className="text-xl sm:text-2xl text-gray-600">
-          Your intelligent relationship management companion
+          Stay connected with the people who matter most
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 text-left">
@@ -70,8 +70,8 @@ export const Login = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Smart Management</h3>
-            <p className="text-gray-600">Track interactions with all your personal connections in one place</p>
+            <h3 className="text-lg font-semibold text-gray-800">Simple & Personal</h3>
+            <p className="text-gray-600">Keep track of heartfelt moments with your loved ones, all in one place</p>
           </div>
           
           <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
@@ -80,8 +80,8 @@ export const Login = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Timely Reminders</h3>
-            <p className="text-gray-600">Get daily notifications to maintain meaningful relationships</p>
+            <h3 className="text-lg font-semibold text-gray-800">Thoughtful Reminders</h3>
+            <p className="text-gray-600">Never miss a chance to show you care with gentle, timely nudges</p>
           </div>
           
           <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
@@ -90,8 +90,8 @@ export const Login = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">AI Powered</h3>
-            <p className="text-gray-600">Personalised interaction suggestions and analytics based on your history</p>
+            <h3 className="text-lg font-semibold text-gray-800">Helpful Assistant</h3>
+            <p className="text-gray-600">Get personalised suggestions to make every interaction more meaningful</p>
           </div>
         </div>
       </div>
