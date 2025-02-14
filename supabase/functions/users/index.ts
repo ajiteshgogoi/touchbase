@@ -186,16 +186,22 @@ serve(async (req) => {
 
     // Separately fetch notifications for these users
     if (subscribedUsers?.length > 0) {
-      // Fetch notifications with appropriate filters for retry/regular runs
-      const { data: notifications, error: notifyError } = await supabase
+      // Build query based on retry status
+      let query = supabase
         .from('notification_history')
         .select('*')
         .in('user_id', subscribedUsers.map(u => u.user_id))
-        .gte('sent_at', oneDayAgo.toISOString())
-        .when(isRetry, query => query
+        .gte('sent_at', oneDayAgo.toISOString());
+
+      // Add retry-specific filters if this is a retry run
+      if (isRetry) {
+        query = query
           .eq('status', NOTIFICATION_STATUSES.ERROR)
-          .lt('retry_count', MAX_RETRY_ATTEMPTS)
-        )
+          .lt('retry_count', MAX_RETRY_ATTEMPTS);
+      }
+
+      // Add final ordering
+      const { data: notifications, error: notifyError } = await query
         .order('sent_at', isRetry ? 'asc' : 'desc');
 
       if (notifyError) {
