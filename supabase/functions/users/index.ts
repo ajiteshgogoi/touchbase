@@ -318,27 +318,25 @@ serve(async (req) => {
       });
     }
 
-    // Determine eligible users
-    const eligibleUsers = subscribedUsers.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
-      const { currentHour } = userTimezones.get(user.user_id)!;
-      
+    // Determine eligible users from extended user data
+    const eligibleUsers = extendedUsers.reduce<Array<{userId: string, windowType: NotificationType}>>((acc, user) => {
       const userToday = new Date(now.toLocaleString('en-US', {
-        timeZone: userTimezones.get(user.user_id)!.timezone
+        timeZone: user.user_preferences.timezone
       }));
-      userToday.setHours(0, 0, 0, 0);
-
+      const currentHour = userToday.getHours();
+      
       // Filter notifications to today only and group by type
-      const notificationsByType = new Map<NotificationType, typeof user.notification_history>();
+      const notificationsByType = new Map<NotificationType, NotificationHistory>();
       user.notification_history.forEach(n => {
         const notificationTime = new Date(n.sent_at);
         const userNotificationTime = new Date(notificationTime.toLocaleString('en-US', {
-          timeZone: userTimezones.get(user.user_id)!.timezone
+          timeZone: user.user_preferences.timezone
         }));
         userNotificationTime.setHours(0, 0, 0, 0);
 
         if (userNotificationTime.getTime() === userToday.getTime()) {
-          const existing = notificationsByType.get(n.notification_type as NotificationType) || [];
-          notificationsByType.set(n.notification_type as NotificationType, [...existing, n]);
+          const existing = notificationsByType.get(n.notification_type) || [];
+          notificationsByType.set(n.notification_type, [...existing, n]);
         }
       });
       
