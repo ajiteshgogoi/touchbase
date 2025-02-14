@@ -91,7 +91,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">Helpful Assistant</h3>
-            <p className="text-gray-600">Personalised suggestions to make every interaction meaningful</p>
+            <p className="text-gray-600">Personalised suggestions to make every conversation meaningful</p>
           </div>
         </div>
       </div>
