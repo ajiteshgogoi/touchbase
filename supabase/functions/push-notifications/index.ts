@@ -213,14 +213,19 @@ async function sendFcmNotification(
     return userAttemptDate.getTime() === userToday.getTime();
   }) || [];
 
-  // Check if already successfully notified today
-  if (todayAttempts.some(attempt => attempt.status === 'success')) {
-    throw new Error('Already successfully notified today');
-  }
+  // Skip notification checks for test notifications
+  if (!isTest) {
+    // Check if already successfully notified today
+    if (todayAttempts.some(attempt => attempt.status === 'success')) {
+      throw new Error('Already successfully notified today');
+    }
 
-  // Check retry limit (max 3 attempts)
-  if (todayAttempts.length >= 3) {
-    throw new Error('Maximum retry attempts reached');
+    // Check retry limit (max 3 attempts)
+    if (todayAttempts.length >= 3) {
+      throw new Error('Maximum retry attempts reached');
+    }
+  } else {
+    console.log('Skipping notification limit checks for test notification');
   }
 
   const prevAttempt = todayAttempts[0];
