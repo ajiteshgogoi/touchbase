@@ -160,7 +160,8 @@ async function sendFcmNotification(
   body: string,
   url: string,
   windowType: NotificationType,
-  batchId: string
+  batchId: string,
+  isTest: boolean = false
 ): Promise<void> {
   console.log('Preparing FCM notification:', { userId, windowType, title });
 
@@ -187,7 +188,7 @@ async function sendFcmNotification(
   }
 
   // Skip window check for test notifications
-  if (url.pathname.endsWith('/test')) {
+  if (isTest) {
     console.log('Skipping window check for test notification');
   } else {
     const hourDiff = (currentHour - window.hour + 24) % 24;
@@ -462,7 +463,8 @@ serve(async (req) => {
         message || 'This is a test notification',
         '/reminders',
         'morning',
-        testBatchId
+        testBatchId,
+        true
       );
 
       console.log('Test notification completed:', { userId, testBatchId });
