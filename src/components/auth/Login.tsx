@@ -71,7 +71,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">Simple & Personal</h3>
-            <p className="text-gray-600">Keep track of heartfelt moments with your loved ones, all in one place</p>
+            <p className="text-gray-600">Track important interactions with your loved ones in one place</p>
           </div>
           
           <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
@@ -81,7 +81,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">Timely Reminders</h3>
-            <p className="text-gray-600">Gentle nudges to reconnect before life gets in the way</p>
+            <p className="text-gray-600">Get gentle nudges to reconnect before life gets in the way</p>
           </div>
           
           <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
@@ -91,7 +91,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800">Helpful Assistant</h3>
-            <p className="text-gray-600">Personalised suggestions to make every interaction more meaningful</p>
+            <p className="text-gray-600">Personalised suggestions to make every interaction meaningful</p>
           </div>
         </div>
       </div>
