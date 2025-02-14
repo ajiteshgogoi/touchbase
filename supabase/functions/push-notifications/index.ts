@@ -186,9 +186,14 @@ async function sendFcmNotification(
     throw new Error(`Invalid window type: ${windowType}`);
   }
 
-  const hourDiff = (currentHour - window.hour + 24) % 24;
-  if (hourDiff > WINDOW_BUFFER_HOURS) {
-    throw new Error(`Outside notification window for ${windowType}`);
+  // Skip window check for test notifications
+  if (url.pathname.endsWith('/test')) {
+    console.log('Skipping window check for test notification');
+  } else {
+    const hourDiff = (currentHour - window.hour + 24) % 24;
+    if (hourDiff > WINDOW_BUFFER_HOURS) {
+      throw new Error(`Outside notification window for ${windowType}`);
+    }
   }
 
   // Get all previous attempts for today
