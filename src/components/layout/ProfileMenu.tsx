@@ -65,7 +65,7 @@ export const ProfileMenu = () => {
   }
 
   return (
-    <Menu as="div" className="relative inline-block text-left isolate">
+    <Menu as="div" className="relative inline-block text-left" style={{ isolation: 'isolate' }}>
       <div className="flex items-center gap-2">
         {isPremium && (
           <div className="flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none">
@@ -81,14 +81,14 @@ export const ProfileMenu = () => {
 
       <Transition
         as={Fragment}
-        enter="transition-transform ease-out duration-100"
-        enterFrom="transform scale-95 opacity-0"
-        enterTo="transform scale-100 opacity-100"
-        leave="transition-transform ease-in duration-75"
-        leaveFrom="transform scale-100 opacity-100"
-        leaveTo="transform scale-95 opacity-0"
+        enter="transition ease-out duration-100"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-75"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50 transform-gpu will-change-transform">
+        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50 transform-gpu" style={{ willChange: 'transform, opacity' }}>
           <div className="px-1 py-1">
             <Menu.Item>
               {({ active }) => (
