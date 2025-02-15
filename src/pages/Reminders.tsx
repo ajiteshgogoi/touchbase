@@ -22,6 +22,12 @@ export const Reminders = () => {
     queryFn: contactsService.getContacts
   });
 
+  const { data: totalCount } = useQuery<number>({
+    queryKey: ['contactsCount'],
+    queryFn: contactsService.getTotalContactCount,
+    enabled: !isPremium && !isOnTrial
+  });
+
   const handleReportContent = async (contactId: string, content: string) => {
     if (confirm('Report this AI suggestion as inappropriate?')) {
       try {
@@ -90,14 +96,14 @@ export const Reminders = () => {
               <h2 className="text-lg font-semibold text-gray-900">Interactions Due Today</h2>
             </div>
             <div className="space-y-4">
-              {!isPremium && !isOnTrial && contacts && contacts.length > 15 && (
+              {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                   <p className="text-sm text-amber-800">
                     You're only seeing reminders for your first 15 contacts.{' '}
                     <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                       Upgrade to Premium
                     </Link>{' '}
-                    to manage reminders for all {contacts.length} contacts.
+                    to manage reminders for all {totalCount} contacts.
                   </p>
                 </div>
               )}
