@@ -290,21 +290,7 @@ class NotificationService {
       // 1. Clean up Firebase messaging instance
       await cleanupMessaging();
 
-      // 2. Unregister service worker
-      if (this.registration) {
-        console.log('Unregistering service worker...');
-        try {
-          await Promise.race([
-            this.registration.unregister(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker unregister timeout')), 3000))
-          ]);
-        } catch (err) {
-          console.warn('Service worker unregister error:', err);
-        }
-        this.registration = null;
-      }
-
-      // 3. Remove FCM token from Supabase
+      // 2. Remove FCM token from Supabase
       console.log('Removing FCM token from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
