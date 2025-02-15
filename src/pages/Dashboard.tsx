@@ -30,7 +30,7 @@ const TrialBanner = ({ daysRemaining }: { daysRemaining: number }) => (
       <div className="flex-shrink-0">
         <Link
           to="/settings"
-          className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all"
+          className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-1.5 bg-white text-purple-700 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all"
         >
           Upgrade Now
         </Link>
@@ -75,7 +75,7 @@ const DashboardMetrics = () => {
         <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
           <div className="flex items-center w-full">
             <div className="p-3 bg-primary-50 rounded-lg">
-              <UserGroupIcon className="h-8 w-8 text-primary-500" />
+              <UserGroupIcon className="h-8 w-8 text-primary-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">All Contacts</p>
@@ -103,7 +103,7 @@ const DashboardMetrics = () => {
         <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
           <div className="flex items-center w-full">
             <div className="p-3 bg-primary-50 rounded-lg">
-              <CalendarIcon className="h-8 w-8 text-primary-500" />
+              <CalendarIcon className="h-8 w-8 text-primary-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Upcoming Reminders</p>
@@ -184,7 +184,7 @@ const RecentContacts = () => {
                 <div className="flex flex-col gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <h3 className="text-lg font-semibold text-primary-500">{contact.name}</h3>
+                      <h3 className="text-lg font-semibold text-primary-700">{contact.name}</h3>
                       <div className="flex flex-wrap gap-2">
                         <Link
                           to={`/contacts/${contact.id}/edit`}
@@ -248,7 +248,7 @@ const RecentContacts = () => {
                               {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
                                 <div className="p-4 bg-gray-50 rounded-lg">
                                   <span className="text-sm text-gray-600">
-                                    ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                    ✨ <Link to="/settings" className="text-primary-700 hover:text-primary-600">Upgrade to Premium</Link> to get AI-powered suggestions!
                                   </span>
                                 </div>
                               ) : (
@@ -279,7 +279,7 @@ const RecentContacts = () => {
                         contactName: contact.name,
                         type: 'call'
                       })}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-lg shadow-sm hover:shadow transition-all"
                       title="Log an interaction"
                     >
                       Log Interaction
@@ -287,7 +287,7 @@ const RecentContacts = () => {
                     {(isPremium || isOnTrial) ? (
                       <Link
                         to={`/contacts/${contact.id}/interactions`}
-                        className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                        className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
                         title="View interaction history"
                       >
                         View History
@@ -309,7 +309,7 @@ const RecentContacts = () => {
           <div className="p-6 border-t border-gray-100">
             <Link
               to="/contacts"
-              className="inline-flex items-center text-primary-500 hover:text-primary-400 font-medium transition-colors"
+              className="inline-flex items-center text-primary-700 hover:text-primary-600 font-medium transition-colors"
             >
               View all contacts
               <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
@@ -380,7 +380,7 @@ export const Dashboard = () => {
             to="/analytics"
             className={`flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
               isPremium || isOnTrial
-                ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                ? 'text-primary-700 bg-primary-50 hover:bg-primary-100'
                 : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
             } transition-all`}
           >
@@ -393,7 +393,7 @@ export const Dashboard = () => {
             <Link
               to="/contacts/new"
               state={{ from: '/' }}
-              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 shadow-soft hover:shadow-lg transition-all"
             >
               <span className="inline-flex items-center justify-center">
                 <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
