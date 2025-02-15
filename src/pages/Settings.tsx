@@ -252,13 +252,14 @@ export const Settings = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+            className="p-2 -m-2 text-gray-600 hover:text-gray-800"
+            aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-gray-700">
               Manage your account preferences and subscription
             </p>
           </div>
@@ -281,7 +282,7 @@ export const Settings = () => {
               }`}
             >
               {plan.id === 'premium' && (
-                <span className="absolute -top-3 -right-3 bg-accent-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="absolute -top-3 -right-3 bg-accent-500 bg-opacity-90 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
                   Recommended
                 </span>
               )}
@@ -291,7 +292,7 @@ export const Settings = () => {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {plan.name.charAt(0).toUpperCase() + plan.name.slice(1)}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-gray-700 mt-1">
                       {plan.id === 'free' ? 'Basic features' : 'All premium features'}
                     </p>
                   </div>
@@ -299,7 +300,7 @@ export const Settings = () => {
                     <span className="text-2xl font-bold text-gray-900">
                       ${plan.price}
                     </span>
-                    <span className="text-gray-600">/mo</span>
+                    <span className="text-gray-700">/mo</span>
                   </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
@@ -347,7 +348,7 @@ export const Settings = () => {
                 {plan.id === 'premium' && isPremium && (
                   <div className="space-y-4">
                     {subscription?.valid_until && (
-                      <div className="text-gray-600 text-sm bg-gray-50 rounded-lg p-4">
+                      <div className="text-gray-700 text-sm bg-gray-50 rounded-lg p-4">
                         Your premium access is valid until{' '}
                         <span className="font-medium text-gray-900">
                           {moment(subscription.valid_until).tz(notificationSettings.timezone).format('MMMM D, YYYY')}
@@ -418,7 +419,7 @@ export const Settings = () => {
               <label className="text-gray-900 font-medium">
                 Notifications
               </label>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 Get notified about your daily interactions
               </p>
             </div>
@@ -430,8 +431,13 @@ export const Settings = () => {
                 onChange={(e) => handleNotificationChange({
                   notification_enabled: e.target.checked
                 })}
+                aria-describedby="notification-description"
               />
-              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+              <div
+                className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"
+                role="presentation"
+              ></div>
+              <span className="sr-only">Enable notifications</span>
             </label>
           </div>
 
@@ -440,7 +446,7 @@ export const Settings = () => {
             <label className="text-gray-900 font-medium">
               Timezone
             </label>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-700 mt-1">
               Set your timezone for timely reminders
             </p>
             <input
@@ -449,14 +455,18 @@ export const Settings = () => {
               placeholder="Search timezone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search timezones"
+              aria-controls="timezone-select"
             />
             <select
+              id="timezone-select"
               className="block w-full rounded-b-md border-t-0 border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
               value={notificationSettings.timezone}
               onChange={(e) => handleNotificationChange({
                 timezone: e.target.value
               })}
               size={5}
+              aria-label="Select your timezone"
             >
               {filteredTimezones.map((zone: string) => (
                 <option key={zone} value={zone}>
@@ -474,7 +484,7 @@ export const Settings = () => {
           Delete Account
         </h2>
         <div className="space-y-4">
-          <p className="text-gray-600">
+          <p className="text-gray-700">
             Warning: This action cannot be undone. All your data will be permanently deleted.
           </p>
           <button
