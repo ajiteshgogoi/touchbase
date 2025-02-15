@@ -4,9 +4,9 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "predev": "node scripts/generate-sw-config.js",
+    "predev": "node scripts/generate-sw-config.js && node scripts/generate-sitemap.js",
     "dev": "vite",
-    "prebuild": "node scripts/generate-sw-config.js",
+    "prebuild": "node scripts/generate-sw-config.js && node scripts/generate-sitemap.js",
     "build": "tsc && vite build",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
