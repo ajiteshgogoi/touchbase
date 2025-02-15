@@ -200,10 +200,11 @@ export const Contacts = () => {
         </div>
 
         <div className="p-4 space-y-4">
+          {/* Show warning only to free users who previously had more than 15 contacts (during trial/premium) */}
           {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
               <p className="text-sm text-amber-800">
-                You can only view your 15 most recent contacts on the free plan.{' '}
+                You're seeing your 15 most recent contacts. {' '}
                 <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                   Upgrade to Premium
                 </Link>{' '}
