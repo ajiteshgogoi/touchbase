@@ -15,7 +15,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "supabase:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
-    "daily-check": "node dist/services/daily-check.js"
+    "daily-check": "node dist/services/daily-check.js",
+    "sync-users-to-brevo": "node scripts/sync-existing-users-to-brevo.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",

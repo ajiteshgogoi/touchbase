@@ -62,16 +62,29 @@ serve(async (req) => {
     return new Response('ok', {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Methods': 'GET, POST',
         'Access-Control-Allow-Headers': 'Authorization, Content-Type',
       },
     });
   }
 
   try {
-    // Only handle POST requests
-    if (req.method !== 'POST') {
+    // Allow both GET and POST methods
+    if (req.method !== 'GET' && req.method !== 'POST') {
       throw new Error('Method not allowed');
+    }
+
+    // For GET requests, return a simple status check
+    if (req.method === 'GET') {
+      return new Response(
+        JSON.stringify({ status: 'healthy' }),
+        { 
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          } 
+        }
+      );
     }
 
     const payload: WebhookPayload = await req.json();
