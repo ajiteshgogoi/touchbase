@@ -112,7 +112,7 @@ export const Contacts = () => {
         : (b[sortField] || 0) - (a[sortField] || 0);
     });
 
-  const contactLimit = isPremium || isOnTrial ? Infinity : 12;
+  const contactLimit = isPremium || isOnTrial ? Infinity : 15;
   const canAddMore = (contacts?.length || 0) < contactLimit;
 
   return (
@@ -191,6 +191,17 @@ export const Contacts = () => {
         </div>
 
         <div className="p-4 space-y-4">
+          {!isPremium && !isOnTrial && contacts && contacts.length > 15 && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+              <p className="text-sm text-amber-800">
+                You can only view your first 15 contacts on the free plan.{' '}
+                <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+                  Upgrade to Premium
+                </Link>{' '}
+                to access all {contacts.length} of your contacts.
+              </p>
+            </div>
+          )}
           {isLoading ? (
             <div className="p-12 text-center text-gray-500">
               <div className="animate-pulse">Loading contacts...</div>
@@ -200,7 +211,8 @@ export const Contacts = () => {
               No contacts found
             </div>
           ) : (
-            filteredContacts?.map((contact) => (
+            // For free users, only show first 15 contacts after filtering
+            (isPremium || isOnTrial ? filteredContacts : filteredContacts?.slice(0, 15))?.map((contact) => (
               <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col gap-4">
                   <div className="min-w-0">

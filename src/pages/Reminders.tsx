@@ -90,6 +90,17 @@ export const Reminders = () => {
               <h2 className="text-lg font-semibold text-gray-900">Interactions Due Today</h2>
             </div>
             <div className="space-y-4">
+              {!isPremium && !isOnTrial && contacts && contacts.length > 15 && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                  <p className="text-sm text-amber-800">
+                    You're only seeing reminders for your first 15 contacts.{' '}
+                    <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+                      Upgrade to Premium
+                    </Link>{' '}
+                    to manage reminders for all {contacts.length} contacts.
+                  </p>
+                </div>
+              )}
               {dueTodayReminders.length === 0 ? (
                 <p className="text-sm text-gray-600">No interactions due today!</p>
               ) : (

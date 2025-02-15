@@ -41,6 +41,7 @@ const TrialBanner = ({ daysRemaining }: { daysRemaining: number }) => (
 
 
 const DashboardMetrics = () => {
+  const { isPremium, isOnTrial } = useStore();
   const { data: contacts } = useQuery({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts
@@ -52,8 +53,9 @@ const DashboardMetrics = () => {
   });
 
   const today = dayjs();
+  const visibleContacts = isPremium || isOnTrial ? contacts : contacts?.slice(0, 15);
   const metrics = {
-    totalContacts: contacts?.length || 0,
+    totalContacts: visibleContacts?.length || 0,
     dueToday: reminders?.filter((r: Reminder) => {
       const dueDate = dayjs(r.due_date);
       return dueDate.isSame(today, 'day');
@@ -68,6 +70,17 @@ const DashboardMetrics = () => {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <Link to="/contacts" className="flex">
         <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
+          {!isPremium && !isOnTrial && contacts && contacts.length > 15 && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+              <p className="text-sm text-amber-800">
+                Showing {visibleContacts?.length} of {contacts.length} total contacts.{' '}
+                <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+                  Upgrade to Premium
+                </Link>{' '}
+                to access all your contacts.
+              </p>
+            </div>
+          )}
           <div className="flex items-center w-full">
             <div className="p-3 bg-primary-50 rounded-lg">
               <UserGroupIcon className="h-8 w-8 text-primary-500" />
@@ -170,7 +183,10 @@ const RecentContacts = () => {
         </div>
         <div className="bg-white rounded-xl shadow-soft">
           <div className="p-4 space-y-4">
-            {contacts?.slice(0, 3).map((contact: Contact) => (
+            {(contacts || [])
+              .slice(0, isPremium || isOnTrial ? Infinity : 15) // Limit to first 15 for free users
+              .slice(0, 3) // Show only first 3 in recent contacts
+              .map((contact: Contact) => (
               <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col gap-4">
                   <div className="min-w-0">
