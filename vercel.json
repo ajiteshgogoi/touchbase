@@ -20,17 +20,21 @@
     },
     {
       "src": "/manifest\\.json",
+      "dest": "/manifest.json",
       "headers": {
         "content-type": "application/json",
-        "cache-control": "public, max-age=0, must-revalidate"
+        "cache-control": "public, max-age=0, must-revalidate",
+        "access-control-allow-origin": "*"
       }
     },
     {
       "src": "/firebase-messaging-sw\\.js",
+      "dest": "/firebase-messaging-sw.js",
       "headers": {
         "content-type": "application/javascript",
         "cache-control": "public, max-age=0, must-revalidate",
-        "service-worker-allowed": "/"
+        "service-worker-allowed": "/",
+        "access-control-allow-origin": "*"
       }
     },
     {
