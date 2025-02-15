@@ -10,9 +10,27 @@ class NotificationService {
         console.warn('Service workers are not supported');
         return;
       }
-  
+
       try {
-        // First unregister ALL existing service workers to ensure clean state
+        // Wait for valid session before proceeding
+        const maxRetries = 3;
+        let authToken = null;
+        
+        for (let i = 0; i < maxRetries; i++) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            authToken = session.access_token;
+            break;
+          }
+          // Wait between retries with increasing delay
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+
+        if (!authToken) {
+          throw new Error('No valid auth token available');
+        }
+
+        // Now proceed with service worker operations
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
         for (const reg of existingRegistrations) {
           console.log('Unregistering service worker:', reg.active?.scriptURL);
