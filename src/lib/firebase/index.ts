@@ -13,7 +13,27 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const messaging = getMessaging(app);
+export let messaging = getMessaging(app);
+
+// Function to cleanup Firebase messaging instance
+export const cleanupMessaging = async () => {
+  // Clean up FCM instance from window
+  // @ts-ignore
+  if (window.firebase?.messaging) {
+    // @ts-ignore
+    delete window.firebase.messaging;
+  }
+
+  // Force clear service worker message listeners
+  const registration = await navigator.serviceWorker.ready;
+  const messageChannel = new MessageChannel();
+  if (registration.active) {
+    registration.active.postMessage({ type: 'CLEAR_FCM_LISTENERS' }, [messageChannel.port2]);
+  }
+  
+  // Re-initialize messaging instance
+  messaging = getMessaging(app);
+};
 
 // Extended notification options type that includes all web notification properties
 interface ExtendedNotificationOptions extends NotificationOptions {

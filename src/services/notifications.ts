@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
-import { messaging, initializeTokenRefresh } from '../lib/firebase';
+import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
@@ -248,7 +248,10 @@ class NotificationService {
     try {
       console.log('Unsubscribing from push notifications...');
       
-      // 1. Unregister service worker
+      // 1. Clean up Firebase messaging instance
+      await cleanupMessaging();
+
+      // 2. Unregister service worker
       if (this.registration) {
         console.log('Unregistering service worker...');
         try {
@@ -262,7 +265,7 @@ class NotificationService {
         this.registration = null;
       }
 
-      // 2. Remove FCM token from Supabase
+      // 3. Remove FCM token from Supabase
       console.log('Removing FCM token from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')

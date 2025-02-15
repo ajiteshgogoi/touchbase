@@ -20,11 +20,18 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Handle activation requests
+// Handle activation requests and FCM cleanup
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     debug('Skip waiting message received');
     self.skipWaiting();
+  } else if (event.data?.type === 'CLEAR_FCM_LISTENERS') {
+    debug('Clearing FCM listeners');
+    // Remove all message event listeners
+    self.removeEventListener('push', () => {});
+    self.removeEventListener('pushsubscriptionchange', () => {});
+    // Reset Firebase messaging state by removing the property
+    delete firebase.messaging;
   }
 });
 
