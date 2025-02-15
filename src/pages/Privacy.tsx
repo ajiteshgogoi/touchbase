@@ -56,7 +56,6 @@ export const Privacy = () => {
             <li>Your data is processed securely when generating suggestions</li>
             <li>We do not use your data to train AI models</li>
             <li>You can report any inappropriate suggestions through our built-in reporting system</li>
-            <li>All suggestions are customised to your relationship levels (1-5 scale)</li>
           </ul>
         </section>
 
@@ -80,7 +79,7 @@ export const Privacy = () => {
             You have complete control over your data:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>Access and export your personal information</li>
+            <li>Access and modify your personal information</li>
             <li>Report inappropriate AI suggestions</li>
             <li>Track interaction sentiment (positive/neutral/negative)</li>
             <li>Manage notification preferences</li>
@@ -110,9 +109,7 @@ export const Privacy = () => {
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
             <li>All your data is immediately and permanently deleted</li>
-            <li>Subscription information is removed from payment providers</li>
             <li>Authentication tokens are revoked</li>
-            <li>Push notification subscriptions are cancelled</li>
           </ul>
         </section>
 
