@@ -11,6 +11,10 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !BREVO_API_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// Brevo list IDs
+const ACTIVE_USERS_LIST = 4;
+const DELETED_USERS_LIST = 5;
+
 interface AuthUser {
   id: string;
   email: string;
@@ -21,7 +25,7 @@ interface AuthUser {
 }
 
 interface WebhookPayload {
-  type: 'INSERT' | 'UPDATE';
+  type: 'INSERT' | 'UPDATE' | 'DELETE';
   table: string;
   record: AuthUser;
   schema: string;
@@ -32,7 +36,8 @@ async function addContactToBrevo(user: AuthUser) {
   try {
     console.log('Sending user to Brevo:', {
       email: user.email,
-      metadata: user.user_metadata
+      metadata: user.user_metadata,
+      list: ACTIVE_USERS_LIST
     });
 
     const response = await fetch('https://api.brevo.com/v3/contacts', {
@@ -47,14 +52,18 @@ async function addContactToBrevo(user: AuthUser) {
         attributes: {
           FIRSTNAME: user.user_metadata?.name?.split(' ')[0] || '',
           LASTNAME: user.user_metadata?.name?.split(' ').slice(1).join(' ') || '',
-          SIGN_UP_DATE: user.created_at
+          SIGN_UP_DATE: user.created_at,
+          DELETED_AT: null,
+          ACCOUNT_DELETED: false
         },
-        listIds: [4], // Replace with your actual Brevo list ID
+        emailBlacklisted: false,
+        smsBlacklisted: false,
+        listIds: [ACTIVE_USERS_LIST],
+        unlinkListIds: [DELETED_USERS_LIST], // Remove from deleted list if they were there
         updateEnabled: true
       })
     });
 
-    // Log the raw response for debugging
     const responseText = await response.text();
     console.log('Brevo API Response:', {
       status: response.status,
@@ -63,7 +72,6 @@ async function addContactToBrevo(user: AuthUser) {
       body: responseText
     });
 
-    // Parse response
     let data;
     try {
       data = JSON.parse(responseText);
@@ -78,6 +86,64 @@ async function addContactToBrevo(user: AuthUser) {
     return data;
   } catch (error) {
     console.error('Error in addContactToBrevo:', error);
+    throw error;
+  }
+}
+
+async function unsubscribeContactFromBrevo(email: string) {
+  try {
+    console.log('Moving user to deleted list in Brevo:', { 
+      email,
+      toList: DELETED_USERS_LIST,
+      fromList: ACTIVE_USERS_LIST
+    });
+
+    // First get the contact ID
+    const response = await fetch(`https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'api-key': BREVO_API_KEY
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log('Contact not found in Brevo:', { email });
+        return;
+      }
+      throw new Error(`Failed to get contact: ${await response.text()}`);
+    }
+
+    // Move contact to deleted list
+    const updateResponse = await fetch('https://api.brevo.com/v3/contacts', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        email,
+        attributes: {
+          DELETED_AT: new Date().toISOString(),
+          ACCOUNT_DELETED: true
+        },
+        emailBlacklisted: true,
+        smsBlacklisted: true,
+        listIds: [DELETED_USERS_LIST], // Add to deleted list
+        unlinkListIds: [ACTIVE_USERS_LIST], // Remove from active list
+        updateEnabled: true
+      })
+    });
+
+    if (!updateResponse.ok) {
+      throw new Error(`Failed to move contact to deleted list: ${await updateResponse.text()}`);
+    }
+
+    console.log('Successfully moved user to deleted list in Brevo:', { email });
+  } catch (error) {
+    console.error('Error in unsubscribeContactFromBrevo:', error);
     throw error;
   }
 }
@@ -138,17 +204,11 @@ serve(async (req) => {
       recordId: payload.record?.id
     });
 
-    // Only process new user insertions in auth.users
-    if (payload.schema !== 'auth' || 
-        payload.table !== 'users' || 
-        payload.type !== 'INSERT') {
-      console.log('Ignoring webhook - not a new user event:', {
-        schema: payload.schema,
-        table: payload.table,
-        type: payload.type
-      });
+    // Check if this is an auth.users event
+    if (payload.schema !== 'auth' || payload.table !== 'users') {
+      console.log('Ignoring webhook - not an auth.users event');
       return new Response(
-        JSON.stringify({ message: 'Ignored: Not a new user event' }),
+        JSON.stringify({ message: 'Ignored: Not an auth.users event' }),
         { 
           headers: { 
             'Content-Type': 'application/json',
@@ -158,30 +218,60 @@ serve(async (req) => {
       );
     }
 
-    console.log('Processing new user:', {
-      userId: payload.record.id,
-      email: payload.record.email
-    });
-
-    // Sync user to Brevo
-    const result = await addContactToBrevo(payload.record);
-
-    console.log('Successfully synced to Brevo:', {
-      userId: payload.record.id,
-      brevoId: result.id
-    });
-
-    return new Response(
-      JSON.stringify({ 
-        message: 'User successfully synced to Brevo',
+    // Handle based on operation type
+    if (payload.type === 'INSERT') {
+      console.log('Processing new user:', {
         userId: payload.record.id,
-        brevoId: result.id
-      }),
+        email: payload.record.email
+      });
+
+      const result = await addContactToBrevo(payload.record);
+
+      return new Response(
+        JSON.stringify({ 
+          message: 'User successfully added to active list in Brevo',
+          userId: payload.record.id,
+          brevoId: result.id,
+          list: ACTIVE_USERS_LIST
+        }),
+        { 
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        }
+      );
+    } else if (payload.type === 'DELETE' && payload.old_record) {
+      console.log('Processing user deletion:', {
+        userId: payload.old_record.id,
+        email: payload.old_record.email
+      });
+
+      await unsubscribeContactFromBrevo(payload.old_record.email);
+
+      return new Response(
+        JSON.stringify({ 
+          message: 'User successfully moved to deleted list in Brevo',
+          email: payload.old_record.email,
+          list: DELETED_USERS_LIST
+        }),
+        { 
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        }
+      );
+    }
+
+    // Ignore other operation types
+    return new Response(
+      JSON.stringify({ message: `Ignored: ${payload.type} operation` }),
       { 
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
-        }
+        } 
       }
     );
 
