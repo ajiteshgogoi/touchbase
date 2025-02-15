@@ -152,7 +152,7 @@ export const Login = () => {
 
       <div className="mt-12 text-center max-w-sm">
         <p className="text-sm text-gray-600">
-          💙 For the best experience, install TouchBase on your phone.{' '}
+          <img src="/icon.svg" alt="heart" className="inline-block w-5 h-5 text-primary-500 align-text-top -mt-[0.1px]" /> For the best experience, install TouchBase on your phone.{' '}
           <button
             onClick={() => setIsInstallModalOpen(true)}
             className="text-primary-500 hover:text-primary-400 font-medium"
