@@ -13,16 +13,6 @@
       "continue": true
     },
     {
-      "src": "/firebase-messaging-sw.js",
-      "headers": {
-        "content-type": "text/javascript",
-        "cache-control": "public, max-age=0, must-revalidate",
-        "service-worker-allowed": "/",
-        "access-control-allow-origin": "*"
-      },
-      "continue": true
-    },
-    {
       "src": "/.well-known/(.*)",
       "headers": {
         "content-type": "application/json",
@@ -40,21 +30,6 @@
     {
       "src": "/(.*)",
       "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/service-worker.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
-        }
-      ]
     }
   ]
 }
