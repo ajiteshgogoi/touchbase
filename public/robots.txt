@@ -26,13 +26,5 @@ Disallow: /*.json$
 # Crawl delay to prevent overwhelming the server
 Crawl-delay: 10
 
-# Site performance optimization hints
-# Max image preview for better social sharing
-Max-image-preview: large
-# Allow video previews
-Max-video-preview: -1
-# Allow text snippets in search results
-Max-snippet: -1
-
-# Sitemap location (sitemap.xml should be created if not exists)
+# Sitemap location
 Sitemap: https://touchbase.site/sitemap.xml
