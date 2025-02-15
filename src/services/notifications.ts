@@ -5,7 +5,7 @@ import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/fire
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
 
-  async initialize(): Promise<void> {
+  async initialize(retryDelay = 2000): Promise<void> {
       if (!('serviceWorker' in navigator)) {
         console.warn('Service workers are not supported');
         return;
@@ -29,6 +29,9 @@ class NotificationService {
         if (!authToken) {
           throw new Error('No valid auth token available');
         }
+
+        // Add delay to ensure auth token is properly propagated
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
 
         // Now proceed with service worker operations
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();

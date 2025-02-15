@@ -211,7 +211,8 @@ function App() {
 
         // Handle user state changes
         if (session?.user) {
-          if (event === 'SIGNED_IN') {
+          // Only check notifications on subsequent status checks, not immediately after sign in
+          if (event !== 'SIGNED_IN') {
             checkNotificationsAndTimezone(session.user.id);
           }
           checkPremiumStatus();
