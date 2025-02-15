@@ -19,6 +19,13 @@
       "handle": "filesystem"
     },
     {
+      "src": "/manifest.json",
+      "headers": {
+        "content-type": "application/json",
+        "cache-control": "public, max-age=0, must-revalidate"
+      }
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
