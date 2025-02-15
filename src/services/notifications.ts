@@ -94,6 +94,14 @@ class NotificationService {
   }
 
   async subscribeToPushNotifications(userId: string, forceResubscribe = false): Promise<void> {
+    if (!this.registration) {
+      console.warn('Firebase service worker not registered, initializing...');
+      await this.initialize();
+      if (!this.registration) {
+        throw new Error('Failed to initialize Firebase service worker');
+      }
+    }
+
     try {
       // Check for existing subscription if not forcing resubscribe
       if (!forceResubscribe) {
@@ -111,13 +119,13 @@ class NotificationService {
 
       console.log('Starting FCM token registration process...');
       
-      // 1. Request permission first
+      // Request permission first
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         throw new Error('Notification permission denied');
       }
 
-      // 2. Check IndexedDB access
+      // Check IndexedDB access before proceeding
       try {
         console.log('Verifying IndexedDB access...');
         const request = indexedDB.open('fcm-test-db');
@@ -134,21 +142,16 @@ class NotificationService {
         throw new Error('Browser storage access denied - check privacy settings and third-party cookie settings');
       }
 
-      // 3. Clear any existing registrations first
-      const existingRegs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(existingRegs.map(reg => reg.unregister()));
-
-      // 4. Initialize fresh service worker
-      await this.initialize();
-      
+      // Ensure Firebase service worker is ready
       if (!this.registration?.active) {
-        throw new Error('Failed to initialize service worker');
+        console.log('Firebase service worker not active, reinitializing...');
+        await this.initialize();
+        if (!this.registration?.active) {
+          throw new Error('Firebase service worker failed to activate');
+        }
       }
 
-      // 5. Short delay to ensure service worker is ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 6. Get FCM token
+      // Get FCM token using existing VAPID key
       console.log('Getting FCM token...');
       const currentToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
@@ -164,7 +167,7 @@ class NotificationService {
 
       console.log('Successfully obtained FCM token');
 
-      // 7. Store token in Supabase
+      // Store token in Supabase
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
