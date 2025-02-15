@@ -64,16 +64,24 @@ export const ProfileMenu = () => {
     );
   }
 
+  // Pre-compute menu item styles
+  const menuItemBaseStyle = "group flex w-full items-center rounded-md px-2 py-2 text-sm";
+  const menuItemActiveStyle = "bg-primary-50 text-primary-600";
+  const menuItemInactiveStyle = "text-gray-700";
+
   return (
-    <Menu as="div" className="relative inline-block text-left" style={{ isolation: 'isolate' }}>
-      <div className="flex items-center gap-2">
-        {isPremium && (
-          <div className="flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none">
-            <SparklesIcon className="h-3 w-3" />
-            <span>Premium</span>
-          </div>
-        )}
-        <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-all duration-200 ease-in-out">
+    <Menu as="div" className="relative inline-block text-left" style={{ contain: 'layout style' }}>
+      <div className="flex items-center gap-2" style={{ contain: 'layout' }}>
+        <div style={{
+          opacity: isPremium ? 1 : 0,
+          visibility: isPremium ? 'visible' : 'hidden',
+          transform: isPremium ? 'translateX(0)' : 'translateX(-8px)',
+          transition: 'opacity 200ms, transform 200ms',
+        }} className="flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none">
+          <SparklesIcon className="h-3 w-3" />
+          <span>Premium</span>
+        </div>
+        <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200">
           <UserCircleIcon className="h-6 w-6" />
           <ChevronDownIcon className="h-4 w-4" />
         </Menu.Button>
@@ -82,21 +90,25 @@ export const ProfileMenu = () => {
       <Transition
         as={Fragment}
         enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
+        enterFrom="opacity-0 scale-95"
+        enterTo="opacity-100 scale-100"
         leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
+        leaveFrom="opacity-100 scale-100"
+        leaveTo="opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50">
+        <Menu.Items
+          className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50"
+          style={{
+            contain: 'content',
+            willChange: 'transform, opacity'
+          }}
+        >
           <div className="px-1 py-1">
             <Menu.Item>
               {({ active }) => (
                 <Link
                   to="/help"
-                  className={`${
-                    active ? 'bg-primary-50 text-primary-600' : 'text-gray-700'
-                  } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
                 >
                   How to Use
                 </Link>
@@ -106,9 +118,7 @@ export const ProfileMenu = () => {
               {({ active }) => (
                 <Link
                   to="/settings"
-                  className={`${
-                    active ? 'bg-primary-50 text-primary-600' : 'text-gray-700'
-                  } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
                 >
                   Settings
                 </Link>
@@ -120,9 +130,7 @@ export const ProfileMenu = () => {
               {({ active }) => (
                 <button
                   onClick={handleSignOut}
-                  className={`${
-                    active ? 'bg-primary-50 text-primary-600' : 'text-gray-700'
-                  } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
                 >
                   Sign Out
                 </button>
