@@ -17,21 +17,34 @@ export let messaging = getMessaging(app);
 
 // Function to cleanup Firebase messaging instance
 export const cleanupMessaging = async () => {
-  // Clean up FCM instance from window
-  // @ts-ignore
-  if (window.firebase?.messaging) {
+  try {
+    // Clean up FCM instance from window
     // @ts-ignore
-    delete window.firebase.messaging;
-  }
+    if (window.firebase?.messaging) {
+      // @ts-ignore
+      delete window.firebase.messaging;
+    }
 
-  // Force clear service worker message listeners
-  const registration = await navigator.serviceWorker.ready;
-  const messageChannel = new MessageChannel();
-  if (registration.active) {
-    registration.active.postMessage({ type: 'CLEAR_FCM_LISTENERS' }, [messageChannel.port2]);
+    // Force clear service worker message listeners
+    const registration = await navigator.serviceWorker.ready;
+    if (registration.active) {
+      const messageChannel = new MessageChannel();
+      registration.active.postMessage({ type: 'CLEAR_FCM_LISTENERS' }, [messageChannel.port2]);
+      
+      // Wait for message to be processed
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Don't reinitialize messaging here
+    // Let the caller handle reinitialization when needed
+  } catch (error) {
+    console.error('Error during messaging cleanup:', error);
+    throw error;
   }
-  
-  // Re-initialize messaging instance
+};
+
+// Function to initialize messaging
+export const initializeMessaging = () => {
   messaging = getMessaging(app);
 };
 
