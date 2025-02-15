@@ -248,10 +248,21 @@ class NotificationService {
     try {
       console.log('Unsubscribing from push notifications...');
       
-      // 1. Clean up Firebase messaging instance
+      // 1. Remove FCM token from Supabase first
+      console.log('Removing FCM token from Supabase...');
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) {
+        throw error;
+      }
+
+      // 2. Clean up Firebase messaging instance
       await cleanupMessaging();
 
-      // 2. Unregister service worker
+      // 3. Unregister service worker
       if (this.registration) {
         console.log('Unregistering service worker...');
         try {
@@ -265,16 +276,12 @@ class NotificationService {
         this.registration = null;
       }
 
-      // 3. Remove FCM token from Supabase
-      console.log('Removing FCM token from Supabase...');
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .delete()
-        .eq('user_id', userId);
+      // 4. Wait for service worker to be fully unregistered
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (error) {
-        throw error;
-      }
+      // 5. Force reload all service worker registrations
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
 
       console.log('Successfully unsubscribed from push notifications');
     } catch (error) {
