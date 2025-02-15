@@ -5,57 +5,31 @@ import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/fire
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
 
-  private async checkServiceWorkerAvailable(url: string): Promise<boolean> {
-    try {
-      const response = await fetch(url);
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-
-  private async registerWithRetry(url: string, attempts = 3): Promise<ServiceWorkerRegistration> {
-    for (let i = 0; i < attempts; i++) {
-      try {
-        // Check if service worker is available
-        if (await this.checkServiceWorkerAvailable(url)) {
-          return await navigator.serviceWorker.register(url, {
-            scope: '/',
-            updateViaCache: 'none'
-          });
-        }
-        
-        // Wait with exponential backoff before retry
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-      } catch (error) {
-        if (i === attempts - 1) throw error;
-        // Continue to next retry
-      }
-    }
-    throw new Error('Failed to register service worker after retries');
-  }
-
   async initialize(): Promise<void> {
-    if (!('serviceWorker' in navigator)) {
-      console.warn('Service workers are not supported');
-      return;
-    }
-
-    try {
-      // First unregister any existing service worker
-      const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-      for (const reg of existingRegistrations) {
-        if (reg.active?.scriptURL.includes('sw.js')) {
-          console.log('Unregistering old service worker...');
-          await reg.unregister();
-        }
+      if (!('serviceWorker' in navigator)) {
+        console.warn('Service workers are not supported');
+        return;
       }
-
-      // Register Firebase messaging service worker with retries
-      console.log('Registering Firebase messaging service worker...');
-      const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
-      
-      this.registration = await this.registerWithRetry(firebaseSWURL);
+  
+      try {
+        // First unregister any existing service worker
+        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of existingRegistrations) {
+          if (reg.active?.scriptURL.includes('sw.js')) {
+            console.log('Unregistering old service worker...');
+            await reg.unregister();
+          }
+        }
+  
+        // Register Firebase messaging service worker
+        console.log('Registering Firebase messaging service worker...');
+        const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+        
+        // Register with explicit options for better control
+        this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
+          scope: '/',
+          updateViaCache: 'none'
+        });
 
       // Ensure service worker is ready and active
       if (!this.registration) {
