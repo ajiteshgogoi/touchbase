@@ -19,10 +19,18 @@
       "handle": "filesystem"
     },
     {
-      "src": "/manifest.json",
+      "src": "/manifest\\.json",
       "headers": {
         "content-type": "application/json",
         "cache-control": "public, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "src": "/firebase-messaging-sw\\.js",
+      "headers": {
+        "content-type": "application/javascript",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "service-worker-allowed": "/"
       }
     },
     {
