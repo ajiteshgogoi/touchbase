@@ -18,10 +18,17 @@ const DELETED_USERS_LIST = 5;
 interface AuthUser {
   id: string;
   email: string;
-  created_at: string;
-  user_metadata?: {
+  raw_user_meta_data?: {
+    full_name?: string;
     name?: string;
+    email?: string;
   };
+  user_metadata?: {
+    full_name?: string;
+    name?: string;
+    email?: string;
+  };
+  created_at: string;
 }
 
 interface WebhookPayload {
@@ -32,11 +39,59 @@ interface WebhookPayload {
   old_record: null | AuthUser;
 }
 
+async function getFullUserData(userId: string): Promise<AuthUser | null> {
+  const { data: { user }, error } = await supabase.auth.admin.getUserById(userId);
+  if (error) {
+    console.error('Error fetching user data:', error);
+    return null;
+  }
+  return user;
+}
+
+function extractUserName(user: AuthUser): { firstName: string; lastName: string } {
+  // Log all potential name sources
+  console.log('Name data sources:', {
+    rawMetaFullName: user.raw_user_meta_data?.full_name,
+    rawMetaName: user.raw_user_meta_data?.name,
+    metaFullName: user.user_metadata?.full_name,
+    metaName: user.user_metadata?.name
+  });
+
+  // Try all possible sources for the name
+  const fullName = user.raw_user_meta_data?.full_name || 
+                  user.raw_user_meta_data?.name ||
+                  user.user_metadata?.full_name ||
+                  user.user_metadata?.name ||
+                  '';
+
+  const nameParts = fullName.split(' ');
+  return {
+    firstName: nameParts[0] || '',
+    lastName: nameParts.slice(1).join(' ') || ''
+  };
+}
+
 async function addContactToBrevo(user: AuthUser) {
   try {
+    // Get full user data if webhook payload doesn't include metadata
+    const fullUser = user.user_metadata || user.raw_user_meta_data ? 
+                    user : 
+                    await getFullUserData(user.id);
+
+    if (!fullUser) {
+      throw new Error(`Could not get full user data for ${user.id}`);
+    }
+
+    const { firstName, lastName } = extractUserName(fullUser);
+
     console.log('Sending user to Brevo:', {
       email: user.email,
-      metadata: user.user_metadata,
+      firstName,
+      lastName,
+      metadata: {
+        raw: fullUser.raw_user_meta_data,
+        user: fullUser.user_metadata
+      },
       list: ACTIVE_USERS_LIST
     });
 
@@ -50,8 +105,8 @@ async function addContactToBrevo(user: AuthUser) {
       body: JSON.stringify({
         email: user.email,
         attributes: {
-          FIRSTNAME: user.user_metadata?.name?.split(' ')[0] || '',
-          LASTNAME: user.user_metadata?.name?.split(' ').slice(1).join(' ') || '',
+          FIRSTNAME: firstName,
+          LASTNAME: lastName,
           SIGN_UP_DATE: user.created_at,
           DELETED_AT: null,
           ACCOUNT_DELETED: false
@@ -59,7 +114,7 @@ async function addContactToBrevo(user: AuthUser) {
         emailBlacklisted: false,
         smsBlacklisted: false,
         listIds: [ACTIVE_USERS_LIST],
-        unlinkListIds: [DELETED_USERS_LIST], // Remove from deleted list if they were there
+        unlinkListIds: [DELETED_USERS_LIST],
         updateEnabled: true
       })
     });
@@ -98,7 +153,6 @@ async function unsubscribeContactFromBrevo(email: string) {
       fromList: ACTIVE_USERS_LIST
     });
 
-    // First get the contact ID
     const response = await fetch(`https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
@@ -115,7 +169,6 @@ async function unsubscribeContactFromBrevo(email: string) {
       throw new Error(`Failed to get contact: ${await response.text()}`);
     }
 
-    // Move contact to deleted list
     const updateResponse = await fetch('https://api.brevo.com/v3/contacts', {
       method: 'POST',
       headers: {
@@ -131,8 +184,8 @@ async function unsubscribeContactFromBrevo(email: string) {
         },
         emailBlacklisted: true,
         smsBlacklisted: true,
-        listIds: [DELETED_USERS_LIST], // Add to deleted list
-        unlinkListIds: [ACTIVE_USERS_LIST], // Remove from active list
+        listIds: [DELETED_USERS_LIST],
+        unlinkListIds: [ACTIVE_USERS_LIST],
         updateEnabled: true
       })
     });
@@ -155,7 +208,6 @@ serve(async (req) => {
     headers: Object.fromEntries(req.headers.entries())
   });
 
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: {
@@ -167,12 +219,10 @@ serve(async (req) => {
   }
 
   try {
-    // Allow both GET and POST methods
     if (req.method !== 'GET' && req.method !== 'POST') {
       throw new Error('Method not allowed');
     }
 
-    // For GET requests, return a simple status check
     if (req.method === 'GET') {
       return new Response(
         JSON.stringify({ status: 'healthy' }),
@@ -185,7 +235,6 @@ serve(async (req) => {
       );
     }
 
-    // Log the raw request body for debugging
     const rawBody = await req.text();
     console.log('Raw webhook payload:', rawBody);
 
@@ -201,10 +250,13 @@ serve(async (req) => {
       type: payload.type,
       schema: payload.schema,
       table: payload.table,
-      recordId: payload.record?.id
+      recordId: payload.record?.id,
+      metadata: {
+        raw: payload.record?.raw_user_meta_data,
+        user: payload.record?.user_metadata
+      }
     });
 
-    // Check if this is an auth.users event
     if (payload.schema !== 'auth' || payload.table !== 'users') {
       console.log('Ignoring webhook - not an auth.users event');
       return new Response(
@@ -218,11 +270,14 @@ serve(async (req) => {
       );
     }
 
-    // Handle based on operation type
     if (payload.type === 'INSERT') {
       console.log('Processing new user:', {
         userId: payload.record.id,
-        email: payload.record.email
+        email: payload.record.email,
+        metadata: {
+          raw: payload.record.raw_user_meta_data,
+          user: payload.record.user_metadata
+        }
       });
 
       const result = await addContactToBrevo(payload.record);
@@ -264,7 +319,6 @@ serve(async (req) => {
       );
     }
 
-    // Ignore other operation types
     return new Response(
       JSON.stringify({ message: `Ignored: ${payload.type} operation` }),
       { 
