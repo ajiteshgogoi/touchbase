@@ -68,7 +68,7 @@ export const ProfileMenu = () => {
     <Menu as="div" className="relative inline-block text-left" style={{ isolation: 'isolate' }}>
       <div className="flex items-center gap-2">
         {isPremium && (
-          <div className="flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none">
+          <div className="flex items-center gap-0.5 bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none">
             <SparklesIcon className="h-3 w-3" />
             <span>Premium</span>
           </div>

@@ -14,7 +14,7 @@ export const Navbar = () => {
               <div className="flex items-center">
                 <img
                   src="/icon.svg"
-                  alt="Blue heart icon"
+                  alt="TouchBase"
                   className="h-8 w-8 mr-0.5 group-hover:opacity-80 transition-all"
                 />
                 <span className="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-500 group-hover:to-primary-300 bg-clip-text text-transparent transition-all">
