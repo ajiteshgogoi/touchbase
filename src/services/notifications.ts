@@ -12,14 +12,15 @@ class NotificationService {
       }
   
       try {
-        // First unregister any existing service worker
+        // First unregister ALL existing service workers to ensure clean state
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
         for (const reg of existingRegistrations) {
-          if (reg.active?.scriptURL.includes('sw.js')) {
-            console.log('Unregistering old service worker...');
-            await reg.unregister();
-          }
+          console.log('Unregistering service worker:', reg.active?.scriptURL);
+          await reg.unregister();
         }
+        
+        // Small delay to ensure clean state
+        await new Promise(resolve => setTimeout(resolve, 100));
   
         // Register Firebase messaging service worker
         console.log('Registering Firebase messaging service worker...');
