@@ -11,114 +11,108 @@ export const Privacy = () => {
 
       <div className="space-y-6">
         <section>
-          <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
+          <h2 className="text-2xl font-semibold mb-4">1. Our Commitment</h2>
           <p className="text-gray-700">
-            TouchBase is built on trust. We understand that you're entrusting us with your personal connections and relationship data. This privacy policy explains how we protect that trust through clear data practices and robust security measures.
+            TouchBase is built on trust. We understand the sensitive nature of relationship data and implement robust security measures to protect your information. This privacy policy explains our practices and your rights regarding your data.
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
-          <p className="text-gray-700">
-            We collect information that you provide directly to us:
+          <p className="text-gray-700 mb-2">
+            We collect only the information necessary to provide our relationship management service:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
             <li>Account information (name, email address)</li>
-            <li>Contact information you add to manage your relationships</li>
+            <li>Contact details you add to manage your relationships</li>
             <li>Interaction history and notes you create</li>
             <li>Contact frequency preferences and relationship levels</li>
-            <li>Usage data and analytics</li>
+            <li>Usage analytics for service improvement</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">3. Data Storage and Processing</h2>
-          <p className="text-gray-700">
-            Your data is stored securely on our infrastructure:
+          <h2 className="text-2xl font-semibold mb-4">3. Technical Security Measures</h2>
+          <p className="text-gray-700 mb-2">
+            We implement multiple layers of security:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>All data is hosted on Supabase's secure infrastructure in the EU region</li>
-            <li>Database backups are encrypted and performed daily</li>
-            <li>We use PostgreSQL with row-level security for data isolation</li>
-            <li>All data transmissions are encrypted using TLS 1.3</li>
+            <li>Row-level security ensuring strict data isolation between users</li>
+            <li>JWT token verification for all authenticated requests</li>
+            <li>End-to-end encryption for all data transmissions (TLS 1.3)</li>
+            <li>Rate limiting to prevent abuse</li>
+            <li>Regular security audits and monitoring</li>
+            <li>Robust webhook signature verification for payment processing</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">4. AI Features and Data Processing</h2>
-          <p className="text-gray-700">
-            TouchBase uses AI to provide personalised interaction suggestions:
+          <h2 className="text-2xl font-semibold mb-4">4. AI Features</h2>
+          <p className="text-gray-700 mb-2">
+            Our AI-powered features are designed with privacy in mind:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>AI suggestions are generated based on your interaction notes and patterns</li>
+            <li>AI suggestions are generated based on your interaction notes</li>
             <li>Your data is processed securely when generating suggestions</li>
             <li>We do not use your data to train AI models</li>
-            <li>You can report any inappropriate AI suggestions through our reporting feature</li>
-            <li>Reported suggestions are reviewed to improve the system</li>
+            <li>You can report any inappropriate suggestions through our built-in reporting system</li>
+            <li>All suggestions are customised to your relationship levels (1-5 scale)</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">5. How We Use Your Information</h2>
+          <h2 className="text-2xl font-semibold mb-4">5. Data Storage</h2>
+          <p className="text-gray-700">
+            Your data is stored securely in the EU region using Supabase's infrastructure, which provides:
+          </p>
+          <ul className="list-disc ml-6 mt-2 text-gray-700">
+            <li>Encrypted database backups</li>
+            <li>UUID-based data tracking for enhanced privacy</li>
+            <li>Strict access controls and authentication</li>
+            <li>Automated backup systems</li>
+            <li>Detailed error logging and monitoring</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">6. User Controls</h2>
+          <p className="text-gray-700">
+            You have complete control over your data:
+          </p>
+          <ul className="list-disc ml-6 mt-2 text-gray-700">
+            <li>Access and export your personal information</li>
+            <li>Report inappropriate AI suggestions</li>
+            <li>Track interaction sentiment (positive/neutral/negative)</li>
+            <li>Manage notification preferences</li>
+            <li>Delete your account and data instantly</li>
+            <li>Control contact frequency settings</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">7. Data Usage</h2>
           <p className="text-gray-700">
             We use your information solely to:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>Provide and improve our relationship management services</li>
-            <li>Send relevant notifications and reminders</li>
+            <li>Provide our relationship management services</li>
+            <li>Send relevant reminders based on your preferences</li>
             <li>Generate personalised interaction suggestions</li>
-            <li>Analyse app performance and user experience</li>
-            <li>Protect against fraud and abuse</li>
-          </ul>
-          <p className="mt-4 text-gray-700">
-            <strong>We do not:</strong>
-          </p>
-          <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>Sell your data to third parties</li>
-            <li>Use your data for advertising</li>
-            <li>Share your contacts' information with other users</li>
-            <li>Mine your data for insights beyond improving our service</li>
+            <li>Improve service performance and reliability</li>
+            <li>Protect against misuse and abuse</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">6. Security Measures</h2>
+          <h2 className="text-2xl font-semibold mb-4">8. Data Deletion</h2>
           <p className="text-gray-700">
-            We implement industry-standard security measures:
+            When you delete your account:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>End-to-end encryption for all data transmissions</li>
-            <li>Regular security audits and penetration testing</li>
-            <li>Multi-region data backups with encryption at rest</li>
-            <li>Strict access controls and authentication requirements</li>
-            <li>Regular security updates and vulnerability patching</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">7. Your Privacy Controls</h2>
-          <p className="text-gray-700">
-            You have full control over your data:
-          </p>
-          <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>Access and export your personal information</li>
-            <li>Correct or update inaccurate data</li>
-            <li>Delete your account and all associated data</li>
-            <li>Control notification preferences</li>
-            <li>Report inappropriate AI suggestions</li>
-            <li>Manage analytics data collection</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">8. Data Retention</h2>
-          <p className="text-gray-700">
-            We retain your information only as long as necessary:
-          </p>
-          <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>Active accounts: Data retained while account is active</li>
-            <li>Account deletion: All data permanently deleted immediately upon request</li>
-            <li>Analytics: Anonymised after 12 months</li>
+            <li>All your data is immediately and permanently deleted</li>
+            <li>Subscription information is removed from payment providers</li>
+            <li>Authentication tokens are revoked</li>
+            <li>Push notification subscriptions are cancelled</li>
           </ul>
         </section>
 
