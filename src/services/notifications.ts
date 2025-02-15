@@ -251,24 +251,18 @@ class NotificationService {
       // 1. Unregister service worker
       if (this.registration) {
         console.log('Unregistering service worker...');
-        await this.registration.unregister();
+        try {
+          await Promise.race([
+            this.registration.unregister(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker unregister timeout')), 3000))
+          ]);
+        } catch (err) {
+          console.warn('Service worker unregister error:', err);
+        }
         this.registration = null;
       }
 
-      // 2. Clear FCM data from IndexedDB
-      console.log('Clearing IndexedDB data...');
-      const databases = await window.indexedDB.databases();
-      for (const db of databases) {
-        if (db.name?.includes('firebase') || db.name?.includes('fcm')) {
-          await new Promise<void>((resolve, reject) => {
-            const request = window.indexedDB.deleteDatabase(db.name!);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-          });
-        }
-      }
-
-      // 3. Remove FCM token from Supabase
+      // 2. Remove FCM token from Supabase
       console.log('Removing FCM token from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
