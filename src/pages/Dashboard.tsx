@@ -168,7 +168,7 @@ const RecentContacts = () => {
     <>
       <div className="space-y-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Recent Contacts</h3>
+          <h2 className="text-xl font-bold text-gray-900">Recent Contacts</h2>
           <p className="mt-1 text-sm text-gray-600">
             Your most recently added connections
           </p>
