@@ -47,6 +47,12 @@ const DashboardMetrics = () => {
     queryFn: contactsService.getContacts
   });
 
+  const { data: totalCount } = useQuery({
+    queryKey: ['contactsCount'],
+    queryFn: contactsService.getTotalContactCount,
+    enabled: !isPremium && !isOnTrial
+  });
+
   const { data: reminders } = useQuery({
     queryKey: ['reminders'],
     queryFn: () => contactsService.getReminders()
@@ -70,10 +76,10 @@ const DashboardMetrics = () => {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <Link to="/contacts" className="flex">
         <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
-          {!isPremium && !isOnTrial && contacts && contacts.length > 15 && (
+          {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
               <p className="text-sm text-amber-800">
-                Showing {visibleContacts?.length} of {contacts.length} total contacts.{' '}
+                Showing {visibleContacts?.length} of {totalCount} total contacts.{' '}
                 <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                   Upgrade to Premium
                 </Link>{' '}
