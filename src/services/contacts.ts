@@ -28,12 +28,18 @@ export const contactsService = {
 
     let query = supabase
       .from('contacts')
-      .select('*')
-      .order('created_at', { ascending: true });  // Get oldest first for free tier limit
-    
-    // For free tier, only get first 15 contacts
+      .select('*');
+
+    // For free tier users, we show the 15 most recent contacts
+    // This ensures users have access to their newest and most relevant contacts
     if (!isPremium && !isOnTrial) {
-      query = query.limit(15);
+      query = query
+        .order('created_at', { ascending: false })  // Get newest contacts first
+        .limit(15);
+    } else {
+      // For premium/trial users, return all contacts with no specific ordering
+      // The UI components can handle sorting as needed
+      query = query.order('created_at', { ascending: true });
     }
 
     const { data, error } = await query;
@@ -224,13 +230,14 @@ export const contactsService = {
   async getReminders(contactId?: string): Promise<Reminder[]> {
     const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
     
-    // For free users, first get the visible contacts (first 15)
+    // For free users, get the IDs of their 15 most recent contacts
+    // This ensures reminders align with the visible contacts in their list
     let visibleContactIds: string[] = [];
     if (!isPremium && !isOnTrial && !contactId) {
       const { data: contacts } = await supabase
         .from('contacts')
         .select('id')
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false }) // Get newest contacts first
         .limit(15);
       
       visibleContactIds = (contacts || []).map(c => c.id);
