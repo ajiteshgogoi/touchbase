@@ -168,7 +168,7 @@ const RecentContacts = () => {
     <>
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Recent Contacts</h2>
+          <h3 className="text-xl font-bold text-gray-900">Recent Contacts</h3>
           <p className="mt-1 text-sm text-gray-600">
             Your most recently added connections
           </p>
@@ -280,6 +280,7 @@ const RecentContacts = () => {
                         type: 'call'
                       })}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-soft hover:shadow-lg transition-colors"
+                      aria-label="Log an interaction with contact"
                     >
                       Log Interaction
                     </button>
@@ -393,6 +394,7 @@ export const Dashboard = () => {
               to="/contacts/new"
               state={{ from: '/' }}
               className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-colors"
+              aria-label="Add new contact"
             >
               <span className="inline-flex items-center justify-center">
                 <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
