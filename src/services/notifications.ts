@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
-import { messaging, initializeTokenRefresh, cleanupMessaging, initializeMessaging } from '../lib/firebase';
+import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
@@ -94,20 +94,15 @@ class NotificationService {
   }
 
   async subscribeToPushNotifications(userId: string, forceResubscribe = false): Promise<void> {
-    try {
-      // Always initialize messaging instance first
-      initializeMessaging();
-      
+    if (!this.registration) {
+      console.warn('Firebase service worker not registered, initializing...');
+      await this.initialize();
       if (!this.registration) {
-        console.warn('Firebase service worker not registered, initializing...');
-        await this.initialize();
-        if (!this.registration) {
-          throw new Error('Failed to initialize Firebase service worker');
-        }
-        // Add small delay after initialization
-        await new Promise(resolve => setTimeout(resolve, 500));
+        throw new Error('Failed to initialize Firebase service worker');
       }
+    }
 
+    try {
       // Check for existing subscription if not forcing resubscribe
       if (!forceResubscribe) {
         const { data: existingSubscription } = await supabase
@@ -253,7 +248,24 @@ class NotificationService {
     try {
       console.log('Unsubscribing from push notifications...');
       
-      // 1. Remove FCM token from Supabase first to prevent any new messages
+      // 1. Clean up Firebase messaging instance
+      await cleanupMessaging();
+
+      // 2. Unregister service worker
+      if (this.registration) {
+        console.log('Unregistering service worker...');
+        try {
+          await Promise.race([
+            this.registration.unregister(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker unregister timeout')), 3000))
+          ]);
+        } catch (err) {
+          console.warn('Service worker unregister error:', err);
+        }
+        this.registration = null;
+      }
+
+      // 3. Remove FCM token from Supabase
       console.log('Removing FCM token from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
@@ -263,33 +275,6 @@ class NotificationService {
       if (error) {
         throw error;
       }
-
-      // 2. Clean up Firebase messaging instance
-      await cleanupMessaging();
-      
-      // Small delay to ensure messaging cleanup is complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // 3. Unregister service worker with longer timeout
-      if (this.registration) {
-        console.log('Unregistering service worker...');
-        try {
-          await Promise.race([
-            this.registration.unregister(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker unregister timeout')), 5000))
-          ]);
-          
-          // Important: Wait for browser to clean up service worker
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-        } catch (err) {
-          console.warn('Service worker unregister error:', err);
-        }
-        this.registration = null;
-      }
-
-      // 4. Final cleanup delay before any potential resubscribe
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
       console.log('Successfully unsubscribed from push notifications');
     } catch (error) {
