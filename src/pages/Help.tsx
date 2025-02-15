@@ -166,7 +166,7 @@ export const Help = () => {
                 <div className="space-y-2">
                   <p className="font-medium">Android:</p>
                   <ol className="list-decimal list-inside space-y-1 ml-4">
-                    <li>Tap the install prompt when it appears, or</li>
+                    <li>Tap the <span className="text-primary-500">Install</span> prompt when it appears, or</li>
                     <li>Open menu (3 dots on top right corner)</li>
                     <li>Select <span className="text-primary-500">Install app</span> or <span className="text-primary-500">Add to home screen</span></li>
                   </ol>
