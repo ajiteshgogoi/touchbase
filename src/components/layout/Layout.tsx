@@ -1,16 +1,12 @@
 import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './Navbar';
-import { useDarkMode } from '../../stores/useStore';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  // Initialize dark mode effect
-  useDarkMode();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white overflow-x-hidden flex flex-col">
       <Analytics />
