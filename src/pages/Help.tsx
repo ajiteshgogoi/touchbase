@@ -4,7 +4,8 @@ import {
   BellIcon,
   LightBulbIcon,
   ChartBarIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  DevicePhoneMobileIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -137,6 +138,41 @@ export const Help = () => {
                 </ol>
                 <p className="mt-4 text-sm bg-yellow-50 p-3 rounded-lg">
                   <strong>Important:</strong> Enabling notifications is crucial for receiving timely reminders about your interactions. Without notifications, you might miss important updates about when to reconnect with your contacts.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Installing the App */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <DevicePhoneMobileIcon className="h-6 w-6 text-primary-500" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Installing the App</h2>
+            </div>
+            <div className="w-full">
+              <div className="mt-2 text-gray-600 space-y-4">
+                <div className="space-y-2">
+                  <p className="font-medium">iOS:</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>On Safari, tap the <span className="text-primary-500">Share</span> button</li>
+                    <li>Select <span className="text-primary-500">Add to Home Screen</span></li>
+                    <li>Tap <span className="text-primary-500">Add</span> to install</li>
+                  </ol>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-medium">Android:</p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>Tap the install prompt when it appears, or</li>
+                    <li>Open menu (3 dots on top right corner)</li>
+                    <li>Select <span className="text-primary-500">Install app</span> or <span className="text-primary-500">Add to home screen</span></li>
+                  </ol>
+                </div>
+                <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
+                  <strong>Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen.
                 </p>
               </div>
             </div>
