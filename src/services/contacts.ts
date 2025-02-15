@@ -49,7 +49,7 @@ export const contactsService = {
     if (isPremium || isOnTrial) return;
 
     const contacts = await this.getContacts();
-    if (contacts.length >= 12) {
+    if (contacts.length >= 15) {
       throw new Error('Free tier contact limit reached. Please upgrade to add more contacts.');
     }
   },
