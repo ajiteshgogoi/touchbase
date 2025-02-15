@@ -47,10 +47,19 @@ export const Contacts = () => {
   }, [queryClient]);
   const { isPremium, isOnTrial } = useStore();
 
-  const { data: contacts, isLoading } = useQuery<Contact[]>({
+  const { data: contacts, isLoading: contactsLoading } = useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts
   });
+
+  const { data: totalCount, isLoading: countLoading } = useQuery<number>({
+    queryKey: ['contactsCount'],
+    queryFn: contactsService.getTotalContactCount,
+    // Only fetch total count for free users
+    enabled: !isPremium && !isOnTrial
+  });
+
+  const isLoading = contactsLoading || countLoading;
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -191,14 +200,14 @@ export const Contacts = () => {
         </div>
 
         <div className="p-4 space-y-4">
-          {!isPremium && !isOnTrial && contacts && contacts.length > 15 && (
+          {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
               <p className="text-sm text-amber-800">
                 You can only view your first 15 contacts on the free plan.{' '}
                 <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                   Upgrade to Premium
                 </Link>{' '}
-                to access all {contacts.length} of your contacts.
+                to access all {totalCount} of your contacts.
               </p>
             </div>
           )}

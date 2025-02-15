@@ -212,6 +212,15 @@ export const contactsService = {
     return interactionData;
   },
 
+  async getTotalContactCount(): Promise<number> {
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('id', { count: 'exact' });
+    
+    if (error) throw error;
+    return data?.length || 0;
+  },
+
   async getReminders(contactId?: string): Promise<Reminder[]> {
     const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
     
