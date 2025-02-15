@@ -89,7 +89,7 @@ export const Reminders = () => {
         {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              You're only seeing reminders for your first 15 contacts.{' '}
+              You're only seeing reminders for your 15 most recent contacts.{' '}
               <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                 Upgrade to Premium
               </Link>{' '}
