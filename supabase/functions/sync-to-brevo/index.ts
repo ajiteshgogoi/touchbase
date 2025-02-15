@@ -127,18 +127,28 @@ async function addContactToBrevo(user: AuthUser) {
       body: responseText
     });
 
-    let data;
+    // For 204 No Content, return success without parsing JSON
+    if (response.status === 204) {
+      return { id: 'success_no_content' };
+    }
+
+    // For other successful responses, try parsing JSON
+    if (response.ok) {
+      try {
+        return responseText ? JSON.parse(responseText) : { id: 'success_empty_response' };
+      } catch (e) {
+        console.log('Warning: Could not parse successful response as JSON:', responseText);
+        return { id: 'success_non_json' };
+      }
+    }
+
+    // For error responses, try to parse error details
     try {
-      data = JSON.parse(responseText);
+      const errorData = responseText ? JSON.parse(responseText) : { message: response.statusText };
+      throw new Error(`Brevo API error: ${JSON.stringify(errorData)}`);
     } catch (e) {
-      throw new Error(`Invalid JSON response: ${responseText}`);
+      throw new Error(`Brevo API error: ${response.status} ${response.statusText} - ${responseText}`);
     }
-
-    if (!response.ok) {
-      throw new Error(`Brevo API error: ${JSON.stringify(data)}`);
-    }
-
-    return data;
   } catch (error) {
     console.error('Error in addContactToBrevo:', error);
     throw error;
@@ -190,8 +200,15 @@ async function unsubscribeContactFromBrevo(email: string) {
       })
     });
 
-    if (!updateResponse.ok) {
-      throw new Error(`Failed to move contact to deleted list: ${await updateResponse.text()}`);
+    const responseText = await updateResponse.text();
+    console.log('Brevo unsubscribe response:', {
+      status: updateResponse.status,
+      statusText: updateResponse.statusText,
+      body: responseText
+    });
+
+    if (!updateResponse.ok && updateResponse.status !== 204) {
+      throw new Error(`Failed to move contact to deleted list: ${responseText}`);
     }
 
     console.log('Successfully moved user to deleted list in Brevo:', { email });
