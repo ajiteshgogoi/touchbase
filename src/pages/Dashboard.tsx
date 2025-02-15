@@ -30,7 +30,7 @@ const TrialBanner = ({ daysRemaining }: { daysRemaining: number }) => (
       <div className="flex-shrink-0">
         <Link
           to="/settings"
-          className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all"
+          className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-1.5 bg-white text-purple-600 rounded-lg text-sm font-medium shadow-soft hover:shadow-xl hover:-translate-y-0.5 transition-all"
         >
           Upgrade Now
         </Link>
