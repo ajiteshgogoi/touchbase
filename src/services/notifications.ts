@@ -4,6 +4,11 @@ import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/fire
 
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
+  private readonly firebaseSWURL: string;
+
+  constructor() {
+    this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+  }
 
   async initialize(retryDelay = 2000): Promise<void> {
       if (!('serviceWorker' in navigator)) {
@@ -35,20 +40,32 @@ class NotificationService {
 
         // Now proceed with service worker operations
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-        for (const reg of existingRegistrations) {
-          console.log('Unregistering service worker:', reg.active?.scriptURL);
-          await reg.unregister();
-        }
         
-        // Small delay to ensure clean state
-        await new Promise(resolve => setTimeout(resolve, 100));
-  
-        // Register Firebase messaging service worker
+        // Only unregister service workers that aren't our Firebase messaging worker
+        for (const reg of existingRegistrations) {
+          const swUrl = reg.active?.scriptURL;
+          if (swUrl && swUrl !== this.firebaseSWURL) {
+            console.log('Unregistering service worker:', swUrl);
+            await reg.unregister();
+          }
+        }
+
+        // Check if we already have a valid Firebase messaging service worker
+        const existingFirebaseSW = existingRegistrations.find(reg =>
+          reg.active?.scriptURL === this.firebaseSWURL
+        );
+
+        if (existingFirebaseSW) {
+          console.log('Using existing Firebase messaging service worker');
+          this.registration = existingFirebaseSW;
+          return;
+        }
+
+        // Register Firebase messaging service worker if not found
         console.log('Registering Firebase messaging service worker...');
-        const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
         
         // Register with explicit options for better control
-        this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
+        this.registration = await navigator.serviceWorker.register(this.firebaseSWURL, {
           scope: '/',
           updateViaCache: 'none'
         });
@@ -366,9 +383,8 @@ class NotificationService {
             this.registration = null;
           }
 
-          // Register Firebase service worker with force flag
-          const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
-          this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
+          // Register Firebase service worker
+          this.registration = await navigator.serviceWorker.register(this.firebaseSWURL, {
             scope: '/',
             updateViaCache: 'none'
           });
