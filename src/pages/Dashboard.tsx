@@ -53,7 +53,10 @@ const DashboardMetrics = () => {
   });
 
   const today = dayjs();
-  const visibleContacts = isPremium || isOnTrial ? contacts : contacts?.slice(0, 15);
+  const sortedContacts = contacts?.sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+  const visibleContacts = isPremium || isOnTrial ? sortedContacts : sortedContacts?.slice(0, 15);
   const metrics = {
     totalContacts: visibleContacts?.length || 0,
     dueToday: reminders?.filter((r: Reminder) => {
@@ -173,8 +176,9 @@ const RecentContacts = () => {
         <div className="bg-white rounded-xl shadow-soft">
           <div className="p-4 space-y-4">
             {(contacts || [])
-              .slice(0, isPremium || isOnTrial ? Infinity : 15) // Limit to first 15 for free users
-              .slice(0, 3) // Show only first 3 in recent contacts
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              .slice(0, isPremium || isOnTrial ? Infinity : 15) // Limit to most recent 15 for free users
+              .slice(0, 3) // Show only most recent 3 contacts
               .map((contact: Contact) => (
               <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col gap-4">
@@ -414,7 +418,7 @@ export const Dashboard = () => {
       {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm text-amber-800">
-            You're only seeing your first 15 contacts.{' '}
+            You're only seeing your 15 most recent contacts.{' '}
             <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
               Upgrade to Premium
             </Link>{' '}
