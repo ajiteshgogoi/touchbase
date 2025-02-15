@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useEffect } from 'react';
 import type { Contact, UserPreferences } from '../lib/supabase/types';
 import type { User } from '@supabase/supabase-js';
 
@@ -44,17 +45,27 @@ export const useStore = create<StoreState>((set) => ({
   setTrialStatus: (isOnTrial, trialDaysRemaining) => set({ isOnTrial, trialDaysRemaining }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setContactFilter: (contactFilter) => set({ contactFilter }),
-  setDarkMode: (darkMode) => {
-    set({ darkMode });
-    document.documentElement.classList.toggle('dark', darkMode);
-  },
+  setDarkMode: (darkMode) => set({ darkMode }),
 }));
 
-// Subscribe to system dark mode changes
-if (typeof window !== 'undefined') {
-  window
-    .matchMedia('(prefers-color-scheme: dark)')
-    .addEventListener('change', (e) => {
+// Hook for managing dark mode side effects
+export const useDarkMode = () => {
+  const darkMode = useStore((state) => state.darkMode);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
+
+  // Subscribe to system dark mode changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => {
       useStore.getState().setDarkMode(e.matches);
-    });
-}
+    };
+
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+};
