@@ -18,6 +18,10 @@ export const platform = {
     );
   },
 
+  isInstagramBrowser(): boolean {
+    return /Instagram/.test(navigator.userAgent);
+  },
+
   isWeb(): boolean {
     return !this.isAndroid();
   }

@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './Navbar';
+import { InstagramBrowserBanner } from '../shared/InstagramBrowserBanner';
 
 interface LayoutProps {
   children: ReactNode;
@@ -16,6 +17,7 @@ export const Layout = ({ children }: LayoutProps) => {
           {children}
         </div>
       </main>
+      <InstagramBrowserBanner />
       <footer className="text-center pt-2 pb-5 text-gray-600 text-sm">
         © {new Date().getFullYear()}{' '}
         <a
