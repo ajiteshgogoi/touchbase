@@ -46,14 +46,13 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading || isInitialLoad) {
     return (
-      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50" style={{ background: 'transparent' }}>
-        <div style={{ all: 'unset', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+      <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+        <div className="flex flex-col items-center gap-4">
           <svg
-            className="animate-spin h-12 w-12 text-primary-500 bg-transparent"
+            className="animate-spin h-12 w-12 text-primary-500"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            style={{ background: 'transparent' }}
           >
             <circle
               className="opacity-25"

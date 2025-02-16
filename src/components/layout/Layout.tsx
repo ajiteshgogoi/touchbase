@@ -13,7 +13,7 @@ export const Layout = ({ children }: LayoutProps) => {
       <Analytics />
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 pt-8 flex-grow">
-        <div className="bg-white rounded-xl shadow-soft backdrop-blur-sm bg-white/50 p-6 sm:p-8">
+        <div className="bg-white rounded-xl shadow-soft p-6 sm:p-8">
           {children}
         </div>
       </main>
