@@ -44,6 +44,12 @@
              line-height: 1.5;
              color: #0f172a;
            }
+           .ig-heading {
+             font-size: 20px;
+             font-weight: 600;
+             margin-bottom: 4px;
+             color: #0f172a;
+           }
            .ig-steps {
              max-width: 280px;
              text-align: left;
@@ -69,9 +75,9 @@
          div.className = 'ig-overlay';
          div.innerHTML = `
            <div class="ig-message">
-             <strong>TouchBase cannot run in Instagram's browser</strong>
+             <div class="ig-heading">TouchBase cannot run in Instagram's browser</div>
              <br><br>
-             Please follow these steps to open in your phone's browser:
+             Please follow the steps below to open in your phone's browser:
            </div>
            <div class="ig-steps">
              <div class="ig-step">
@@ -80,7 +86,7 @@
              </div>
              <div class="ig-step">
                <div class="ig-step-number">2.</div>
-               <div>Tap "${isIOS ? "Open in external browser" : "Open in browser"}"</div>
+               <div>Tap "${isIOS ? 'Open in external browser' : 'Open in browser'}"</div>
              </div>
            </div>
          `;
