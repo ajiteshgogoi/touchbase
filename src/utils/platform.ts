@@ -35,18 +35,18 @@ export const platform = {
 
     // Enhanced Instagram detection
     const isInstagram =
-      // Standard Instagram UA check (works well for Android)
+      // Android detection (works well)
       /Instagram/.test(userAgent) ||
-      // iOS-specific checks for Instagram in-app browser
+      // iOS-specific detection for Instagram in-app browser
       (isIOS && (
-        // Check for Instagram's WKWebView indicators
-        /FBAN/.test(userAgent) ||
-        /FBAV/.test(userAgent) ||
-        // Check for iOS WebKit with mobile indicators
+        // iOS Instagram app indicators
+        /Instagram/.test(userAgent) ||
+        /FBIOS/.test(userAgent) ||  // iOS-specific FB container
+        // Generic iOS Instagram WebView detection
         (/AppleWebKit/.test(userAgent) &&
          /Mobile/.test(userAgent) &&
-         // Instagram browser doesn't identify as Safari
-         !/Safari/.test(userAgent))
+         // Must not be Safari or Chrome
+         !/Safari|CriOS/.test(userAgent))
       ));
 
     if (!isInstagram) {
