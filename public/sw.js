@@ -80,25 +80,39 @@ self.addEventListener('fetch', (event) => {
 
   // Handle navigation requests differently
   if (event.request.mode === 'navigate') {
+    // Check if running in Instagram browser
+    const isInstagram = /Instagram/.test(navigator.userAgent);
+
     event.respondWith(
       (async () => {
-        try {
-          // Try to use the navigation preload response if available
-          const preloadResponse = await event.preloadResponse;
-          if (preloadResponse) {
-            return preloadResponse;
+        if (isInstagram) {
+          // For Instagram browser, use network-only strategy
+          // This bypasses all service worker caching
+          try {
+            return await fetch(event.request);
+          } catch (error) {
+            // If network fails, try serving index.html directly
+            return fetch('/index.html');
           }
+        } else {
+          try {
+            // For all other browsers, use the normal strategy
+            const preloadResponse = await event.preloadResponse;
+            if (preloadResponse) {
+              return preloadResponse;
+            }
 
-          // Otherwise, get from network and cache
-          const networkResponse = await fetch(event.request);
-          const cache = await caches.open('touchbase-v1');
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        } catch (error) {
-          // If offline, try to serve the cached index.html
-          const cache = await caches.open('touchbase-v1');
-          const cachedResponse = await cache.match('/index.html');
-          return cachedResponse;
+            // Otherwise, get from network and cache
+            const networkResponse = await fetch(event.request);
+            const cache = await caches.open('touchbase-v1');
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          } catch (error) {
+            // If offline, try to serve the cached index.html
+            const cache = await caches.open('touchbase-v1');
+            const cachedResponse = await cache.match('/index.html');
+            return cachedResponse;
+          }
         }
       })()
     );
