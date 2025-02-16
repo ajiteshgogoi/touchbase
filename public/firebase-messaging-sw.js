@@ -35,14 +35,15 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Initialize Firebase with placeholder config values that will be replaced during build
 firebase.initializeApp({
-  apiKey: 'AIzaSyCE08YGDhrNM52He4KuEjD_KPn3K2dIQa0',
-  authDomain: 'touchbase-449714.firebaseapp.com',
-  projectId: 'touchbase-449714',
-  storageBucket: 'touchbase-449714.firebasestorage.app',
-  messagingSenderId: '4468744965191',
-  appId: '1:468744965191:web:75aad4924b06d3b0d87562',
-  measurementId: 'G-KVP2BC7PVN'
+  apiKey: "VITE_FIREBASE_API_KEY",
+  authDomain: "VITE_FIREBASE_AUTH_DOMAIN",
+  projectId: "VITE_FIREBASE_PROJECT_ID",
+  storageBucket: "VITE_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID", 
+  appId: "VITE_FIREBASE_APP_ID",
+  measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
 });
 
 const messaging = firebase.messaging();

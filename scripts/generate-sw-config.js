@@ -8,6 +8,16 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Load environment variables with fallbacks
+const getEnvVar = (key) => {
+  const value = process.env[key];
+  if (!value) {
+    console.warn(`Warning: ${key} is not set in environment variables`);
+    return '';
+  }
+  return value;
+};
+
 async function generateServiceWorker() {
   try {
     // Read the template
@@ -15,18 +25,20 @@ async function generateServiceWorker() {
     let swContent = await fs.readFile(swPath, 'utf8');
 
     // Replace environment variables
-    const envVars = [
-      'VITE_FIREBASE_API_KEY',
-      'VITE_FIREBASE_AUTH_DOMAIN',
-      'VITE_FIREBASE_PROJECT_ID',
-      'VITE_FIREBASE_STORAGE_BUCKET',
-      'VITE_FIREBASE_MESSAGING_SENDER_ID',
-      'VITE_FIREBASE_APP_ID',
-      'VITE_FIREBASE_MEASUREMENT_ID'
-    ];
+    const firebaseConfig = {
+      apiKey: getEnvVar('VITE_FIREBASE_API_KEY'),
+      authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN'),
+      projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID'),
+      storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET'),
+      messagingSenderId: getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+      appId: getEnvVar('VITE_FIREBASE_APP_ID'),
+      measurementId: getEnvVar('VITE_FIREBASE_MEASUREMENT_ID')
+    };
 
-    envVars.forEach(key => {
-      swContent = swContent.replace(key, process.env[key] || '');
+    // Map each environment variable to its value
+    Object.entries(firebaseConfig).forEach(([key, value]) => {
+      const envKey = `VITE_FIREBASE_${key.toUpperCase()}`;
+      swContent = swContent.replace(`"${envKey}"`, `"${value}"`);
     });
 
     // Write the modified content
