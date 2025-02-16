@@ -79,22 +79,35 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Handle navigation requests differently
-  if (event.request.mode === 'navigate') {
-    // Check if running in Instagram browser
-    const isInstagram = /Instagram/.test(navigator.userAgent);
+if (event.request.mode === 'navigate') {
+  // Check if running in Instagram browser using request headers
+  const isInstagram = event.request.headers.get('Sec-Fetch-Dest') === 'document' &&
+                     event.request.headers.get('Sec-Fetch-Mode') === 'navigate' &&
+                     (event.request.referrer.includes('instagram.com') ||
+                      event.request.headers.get('User-Agent')?.includes('Instagram'));
 
-    event.respondWith(
-      (async () => {
-        if (isInstagram) {
-          // For Instagram browser, use network-only strategy
-          // This bypasses all service worker caching
-          try {
-            return await fetch(event.request);
-          } catch (error) {
-            // If network fails, try serving index.html directly
-            return fetch('/index.html');
+  event.respondWith(
+    (async () => {
+      if (isInstagram) {
+        // For Instagram browser, always use network-first strategy
+        // This ensures consistent behavior across iOS and Android
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse.ok) {
+            return networkResponse;
           }
-        } else {
+          throw new Error('Network response was not ok');
+        } catch (error) {
+          // If network fails, try to serve cached content
+          const cache = await caches.open('touchbase-v1');
+          const cachedResponse = await cache.match('/index.html');
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // If no cache, make one last attempt at network
+          return fetch('/index.html');
+        }
+      } else {
           try {
             // For all other browsers, use the normal strategy
             const preloadResponse = await event.preloadResponse;
