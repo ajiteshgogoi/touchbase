@@ -11,7 +11,7 @@ export function InstagramBrowserBanner() {
         <p className="text-sm">
           You're using TouchBase inside Instagram. For a better experience:{' '}
           <span className="font-semibold">
-            Tap the three dots ⋮ and select "Open in browser"
+            Tap the three dots ⋮ and select 'Open in browser'
           </span>
         </p>
       </div>
