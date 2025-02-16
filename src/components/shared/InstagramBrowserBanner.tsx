@@ -6,16 +6,16 @@ export function InstagramBrowserBanner() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-blue-600 text-white p-4 text-center z-50">
-      <p className="text-sm">
-        For the best experience, including PWA installation, please{' '}
-        <a href={window.location.href} 
-           target="_blank" 
-           rel="noopener noreferrer" 
-           className="underline font-semibold">
-          open in your browser
-        </a>
-      </p>
+    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary-600 to-primary-500 text-white px-4 py-3 text-center z-50 shadow-lg">
+      <div className="flex items-center justify-center gap-2">
+        <img src="/icon.svg" alt="heart" className="w-5 h-5" />
+        <p className="text-sm">
+          For the full TouchBase experience:{' '}
+          <span className="font-semibold">
+            Tap the three dots ⋮ and select "Open in browser"
+          </span>
+        </p>
+      </div>
     </div>
   );
 }
