@@ -70,14 +70,13 @@ export const ProfileMenu = () => {
   const menuItemInactiveStyle = "text-gray-700";
 
   return (
-    <Menu as="div" className="relative inline-block text-left" style={{ contain: 'layout style' }}>
-      <div className="flex items-center gap-2" style={{ contain: 'layout' }}>
-        <div style={{
-          opacity: isPremium ? 1 : 0,
-          visibility: isPremium ? 'visible' : 'hidden',
-          transform: isPremium ? 'translateX(0)' : 'translateX(-8px)',
-          transition: 'opacity 200ms, transform 200ms',
-        }} className="flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none">
+    <Menu as="div" className="relative inline-block text-left">
+      <div className="flex items-center gap-2">
+        <div
+          className={`flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none transition-all duration-200 ${
+            isPremium ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'
+          }`}
+        >
           <SparklesIcon className="h-3 w-3" />
           <span>Premium</span>
         </div>
@@ -99,7 +98,6 @@ export const ProfileMenu = () => {
         <Menu.Items
           className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50"
           style={{
-            contain: 'content',
             willChange: 'transform, opacity'
           }}
         >
