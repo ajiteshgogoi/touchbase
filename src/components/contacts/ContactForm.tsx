@@ -466,7 +466,7 @@ export const ContactForm = () => {
           </button>
           <button
             type="submit"
-            className="min-w-[140px] px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors font-medium shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="min-w-[140px] px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             disabled={isValidating || createMutation.isPending || updateMutation.isPending}
           >
             {isValidating || createMutation.isPending || updateMutation.isPending ? (

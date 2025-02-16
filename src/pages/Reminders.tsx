@@ -166,7 +166,7 @@ export const Reminders = () => {
                             contactName: contactsMap[reminder.contact_id]?.name || 'Unknown',
                             type: reminder.type
                           })}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
                           title="Log an interaction"
                         >
                           Log Interaction
@@ -262,7 +262,7 @@ export const Reminders = () => {
                             contactName: contactsMap[reminder.contact_id]?.name || 'Unknown',
                             type: reminder.type
                           })}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
                           title="Log an interaction"
                         >
                           Log Interaction

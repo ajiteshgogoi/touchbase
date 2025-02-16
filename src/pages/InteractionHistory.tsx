@@ -151,7 +151,7 @@ export const InteractionHistory = () => {
           </p>
           <Link
             to="/settings"
-            className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-400 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
           >
             Upgrade Now
             <ChevronRightIcon className="w-4 h-4 ml-1" />
@@ -194,7 +194,7 @@ export const InteractionHistory = () => {
               created_at: new Date().toISOString()
             }
           })}
-          className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+          className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all"
         >
           Log New Interaction
         </button>
