@@ -34,7 +34,7 @@ export const ProfileMenu = () => {
       <button
         onClick={handleSignIn}
         disabled={isLoading}
-        className="bg-primary-500 hover:bg-primary-400 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+        className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <svg

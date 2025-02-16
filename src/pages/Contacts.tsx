@@ -147,7 +147,7 @@ export const Contacts = () => {
           <Link
             to="/contacts/new"
             state={{ from: '/contacts' }}
-            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all"
           >
             <UserPlusIcon className="h-5 w-5 mr-2" />
             Add Contact
@@ -320,7 +320,7 @@ export const Contacts = () => {
                   <div className="flex items-center justify-start gap-2 w-full mt-3">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
                       title="Log an interaction"
                     >
                       Log Interaction

@@ -322,7 +322,7 @@ export const QuickInteraction = ({
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-400 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 disabled:opacity-50"
                   >
                     {isSubmitting ? 'Saving...' : 'Save'}
                   </button>

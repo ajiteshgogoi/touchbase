@@ -279,7 +279,7 @@ const RecentContacts = () => {
                         contactName: contact.name,
                         type: 'call'
                       })}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 rounded-lg shadow-sm hover:shadow transition-all"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
                       title="Log an interaction"
                     >
                       Log Interaction
@@ -309,7 +309,7 @@ const RecentContacts = () => {
           <div className="p-6 border-t border-gray-100">
             <Link
               to="/contacts"
-              className="inline-flex items-center text-primary-500 hover:text-primary-400 font-medium transition-colors"
+              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
             >
               View all contacts
               <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
@@ -393,7 +393,7 @@ export const Dashboard = () => {
             <Link
               to="/contacts/new"
               state={{ from: '/' }}
-              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all"
+              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all"
             >
               <span className="inline-flex items-center justify-center">
                 <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />

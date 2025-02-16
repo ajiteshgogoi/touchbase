@@ -106,7 +106,7 @@ export const Login = () => {
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center px-8 py-4 rounded-lg text-base font-medium text-white bg-primary-500 hover:bg-primary-400 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center px-8 py-4 rounded-lg text-base font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <LoadingSpinner />
@@ -140,11 +140,11 @@ export const Login = () => {
 
         <p className="text-sm text-gray-500 text-center mt-6">
           By continuing, you agree to our{' '}
-          <a href="/terms" className="text-primary-500 hover:text-primary-400 font-medium">
-            Terms of Service
+          <a href="/terms" className="text-primary-500 hover:text-primary-600 font-medium">
+           Terms of Service
           </a>{' '}
           and{' '}
-          <a href="/privacy" className="text-primary-500 hover:text-primary-400 font-medium">
+          <a href="/privacy" className="text-primary-500 hover:text-primary-600 font-medium">
             Privacy Policy
           </a>
         </p>
@@ -155,7 +155,7 @@ export const Login = () => {
           <img src="/icon.svg" alt="heart" className="inline-block w-5 h-5 text-primary-500 align-text-top -mt-[0.1px]" /> For the best experience, install TouchBase on your phone.{' '}
           <button
             onClick={() => setIsInstallModalOpen(true)}
-            className="text-primary-500 hover:text-primary-400 font-medium"
+            className="text-primary-500 hover:text-primary-600 font-medium"
           >
             Click to learn how
           </button>

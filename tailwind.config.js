@@ -8,10 +8,10 @@ export default {
       colors: {
         primary: {
           50: '#f0f9ff',   // Lightest blue - for backgrounds
-          100: '#e0f2fe',  // Very light blue - for hover states
+          100: '#e0f2fe',  // Very light blue - for subtle highlights
           200: '#bae6fd',  // Light blue - for secondary elements
           300: '#7dd3fc',  // Mid-light blue - for active states
-          400: '#38bdf8',  // Medium blue - for buttons and links
+          400: '#38bdf8',  // Medium blue - for base button states
           500: '#0ea5e9',  // Main brand blue - primary actions
           600: '#0284c7',  // Darker blue - for hover states
           700: '#0369a1',  // Deep blue - for text
