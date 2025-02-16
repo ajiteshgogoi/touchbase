@@ -33,32 +33,59 @@ export const platform = {
     const isIOS = this.isIOS();
     const isAndroid = this.isAndroid();
 
+    // Debug info - Basic environment
+    console.warn('📱 Browser Environment:', {
+      userAgent,
+      isIOS,
+      isAndroid,
+      windowInnerHeight: window.innerHeight,
+      screenHeight: window?.screen?.height,
+      documentHidden: document.hidden,
+      hasReactNativeWebView: 'ReactNativeWebView' in window,
+      pathname: window.location.pathname,
+    });
+
+    // Debug each detection pattern
+    const detectionResults = {
+      hasInstagram: /Instagram/.test(userAgent),
+      hasFBAN: /FBAN/.test(userAgent),
+      hasFBAV: /FBAV/.test(userAgent),
+      hasFBIOS: /FBIOS/.test(userAgent),
+      hasWebKit: /AppleWebKit/.test(userAgent),
+      hasSafari: /Safari/.test(userAgent),
+      hasCriOS: /CriOS/.test(userAgent),
+    };
+
+    console.warn('🔍 Detection Results:', detectionResults);
+
     // Instagram detection
     const isInstagram =
       // Android detection
-      /Instagram/.test(userAgent) ||
+      detectionResults.hasInstagram ||
       // iOS-specific detection for Instagram in-app browser
       (isIOS && (
         // Specific Instagram/Facebook in-app browser indicators
-        /Instagram/.test(userAgent) ||
-        /FBAN/.test(userAgent) ||     // Facebook App
-        /FBAV/.test(userAgent) ||     // Facebook App
-        /FBIOS/.test(userAgent)       // iOS-specific FB container
+        detectionResults.hasInstagram ||
+        detectionResults.hasFBAN ||     // Facebook App
+        detectionResults.hasFBAV ||     // Facebook App
+        detectionResults.hasFBIOS       // iOS-specific FB container
       ));
 
-    if (!isInstagram) {
-      return {
-        isInstagram: false,
-        isIOS: false,
-        isAndroid: false
-      };
-    }
-    
-    return {
-      isInstagram: true,
+    const result = {
+      isInstagram,
       isIOS,
       isAndroid
     };
+
+    console.warn('📱 Final Result:', result);
+    console.warn('🌐 Document State:', {
+      readyState: document.readyState,
+      bodyHeight: document.body?.clientHeight,
+      htmlHeight: document.documentElement?.clientHeight,
+      hasStyles: !!document.styleSheets.length,
+    });
+
+    return result;
   },
 
   isWeb(): boolean {
