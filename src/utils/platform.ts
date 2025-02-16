@@ -29,6 +29,23 @@ export const platform = {
   },
 
   isInstagramBrowser(): InstagramBrowserStatus {
+    // First check for early detection results from inline script
+    // This is more reliable especially on iOS Instagram browser
+    const html = document.documentElement;
+    const earlyDetectionResult = html.getAttribute('data-ig-browser');
+    
+    if (earlyDetectionResult === 'true') {
+      const platform = html.getAttribute('data-ig-platform');
+      // Early detection succeeded - use the pre-computed result
+      return {
+        isInstagram: true,
+        isIOS: platform === 'ios',
+        isAndroid: platform === 'android'
+      };
+    }
+
+    // Fallback to runtime detection if early detection didn't catch it
+    // This can happen if the inline script failed or didn't run
     const userAgent = navigator.userAgent;
     const isIOS = this.isIOS();
     const isAndroid = this.isAndroid();
@@ -58,14 +75,10 @@ export const platform = {
 
     console.warn('🔍 Detection Results:', detectionResults);
 
-    // Instagram detection
+    // Instagram detection combining both direct Instagram and iOS Facebook container checks
     const isInstagram =
-      // Android detection
       detectionResults.hasInstagram ||
-      // iOS-specific detection for Instagram in-app browser
       (isIOS && (
-        // Specific Instagram/Facebook in-app browser indicators
-        detectionResults.hasInstagram ||
         detectionResults.hasFBAN ||     // Facebook App
         detectionResults.hasFBAV ||     // Facebook App
         detectionResults.hasFBIOS       // iOS-specific FB container
