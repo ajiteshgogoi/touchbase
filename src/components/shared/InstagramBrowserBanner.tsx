@@ -7,13 +7,33 @@ export function InstagramBrowserBanner() {
     return null;
   }
 
-  // For iOS Instagram, use a simpler banner
+  // For iOS Instagram, redirect to external browser
   if (status.isIOS) {
+    // Force external browser for iOS Instagram
+    const openInBrowser = () => {
+      const url = window.location.href;
+      window.location.href = `googlechrome://${url.substring(url.indexOf('://')+3)}`;
+      // Fallback to Safari after a short delay
+      setTimeout(() => {
+        window.location.href = url;
+      }, 500);
+    };
+
+    // Auto-trigger the external browser open
+    if (typeof window !== 'undefined') {
+      openInBrowser();
+    }
+
     return (
-      <div className="fixed inset-x-0 top-0 bg-primary-500 text-white px-4 py-2 text-center z-50">
-        <p className="text-sm font-medium">
-          Open in Safari for best experience
-        </p>
+      <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50 p-4">
+        <div className="bg-primary-500 text-white px-6 py-4 rounded-lg text-center max-w-sm">
+          <p className="text-lg font-medium mb-2">
+            Opening in External Browser
+          </p>
+          <p className="text-sm">
+            TouchBase requires features not available in the Instagram browser. Redirecting to your default browser...
+          </p>
+        </div>
       </div>
     );
   }
