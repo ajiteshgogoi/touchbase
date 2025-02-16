@@ -16,58 +16,74 @@
           (isIOS && (/FBAN/.test(ua) || /FBAV/.test(ua) || /FBIOS/.test(ua)));
 
         // Set a placeholder for Instagram browser
-        if (isInstagram) {
-          var instructions = isIOS
-            ? "Tap ⋯ then select 'Open in external browser'"
-            : "Tap ⋮ then select 'Open in browser'";
-          
-          // Create a basic UI that works without React
-          var style = document.createElement('style');
-          style.textContent = `
-            .ig-overlay {
-              position: fixed;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              background: #f8fafc;
-              z-index: 99998;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              text-align: center;
-              font-family: system-ui;
-              padding: 20px;
-            }
-            .ig-message {
-              max-width: 300px;
-              margin-bottom: 20px;
-              font-size: 16px;
-              line-height: 1.5;
-              color: #0f172a;
-            }
-            .ig-instructions {
-              background: #0EA5E9;
-              color: white;
-              padding: 12px 20px;
-              border-radius: 8px;
-              font-weight: 500;
-            }
-          `;
-          document.head.appendChild(style);
-          
-          var div = document.createElement('div');
-          div.className = 'ig-overlay';
-          div.innerHTML = `
-            <div class="ig-message">
-              TouchBase cannot run inside Instagram's browser.
-              Please open in your device's web browser to use the app.
-            </div>
-            <div class="ig-instructions">
-              ${instructions}
-            </div>
-          `;
+       if (isInstagram) {
+         
+         // Create a basic UI that works without React
+         var style = document.createElement('style');
+         style.textContent = `
+           .ig-overlay {
+             position: fixed;
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             background: #f8fafc;
+             z-index: 99998;
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             justify-content: center;
+             text-align: center;
+             font-family: system-ui;
+             padding: 20px;
+           }
+           .ig-message {
+             max-width: 320px;
+             margin-bottom: 24px;
+             font-size: 16px;
+             line-height: 1.5;
+             color: #0f172a;
+           }
+           .ig-steps {
+             max-width: 280px;
+             text-align: left;
+             color: #475569;
+             font-size: 15px;
+             line-height: 1.6;
+           }
+           .ig-step {
+             display: flex;
+             gap: 12px;
+             margin-bottom: 12px;
+           }
+           .ig-step-number {
+             color: #0EA5E9;
+             font-weight: 600;
+             font-size: 14px;
+             padding-top: 2px;
+           }
+         `;
+         document.head.appendChild(style);
+         
+         var div = document.createElement('div');
+         div.className = 'ig-overlay';
+         div.innerHTML = `
+           <div class="ig-message">
+             <strong>TouchBase cannot run in Instagram's browser</strong>
+             <br><br>
+             Please follow these steps to open in your phone's browser:
+           </div>
+           <div class="ig-steps">
+             <div class="ig-step">
+               <div class="ig-step-number">1.</div>
+               <div>Look for the ${isIOS ? "⋯" : "⋮"} menu button in the top right corner</div>
+             </div>
+             <div class="ig-step">
+               <div class="ig-step-number">2.</div>
+               <div>Tap "${isIOS ? "Open in external browser" : "Open in browser"}"</div>
+             </div>
+           </div>
+         `;
           
           // Add banner when DOM is ready
           document.addEventListener('DOMContentLoaded', function() {
