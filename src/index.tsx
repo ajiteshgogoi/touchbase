@@ -5,12 +5,11 @@ import './index.css';
 
 const root = document.getElementById('root')!;
 
-// Handle Instagram browser case
+// Skip rendering entirely for iOS Instagram browser
 if (document.documentElement.getAttribute('data-ig-browser') === 'true' &&
     document.documentElement.getAttribute('data-ig-platform') === 'ios') {
-  // For iOS Instagram, just show the banner that was created in the preload script
-  // This prevents issues with module loading in Instagram's WebView
-  root.innerHTML = '<div class="bg-gray-50 min-h-screen"></div>';
+  // Remove root element since we're showing the overlay
+  root.remove();
 } else {
   // Normal initialization for all other browsers
   try {
