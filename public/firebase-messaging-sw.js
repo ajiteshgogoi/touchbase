@@ -36,13 +36,13 @@ self.addEventListener('message', (event) => {
 });
 
 firebase.initializeApp({
-  apiKey: 'AIzaSyBseFvFMYyf7JXnqb3HzGp64Hm3BXwqYlw',
-  authDomain: 'touchbase-8308f.firebaseapp.com',
-  projectId: 'touchbase-8308f',
-  storageBucket: 'touchbase-8308f.firebasestorage.app',
-  messagingSenderId: '456167551143',
-  appId: '1:456167551143:web:5950277a9eece90eac2b82',
-  measurementId: 'G-51J28BCVHT'
+  apiKey: 'AIzaSyCE08YGDhrNM52He4KuEjD_KPn3K2dIQa0',
+  authDomain: 'touchbase-449714.firebaseapp.com',
+  projectId: 'touchbase-449714',
+  storageBucket: 'touchbase-449714.firebasestorage.app',
+  messagingSenderId: '4468744965191',
+  appId: '1:468744965191:web:75aad4924b06d3b0d87562',
+  measurementId: 'G-KVP2BC7PVN'
 });
 
 const messaging = firebase.messaging();
