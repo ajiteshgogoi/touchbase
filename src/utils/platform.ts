@@ -17,11 +17,11 @@ interface InstagramBrowserStatus {
 
 export const platform = {
   isAndroid(): boolean {
-    // More reliable check - verify if Google Play Billing is available
-    return !!(
-      window.google?.payments?.subscriptions?.subscribe &&
-      /Android/i.test(navigator.userAgent)
-    );
+    return /Android/i.test(navigator.userAgent);
+  },
+
+  isGooglePlayBillingAvailable(): boolean {
+    return !!window.google?.payments?.subscriptions?.subscribe;
   },
 
   isIOS(): boolean {

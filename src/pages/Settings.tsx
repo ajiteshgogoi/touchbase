@@ -316,7 +316,7 @@ export const Settings = () => {
                       try {
                         setIsSubscribing(true);
                         // Check if Google Play Billing is properly initialized in TWA
-                        if (platform.isAndroid() && !window.google?.payments?.subscriptions?.subscribe) {
+                        if (platform.isAndroid() && !platform.isGooglePlayBillingAvailable()) {
                           throw new Error('Google Play Billing is not available. Please try refreshing the app.');
                         }
                         await paymentService.createSubscription('premium');
@@ -372,7 +372,7 @@ export const Settings = () => {
                           try {
                             setIsSubscribing(true);
                             // Check if Google Play Billing is properly initialized in TWA
-                            if (platform.isAndroid() && !window.google?.payments?.subscriptions?.subscribe) {
+                            if (platform.isAndroid() && !platform.isGooglePlayBillingAvailable()) {
                               throw new Error('Google Play Billing is not available. Please try refreshing the app.');
                             }
                             await handleResumeSubscription();
