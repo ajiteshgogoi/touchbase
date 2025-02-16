@@ -4,53 +4,44 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!--
-      Early Instagram Browser Detection
-      
-      This script runs before any other JavaScript to detect Instagram's in-app browser
-      and prevent white screen issues on iOS. The solution works by:
-      
-      1. Running during initial HTML parsing, before React loads
-      2. Using reliable UserAgent patterns for detection
-      3. Setting data attributes that React can read later
-      4. Forcing visibility to prevent white screen on iOS Instagram
-      
-      The viewport-fit=cover meta tag ensures proper display on notched devices.
-      Default visibility is preserved for non-Instagram browsers.
-    -->
+    <!-- Instagram Browser Handling -->
     <script>
-      (function detectInstagram() {
-        try {
-          // Include empty string fallback for edge cases
-          var ua = navigator.userAgent || '';
-          var html = document.documentElement;
+      (function() {
+        // Initial setup with fallbacks
+        window.__TB = { ready: false };
+        var html = document.documentElement;
+        var ua = navigator.userAgent || '';
+        var isIOS = /iPad|iPhone|iPod/.test(ua);
+        var isInstagram = /Instagram/.test(ua) ||
+          (isIOS && (/FBAN/.test(ua) || /FBAV/.test(ua) || /FBIOS/.test(ua)));
+
+        // Set a placeholder for Instagram browser
+        if (isInstagram) {
+          var instructions = isIOS
+            ? "Tap ⋯ and select 'Open in external browser'"
+            : "Tap ⋮ and select 'Open in browser'";
           
-          // iOS detection must happen first as it affects detection strategy
-          var isIOS = /iPad|iPhone|iPod/.test(ua);
+          // Create a basic UI that works without React
+          var style = document.createElement('style');
+          style.textContent = '.ig-banner{position:fixed;bottom:0;left:0;right:0;background:#0EA5E9;color:white;padding:12px;text-align:center;font-family:system-ui;z-index:99999;box-shadow:0 -2px 10px rgba(0,0,0,0.1)}';
+          document.head.appendChild(style);
           
-          // Combined detection for both platforms:
-          // - Direct Instagram browser check
-          // - iOS-specific Facebook/Instagram container checks
-          var isInstagram = /Instagram/.test(ua) ||
-            (isIOS && (/FBAN/.test(ua) || /FBAV/.test(ua) || /FBIOS/.test(ua)));
+          var div = document.createElement('div');
+          div.className = 'ig-banner';
+          div.textContent = "You're using TouchBase inside Instagram. For the best experience: " + instructions;
           
-          if (isInstagram) {
-            // Store detection results for React
-            html.setAttribute('data-ig-browser', 'true');
-            html.setAttribute('data-ig-platform', isIOS ? 'ios' : 'android');
-            
-            // Force immediate visibility to prevent white screen
-            // This is especially important for iOS Instagram
-            html.style.visibility = 'visible';
-            
-            // Ensure body is also visible when DOM is ready
-            document.addEventListener('DOMContentLoaded', function() {
-              document.body.style.visibility = 'visible';
-            });
-          }
-        } catch (e) {
-          console.warn('Early Instagram detection failed:', e);
+          // Add banner when DOM is ready
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.appendChild(div);
+          });
+
+          // Store detection results
+          html.setAttribute('data-ig-browser', 'true');
+          html.setAttribute('data-ig-platform', isIOS ? 'ios' : 'android');
         }
+        
+        // Handle app initialization
+        window.__TB.ready = true;
       })();
     </script>
     <meta name="theme-color" content="#0EA5E9" />
