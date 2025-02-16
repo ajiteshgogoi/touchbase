@@ -29,7 +29,26 @@ export const platform = {
   },
 
   isInstagramBrowser(): InstagramBrowserStatus {
-    const isInstagram = /Instagram/.test(navigator.userAgent);
+    const userAgent = navigator.userAgent;
+    const isIOS = this.isIOS();
+    const isAndroid = this.isAndroid();
+
+    // Enhanced Instagram detection
+    const isInstagram =
+      // Standard Instagram UA check (works well for Android)
+      /Instagram/.test(userAgent) ||
+      // iOS-specific checks for Instagram in-app browser
+      (isIOS && (
+        // Check for Instagram's WKWebView indicators
+        /FBAN/.test(userAgent) ||
+        /FBAV/.test(userAgent) ||
+        // Check for iOS WebKit with mobile indicators
+        (/AppleWebKit/.test(userAgent) &&
+         /Mobile/.test(userAgent) &&
+         // Instagram browser doesn't identify as Safari
+         !/Safari/.test(userAgent))
+      ));
+
     if (!isInstagram) {
       return {
         isInstagram: false,
@@ -40,8 +59,8 @@ export const platform = {
     
     return {
       isInstagram: true,
-      isIOS: this.isIOS(),
-      isAndroid: this.isAndroid()
+      isIOS,
+      isAndroid
     };
   },
 
