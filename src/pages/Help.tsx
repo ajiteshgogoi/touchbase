@@ -104,7 +104,7 @@ export const Help = () => {
                 <p>Get deep insights into your relationships (Premium feature):</p>
                 <ol className="list-decimal list-inside space-y-1 ml-4">
                   <li>Click 'Get Detailed Analytics' on the dashboard</li>
-                  <li>View your interaction patterns through the heatmap visualization</li>
+                  <li>View your interaction patterns through the heatmap visualisation</li>
                   <li>See your top engaged contacts and their interaction frequencies</li>
                   <li>Identify relationships that need attention</li>
                   <li>Get AI-powered insights about your interactions with each contact</li>
@@ -195,10 +195,10 @@ export const Help = () => {
                   <li>Use the notes section to record important details about your contacts (interests, important dates, recent events)</li>
                   <li>Log interactions right after they happen for better tracking</li>
                   <li>Check your dashboard regularly to see who you need to connect with</li>
-                  <li>Add personal context in your notes to make future conversations more meaningful</li>
+                  <li>Add personal context in your notes to make future interactions meaningful</li>
                 </ul>
                 <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-                  <strong>Remember:</strong> The goal is to maintain meaningful connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
+                  <strong>Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
                 </p>
               </div>
             </div>
