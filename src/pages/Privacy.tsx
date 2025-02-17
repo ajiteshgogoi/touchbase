@@ -56,6 +56,7 @@ export const Privacy = () => {
             <li>Your data is processed securely when generating suggestions</li>
             <li>We do not use your data to train AI models</li>
             <li>You can report any inappropriate suggestions through our built-in reporting system</li>
+            <li>You can disable AI features in Settings</li>
           </ul>
         </section>
 

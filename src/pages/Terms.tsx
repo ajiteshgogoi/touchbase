@@ -71,6 +71,7 @@ export const Terms = () => {
             <li>AI suggestions are for assistance only, not professional advice</li>
             <li>Suggestions are based on your interaction notes and patterns</li>
             <li>You can report inappropriate suggestions using the built-in reporting system</li>
+            <li>You can disable AI features in Settings</li>
             <li>We review all reported suggestions to improve the service</li>
             <li>TouchBase is not liable for AI suggestion outcomes</li>
           </ul>
