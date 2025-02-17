@@ -564,7 +564,7 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
                 toast.error('Failed to delete account');
               }
             }}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
           >
             Delete Account
           </button>
