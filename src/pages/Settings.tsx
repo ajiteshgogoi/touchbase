@@ -519,13 +519,13 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
       {/* Feedback Section */}
       <div className="bg-white rounded-xl shadow-soft p-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Help Us Improve</h2>
-            <p className="mt-2 text-gray-600">
-              We value your feedback to make TouchBase better
-            </p>
-          </div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          Help Us Improve
+        </h2>
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            We value your feedback to make TouchBase better. Share your thoughts and suggestions with us.
+          </p>
           <button
             onClick={() => setIsFeedbackModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600"
