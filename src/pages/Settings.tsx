@@ -38,14 +38,14 @@ export const Settings = () => {
 
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('valid_until, status')
+        .select('valid_until, status, trial_end_date, plan_id')
         .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id && isPremium
+    enabled: !!user?.id
   });
 
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
@@ -476,27 +476,39 @@ export const Settings = () => {
 
       {/* AI Features */}
       <div className="bg-white rounded-xl shadow-soft p-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          AI Features
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            AI Features
+          </h2>
+          {!isPremium && (!subscription?.trial_end_date || new Date(subscription.trial_end_date) <= new Date()) && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+              Premium Only
+            </span>
+          )}
+        </div>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-gray-900 font-medium">
+              <label className={`font-medium ${(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) ? 'text-gray-900' : 'text-gray-400'}`}>
                 Advanced AI Suggestions
               </label>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className={`text-sm mt-1 ${(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) ? 'text-gray-600' : 'text-gray-400'}`}>
                 Get AI-powered suggestions for future interactions
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className={`relative inline-flex items-center ${(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
               <input
                 type="checkbox"
                 className="sr-only peer"
                 checked={notificationSettings.ai_suggestions_enabled}
-                onChange={(e) => handleNotificationChange({
-                  ai_suggestions_enabled: e.target.checked
-                })}
+                onChange={(e) => {
+                  if (isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) {
+                    handleNotificationChange({
+                      ai_suggestions_enabled: e.target.checked
+                    });
+                  }
+                }}
+                disabled={!isPremium && (!subscription?.trial_end_date || new Date(subscription.trial_end_date) <= new Date())}
               />
               <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
             </label>
