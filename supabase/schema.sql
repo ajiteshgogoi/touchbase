@@ -129,6 +129,14 @@ create table public.content_reports (
     created_at timestamp with time zone default now()
 );
 
+create table public.feedback (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null,
+    email text not null,
+    feedback text not null,
+    created_at timestamp with time zone default now()
+);
+
 -- Create indexes
 create index contacts_user_id_idx on public.contacts(user_id);
 create index contacts_last_contacted_idx on public.contacts(last_contacted);
@@ -150,6 +158,7 @@ create index contact_analytics_user_id_idx on public.contact_analytics(user_id);
 create index contact_analytics_generated_at_idx on public.contact_analytics(generated_at);
 create index content_reports_user_id_idx on public.content_reports(user_id);
 create index content_reports_contact_id_idx on public.content_reports(contact_id);
+create index feedback_user_id_idx on public.feedback(user_id);
 
 -- Enable Row Level Security
 alter table public.contacts enable row level security;
@@ -162,6 +171,7 @@ alter table public.push_subscriptions enable row level security;
 alter table public.notification_history enable row level security;
 alter table public.contact_analytics enable row level security;
 alter table public.content_reports enable row level security;
+alter table public.feedback enable row level security;
 
 -- Create policies
 create policy "Users can view their own contacts"
@@ -286,6 +296,15 @@ create policy "Users can view their own content reports"
 
 create policy "Users can insert content reports"
     on public.content_reports for insert
+    with check (auth.uid() = user_id);
+
+-- Feedback policies
+create policy "Users can view their own feedback"
+    on public.feedback for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own feedback"
+    on public.feedback for insert
     with check (auth.uid() = user_id);
 
 -- Allow service role to read necessary tables for push notifications

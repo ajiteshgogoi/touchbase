@@ -11,8 +11,9 @@ import { supabase } from '../lib/supabase/client';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import { notificationService } from '../services/notifications';
 import type { UserPreferences, Database } from '../lib/supabase/types';
-import { CheckIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ArrowLeftIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
 import { platform } from '../utils/platform';
+import { FeedbackModal } from '../components/shared/FeedbackModal';
 
 interface NotificationSettings {
   notification_enabled: boolean;
@@ -47,16 +48,16 @@ export const Settings = () => {
     },
     enabled: !!user?.id
   });
+const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
+  notification_enabled: false,
+  theme: 'light',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  ai_suggestions_enabled: true
+});
+const [searchTerm, setSearchTerm] = useState('');
+const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-    notification_enabled: false,
-    theme: 'light',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ai_suggestions_enabled: true
-  });
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Filter timezones based on search
+// Filter timezones based on search
   const filteredTimezones = TIMEZONES.filter(zone =>
     zone.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -515,6 +516,30 @@ export const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Feedback Section */}
+      <div className="bg-white rounded-xl shadow-soft p-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Help Us Improve</h2>
+            <p className="mt-2 text-gray-600">
+              We value your feedback to make TouchBase better
+            </p>
+          </div>
+          <button
+            onClick={() => setIsFeedbackModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600"
+          >
+            <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
+            Send Feedback
+          </button>
+        </div>
+      </div>
+
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
 
       {/* Account Deletion */}
       <div className="bg-white rounded-xl shadow-soft p-8">
