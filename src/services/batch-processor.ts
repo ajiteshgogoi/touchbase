@@ -248,17 +248,21 @@ export class BatchProcessor {
       const subscription = subscriptionResult.data;
       const preferences = preferencesResult.data;
 
-      const isEligible =
-        ((subscription?.plan_id === 'premium' && subscription.valid_until && new Date(subscription.valid_until) > now) ||
-        (subscription?.trial_end_date && new Date(subscription.trial_end_date) > now)) &&
-        preferences.ai_suggestions_enabled;
+      const hasAccess = (subscription?.plan_id === 'premium' && subscription.valid_until && new Date(subscription.valid_until) > now) ||
+        (subscription?.trial_end_date && new Date(subscription.trial_end_date) > now);
 
-      // Process with LLM if premium or on trial
+      // Process with LLM if premium/trial and AI suggestions enabled
       let suggestions;
-      if (isEligible) {
-        suggestions = await this.getLLMSuggestions(contact);
+      if (!preferences.ai_suggestions_enabled) {
+        // Skip processing entirely if AI suggestions are disabled
+        return {
+          status: 'success',
+          contactId: contact.id
+        };
+      } else if (!hasAccess) {
+        suggestions = '✨ Upgrade to Premium to get AI-powered suggestions!';
       } else {
-        suggestions = 'Upgrade to premium to get advanced AI suggestions!';
+        suggestions = await this.getLLMSuggestions(contact);
       }
 
       // Update contact and log success
