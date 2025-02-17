@@ -260,7 +260,7 @@ export const QuickInteraction = ({
                     {(isPremium || isOnTrial) ? (
                       <div className="mb-4 p-4 bg-primary-50 rounded-lg">
                         <p className="text-sm text-gray-600">
-                          Add details about this interaction to help our AI provide you with personalised suggestions.
+                          Add details about this interaction that can help maintain the relationship.
                         </p>
                       </div>
                     ) : (
