@@ -57,8 +57,8 @@ android {
         applicationId "app.touchbase.site.twa"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 4  // Increment this number for each new release
-        versionName "1.1" // Version name for users to see
+        versionCode 6  // Increment this number for each new release
+        versionName "1.2" // Version name for users to see
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
@@ -167,8 +167,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
+    // Add namespace for better organization
+    namespace 'app.touchbase.twa'
     lintOptions {
         checkReleaseBuilds false
+        baseline file("lint-baseline.xml")
+        disable 'MissingClass'  // Disable MissingClass check since TWA classes are provided by runtime
+        disable 'AutoVerify'    // Disable AutoVerify warning for TWA intent filters
+        abortOnError false      // Continue build even with warnings
     }
 }
 

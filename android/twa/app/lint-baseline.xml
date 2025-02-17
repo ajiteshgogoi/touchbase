@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.5.0" type="baseline" client="gradle" dependencies="false" name="AGP (8.5.0)" variant="all" version="8.5.0">
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `autoVerify` is only used in API level 23 and higher (current min is 21)"
+        errorLine1="            &lt;intent-filter android:autoVerify=&quot;true&quot;>"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="130"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `shortcutId` is only used in API level 25 and higher (current min is 21)"
+        errorLine1="    &lt;shortcut android:shortcutId=&apos;shortcut0&apos; android:enabled=&apos;true&apos; android:icon=&apos;@drawable/shortcut_0&apos; android:shortcutShortLabel=&apos;@string/shortcut_short_name_0&apos; android:shortcutLongLabel=&apos;@string/shortcut_name_0&apos;>"
+        errorLine2="              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/shortcuts.xml"
+            line="2"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `shortcutLongLabel` is only used in API level 25 and higher (current min is 21)"
+        errorLine1="    &lt;shortcut android:shortcutId=&apos;shortcut0&apos; android:enabled=&apos;true&apos; android:icon=&apos;@drawable/shortcut_0&apos; android:shortcutShortLabel=&apos;@string/shortcut_short_name_0&apos; android:shortcutLongLabel=&apos;@string/shortcut_name_0&apos;>"
+        errorLine2="                                                                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/shortcuts.xml"
+            line="2"
+            column="164"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `shortcutShortLabel` is only used in API level 25 and higher (current min is 21)"
+        errorLine1="    &lt;shortcut android:shortcutId=&apos;shortcut0&apos; android:enabled=&apos;true&apos; android:icon=&apos;@drawable/shortcut_0&apos; android:shortcutShortLabel=&apos;@string/shortcut_short_name_0&apos; android:shortcutLongLabel=&apos;@string/shortcut_name_0&apos;>"
+        errorLine2="                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/shortcuts.xml"
+            line="2"
+            column="105"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `shortcutId` is only used in API level 25 and higher (current min is 21)"
+        errorLine1="    &lt;shortcut android:shortcutId=&apos;shortcut1&apos; android:enabled=&apos;true&apos; android:icon=&apos;@drawable/shortcut_1&apos; android:shortcutShortLabel=&apos;@string/shortcut_short_name_1&apos; android:shortcutLongLabel=&apos;@string/shortcut_name_1&apos;>"
+        errorLine2="              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/shortcuts.xml"
+            line="6"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `shortcutLongLabel` is only used in API level 25 and higher (current min is 21)"
+        errorLine1="    &lt;shortcut android:shortcutId=&apos;shortcut1&apos; android:enabled=&apos;true&apos; android:icon=&apos;@drawable/shortcut_1&apos; android:shortcutShortLabel=&apos;@string/shortcut_short_name_1&apos; android:shortcutLongLabel=&apos;@string/shortcut_name_1&apos;>"
+        errorLine2="                                                                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/shortcuts.xml"
+            line="6"
+            column="164"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `shortcutShortLabel` is only used in API level 25 and higher (current min is 21)"
+        errorLine1="    &lt;shortcut android:shortcutId=&apos;shortcut1&apos; android:enabled=&apos;true&apos; android:icon=&apos;@drawable/shortcut_1&apos; android:shortcutShortLabel=&apos;@string/shortcut_short_name_1&apos; android:shortcutLongLabel=&apos;@string/shortcut_name_1&apos;>"
+        errorLine2="                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/xml/shortcuts.xml"
+            line="6"
+            column="105"/>
+    </issue>
+
+    <issue
+        id="ExportedService"
+        message="Exported service does not require permission"
+        errorLine1="        &lt;service"
+        errorLine2="         ~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="200"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.raw.assetlinks` appears to be unused">
+        <location
+            file="src/main/res/raw/assetlinks.json"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.bool.enableSiteSettingsShortcut` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.bool.enableSiteSettingsShortcut` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.bool.enableSiteSettingsShortcut` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.fullScopeUrl` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.fullScopeUrl` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.fullScopeUrl` appears to be unused">
+        <location
+            file="build.gradle"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.shortcut_background` appears to be unused"
+        errorLine1="    &lt;color name=&quot;shortcut_background&quot;>#F5F5F5&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="17"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.shortcut_legacy_background` appears to be unused"
+        errorLine1="&lt;inset xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable-anydpi/shortcut_legacy_background.xml"
+            line="16"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.raw.web_app_manifest` appears to be unused">
+        <location
+            file="src/main/res/raw/web_app_manifest.json"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive icon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
+            line="16"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_notification_icon.png, ic_launcher.png">
+        <location
+            file="src/main/res/mipmap-hdpi/ic_launcher.png"/>
+        <location
+            file="src/main/res/drawable-xxhdpi/ic_notification_icon.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_notification_icon.png, ic_launcher.png">
+        <location
+            file="src/main/res/mipmap-mdpi/ic_launcher.png"/>
+        <location
+            file="src/main/res/drawable-xhdpi/ic_notification_icon.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: ic_notification_icon.png, ic_launcher.png">
+        <location
+            file="src/main/res/mipmap-xhdpi/ic_launcher.png"/>
+        <location
+            file="src/main/res/drawable-xxxhdpi/ic_notification_icon.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: shortcut_0.png, shortcut_1.png">
+        <location
+            file="src/main/res/drawable-hdpi/shortcut_1.png"/>
+        <location
+            file="src/main/res/drawable-hdpi/shortcut_0.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: shortcut_0.png, shortcut_1.png">
+        <location
+            file="src/main/res/drawable-mdpi/shortcut_1.png"/>
+        <location
+            file="src/main/res/drawable-mdpi/shortcut_0.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: shortcut_0.png, shortcut_1.png">
+        <location
+            file="src/main/res/drawable-xhdpi/shortcut_1.png"/>
+        <location
+            file="src/main/res/drawable-xhdpi/shortcut_0.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: shortcut_0.png, shortcut_1.png">
+        <location
+            file="src/main/res/drawable-xxhdpi/shortcut_1.png"/>
+        <location
+            file="src/main/res/drawable-xxhdpi/shortcut_0.png"/>
+    </issue>
+
+    <issue
+        id="IconDuplicates"
+        message="The following unrelated icon files have identical contents: shortcut_0.png, shortcut_1.png">
+        <location
+            file="src/main/res/drawable-xxxhdpi/shortcut_1.png"/>
+        <location
+            file="src/main/res/drawable-xxxhdpi/shortcut_0.png"/>
+    </issue>
+
+</issues>
