@@ -110,7 +110,7 @@ export const Help = () => {
                   <li>Get AI-powered insights about your interactions with each contact</li>
                 </ol>
                 <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-                  <strong>Pro Tip:</strong> Analytics are generated weekly and saved for you to revisit anytime. The insights help you understand your relationship patterns and make meaningful improvements.
+                  <strong>Pro Tip:</strong> Analytics are generated on demand and saved for you to revisit anytime. The insights help you understand your relationship patterns and make meaningful improvements.
                 </p>
               </div>
             </div>
