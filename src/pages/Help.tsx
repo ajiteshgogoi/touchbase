@@ -206,7 +206,7 @@ export const Help = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-600 space-y-2">
+        <div className="text-center text-sm text-gray-600 space-y-2 pt-2">
           <div>
             View our{' '}
             <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>

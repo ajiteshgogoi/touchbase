@@ -272,8 +272,9 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
         </div>
       </div>
 
-      {/* Subscription Plans */}
-      <div className="bg-white rounded-xl shadow-soft p-8">
+      <div className="space-y-6">
+        {/* Subscription Plans */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
           Subscription Plan
         </h2>
@@ -414,8 +415,8 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
         </div>
       </div>
 
-      {/* Notification Settings */}
-      <div className="bg-white rounded-xl shadow-soft p-8">
+        {/* Notification Settings */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
           Notification Preferences
         </h2>
@@ -475,8 +476,8 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
         </div>
       </div>
 
-      {/* AI Features */}
-      <div className="bg-white rounded-xl shadow-soft p-8">
+        {/* AI Features */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">
             AI Features
@@ -517,8 +518,8 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
         </div>
       </div>
 
-      {/* Feedback Section */}
-      <div className="bg-white rounded-xl shadow-soft p-8">
+        {/* Feedback Section */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
           Help Us Improve
         </h2>
@@ -536,13 +537,13 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
         </div>
       </div>
 
-      <FeedbackModal
-        isOpen={isFeedbackModalOpen}
-        onClose={() => setIsFeedbackModalOpen(false)}
-      />
+       <FeedbackModal
+         isOpen={isFeedbackModalOpen}
+         onClose={() => setIsFeedbackModalOpen(false)}
+       />
 
-      {/* Account Deletion */}
-      <div className="bg-white rounded-xl shadow-soft p-8">
+        {/* Account Deletion */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">
           Delete Account
         </h2>
@@ -571,16 +572,17 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center text-sm text-gray-600 space-y-2">
-        <div>
-          View our{' '}
-          <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>
-          {' '}and{' '}
-          <a href="/privacy" className="text-primary-500 hover:text-primary-600">Privacy Policy</a>
-        </div>
-      </div>
-    </div>
+       {/* Footer */}
+       <div className="text-center text-sm text-gray-600 space-y-2 pt-2">
+         <div>
+           View our{' '}
+           <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>
+           {' '}and{' '}
+           <a href="/privacy" className="text-primary-500 hover:text-primary-600">Privacy Policy</a>
+         </div>
+       </div>
+     </div>
+   </div>
   );
 };
 
