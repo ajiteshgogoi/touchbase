@@ -483,10 +483,10 @@ export const Settings = () => {
           <div className="flex items-center justify-between">
             <div>
               <label className="text-gray-900 font-medium">
-                AI Suggestions
+                Advanced AI Suggestions
               </label>
               <p className="text-sm text-gray-600 mt-1">
-                Get AI-powered suggestions for maintaining relationships
+                Get AI-powered suggestions for future interactions
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
