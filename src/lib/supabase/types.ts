@@ -44,6 +44,7 @@ export interface UserPreferences {
   notification_enabled: boolean;
   theme: 'light' | 'dark' | 'system';
   timezone: string;
+  ai_suggestions_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

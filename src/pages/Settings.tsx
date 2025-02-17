@@ -18,6 +18,7 @@ interface NotificationSettings {
   notification_enabled: boolean;
   theme: 'light' | 'dark' | 'system';
   timezone: string;
+  ai_suggestions_enabled: boolean;
 }
 
 type UserPreferencesUpsert = Database['public']['Tables']['user_preferences']['Insert'];
@@ -50,7 +51,8 @@ export const Settings = () => {
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
     theme: 'light',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ai_suggestions_enabled: true
   });
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -77,7 +79,8 @@ export const Settings = () => {
             user_id: user.id,
             notification_enabled: false,
             theme: 'light',
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            ai_suggestions_enabled: true
           };
 
           const { data: newPrefs, error: insertError } = await supabase
@@ -103,7 +106,8 @@ export const Settings = () => {
       setNotificationSettings({
         notification_enabled: preferences.notification_enabled,
         theme: preferences.theme,
-        timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+        timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ai_suggestions_enabled: preferences.ai_suggestions_enabled
       });
     }
   }, [preferences]);
@@ -180,7 +184,8 @@ export const Settings = () => {
           user_id: user.id,
           notification_enabled: newSettings.notification_enabled,
           theme: newSettings.theme,
-          timezone: newSettings.timezone
+          timezone: newSettings.timezone,
+          ai_suggestions_enabled: newSettings.ai_suggestions_enabled
         }, {
           onConflict: 'id'
         });
@@ -202,7 +207,8 @@ export const Settings = () => {
         setNotificationSettings({
           notification_enabled: preferences.notification_enabled,
           theme: preferences.theme,
-          timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+          timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+          ai_suggestions_enabled: preferences.ai_suggestions_enabled
         });
       }
     }
@@ -464,6 +470,36 @@ export const Settings = () => {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Features */}
+      <div className="bg-white rounded-xl shadow-soft p-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          AI Features
+        </h2>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-gray-900 font-medium">
+                AI Suggestions
+              </label>
+              <p className="text-sm text-gray-600 mt-1">
+                Get AI-powered suggestions for maintaining relationships
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={notificationSettings.ai_suggestions_enabled}
+                onChange={(e) => handleNotificationChange({
+                  ai_suggestions_enabled: e.target.checked
+                })}
+              />
+              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+            </label>
           </div>
         </div>
       </div>

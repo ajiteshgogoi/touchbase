@@ -227,19 +227,31 @@ export class BatchProcessor {
         };
       }
 
-      // Check subscription status
-      const { data: subscription, error: subError } = await this.supabase
-        .from('subscriptions')
-        .select('plan_id, valid_until, trial_end_date')
-        .eq('user_id', contact.user_id)
-        .single();
+      // Check subscription and AI preferences
+      const [subscriptionResult, preferencesResult] = await Promise.all([
+        this.supabase
+          .from('subscriptions')
+          .select('plan_id, valid_until, trial_end_date')
+          .eq('user_id', contact.user_id)
+          .single(),
+        this.supabase
+          .from('user_preferences')
+          .select('ai_suggestions_enabled')
+          .eq('user_id', contact.user_id)
+          .single()
+      ]);
 
-      if (subError) throw subError;
+      if (subscriptionResult.error) throw subscriptionResult.error;
+      if (preferencesResult.error) throw preferencesResult.error;
 
       const now = new Date();
+      const subscription = subscriptionResult.data;
+      const preferences = preferencesResult.data;
+
       const isEligible =
-        (subscription?.plan_id === 'premium' && subscription.valid_until && new Date(subscription.valid_until) > now) ||
-        (subscription?.trial_end_date && new Date(subscription.trial_end_date) > now);
+        ((subscription?.plan_id === 'premium' && subscription.valid_until && new Date(subscription.valid_until) > now) ||
+        (subscription?.trial_end_date && new Date(subscription.trial_end_date) > now)) &&
+        preferences.ai_suggestions_enabled;
 
       // Process with LLM if premium or on trial
       let suggestions;

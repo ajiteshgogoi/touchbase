@@ -64,6 +64,7 @@ create table public.user_preferences (
     notification_enabled boolean default true,
     theme text check (theme in ('light', 'dark', 'system')) default 'system',
     timezone text default 'UTC',
+    ai_suggestions_enabled boolean default true,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
