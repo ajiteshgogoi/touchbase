@@ -64,8 +64,8 @@ const ConversationPrompts: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent flex items-center justify-center py-3 leading-tight relative">
-            <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mr-2 text-primary-500 relative top-0.5" />
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent flex flex-col sm:flex-row items-center justify-center py-3 leading-tight relative">
+            <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" />
             Conversation Prompts
           </h1>
           <p className="text-gray-600">
@@ -78,14 +78,14 @@ const ConversationPrompts: React.FC = () => {
             <div className="relative z-10 w-full h-full flex items-center justify-center">
               {loading && !questionReceived ? (
                 <div className="flex items-center justify-center">
-                  <p className="text-sky-600 text-center animate-pulse text-lg">
+                  <p className="text-sky-600 text-center animate-pulse text-base sm:text-lg">
                     Generating question...
                   </p>
                 </div>
               ) : error ? (
-                <p className="text-red-500 text-lg">{error}</p>
+                <p className="text-red-500 text-base sm:text-lg">{error}</p>
               ) : (
-                <p className={`text-lg font-medium text-primary-700 text-center transition-opacity duration-200 leading-relaxed ${
+                <p className={`text-base sm:text-lg font-medium text-primary-700 text-center transition-opacity duration-200 leading-relaxed ${
                   isAnimating ? 'opacity-0' : 'opacity-100'
                 }`}>
                   {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
