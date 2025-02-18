@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { ChatBubbleOvalLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../stores/useStore';
 import { ConversationPromptGenerator } from '../services/conversation-prompt-generator';
-import LoadingSpinner from '../components/shared/LoadingSpinner';
-
 const ConversationPrompts: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [question, setQuestion] = useState<string | null>(null);
@@ -77,11 +75,10 @@ const ConversationPrompts: React.FC = () => {
 
         <div className="w-full">
           <div className="bg-white rounded-xl shadow-soft p-8 w-full min-h-[200px] flex items-center justify-center">
-            <div className="relative z-10 h-full w-full overflow-y-auto flex items-center justify-center">
+            <div className="relative z-10 w-full h-full flex items-center justify-center">
               {loading && !questionReceived ? (
-                <div className="flex flex-col items-center space-y-2">
-                  <LoadingSpinner />
-                  <p className="text-sky-600">
+                <div className="flex items-center justify-center">
+                  <p className="text-sky-600 text-center animate-pulse">
                     Generating question...
                   </p>
                 </div>
@@ -98,7 +95,7 @@ const ConversationPrompts: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="w-full text-center text-sm text-gray-600">
           <p>
             <span className="underline">Note:</span> You're limited to 5 question generations every 10 minutes.
           </p>
