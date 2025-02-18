@@ -74,18 +74,18 @@ const ConversationPrompts: React.FC = () => {
         </div>
 
         <div className="w-full mb-8">
-          <div className="bg-white rounded-xl shadow-soft p-8 w-full min-h-[200px] flex items-center justify-center">
+          <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-xl border border-primary-100/50 p-8 w-full min-h-[200px] flex items-center justify-center hover:shadow-2xl transition-shadow duration-200">
             <div className="relative z-10 w-full h-full flex items-center justify-center">
               {loading && !questionReceived ? (
                 <div className="flex items-center justify-center">
-                  <p className="text-sky-600 text-center animate-pulse">
+                  <p className="text-sky-600 text-center animate-pulse text-lg">
                     Generating question...
                   </p>
                 </div>
               ) : error ? (
-                <p className="text-red-500">{error}</p>
+                <p className="text-red-500 text-lg">{error}</p>
               ) : (
-                <p className={`text-lg font-medium text-primary-700 text-center transition-opacity duration-200 ${
+                <p className={`text-lg font-medium text-primary-700 text-center transition-opacity duration-200 leading-relaxed ${
                   isAnimating ? 'opacity-0' : 'opacity-100'
                 }`}>
                   {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
@@ -112,22 +112,39 @@ const ConversationPrompts: React.FC = () => {
         </div>
 
         <div className="w-full border-t border-gray-200 mt-12">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 mt-8">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent mb-6 mt-8">
             How to Use
           </h2>
           <div className="prose max-w-none">
-            <p>
+            <p className="text-gray-600 mb-4">
               These conversation prompts are designed to spark meaningful discussions and help you:
             </p>
-            <ul className="list-disc pl-5">
-              <li>Deepen your relationships with friends and family</li>
-              <li>Learn new things about the people in your life</li>
-              <li>Have more engaging and memorable conversations</li>
-              <li>Share stories and experiences that matter</li>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-start text-gray-700">
+                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                <span>Deepen your relationships with friends and family</span>
+              </li>
+              <li className="flex items-start text-gray-700">
+                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                <span>Learn new things about the people in your life</span>
+              </li>
+              <li className="flex items-start text-gray-700">
+                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                <span>Have more engaging and memorable conversations</span>
+              </li>
+              <li className="flex items-start text-gray-700">
+                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                <span>Share stories and experiences that matter</span>
+              </li>
             </ul>
-            <p>
-              Click the 'Generate a Question' button to get a thoughtful conversation starter. Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
-            </p>
+            <div className="space-y-3 text-gray-600">
+              <p>
+                Click the <span className="text-primary-600">Generate a Question</span> button to get a thoughtful conversation starter.
+              </p>
+              <p>
+                Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
+              </p>
+            </div>
           </div>
         </div>
       </div>
