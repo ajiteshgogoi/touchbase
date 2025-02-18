@@ -171,17 +171,27 @@ export class ConversationPromptGenerator {
 
     if (logsError) throw logsError;
 
-    if ((promptLogs?.length || 0) >= 5) {
-      // Find the earliest prompt log within the last 5 prompts
-      const earliestLog = promptLogs[4];
-      if (!earliestLog || !earliestLog.created_at) {
-        throw new Error("Could not retrieve prompt creation time.");
-      }
-      const rateLimitEndTime = new Date(earliestLog.created_at).getTime() + 10 * 60 * 1000;
-      const timeLeft = Math.ceil((rateLimitEndTime - now.getTime()) / 60000);
-      const positiveTimeLeft = Math.max(0, timeLeft);
-      throw new Error(`Rate limit exceeded. Please try again in ${positiveTimeLeft} minutes.`);
-    }
+if ((promptLogs?.length || 0) >= 5) {
+  // Find the most recent prompt log
+  const mostRecentLog = promptLogs[0];
+  if (!mostRecentLog || !mostRecentLog.created_at) {
+    throw new Error("Could not retrieve prompt creation time.");
+  }
+  
+  // Check if the 5th most recent prompt was within the last 10 minutes
+  const fifthRecentLog = promptLogs[4];
+  if (!fifthRecentLog || !fifthRecentLog.created_at) {
+    throw new Error("Could not retrieve prompt creation time.");
+  }
+  
+  const fifthRecentTime = new Date(fifthRecentLog.created_at).getTime();
+  const timeSinceFifth = now.getTime() - fifthRecentTime;
+  
+  if (timeSinceFifth < 10 * 60 * 1000) {
+    const timeLeft = Math.ceil((10 * 60 * 1000 - timeSinceFifth) / 60000);
+    throw new Error(`Rate limit exceeded. Please try again in ${timeLeft} minutes.`);
+  }
+}
 
     // Select random elements
     const selectedTheme = this.getRandomElement(themes);
