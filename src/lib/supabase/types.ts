@@ -126,6 +126,11 @@ export interface Database {
         Insert: Omit<ContentReport, 'id' | 'created_at'>;
         Update: Partial<Omit<ContentReport, 'id' | 'created_at'>>;
       };
+      prompt_generation_logs: {
+        Row: PromptGenerationLog;
+        Insert: Omit<PromptGenerationLog, 'id' | 'created_at'>;
+        Update: Partial<Omit<PromptGenerationLog, 'id' | 'created_at'>>;
+      };
     };
   };
 }
