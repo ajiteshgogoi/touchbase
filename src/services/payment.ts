@@ -53,6 +53,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Push notifications',
       'Daily reminder system',
       '1-tap interaction logging',
+      'Conversation prompt generator',
       'Intelligent rescheduling for missed interactions',
       'Contact interaction history',      
       'Advanced AI suggestions',
