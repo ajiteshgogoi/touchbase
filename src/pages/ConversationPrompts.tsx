@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { ChatBubbleOvalLeftEllipsisIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleOvalLeftEllipsisIcon, FlagIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../stores/useStore';
 import { ConversationPromptGenerator } from '../services/conversation-prompt-generator';
+import { contentReportsService } from '../services/content-reports';
+
 const ConversationPrompts: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [question, setQuestion] = useState<string | null>(null);
@@ -10,6 +12,16 @@ const ConversationPrompts: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [questionReceived, setQuestionReceived] = useState(false);
   const { user } = useStore();
+
+  const handleReportContent = async (question: string) => {
+    if (confirm('Report this AI generated question as inappropriate?')) {
+      try {
+        await contentReportsService.reportContent('conversation-prompt', question);
+      } catch (error) {
+        console.error('Error reporting content:', error);
+      }
+    }
+  };
 
   const generateQuestion = async () => {
     if (!user) {
@@ -75,27 +87,38 @@ const ConversationPrompts: React.FC = () => {
 
         <div className="w-full mb-8">
           <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-soft border border-primary-100/50 p-6 w-full min-h-[200px] flex items-center justify-center hover:shadow-2xl transition-shadow duration-200">
-            <div className="relative z-10 w-full flex items-center justify-center px-4">
-              {loading && !questionReceived ? (
-                <div className="flex items-center justify-center max-w-xl mx-auto">
-                  <p className="text-sky-600 text-center animate-pulse text-base sm:text-lg">
-                    Generating question...
-                  </p>
-                </div>
-              ) : error ? (
-                <div className="max-w-xl mx-auto w-full text-center">
-                  <p className="text-red-500 text-base sm:text-lg text-center">{error}</p>
-                </div>
-              ) : (
-                <div className="max-w-xl mx-auto w-full">
-                  <p className={`text-base sm:text-lg font-medium text-primary-700 text-center transition-opacity duration-200 leading-relaxed ${
-                    isAnimating ? 'opacity-0' : 'opacity-100'
-                  }`}>
-                    {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
-                  </p>
-                </div>
-              )}
+          <div className="relative">
+            <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-soft border border-primary-100/50 p-6 w-full min-h-[200px] flex items-center justify-center hover:shadow-2xl transition-shadow duration-200">
+              <div className="relative z-10 w-full flex items-center justify-center px-4">
+                {loading && !questionReceived ? (
+                  <div className="flex items-center justify-center max-w-xl mx-auto">
+                    <p className="text-sky-600 text-center animate-pulse text-base sm:text-lg">
+                      Generating question...
+                    </p>
+                  </div>
+                ) : error ? (
+                  <div className="max-w-xl mx-auto w-full text-center">
+                    <p className="text-red-500 text-base sm:text-lg text-center">{error}</p>
+                  </div>
+                ) : (
+                  <div className="max-w-xl mx-auto w-full">
+                    <p className={`text-base sm:text-lg font-medium text-primary-700 text-center transition-opacity duration-200 leading-relaxed ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+                      {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
+            {!isFirstQuestion && question && (
+              <button
+                onClick={() => handleReportContent(question)}
+                className="absolute top-2 right-2 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                title="Report inappropriate question"
+              >
+                <FlagIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
           </div>
         </div>
 
