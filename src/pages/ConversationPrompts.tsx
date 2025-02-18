@@ -73,7 +73,7 @@ const ConversationPrompts: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex flex-col items-center w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent flex flex-col sm:flex-row items-center justify-center py-3 leading-tight relative">
@@ -86,7 +86,6 @@ const ConversationPrompts: React.FC = () => {
         </div>
 
         <div className="w-full mb-8">
-          <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-soft border border-primary-100/50 p-6 w-full min-h-[200px] flex items-center justify-center hover:shadow-2xl transition-shadow duration-200">
           <div className="relative">
             <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-soft border border-primary-100/50 p-6 w-full min-h-[200px] flex items-center justify-center hover:shadow-2xl transition-shadow duration-200">
               <div className="relative z-10 w-full flex items-center justify-center px-4">
@@ -118,7 +117,6 @@ const ConversationPrompts: React.FC = () => {
                 <FlagIcon className="h-4 w-4" />
               </button>
             )}
-          </div>
           </div>
         </div>
 
