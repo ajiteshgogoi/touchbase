@@ -149,11 +149,11 @@ export class ConversationPromptGenerator {
 
   private getRandomElement<T>(arr: NonNullable<T[]>): NonNullable<T> {
     if (!Array.isArray(arr) || arr.length === 0) {
-      throw new Error('Cannot get random element from empty or invalid array');
+      throw new Error('Unable to generate question. Please try again.');
     }
     const element = arr[Math.floor(Math.random() * arr.length)];
     if (element === undefined || element === null) {
-      throw new Error('Selected element is undefined or null');
+      throw new Error('Unable to generate question. Please try again.');
     }
     return element;
   }
@@ -175,13 +175,13 @@ if ((promptLogs?.length || 0) >= 5) {
   // Find the most recent prompt log
   const mostRecentLog = promptLogs[0];
   if (!mostRecentLog || !mostRecentLog.created_at) {
-    throw new Error("Could not retrieve prompt creation time.");
+    throw new Error("Something went wrong. Please try again.");
   }
   
   // Check if the 5th most recent prompt was within the last 10 minutes
   const fifthRecentLog = promptLogs[4];
   if (!fifthRecentLog || !fifthRecentLog.created_at) {
-    throw new Error("Could not retrieve prompt creation time.");
+    throw new Error("Something went wrong. Please try again.");
   }
   
   const fifthRecentTime = new Date(fifthRecentLog.created_at).getTime();
@@ -263,11 +263,11 @@ Example of a good question:
               },
             }
           ),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('API request timed out')), 6000))
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Taking too long to generate a question. Please try again.')), 6000))
         ]);
 
         if (!response.data?.choices?.[0]?.message?.content) {
-          throw new Error('Invalid response from AI service');
+          throw new Error('Unable to generate question right now. Please try again in a moment.');
         }
 
         // Get the generated question
@@ -335,7 +335,7 @@ Example of a good question:
     }
 
     if (!question || !validQuestionFound) {
-      throw lastError || new Error('Failed to generate valid question');
+      throw lastError || new Error('Unable to generate a question. Please try again in a moment.');
     }
 
     // Log the generation
@@ -350,7 +350,7 @@ Example of a good question:
         emotional_modifier: emotionalModifier
       });
 
-    if (logError) throw logError;
+    if (logError) throw new Error('Something went wrong saving your question. Please try again.');
 
     return {
       question,
