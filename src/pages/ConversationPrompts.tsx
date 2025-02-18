@@ -62,8 +62,8 @@ const ConversationPrompts: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col items-center space-y-6 w-full max-w-2xl mx-auto">
-        <div className="text-center">
+      <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
+        <div className="text-center mb-8">
           <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent flex items-center justify-center py-3 leading-tight relative">
             <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mr-2 text-primary-500 relative top-0.5" />
             Conversation Prompts
@@ -73,7 +73,7 @@ const ConversationPrompts: React.FC = () => {
           </p>
         </div>
 
-        <div className="w-full">
+        <div className="w-full mb-8">
           <div className="bg-white rounded-xl shadow-soft p-8 w-full min-h-[200px] flex items-center justify-center">
             <div className="relative z-10 w-full h-full flex items-center justify-center">
               {loading && !questionReceived ? (
@@ -95,13 +95,13 @@ const ConversationPrompts: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full text-center text-sm text-gray-600">
+        <div className="w-full text-center text-sm text-gray-600 mb-8">
           <p>
             <span className="underline">Note:</span> You're limited to 5 question generations every 10 minutes.
           </p>
         </div>
 
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center">
           <button
             onClick={generateQuestion}
             className="w-full flex items-center justify-center px-8 py-4 rounded-lg text-base font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -111,8 +111,8 @@ const ConversationPrompts: React.FC = () => {
           </button>
         </div>
 
-        <div className="w-full border-t border-gray-200 mt-12 pt-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+        <div className="w-full border-t border-gray-200 mt-12">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4 mt-8">
             How to Use
           </h2>
           <div className="prose max-w-none">
