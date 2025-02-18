@@ -87,7 +87,7 @@ const ConversationPrompts: React.FC = () => {
 
         <div className="w-full mb-8">
           <div className="relative">
-            <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-soft border border-primary-100/50 p-6 w-full min-h-[200px] flex items-center justify-center hover:shadow-2xl transition-shadow duration-200">
+            <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-soft border border-primary-100/50 p-6 w-full min-h-[200px] flex items-center justify-center transition-shadow duration-200">
               <div className="relative z-10 w-full flex items-center justify-center px-4">
                 {loading && !questionReceived ? (
                   <div className="flex items-center justify-center max-w-xl mx-auto">
