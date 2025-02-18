@@ -22,6 +22,7 @@ Disallow: /contacts
 Disallow: /reminders
 Disallow: /help
 Disallow: /auth/
+Disallow: /conversationprompts
 Disallow: /*.json$
 
 # Crawl delay to prevent overwhelming the server
