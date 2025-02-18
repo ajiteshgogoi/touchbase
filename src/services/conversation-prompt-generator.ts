@@ -161,18 +161,26 @@ export class ConversationPromptGenerator {
   async generatePrompt(userId: string): Promise<GeneratedPrompt> {
     // Check rate limit first
     const now = new Date();
-    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
 
     const { data: promptLogs, error: logsError } = await this.supabase
       .from('prompt_generation_logs')
       .select('created_at')
       .eq('user_id', userId)
-      .gte('created_at', tenMinutesAgo.toISOString());
+      .order('created_at', { ascending: false })
+      .limit(5);
 
     if (logsError) throw logsError;
 
     if ((promptLogs?.length || 0) >= 5) {
-      throw new Error('Rate limit exceeded. Please try again in a few minutes.');
+      // Find the earliest prompt log within the last 5 prompts
+      const earliestLog = promptLogs[4];
+      if (!earliestLog || !earliestLog.created_at) {
+        throw new Error("Could not retrieve prompt creation time.");
+      }
+      const rateLimitEndTime = new Date(earliestLog.created_at).getTime() + 10 * 60 * 1000;
+      const timeLeft = Math.ceil((rateLimitEndTime - now.getTime()) / 60000);
+      const positiveTimeLeft = Math.max(0, timeLeft);
+      throw new Error(`Rate limit exceeded. Please try again in ${positiveTimeLeft} minutes.`);
     }
 
     // Select random elements
