@@ -189,7 +189,7 @@ if ((promptLogs?.length || 0) >= 5) {
   
   if (timeSinceFifth < 10 * 60 * 1000) {
     const timeLeft = Math.ceil((10 * 60 * 1000 - timeSinceFifth) / 60000);
-    throw new Error(`Rate limit exceeded. Please try again in ${timeLeft} minutes.`);
+    throw new Error(`Generation limit exceeded. Please try again in ${timeLeft} minutes.`);
   }
 }
 
