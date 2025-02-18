@@ -77,6 +77,17 @@ export interface ContentReport {
   created_at: string;
 }
 
+export interface PromptGenerationLog {
+  id: string;
+  user_id: string;
+  prompt_text: string;
+  theme: string;
+  subtheme: string;
+  perspective: string;
+  emotional_modifier: string;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
