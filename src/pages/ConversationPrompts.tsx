@@ -76,8 +76,8 @@ const ConversationPrompts: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex flex-col items-center w-full">
         <div className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent flex flex-col sm:flex-row items-center justify-center py-3 leading-tight relative">
-            <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" />
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+            <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
             Conversation Prompts
           </h1>
           <p className="text-gray-600">
