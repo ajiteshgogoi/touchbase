@@ -145,7 +145,7 @@ create table public.content_reports (
     user_id uuid references auth.users not null,
     contact_id uuid references public.contacts on delete cascade,
     content text not null,
-    content_type text check (content_type in ('contact', 'conversation-prompt')) not null default 'contact',
+    content_type text check (content_type in ('suggestion', 'conversation-prompt')) not null default 'suggestion',
     created_at timestamp with time zone default now()
 );
 
