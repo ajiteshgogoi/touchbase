@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChatBubbleOvalLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../stores/useStore';
 import { ConversationPromptGenerator } from '../services/conversation-prompt-generator';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
@@ -65,8 +66,9 @@ const ConversationPrompts: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col items-center space-y-6 w-full max-w-2xl mx-auto">
         <div className="text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-            💭 Conversation Prompts
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent flex items-center justify-center py-3 leading-tight relative">
+            <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mr-2 text-primary-500 relative top-0.5" />
+            Conversation Prompts
           </h1>
           <p className="text-gray-600">
             Meaningful prompts for heartfelt conversations.

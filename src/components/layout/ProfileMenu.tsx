@@ -108,7 +108,7 @@ export const ProfileMenu = () => {
                   to="/conversation-prompts"
                   className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
                 >
-                  <ChatBubbleOvalLeftEllipsisIcon className="h-5 w-5 mr-2" />
+                  <ChatBubbleOvalLeftEllipsisIcon className="h-5 w-5 mr-2 text-primary-500" />
                   Conversation Prompts
                 </Link>
               )}
