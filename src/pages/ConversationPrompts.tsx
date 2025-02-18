@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatBubbleOvalLeftEllipsisIcon, FlagIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
@@ -14,6 +14,11 @@ const ConversationPrompts: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [questionReceived, setQuestionReceived] = useState(false);
   const { user } = useStore();
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleReportContent = async (question: string) => {
     if (confirm('Report this AI generated question as inappropriate?')) {
