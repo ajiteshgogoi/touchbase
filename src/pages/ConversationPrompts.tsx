@@ -16,7 +16,9 @@ const ConversationPrompts: React.FC = () => {
   const handleReportContent = async (question: string) => {
     if (confirm('Report this AI generated question as inappropriate?')) {
       try {
-        await contentReportsService.reportContent('conversation-prompt', question);
+        await contentReportsService.reportContent(question, {
+          contentType: 'conversation-prompt'
+        });
       } catch (error) {
         console.error('Error reporting content:', error);
       }
