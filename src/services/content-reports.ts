@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase/client';
 export const contentReportsService = {
   async reportContent(
     content: string,
-    options: { contactId?: string; contentType: 'contact' | 'conversation-prompt' }
+    options: { contactId?: string; contentType: 'suggestion' | 'conversation-prompt' }
   ) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('You must be logged in to report content');

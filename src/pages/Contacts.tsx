@@ -71,7 +71,7 @@ export const Contacts = () => {
       try {
         await contentReportsService.reportContent(content, {
           contactId,
-          contentType: 'contact'
+          contentType: 'suggestion'
         });
       } catch (error) {
         console.error('Error reporting content:', error);
