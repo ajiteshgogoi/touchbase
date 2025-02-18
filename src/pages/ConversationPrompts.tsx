@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { ChatBubbleOvalLeftEllipsisIcon, FlagIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleOvalLeftEllipsisIcon, FlagIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
 import { ConversationPromptGenerator } from '../services/conversation-prompt-generator';
 import { contentReportsService } from '../services/content-reports';
 
 const ConversationPrompts: React.FC = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [question, setQuestion] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,14 +79,22 @@ const ConversationPrompts: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex flex-col items-center w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
-            <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
-            Conversation Prompts
-          </h1>
-          <p className="text-gray-600">
-            Meaningful prompts for heartfelt conversations.
-          </p>
+        <div className="flex items-center justify-center w-full mb-8 relative">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 -m-2 text-gray-400 hover:text-gray-500 absolute left-0"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+              <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
+              Conversation Prompts
+            </h1>
+            <p className="text-gray-600">
+              Meaningful prompts for heartfelt conversations.
+            </p>
+          </div>
         </div>
 
         <div className="w-full mb-8">
