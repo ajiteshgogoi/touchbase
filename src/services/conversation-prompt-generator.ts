@@ -169,7 +169,7 @@ export class ConversationPromptGenerator {
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (logsError) throw logsError;
+    if (logsError) throw new Error('Unable to check generation limits. Please try again.');
 
 if ((promptLogs?.length || 0) >= 5) {
   // Find the most recent prompt log
