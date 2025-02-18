@@ -150,7 +150,10 @@ const RecentContacts = () => {
   const handleReportContent = async (contactId: string, content: string) => {
     if (confirm('Report this AI suggestion as inappropriate?')) {
       try {
-        await contentReportsService.reportContent(contactId, content);
+        await contentReportsService.reportContent(content, {
+          contactId,
+          contentType: 'contact'
+        });
       } catch (error) {
         console.error('Error reporting content:', error);
       }
