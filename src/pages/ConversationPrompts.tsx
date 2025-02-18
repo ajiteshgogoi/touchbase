@@ -122,7 +122,7 @@ const ConversationPrompts: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full text-center text-sm text-gray-600 mb-8">
+        <div className="w-full text-center text-xs text-gray-500 mb-8">
           <p>
             <span className="underline">Note:</span> You're limited to 5 question generations every 10 minutes.
           </p>
@@ -139,7 +139,7 @@ const ConversationPrompts: React.FC = () => {
         </div>
 
         <div className="w-full border-t border-gray-200 mt-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent mb-6 mt-6">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent mb-6 mt-6">
             How to Use
           </h2>
           <div className="prose max-w-none">
