@@ -93,13 +93,13 @@ const ConversationPrompts: React.FC = () => {
               <div className="relative z-10 w-full sm:w-[32rem] flex items-center justify-center px-4">
                 {loading && !questionReceived ? (
                   <div className="flex items-center justify-center max-w-xl mx-auto">
-                    <p className="text-sky-600 text-center animate-pulse text-base sm:text-lg">
+                    <p className="text-sky-600 text-center animate-pulse text-sm sm:text-base">
                       Generating question...
                     </p>
                   </div>
                 ) : error ? (
                   <div className="max-w-xl mx-auto w-full text-center">
-                    <p className="text-red-500 text-base sm:text-lg text-center">{error}</p>
+                    <p className="text-red-500 text-sm sm:text-base text-center">{error}</p>
                   </div>
                 ) : (
                   <div className="max-w-xl mx-auto w-full">
