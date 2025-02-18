@@ -204,38 +204,121 @@ AVOID:
 Example of a good question:
 - What moment from your childhood taught you about trust?`;
 
-    // Generate question using OpenRouter API
-    const response = await axios.post(
-      GROQ_API_URL,
-      {
-        model: 'google/gemini-2.0-flash-001',
-        messages: [
-          {
-            role: 'system',
-            content: 'You help people have meaningful conversations by generating thoughtful, personal questions.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 100,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.groqApiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // Generate and refine question using OpenRouter API
+    const maxRetries = 1;
+    let lastError: Error | null = null;
+    let validQuestionFound = false;
+    let question = null;
 
-    if (!response.data?.choices?.[0]?.message?.content) {
-      throw new Error('Invalid response from AI service');
+    for (let attempt = 1; attempt <= maxRetries && !validQuestionFound; attempt++) {
+      try {
+        const response = await Promise.race<any>([
+          axios.post<{
+            data: {
+              choices: Array<{
+                message: {
+                  content: string
+                }
+              }>
+            }
+          }>(
+            GROQ_API_URL,
+            {
+              model: 'google/gemini-2.0-flash-001',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You help people have meaningful conversations by generating thoughtful, personal questions.',
+                },
+                {
+                  role: 'user',
+                  content: prompt,
+                },
+              ],
+              temperature: 0.7,
+              max_tokens: 100,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${this.groqApiKey}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          ),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('API request timed out')), 6000))
+        ]);
+
+        if (!response.data?.choices?.[0]?.message?.content) {
+          throw new Error('Invalid response from AI service');
+        }
+
+        // Get the generated question
+        question = response.data.choices[0].message.content.trim();
+
+        if (question) {
+          // Refinement step
+          const refinementPrompt = `Refine this question to improve its quality and to meet all criteria:
+          - Personal and conversational (like a question from a friend)
+          - Contains only the question. No interjections like 'Hey' preceding the question.
+          - Clear and easy to understand
+          - At 8th grade reading level
+          - Open-ended (cannot be answered with just 'Yes' or 'No')
+          - Correct grammar and punctuation
+          - Under ${wordLimit} words
+          - Avoids trivial, vague, overly simple, or abstract questions
+          - Encourages sharing of a story, experience, insight, or opinion
+          - Uses "you/your" instead of "I/me/my"
+          - Avoids compound questions (Asks only one question)
+          - Avoids interview-style questions
+          
+          Original question: ${question}
+          
+          Return only the refined question:`;
+
+          const refinementResponse = await axios.post(
+            GROQ_API_URL,
+            {
+              model: 'google/gemini-2.0-flash-001',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You help refine conversation questions to be more engaging and personal.',
+                },
+                {
+                  role: 'user',
+                  content: refinementPrompt,
+                },
+              ],
+              temperature: 0.7,
+              max_tokens: 100,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${this.groqApiKey}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          if (refinementResponse.data?.choices?.[0]?.message?.content) {
+            question = refinementResponse.data.choices[0].message.content.trim();
+            validQuestionFound = true;
+            break;
+          }
+        }
+      } catch (error: unknown) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`Attempt ${attempt} failed:`, lastError.message);
+
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
     }
 
-    // Get the generated question
-    const question = response.data.choices[0].message.content.trim();
+    if (!question || !validQuestionFound) {
+      throw lastError || new Error('Failed to generate valid question');
+    }
 
     // Log the generation
     const { error: logError } = await this.supabase
