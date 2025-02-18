@@ -65,30 +65,28 @@ const ConversationPrompts: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col items-center space-y-6 w-full max-w-2xl mx-auto">
         <div className="text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-sky-400 to-sky-600 bg-clip-text text-transparent pb-2">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
             💭 Conversation Prompts
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-gray-600">
             Meaningful prompts for heartfelt conversations.
           </p>
         </div>
 
         <div className="w-full">
-          <div className="relative bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full min-h-[200px] flex items-center justify-center">
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/30 dark:to-blue-900/30 blur opacity-40"></div>
-            <div className="absolute inset-[2px] rounded-lg bg-white dark:bg-gray-800"></div>
+          <div className="bg-white rounded-xl shadow-soft p-8 w-full min-h-[200px] flex items-center justify-center">
             <div className="relative z-10 -mt-2 h-full w-full overflow-y-auto flex items-center justify-center">
               {loading && !questionReceived ? (
                 <div className="flex flex-col items-center space-y-2">
                   <LoadingSpinner />
-                  <p className="text-sky-600 dark:text-sky-400">
+                  <p className="text-sky-600">
                     Generating question...
                   </p>
                 </div>
               ) : error ? (
-                <p className="text-red-500 dark:text-red-400">{error}</p>
+                <p className="text-red-500">{error}</p>
               ) : (
-                <p className={`text-xl font-medium text-gray-800 dark:text-gray-200 transition-opacity duration-200 ${
+                <p className={`text-xl font-medium text-gray-800 transition-opacity duration-200 ${
                   isAnimating ? 'opacity-0' : 'opacity-100'
                 }`}>
                   {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
@@ -104,32 +102,32 @@ const ConversationPrompts: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center mb-8">
           <button
             onClick={generateQuestion}
-            className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-8 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-300 dark:focus:ring-sky-700 text-xl hover:-translate-y-0.5 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center px-8 py-4 rounded-lg text-base font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             Generate a Question
           </button>
         </div>
 
-        <div className="w-full border-t border-gray-200 dark:border-gray-700 mt-8 pt-6">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+        <div className="w-full border-t border-gray-200 mt-12 pt-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             How to Use
           </h2>
-          <div className="prose dark:prose-invert max-w-none">
+          <div className="prose max-w-none">
             <p>
               These conversation prompts are designed to spark meaningful discussions and help you:
             </p>
-            <ul>
+            <ul className="list-disc pl-5">
               <li>Deepen your relationships with friends and family</li>
               <li>Learn new things about the people in your life</li>
               <li>Have more engaging and memorable conversations</li>
               <li>Share stories and experiences that matter</li>
             </ul>
             <p>
-              Click the "Generate a Question" button to get a thoughtful conversation starter. Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
+              Click the 'Generate a Question' button to get a thoughtful conversation starter. Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
             </p>
           </div>
         </div>
