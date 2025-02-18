@@ -77,7 +77,7 @@ const ConversationPrompts: React.FC = () => {
 
         <div className="w-full">
           <div className="bg-white rounded-xl shadow-soft p-8 w-full min-h-[200px] flex items-center justify-center">
-            <div className="relative z-10 -mt-2 h-full w-full overflow-y-auto flex items-center justify-center">
+            <div className="relative z-10 h-full w-full overflow-y-auto flex items-center justify-center">
               {loading && !questionReceived ? (
                 <div className="flex flex-col items-center space-y-2">
                   <LoadingSpinner />
@@ -88,7 +88,7 @@ const ConversationPrompts: React.FC = () => {
               ) : error ? (
                 <p className="text-red-500">{error}</p>
               ) : (
-                <p className={`text-xl font-medium text-gray-800 transition-opacity duration-200 ${
+                <p className={`text-lg font-medium text-primary-700 text-center transition-opacity duration-200 ${
                   isAnimating ? 'opacity-0' : 'opacity-100'
                 }`}>
                   {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
