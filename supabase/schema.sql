@@ -113,12 +113,31 @@ comment on column public.notification_history.error_message is 'Error message if
 comment on column public.notification_history.batch_id is 'UUID to group notifications processed in the same batch';
 comment on column public.notification_history.retry_count is 'Number of retry attempts for failed notifications';
 
+-- Add comments for prompt generation logs
+comment on table public.prompt_generation_logs is 'Logs for conversation prompt generations';
+comment on column public.prompt_generation_logs.prompt_text is 'The generated conversation prompt text';
+comment on column public.prompt_generation_logs.theme is 'The main theme used for generation';
+comment on column public.prompt_generation_logs.subtheme is 'The subtheme used for generation';
+comment on column public.prompt_generation_logs.perspective is 'The perspective used for generation';
+comment on column public.prompt_generation_logs.emotional_modifier is 'The emotional modifier used for generation';
+
 create table public.contact_analytics (
     id uuid default uuid_generate_v4() primary key,
     user_id uuid references auth.users(id) on delete cascade not null,
     data jsonb not null,
     generated_at timestamp with time zone not null,
     created_at timestamp with time zone default now() not null
+);
+
+create table public.prompt_generation_logs (
+    id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users not null,
+    prompt_text text not null,
+    theme text not null,
+    subtheme text not null,
+    perspective text not null,
+    emotional_modifier text not null,
+    created_at timestamp with time zone default now()
 );
 
 create table public.content_reports (
@@ -156,6 +175,8 @@ create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id
 create index notification_history_user_time_idx on public.notification_history(user_id, sent_at);
 create index contact_analytics_user_id_idx on public.contact_analytics(user_id);
 create index contact_analytics_generated_at_idx on public.contact_analytics(generated_at);
+create index prompt_generation_logs_user_id_idx on public.prompt_generation_logs(user_id);
+create index prompt_generation_logs_created_at_idx on public.prompt_generation_logs(created_at);
 create index content_reports_user_id_idx on public.content_reports(user_id);
 create index content_reports_contact_id_idx on public.content_reports(contact_id);
 create index feedback_user_id_idx on public.feedback(user_id);
@@ -170,6 +191,7 @@ alter table public.contact_processing_logs enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.notification_history enable row level security;
 alter table public.contact_analytics enable row level security;
+alter table public.prompt_generation_logs enable row level security;
 alter table public.content_reports enable row level security;
 alter table public.feedback enable row level security;
 
@@ -288,6 +310,15 @@ create policy "Users can update their own analytics"
 create policy "Users can delete their own analytics"
     on public.contact_analytics for delete
     using (auth.uid() = user_id);
+
+-- Prompt generation logs policies
+create policy "Users can view their own prompt generation logs"
+    on public.prompt_generation_logs for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own prompt generation logs"
+    on public.prompt_generation_logs for insert
+    with check (auth.uid() = user_id);
 
 -- Content reports policies
 create policy "Users can view their own content reports"

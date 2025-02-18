@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
-import { UserCircleIcon, ChevronDownIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, ChevronDownIcon, SparklesIcon, ChatBubbleOvalLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../../stores/useStore';
 import { signOut } from '../../lib/supabase/client';
 import { initiateGoogleLogin } from '../../lib/auth/google';
@@ -102,6 +102,17 @@ export const ProfileMenu = () => {
           }}
         >
           <div className="px-1 py-1">
+            <Menu.Item>
+              {({ active }) => (
+                <Link
+                  to="/conversation-prompts"
+                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
+                >
+                  <ChatBubbleOvalLeftEllipsisIcon className="h-5 w-5 mr-2" />
+                  Conversation Prompts
+                </Link>
+              )}
+            </Menu.Item>
             <Menu.Item>
               {({ active }) => (
                 <Link

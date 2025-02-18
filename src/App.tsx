@@ -18,6 +18,7 @@ import { Reminders } from './pages/Reminders';
 import { Help } from './pages/Help';
 import { Analytics } from './pages/Analytics';
 import { Login } from './components/auth/Login';
+import ConversationPrompts from './pages/ConversationPrompts';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { Terms } from './pages/Terms';
 import { Privacy } from './pages/Privacy';
@@ -329,6 +330,15 @@ function App() {
                 element={
                   <AuthenticatedRoute>
                     <Help />
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route
+                path="/conversation-prompts"
+                element={
+                  <AuthenticatedRoute>
+                    <ConversationPrompts />
                   </AuthenticatedRoute>
                 }
               />
