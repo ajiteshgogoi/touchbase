@@ -17,9 +17,9 @@ export const Support = () => {
               <h3 className="font-semibold text-lg mb-2">Company Address</h3>
               <p className="text-gray-700">
                 TouchBase Technologies<br />
-                [24, Lane 2, Basisthapur]<br />
-                [Guwahati, Assam]<br />
-                [781028]<br />
+                24, Lane 2, Basisthapur<br />
+                Guwahati, Assam<br />
+                781028<br />
                 India
               </p>
             </div>
@@ -27,14 +27,14 @@ export const Support = () => {
             <div>
               <h3 className="font-semibold text-lg mb-2">Phone</h3>
               <p className="text-gray-700">
-                <a href="tel:[Your Phone Number]" className="text-blue-600 hover:underline">[+91-9395877156]</a>
+                <a href="tel:[+91-9395877156]" className="text-primary-500 hover:text-primary-600 font-medium">+91-9395877156</a>
               </p>
             </div>
 
             <div>
               <h3 className="font-semibold text-lg mb-2">Email</h3>
               <p className="text-gray-700">
-                <a href="mailto:help@touchbase.site" className="text-blue-600 hover:underline">help@touchbase.site</a>
+                <a href="mailto:help@touchbase.site" className="text-primary-500 hover:text-primary-600 font-medium">help@touchbase.site</a>
               </p>
             </div>
           </div>
@@ -54,9 +54,9 @@ export const Support = () => {
             For immediate assistance, you can:
           </p>
           <ul className="list-disc ml-6 text-gray-700 space-y-2">
-            <li>Visit our <a href="/help" className="text-blue-600 hover:underline">Help Center</a></li>
-            <li>Check our <a href="/terms" className="text-blue-600 hover:underline">Terms of Service</a></li>
-            <li>Review our <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a></li>
+            <li>Visit our <a href="/help" className="text-primary-500 hover:text-primary-600 font-medium">Help Center</a></li>
+            <li>Check our <a href="/terms" className="text-primary-500 hover:text-primary-600 font-medium">Terms of Service</a></li>
+            <li>Review our <a href="/privacy" className="text-primary-500 hover:text-primary-600 font-medium">Privacy Policy</a></li>
           </ul>
         </section>
       </div>
