@@ -27,7 +27,7 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <label className={`font-medium ${canUseAIFeatures ? 'text-gray-900' : 'text-gray-400'}`}>
+            <label htmlFor="ai-suggestions" className={`font-medium ${canUseAIFeatures ? 'text-gray-900' : 'text-gray-400'}`}>
               Advanced AI Suggestions
             </label>
             <p className={`text-sm mt-1 ${canUseAIFeatures ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -36,6 +36,7 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
           </div>
           <label className={`relative inline-flex items-center ${canUseAIFeatures ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
             <input
+              id="ai-suggestions"
               type="checkbox"
               className="sr-only peer"
               checked={settings.ai_suggestions_enabled}

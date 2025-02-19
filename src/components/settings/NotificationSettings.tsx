@@ -38,7 +38,7 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <label className="text-gray-900 font-medium">
+            <label htmlFor="notifications-toggle" className="text-gray-900 font-medium">
               Notifications
             </label>
             <p className="text-sm text-gray-600 mt-1">
@@ -47,6 +47,7 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
+              id="notifications-toggle"
               type="checkbox"
               className="sr-only peer"
               checked={settings.notification_enabled}
