@@ -77,6 +77,11 @@ const Privacy = lazy(async () => {
   return { default: module.Privacy };
 });
 
+const Support = lazy(async () => {
+  const module = await import('./pages/Support');
+  return { default: module.Support };
+});
+
 const ContactForm = lazy(async () => {
   const module = await import('./components/contacts/ContactForm');
   return { default: module.ContactForm };
@@ -341,6 +346,7 @@ function App() {
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/terms" element={<LazyComponent><Terms /></LazyComponent>} />
               <Route path="/privacy" element={<LazyComponent><Privacy /></LazyComponent>} />
+              <Route path="/support" element={<LazyComponent><Support /></LazyComponent>} />
 
               {/* Protected Routes */}
               <Route

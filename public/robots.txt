@@ -5,6 +5,7 @@ Allow: /
 Allow: /login
 Allow: /privacy
 Allow: /terms
+Allow: /support
 Allow: /assets/
 Allow: /*.css
 Allow: /*.js

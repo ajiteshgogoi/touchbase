@@ -130,7 +130,7 @@ export const Privacy = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
           <p className="text-gray-700">
-            If you have questions about this Privacy Policy or your data, please contact us through our help section. We aim to respond to all enquiries within 48 hours.
+            If you have questions about this Privacy Policy or your data, please visit our <a href="/support" className="text-blue-600 hover:underline">Support page</a>. We aim to respond to all enquiries within 48 hours.
           </p>
         </section>
       </div>
