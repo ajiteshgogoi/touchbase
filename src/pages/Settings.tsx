@@ -1,73 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import toast from 'react-hot-toast';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-// Get all IANA timezones
-const TIMEZONE_LIST = [
-  "Africa/Abidjan", "Africa/Accra", "Africa/Algiers", "Africa/Cairo", "Africa/Casablanca", "Africa/Johannesburg", "Africa/Lagos", "Africa/Nairobi",
-  "America/Anchorage", "America/Argentina/Buenos_Aires", "America/Bogota", "America/Caracas", "America/Chicago", "America/Denver", "America/Halifax",
-  "America/Los_Angeles", "America/Mexico_City", "America/New_York", "America/Phoenix", "America/Santiago", "America/Sao_Paulo", "America/St_Johns",
-  "America/Toronto", "America/Vancouver",
-  "Asia/Almaty", "Asia/Baghdad", "Asia/Baku", "Asia/Bangkok", "Asia/Beirut", "Asia/Dhaka", "Asia/Dubai", "Asia/Hong_Kong", "Asia/Istanbul",
-  "Asia/Jakarta", "Asia/Jerusalem", "Asia/Karachi", "Asia/Kolkata", "Asia/Kuala_Lumpur", "Asia/Kuwait", "Asia/Manila", "Asia/Qatar", "Asia/Riyadh",
-  "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore", "Asia/Taipei", "Asia/Tehran", "Asia/Tokyo", "Asia/Vladivostok",
-  "Australia/Adelaide", "Australia/Brisbane", "Australia/Darwin", "Australia/Hobart", "Australia/Melbourne", "Australia/Perth", "Australia/Sydney",
-  "Europe/Amsterdam", "Europe/Athens", "Europe/Belgrade", "Europe/Berlin", "Europe/Brussels", "Europe/Bucharest", "Europe/Budapest", "Europe/Copenhagen",
-  "Europe/Dublin", "Europe/Helsinki", "Europe/Istanbul", "Europe/Lisbon", "Europe/London", "Europe/Madrid", "Europe/Moscow", "Europe/Oslo",
-  "Europe/Paris", "Europe/Prague", "Europe/Rome", "Europe/Sofia", "Europe/Stockholm", "Europe/Vienna", "Europe/Warsaw", "Europe/Zurich",
-  "Pacific/Auckland", "Pacific/Fiji", "Pacific/Honolulu", "Pacific/Noumea", "Pacific/Pago_Pago", "Pacific/Port_Moresby",
-  "UTC"
-];
-
-// Get user's timezone and ensure it's in the list
-const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-// Create final timezone list with user's timezone at the top if not already included
-const TIMEZONES = Array.from(new Set([userTimezone, ...TIMEZONE_LIST]))
-  .sort((a, b) => {
-    // Always keep user's timezone first
-    if (a === userTimezone) return -1;
-    if (b === userTimezone) return 1;
-    // Sort others by continent/city
-    const [contA = '', cityA = ''] = a.split('/');
-    const [contB = '', cityB = ''] = b.split('/');
-    return contA.localeCompare(contB) || cityA.localeCompare(cityB);
-  });
 import { useStore } from '../stores/useStore';
-import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
 import { supabase } from '../lib/supabase/client';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import { notificationService } from '../services/notifications';
-import type { UserPreferences, Database } from '../lib/supabase/types';
-import { CheckIcon, ArrowLeftIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
-import { platform } from '../utils/platform';
-import { FeedbackModal } from '../components/shared/FeedbackModal';
+import type { NotificationSettings } from '../types/settings';
+import type { UserPreferences } from '../lib/supabase/types';
+import type { Subscription } from '../types/subscription';
 
-interface NotificationSettings {
-  notification_enabled: boolean;
-  theme: 'light' | 'dark' | 'system';
-  timezone: string;
-  ai_suggestions_enabled: boolean;
-}
+// Lazy load components
+const NotificationSettings = lazy(() => import('../components/settings/NotificationSettings').then(m => ({ default: m.NotificationSettings })));
+const SubscriptionSettings = lazy(() => import('../components/settings/SubscriptionSettings').then(m => ({ default: m.SubscriptionSettings })));
+const AISettings = lazy(() => import('../components/settings/AISettings').then(m => ({ default: m.AISettings })));
+const FeedbackModal = lazy(() => import('../components/shared/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
 
-type UserPreferencesUpsert = Database['public']['Tables']['user_preferences']['Insert'];
+// Loading fallback component
+const SectionLoader = () => (
+  <div className="bg-white rounded-xl shadow-soft p-6 flex items-center justify-center min-h-[200px]">
+    <LoadingSpinner />
+  </div>
+);
 
 export const Settings = () => {
   const navigate = useNavigate();
   const { user, isPremium } = useStore();
   const queryClient = useQueryClient();
-  const selectedPlan = isPremium ? 'premium' : 'free';
-  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
+    notification_enabled: false,
+    theme: 'light',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ai_suggestions_enabled: true
+  });
 
   // Get subscription details
-  const { data: subscription } = useQuery({
+  const { data: subscription } = useQuery<Subscription | null>({
     queryKey: ['subscription', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -79,24 +50,12 @@ export const Settings = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Subscription;
     },
     enabled: !!user?.id
   });
-const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-  notification_enabled: false,
-  theme: 'light',
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  ai_suggestions_enabled: true
-});
-const [searchTerm, setSearchTerm] = useState('');
-const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
-// Filter timezones based on search
-  const filteredTimezones = TIMEZONES.filter((zone: string) =>
-    zone.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  // Get user preferences
   const { data: preferences } = useQuery({
     queryKey: ['preferences', user?.id],
     queryFn: async () => {
@@ -111,7 +70,7 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
       if (error) {
         if (error.code === 'PGRST116') {
           // No preferences found, create default
-          const defaultPreferences: UserPreferencesUpsert = {
+          const defaultPreferences = {
             user_id: user.id,
             notification_enabled: false,
             theme: 'light',
@@ -222,8 +181,6 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
           theme: newSettings.theme,
           timezone: newSettings.timezone,
           ai_suggestions_enabled: newSettings.ai_suggestions_enabled
-        }, {
-          onConflict: 'id'
         });
       
       if (error) {
@@ -249,34 +206,6 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
       }
     }
   });
-
-  const handleCancelSubscription = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription?')) return;
-    if (!confirm('You will lose access to premium features at the end of your billing period. Are you absolutely sure?')) return;
-    
-    try {
-      await paymentService.cancelSubscription();
-      toast.success('Subscription cancelled successfully');
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-    } catch (error: any) {
-      console.error('Cancel subscription error:', error);
-      // Show the platform-specific error message to the user
-      toast.error(error.message || 'Failed to cancel subscription');
-    }
-  };
-
-  const handleResumeSubscription = async () => {
-    try {
-      setIsSubscribing(true);
-      await paymentService.createSubscription('premium');
-      // Success toast will be shown after PayPal redirect and activation
-    } catch (error: any) {
-      console.error('Resume subscription error:', error);
-      // Show the platform-specific error message to the user
-      toast.error(error.message || 'Failed to resume subscription');
-      setIsSubscribing(false);
-    }
-  };
 
   const handleNotificationChange = async (newSettings: Partial<NotificationSettings>) => {
     const updated = { ...notificationSettings, ...newSettings };
@@ -308,316 +237,99 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
       </div>
 
       <div className="space-y-6">
-        {/* Subscription Plans */}
-        <div className="bg-white rounded-xl shadow-soft p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          Subscription Plan
-        </h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          {SUBSCRIPTION_PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-white rounded-xl p-6 transition-all ${
-                selectedPlan === plan.id
-                  ? 'border-2 border-primary-400 shadow-soft'
-                  : 'border border-gray-200 hover:border-primary-200 shadow-sm hover:shadow-soft'
-              }`}
-            >
-              {plan.id === 'premium' && (
-                <span className="absolute -top-3 -right-3 bg-accent-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  Recommended
-                </span>
-              )}
-              <div className="flex flex-col h-full">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {plan.name.charAt(0).toUpperCase() + plan.name.slice(1)}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {plan.id === 'free' ? 'Basic features' : 'All premium features'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-gray-900">
-                      ${plan.price}
-                    </span>
-                    <span className="text-gray-600">/mo</span>
-                  </div>
-                </div>
-                <ul className="space-y-4 mb-8 flex-grow">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <CheckIcon className="h-5 w-5 text-primary-500 mt-0.5 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                {plan.id === 'premium' && !isPremium && (
-                  <button
-                    onClick={async () => {
-                      try {
-                        setIsSubscribing(true);
-                        // Check if Google Play Billing is properly initialized in TWA
-                        if (platform.isAndroid() && !platform.isGooglePlayBillingAvailable()) {
-                          throw new Error('Google Play Billing is not available. Please try refreshing the app.');
-                        }
-                        await paymentService.createSubscription('premium');
-                        // Success toast will be shown after PayPal redirect or Google Play purchase
-                      } catch (error: any) {
-                        console.error('Subscription error:', error);
-                        toast.error(error?.message || 'Failed to create subscription');
-                        setIsSubscribing(false);
-                      }
-                    }}
-                    disabled={isSubscribing}
-                    className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isSubscribing ? (
-                      <>
-                        <LoadingSpinner />
-                        <span>
-                          {platform.isAndroid()
-                            ? "Processing Google Play purchase..."
-                            : "Redirecting to PayPal..."}
-                        </span>
-                      </>
-                    ) : (
-                      'Subscribe Now'
-                    )}
-                  </button>
-                )}
-                {plan.id === 'premium' && isPremium && (
-                  <div className="space-y-4">
-                    {subscription?.valid_until && (
-                      <div className="text-gray-600 text-sm bg-gray-50 rounded-lg p-4">
-                        Your premium access is valid until{' '}
-                        <span className="font-medium text-gray-900">
-                          {dayjs(subscription.valid_until).tz(notificationSettings.timezone).format('MMMM D, YYYY')}
-                        </span>
-                        {subscription.status === 'canceled' && (
-                          <span className="block mt-1 text-red-600">
-                            Your subscription will not renew after this date
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    {subscription?.status === 'active' ? (
-                      <button
-                        onClick={handleCancelSubscription}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-                      >
-                        Cancel Subscription
-                      </button>
-                    ) : subscription?.status === 'canceled' && (
-                      <button
-                        onClick={async () => {
-                          try {
-                            setIsSubscribing(true);
-                            // Check if Google Play Billing is properly initialized in TWA
-                            if (platform.isAndroid() && !platform.isGooglePlayBillingAvailable()) {
-                              throw new Error('Google Play Billing is not available. Please try refreshing the app.');
-                            }
-                            await handleResumeSubscription();
-                          } catch (error: any) {
-                            console.error('Resume subscription error:', error);
-                            toast.error(error?.message || 'Failed to resume subscription');
-                            setIsSubscribing(false);
-                          }
-                        }}
-                        disabled={isSubscribing}
-                        className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {isSubscribing ? (
-                          <>
-                            <LoadingSpinner />
-                            <span>
-                              {platform.isAndroid()
-                                ? "Processing Google Play purchase..."
-                                : "Redirecting to PayPal..."}
-                            </span>
-                          </>
-                        ) : (
-                          'Resume Subscription'
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+        {/* Subscription Settings */}
+        <Suspense fallback={<SectionLoader />}>
+          <SubscriptionSettings
+            isPremium={isPremium}
+            subscription={subscription}
+            timezone={notificationSettings.timezone}
+          />
+        </Suspense>
 
         {/* Notification Settings */}
-        <div className="bg-white rounded-xl shadow-soft p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          Notification Preferences
-        </h2>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-gray-900 font-medium">
-                Notifications
-              </label>
-              <p className="text-sm text-gray-600 mt-1">
-                Get notified about your daily interactions
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={notificationSettings.notification_enabled}
-                onChange={(e) => handleNotificationChange({
-                  notification_enabled: e.target.checked
-                })}
-              />
-              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-            </label>
-          </div>
+        <Suspense fallback={<SectionLoader />}>
+          <NotificationSettings
+            settings={notificationSettings}
+            onUpdate={handleNotificationChange}
+          />
+        </Suspense>
 
-          {/* Timezone Settings */}
-          <div className="flex flex-col">
-            <label className="text-gray-900 font-medium">
-              Timezone
-            </label>
-            <p className="text-sm text-gray-600 mt-1">
-              Set your timezone for timely reminders
-            </p>
-            <input
-              type="text"
-              className="mt-2 block w-full rounded-t-md border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
-              placeholder="Search timezone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <select
-              className="block w-full rounded-b-md border-t-0 border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
-              value={notificationSettings.timezone}
-              onChange={(e) => handleNotificationChange({
-                timezone: e.target.value
-              })}
-              size={5}
-            >
-              {filteredTimezones.map((zone: string) => (
-                <option key={zone} value={zone}>
-                  {zone.replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-        {/* AI Features */}
-        <div className="bg-white rounded-xl shadow-soft p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
-            AI Features
-          </h2>
-          {!isPremium && (!subscription?.trial_end_date || new Date(subscription.trial_end_date) <= new Date()) && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-              Premium Only
-            </span>
-          )}
-        </div>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className={`font-medium ${(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) ? 'text-gray-900' : 'text-gray-400'}`}>
-                Advanced AI Suggestions
-              </label>
-              <p className={`text-sm mt-1 ${(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) ? 'text-gray-600' : 'text-gray-400'}`}>
-                Get AI-powered suggestions for future interactions
-              </p>
-            </div>
-            <label className={`relative inline-flex items-center ${(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={notificationSettings.ai_suggestions_enabled}
-                onChange={(e) => {
-                  if (isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) {
-                    handleNotificationChange({
-                      ai_suggestions_enabled: e.target.checked
-                    });
-                  }
-                }}
-                disabled={!isPremium && (!subscription?.trial_end_date || new Date(subscription.trial_end_date) <= new Date())}
-              />
-              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-            </label>
-          </div>
-        </div>
-      </div>
+        {/* AI Settings */}
+        <Suspense fallback={<SectionLoader />}>
+          <AISettings
+            settings={notificationSettings}
+            onUpdate={handleNotificationChange}
+            isPremium={isPremium}
+            subscription={subscription}
+          />
+        </Suspense>
 
         {/* Feedback Section */}
         <div className="bg-white rounded-xl shadow-soft p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          Help Us Improve
-        </h2>
-        <div className="space-y-4">
-          <p className="text-gray-600">
-            We value your feedback to make TouchBase better. Share your thoughts and suggestions with us.
-          </p>
-          <button
-            onClick={() => setIsFeedbackModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600"
-          >
-            <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
-            Send Feedback
-          </button>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            Help Us Improve
+          </h2>
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              We value your feedback to make TouchBase better. Share your thoughts and suggestions with us.
+            </p>
+            <button
+              onClick={() => setIsFeedbackModalOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600"
+            >
+              Send Feedback
+            </button>
+          </div>
         </div>
-      </div>
-
-       <FeedbackModal
-         isOpen={isFeedbackModalOpen}
-         onClose={() => setIsFeedbackModalOpen(false)}
-       />
 
         {/* Account Deletion */}
         <div className="bg-white rounded-xl shadow-soft p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
-          Delete Account
-        </h2>
-        <div className="space-y-4">
-          <p className="text-gray-600">
-            Warning: This action cannot be undone. All your data will be permanently deleted.
-          </p>
-          <button
-            onClick={async () => {
-              if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
-              if (!confirm('This will permanently delete all your contacts and interaction history. Are you absolutely sure?')) return;
-              
-              try {
-                await import('../services/delete-user').then(m => m.deleteUserService.deleteAccount());
-                toast.success('Account deleted successfully');
-                navigate('/');
-              } catch (error) {
-                console.error('Delete account error:', error);
-                toast.error('Failed to delete account');
-              }
-            }}
-            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-          >
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">
             Delete Account
-          </button>
+          </h2>
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Warning: This action cannot be undone. All your data will be permanently deleted.
+            </p>
+            <button
+              onClick={async () => {
+                if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+                if (!confirm('This will permanently delete all your contacts and interaction history. Are you absolutely sure?')) return;
+                
+                try {
+                  await import('../services/delete-user').then(m => m.deleteUserService.deleteAccount());
+                  toast.success('Account deleted successfully');
+                  navigate('/');
+                } catch (error) {
+                  console.error('Delete account error:', error);
+                  toast.error('Failed to delete account');
+                }
+              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Delete Account
+            </button>
+          </div>
         </div>
-      </div>
 
-       {/* Footer */}
-       <div className="text-center text-sm text-gray-600 space-y-2 pt-1">
-         <div>
-           View our{' '}
-           <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>
-           {' '}and{' '}
-           <a href="/privacy" className="text-primary-500 hover:text-primary-600">Privacy Policy</a>
-         </div>
-       </div>
-     </div>
-   </div>
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-600 space-y-2 pt-1">
+          <div>
+            View our{' '}
+            <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>
+            {' '}and{' '}
+            <a href="/privacy" className="text-primary-500 hover:text-primary-600">Privacy Policy</a>
+          </div>
+        </div>
+
+        <Suspense fallback={null}>
+          <FeedbackModal
+            isOpen={isFeedbackModalOpen}
+            onClose={() => setIsFeedbackModalOpen(false)}
+          />
+        </Suspense>
+      </div>
+    </div>
   );
 };
 

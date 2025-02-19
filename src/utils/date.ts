@@ -1,5 +1,23 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+// Initialize dayjs plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export type ContactFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
 export type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
+
+// Format date with timezone
+export function formatDateWithTimezone(
+  date: string | Date | null | undefined,
+  timezone: string,
+  format: string = 'MMMM D, YYYY'
+): string {
+  if (!date) return '';
+  return dayjs(date).tz(timezone).format(format);
+}
 
 // Convert a date to user's timezone and normalize to start of day
 export function normalizeToUserTimezone(date: Date, timezone: string = 'UTC'): Date {
