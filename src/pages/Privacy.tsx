@@ -82,7 +82,6 @@ export const Privacy = () => {
           <ul className="list-disc ml-6 mt-2 text-gray-700">
             <li>Access and modify your personal information</li>
             <li>Report inappropriate AI suggestions</li>
-            <li>Track interaction sentiment (positive/neutral/negative)</li>
             <li>Manage notification preferences</li>
             <li>Delete your account and data instantly</li>
             <li>Control contact frequency settings</li>
