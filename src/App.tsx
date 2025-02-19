@@ -17,11 +17,11 @@ import { AuthCallback } from './components/auth/AuthCallback';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 
 // Lazy load pages and non-critical components
-// Enhanced lazy loading component wrapper with error boundary and preload support
+// Lazy loading component wrapper with error boundary
 const LazyComponent = ({ children }: { children: React.ReactNode }) => (
   <ErrorBoundary>
     <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner />
       </div>
     }>
@@ -30,71 +30,61 @@ const LazyComponent = ({ children }: { children: React.ReactNode }) => (
   </ErrorBoundary>
 );
 
-// Types for module exports
-interface LazyModule {
-  [key: string]: React.ComponentType<any>;
-}
+// Lazy loaded components with async imports
+const Dashboard = lazy(async () => {
+  const module = await import('./pages/Dashboard');
+  return { default: module.Dashboard };
+});
 
-// Lazy load a module with type safety
-function lazyLoad(
-  importFn: () => Promise<LazyModule>,
-  exportKey: string = 'default'
-): React.LazyExoticComponent<React.ComponentType<any>> {
-  return lazy(() =>
-    importFn().then(module => {
-      const Component = module[exportKey] || module.default;
-      if (!Component) {
-        throw new Error(`Component not found: ${exportKey}`);
-      }
-      return { default: Component };
-    })
-  );
-}
+const Contacts = lazy(async () => {
+  const module = await import('./pages/Contacts');
+  return { default: module.Contacts };
+});
 
-// Main route components with optimized chunking
-const Dashboard = lazyLoad(() => import('./pages/Dashboard'), 'Dashboard');
-const Contacts = lazyLoad(() => import('./pages/Contacts'), 'Contacts');
-const Settings = lazyLoad(() => import('./pages/Settings'), 'Settings');
-const Reminders = lazyLoad(() => import('./pages/Reminders'), 'Reminders');
-const Help = lazyLoad(() => import('./pages/Help'), 'Help');
-const Analytics = lazyLoad(() => import('./pages/Analytics'), 'Analytics');
-const ConversationPrompts = lazyLoad(() => import('./pages/ConversationPrompts'));
-const Terms = lazyLoad(() => import('./pages/Terms'), 'Terms');
-const Privacy = lazyLoad(() => import('./pages/Privacy'), 'Privacy');
-const ContactForm = lazyLoad(() => import('./components/contacts/ContactForm'), 'ContactForm');
-const InteractionHistory = lazyLoad(() => import('./pages/InteractionHistory'), 'InteractionHistory');
+const Settings = lazy(async () => {
+  const module = await import('./pages/Settings');
+  return { default: module.Settings };
+});
 
-// Prefetch utilities
-const COMMON_ROUTES = {
-  dashboard: () => import('./pages/Dashboard'),
-  contacts: () => import('./pages/Contacts'),
-  reminders: () => import('./pages/Reminders'),
-};
+const Reminders = lazy(async () => {
+  const module = await import('./pages/Reminders');
+  return { default: module.Reminders };
+});
 
-// Start preloading common routes after initial load
-useEffect(() => {
-  const { user } = useStore.getState();
-  let timer: number;
-  
-  if (user) {
-    const prefetchRoutes = () => {
-      const prefetchPromises = Object.values(COMMON_ROUTES).map(importFn =>
-        importFn().catch(() => undefined)
-      );
-      return Promise.all(prefetchPromises);
-    };
-    
-    timer = window.setTimeout(() => {
-      prefetchRoutes().catch(() => {
-        // Silently handle prefetch errors
-      });
-    }, 1000);
-  }
-  
-  return () => {
-    if (timer) window.clearTimeout(timer);
-  };
-}, []);
+const Help = lazy(async () => {
+  const module = await import('./pages/Help');
+  return { default: module.Help };
+});
+
+const Analytics = lazy(async () => {
+  const module = await import('./pages/Analytics');
+  return { default: module.Analytics };
+});
+
+const ConversationPrompts = lazy(async () => {
+  const module = await import('./pages/ConversationPrompts');
+  return { default: module.default };
+});
+
+const Terms = lazy(async () => {
+  const module = await import('./pages/Terms');
+  return { default: module.Terms };
+});
+
+const Privacy = lazy(async () => {
+  const module = await import('./pages/Privacy');
+  return { default: module.Privacy };
+});
+
+const ContactForm = lazy(async () => {
+  const module = await import('./components/contacts/ContactForm');
+  return { default: module.ContactForm };
+});
+
+const InteractionHistory = lazy(async () => {
+  const module = await import('./pages/InteractionHistory');
+  return { default: module.InteractionHistory };
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
