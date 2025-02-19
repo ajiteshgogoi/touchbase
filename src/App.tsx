@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -10,20 +10,35 @@ import { paymentService } from './services/payment';
 import { notificationService } from './services/notifications';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
-// Page Imports
-import { Dashboard } from './pages/Dashboard';
-import { Contacts } from './pages/Contacts';
-import { Settings } from './pages/Settings';
-import { Reminders } from './pages/Reminders';
-import { Help } from './pages/Help';
-import { Analytics } from './pages/Analytics';
+// Eagerly load critical components
 import { Login } from './components/auth/Login';
-import ConversationPrompts from './pages/ConversationPrompts';
 import { AuthCallback } from './components/auth/AuthCallback';
-import { Terms } from './pages/Terms';
-import { Privacy } from './pages/Privacy';
-import { ContactForm } from './components/contacts/ContactForm';
-import { InteractionHistory } from './pages/InteractionHistory';
+import { LoadingSpinner } from './components/shared/LoadingSpinner';
+
+// Lazy load pages and non-critical components
+// Lazy loading component wrapper
+const LazyComponent = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={
+    <div className="flex items-center justify-center min-h-screen">
+      <LoadingSpinner />
+    </div>
+  }>
+    {children}
+  </Suspense>
+);
+
+// Lazy loaded components
+const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const Contacts = lazy(() => import('./pages/Contacts').then(module => ({ default: module.Contacts })));
+const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
+const Reminders = lazy(() => import('./pages/Reminders').then(module => ({ default: module.Reminders })));
+const Help = lazy(() => import('./pages/Help').then(module => ({ default: module.Help })));
+const Analytics = lazy(() => import('./pages/Analytics').then(module => ({ default: module.Analytics })));
+const ConversationPrompts = lazy(() => import('./pages/ConversationPrompts').then(module => ({ default: module.default })));
+const Terms = lazy(() => import('./pages/Terms').then(module => ({ default: module.Terms })));
+const Privacy = lazy(() => import('./pages/Privacy').then(module => ({ default: module.Privacy })));
+const ContactForm = lazy(() => import('./components/contacts/ContactForm').then(module => ({ default: module.ContactForm })));
+const InteractionHistory = lazy(() => import('./pages/InteractionHistory').then(module => ({ default: module.InteractionHistory })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -250,98 +265,118 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<LazyComponent><Terms /></LazyComponent>} />
+              <Route path="/privacy" element={<LazyComponent><Privacy /></LazyComponent>} />
               
               {/* Protected Routes */}
               <Route
-                path="/"
-                element={
-                  <AuthenticatedRoute>
+              path="/"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <Dashboard />
-                  </AuthenticatedRoute>
-                }
-              />
-              
-              <Route
-                path="/contacts"
-                element={
-                  <AuthenticatedRoute>
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
+            
+            <Route
+              path="/contacts"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <Contacts />
-                  </AuthenticatedRoute>
-                }
-              />
-              
-              <Route
-                path="/contacts/new"
-                element={
-                  <AuthenticatedRoute>
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
+            
+            <Route
+              path="/contacts/new"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <ContactForm />
-                  </AuthenticatedRoute>
-                }
-              />
-              
-              <Route
-               path="/contacts/:id/edit"
-               element={
-                 <AuthenticatedRoute>
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
+            
+            <Route
+             path="/contacts/:id/edit"
+             element={
+               <AuthenticatedRoute>
+                 <LazyComponent>
                    <ContactForm />
-                 </AuthenticatedRoute>
-               }
-             />
+                 </LazyComponent>
+               </AuthenticatedRoute>
+             }
+            />
 
-             <Route
-               path="/contacts/:contactId/interactions"
-               element={
-                 <AuthenticatedRoute>
+           <Route
+             path="/contacts/:contactId/interactions"
+             element={
+               <AuthenticatedRoute>
+                 <LazyComponent>
                    <InteractionHistory />
-                 </AuthenticatedRoute>
-               }
-             />
+                 </LazyComponent>
+               </AuthenticatedRoute>
+             }
+            />
 
-             <Route
-                path="/analytics"
-                element={
-                  <AuthenticatedRoute>
+           <Route
+              path="/analytics"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <Analytics />
-                  </AuthenticatedRoute>
-                }
-              />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
 
-              <Route
-                path="/reminders"
-                element={
-                  <AuthenticatedRoute>
+            <Route
+              path="/reminders"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <Reminders />
-                  </AuthenticatedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <AuthenticatedRoute>
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <Settings />
-                  </AuthenticatedRoute>
-                }
-              />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
 
-              <Route
-                path="/help"
-                element={
-                  <AuthenticatedRoute>
+            <Route
+              path="/help"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <Help />
-                  </AuthenticatedRoute>
-                }
-              />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
 
-              <Route
-                path="/conversation-prompts"
-                element={
-                  <AuthenticatedRoute>
+            <Route
+              path="/conversation-prompts"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent>
                     <ConversationPrompts />
-                  </AuthenticatedRoute>
-                }
-              />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
               
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" />} />

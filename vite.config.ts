@@ -86,15 +86,34 @@ export default defineConfig({
     }
   },
   build: {
-    sourcemap: true,
+    sourcemap: false, // Disable source maps in production
+    target: 'esnext', // Enable latest JS features
+    chunkSizeWarningLimit: 1000, // Set chunk size warning limit
+    // Add compression settings
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        ecma: 2020
+      }
+    },
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           ui: ['@heroicons/react'],
           db: ['@supabase/supabase-js'],
-          payment: ['@paypal/react-paypal-js']
-        }
+          payment: ['@paypal/react-paypal-js'],
+          utils: ['dayjs', 'dayjs/plugin/utc', 'dayjs/plugin/timezone'],
+          // Add smaller chunks for pages
+          settings: ['./src/pages/Settings.tsx'],
+          dashboard: ['./src/pages/Dashboard.tsx'],
+          contacts: ['./src/pages/Contacts.tsx']
+        },
+        // Output chunks with content hash for better caching
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     }
   },

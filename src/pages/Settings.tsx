@@ -1,10 +1,45 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import moment from 'moment-timezone';
-
-const TIMEZONES = moment.tz.names();
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import toast from 'react-hot-toast';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Get all IANA timezones
+const TIMEZONE_LIST = [
+  "Africa/Abidjan", "Africa/Accra", "Africa/Algiers", "Africa/Cairo", "Africa/Casablanca", "Africa/Johannesburg", "Africa/Lagos", "Africa/Nairobi",
+  "America/Anchorage", "America/Argentina/Buenos_Aires", "America/Bogota", "America/Caracas", "America/Chicago", "America/Denver", "America/Halifax",
+  "America/Los_Angeles", "America/Mexico_City", "America/New_York", "America/Phoenix", "America/Santiago", "America/Sao_Paulo", "America/St_Johns",
+  "America/Toronto", "America/Vancouver",
+  "Asia/Almaty", "Asia/Baghdad", "Asia/Baku", "Asia/Bangkok", "Asia/Beirut", "Asia/Dhaka", "Asia/Dubai", "Asia/Hong_Kong", "Asia/Istanbul",
+  "Asia/Jakarta", "Asia/Jerusalem", "Asia/Karachi", "Asia/Kolkata", "Asia/Kuala_Lumpur", "Asia/Kuwait", "Asia/Manila", "Asia/Qatar", "Asia/Riyadh",
+  "Asia/Seoul", "Asia/Shanghai", "Asia/Singapore", "Asia/Taipei", "Asia/Tehran", "Asia/Tokyo", "Asia/Vladivostok",
+  "Australia/Adelaide", "Australia/Brisbane", "Australia/Darwin", "Australia/Hobart", "Australia/Melbourne", "Australia/Perth", "Australia/Sydney",
+  "Europe/Amsterdam", "Europe/Athens", "Europe/Belgrade", "Europe/Berlin", "Europe/Brussels", "Europe/Bucharest", "Europe/Budapest", "Europe/Copenhagen",
+  "Europe/Dublin", "Europe/Helsinki", "Europe/Istanbul", "Europe/Lisbon", "Europe/London", "Europe/Madrid", "Europe/Moscow", "Europe/Oslo",
+  "Europe/Paris", "Europe/Prague", "Europe/Rome", "Europe/Sofia", "Europe/Stockholm", "Europe/Vienna", "Europe/Warsaw", "Europe/Zurich",
+  "Pacific/Auckland", "Pacific/Fiji", "Pacific/Honolulu", "Pacific/Noumea", "Pacific/Pago_Pago", "Pacific/Port_Moresby",
+  "UTC"
+];
+
+// Get user's timezone and ensure it's in the list
+const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// Create final timezone list with user's timezone at the top if not already included
+const TIMEZONES = Array.from(new Set([userTimezone, ...TIMEZONE_LIST]))
+  .sort((a, b) => {
+    // Always keep user's timezone first
+    if (a === userTimezone) return -1;
+    if (b === userTimezone) return 1;
+    // Sort others by continent/city
+    const [contA = '', cityA = ''] = a.split('/');
+    const [contB = '', cityB = ''] = b.split('/');
+    return contA.localeCompare(contB) || cityA.localeCompare(cityB);
+  });
 import { useStore } from '../stores/useStore';
 import { paymentService, SUBSCRIPTION_PLANS } from '../services/payment';
 import { supabase } from '../lib/supabase/client';
@@ -58,7 +93,7 @@ const [searchTerm, setSearchTerm] = useState('');
 const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
 // Filter timezones based on search
-  const filteredTimezones = TIMEZONES.filter(zone =>
+  const filteredTimezones = TIMEZONES.filter((zone: string) =>
     zone.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -358,7 +393,7 @@ const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
                       <div className="text-gray-600 text-sm bg-gray-50 rounded-lg p-4">
                         Your premium access is valid until{' '}
                         <span className="font-medium text-gray-900">
-                          {moment(subscription.valid_until).tz(notificationSettings.timezone).format('MMMM D, YYYY')}
+                          {dayjs(subscription.valid_until).tz(notificationSettings.timezone).format('MMMM D, YYYY')}
                         </span>
                         {subscription.status === 'canceled' && (
                           <span className="block mt-1 text-red-600">
