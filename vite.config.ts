@@ -102,17 +102,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true,
-      resolveDependencies: (filename, deps) => {
-        // Only preload critical path modules
-        return deps.filter(dep =>
-          dep.includes('react') ||
-          dep.includes('firebase') ||
-          dep.includes('supabase') ||
-          dep.includes('components/layout') ||
-          dep.includes('components/shared')
-        );
-      }
+      polyfill: true
     },
     terserOptions: {
       compress: {
@@ -148,27 +138,6 @@ export default defineConfig({
         generatedCode: {
           preset: 'es2015',
           symbols: false
-        },
-        manualChunks(id) {
-          // Create optimal chunks for better caching
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) {
-              return 'vendor-react';
-            }
-            if (id.includes('firebase')) {
-              return 'vendor-firebase';
-            }
-            if (id.includes('supabase')) {
-              return 'vendor-supabase';
-            }
-            return 'vendor';
-          }
-          if (id.includes('src/components')) {
-            if (id.includes('/shared/') || id.includes('/layout/')) {
-              return 'core';
-            }
-            return 'components';
-          }
         }
       }
     }
