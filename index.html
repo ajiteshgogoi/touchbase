@@ -201,6 +201,12 @@
     </script>
     
     <title>TouchBase</title>
+    
+    <!-- Preload critical modules -->
+    <link rel="modulepreload" href="/src/lib/firebase/config.ts" />
+    <link rel="modulepreload" href="/src/lib/supabase/client.ts" />
+    <link rel="modulepreload" href="/src/components/layout/Layout.tsx" />
+    <link rel="modulepreload" href="/src/components/shared/LoadingSpinner.tsx" />
   </head>
   <body class="bg-gray-50">
     <div id="root"></div>

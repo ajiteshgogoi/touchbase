@@ -39,9 +39,9 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.groq\.com\/.*/i,
-            handler: 'NetworkFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'groq-cache',
+              cacheName: 'api-cache',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -53,15 +53,26 @@ export default defineConfig({
           },
           {
             urlPattern: /^https:\/\/[^.]+\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'supabase-cache',
+              cacheName: 'api-cache',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
               },
               cacheableResponse: {
                 statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /\.(js|css)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-resources',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
               }
             }
           }
@@ -91,22 +102,42 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true
+      polyfill: true,
+      resolveDependencies: (filename, deps) => {
+        // Only preload critical path modules
+        return deps.filter(dep =>
+          dep.includes('react') ||
+          dep.includes('firebase') ||
+          dep.includes('supabase') ||
+          dep.includes('components/layout') ||
+          dep.includes('components/shared')
+        );
+      }
     },
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console logs in production
+        drop_console: true,
         ecma: 2020,
-        passes: 3, // Increase optimization passes
+        passes: 3,
         pure_getters: true,
         unsafe: true,
         unsafe_comps: true,
         unsafe_methods: true,
         unsafe_proto: true,
-        toplevel: true
+        toplevel: true,
+        module: true,
+        inline: 3,
+        reduce_vars: true,
+        reduce_funcs: true,
+        pure_funcs: ['console.log', 'console.debug', 'console.info'],
+        sequences: true
       },
       mangle: {
         toplevel: true
+      },
+      format: {
+        comments: false,
+        ecma: 2020
       }
     },
     rollupOptions: {
@@ -117,6 +148,27 @@ export default defineConfig({
         generatedCode: {
           preset: 'es2015',
           symbols: false
+        },
+        manualChunks(id) {
+          // Create optimal chunks for better caching
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'vendor-react';
+            }
+            if (id.includes('firebase')) {
+              return 'vendor-firebase';
+            }
+            if (id.includes('supabase')) {
+              return 'vendor-supabase';
+            }
+            return 'vendor';
+          }
+          if (id.includes('src/components')) {
+            if (id.includes('/shared/') || id.includes('/layout/')) {
+              return 'core';
+            }
+            return 'components';
+          }
         }
       }
     }
