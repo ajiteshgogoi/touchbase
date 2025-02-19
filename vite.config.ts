@@ -109,32 +109,7 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // Group React and related packages together
-            if (id.includes('react') || id.includes('@tanstack/react-query')) {
-              return 'vendor-react';
-            }
-            // Group UI-related packages
-            if (id.includes('@headlessui') || id.includes('@heroicons')) {
-              return 'vendor-ui';
-            }
-            // All other dependencies in one chunk
-            return 'vendor';
-          }
-          
-          // Only split routes, keep components together
-          if (id.includes('/pages/')) {
-            const match = id.match(/\/pages\/([^/]+)\./);
-            if (match) {
-              return `route-${match[1].toLowerCase()}`;
-            }
-          }
-          
-          // Keep shared and feature components in the main bundle
-          return undefined;
-        },
-        // Output chunks with content hash for better caching
+        // Only keep hash-based filenames for caching
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
