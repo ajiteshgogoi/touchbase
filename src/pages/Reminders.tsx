@@ -81,6 +81,7 @@ export const Reminders = () => {
             <button
               onClick={() => navigate(-1)}
               className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+              aria-label="Go back"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
