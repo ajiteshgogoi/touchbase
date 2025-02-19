@@ -32,7 +32,6 @@
     "dayjs": "^1.11.10",
     "esbuild": "^0.25.0",
     "firebase": "^11.2.0",
-    "moment-timezone": "^0.5.47",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.5.1",
