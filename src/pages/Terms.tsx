@@ -26,7 +26,7 @@ export const Terms = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
           <p className="text-gray-700">
-            TouchBase is a relationship management tool designed to help you maintain meaningful connections. By accessing and using TouchBase, you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree with any of these terms, please do not use the service.
+            TouchBase is a relationship management tool designed to help you maintain meaningful connections. By accessing and using TouchBase, you agree to be bound by these Terms of Service and our <a href="/privacy" className="text-primary-500 hover:text-primary-600">Privacy Policy</a>. If you do not agree with any of these terms, please do not use the service.
           </p>
         </section>
 
@@ -173,7 +173,7 @@ export const Terms = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">12. Contact Information</h2>
           <p className="text-gray-700">
-            For questions about these Terms of Service or to report violations, please visit our <a href="/support" className="text-primary-500 hover:text-primary-600 font-medium">Support page</a>. We aim to respond to all enquiries within 48 hours.
+            For questions about these Terms of Service or to report violations, please visit our <a href="/support" className="text-primary-500 hover:text-primary-600">Support page</a>. We aim to respond to all enquiries within 48 hours.
           </p>
         </section>
       </div>

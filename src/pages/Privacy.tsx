@@ -26,7 +26,7 @@ export const Privacy = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">1. Our Commitment</h2>
           <p className="text-gray-700">
-            TouchBase is built on trust. We understand the sensitive nature of relationship data and implement robust security measures to protect your information. This privacy policy explains our practices and your rights regarding your data.
+            TouchBase is built on trust. We understand the sensitive nature of relationship data and implement robust security measures to protect your information. This privacy policy explains our practices and your rights regarding your data. For more information about using our service, please see our <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>.
           </p>
         </section>
 
@@ -143,7 +143,7 @@ export const Privacy = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
           <p className="text-gray-700">
-            If you have questions about this Privacy Policy or your data, please visit our <a href="/support" className="text-primary-500 hover:text-primary-600 font-medium">Support page</a>. We aim to respond to all enquiries within 48 hours.
+            If you have questions about this Privacy Policy or your data, please visit our <a href="/support" className="text-primary-500 hover:text-primary-600">Support page</a>. We aim to respond to all enquiries within 48 hours.
           </p>
         </section>
       </div>
