@@ -200,6 +200,7 @@ export const Contacts = () => {
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                 className="flex-shrink-0 p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                aria-label={sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'}
               >
                 <ChevronUpDownIcon className="h-5 w-5 text-gray-500" />
               </button>
