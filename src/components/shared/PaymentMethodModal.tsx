@@ -8,6 +8,8 @@ interface PaymentMethod {
   name: string;
   description: string;
   icon: string;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 interface Props {
@@ -27,8 +29,10 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: 'google_play',
     name: 'Google Play',
-    description: 'Pay through Google Play (only available if installed from Play Store)',
-    icon: '🎮'
+    description: 'Pay through Google Play (coming soon)',
+    icon: '🎮',
+    disabled: true,
+    disabledReason: 'Google Play billing will be available once the app is published on Play Store'
   }
 ];
 
@@ -83,13 +87,20 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                     {PAYMENT_METHODS.map((method) => (
                       <button
                         key={method.id}
-                        onClick={() => onSelect(method.id)}
-                        className="w-full p-4 text-left border rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors flex items-start gap-4"
+                        onClick={() => !method.disabled && onSelect(method.id)}
+                        disabled={method.disabled}
+                        className={`w-full p-4 text-left border rounded-lg transition-colors flex items-start gap-4 ${
+                          method.disabled 
+                            ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                            : 'hover:border-primary-500 hover:bg-primary-50'
+                        }`}
                       >
                         <span className="text-2xl">{method.icon}</span>
                         <div>
                           <h4 className="font-medium text-gray-900">{method.name}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{method.description}</p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {method.disabled ? method.disabledReason : method.description}
+                          </p>
                         </div>
                       </button>
                     ))}
