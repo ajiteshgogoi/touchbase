@@ -91,22 +91,13 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true,
-      resolveDependencies: (filename, deps, { hostId, hostType }) => {
-        // Only preload critical vendor chunks and non-node_modules
-        return deps.filter(dep =>
-          !dep.includes('node_modules') ||
-          dep.includes('vendor-react') ||
-          dep.includes('vendor-ui') ||
-          dep.includes('vendor-firebase-core')
-        )
-      }
+      polyfill: true
     },
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: true, // Remove console logs in production
         ecma: 2020,
-        passes: 3,
+        passes: 3, // Increase optimization passes
         pure_getters: true,
         unsafe: true,
         unsafe_comps: true,
@@ -115,71 +106,19 @@ export default defineConfig({
         toplevel: true
       },
       mangle: {
-        toplevel: true,
-        safari10: true
-      },
-      format: {
-        comments: false,
-        ecma: 2020
+        toplevel: true
       }
     },
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId || '';
-          if (facadeModuleId.includes('node_modules')) {
-            return 'assets/vendor-[name]-[hash].js';
-          }
-          return 'assets/[name]-[hash].js';
-        },
+        chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
         generatedCode: {
           preset: 'es2015',
           symbols: false
-        },
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // UI/Component libraries
-            if (id.includes('@headlessui/react') || id.includes('@heroicons/react')) {
-              return 'vendor-ui';
-            }
-            // Core React
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            // Authentication/Backend
-            if (id.includes('firebase/app') || id.includes('firebase/analytics')) {
-              return 'vendor-firebase-core';
-            }
-            if (id.includes('firebase/')) {
-              return 'vendor-firebase-features';
-            }
-            if (id.includes('@supabase/supabase-js')) {
-              return 'vendor-supabase';
-            }
-            // Payment
-            if (id.includes('@paypal/')) {
-              return 'vendor-paypal';
-            }
-            // State management and data fetching
-            if (id.includes('@tanstack/react-query') || id.includes('zustand')) {
-              return 'vendor-state';
-            }
-            // Date handling
-            if (id.includes('dayjs') || id.includes('moment-timezone')) {
-              return 'vendor-dates';
-            }
-            // Analytics
-            if (id.includes('@vercel/analytics') || id.includes('@vercel/speed-insights')) {
-              return 'vendor-analytics';
-            }
-            // Other utilities
-            return 'vendor-utils';
-          }
         }
-      },
-      preserveEntrySignatures: 'strict'
+      }
     }
   },
   server: {
