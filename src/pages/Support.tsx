@@ -48,17 +48,6 @@ export const Support = () => {
           </p>
         </section>
 
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Help Resources</h2>
-          <p className="text-gray-700 mb-4">
-            For immediate assistance, you can:
-          </p>
-          <ul className="list-disc ml-6 text-gray-700 space-y-2">
-            <li>Visit our <a href="/help" className="text-primary-500 hover:text-primary-600 font-medium">Help Center</a></li>
-            <li>Check our <a href="/terms" className="text-primary-500 hover:text-primary-600 font-medium">Terms of Service</a></li>
-            <li>Review our <a href="/privacy" className="text-primary-500 hover:text-primary-600 font-medium">Privacy Policy</a></li>
-          </ul>
-        </section>
       </div>
     </div>
   );
