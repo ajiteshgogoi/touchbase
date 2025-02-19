@@ -72,6 +72,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                     onClick={onClose}
                     className="text-gray-400 hover:text-gray-500"
                     disabled={isProcessing}
+                    aria-label="Close"
                   >
                     <XMarkIcon className="h-5 w-5" />
                   </button>
