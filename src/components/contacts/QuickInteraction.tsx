@@ -38,7 +38,7 @@ const getDateOptions = (): DateOption[] => [
   { label: 'Last month', value: dayjs().subtract(1, 'month') }
 ];
 
-export const QuickInteraction = ({
+const QuickInteraction = ({
   isOpen,
   onClose,
   contactId,
@@ -335,3 +335,5 @@ export const QuickInteraction = ({
     </Transition>
   );
 };
+
+export default QuickInteraction;

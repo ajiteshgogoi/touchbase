@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
@@ -6,20 +6,24 @@ import { contentReportsService } from '../services/content-reports';
 import { useStore } from '../stores/useStore';
 import dayjs from 'dayjs';
 import type { Reminder, Contact, Interaction } from '../lib/supabase/types';
-import { CalendarIcon, ArrowLeftIcon, FlagIcon } from '@heroicons/react/24/outline';
-import { QuickInteraction } from '../components/contacts/QuickInteraction';
+import { CalendarIcon, ArrowLeftIcon, FlagIcon } from '@heroicons/react/24/outline/esm/index.js';
+
+// Lazy load QuickInteraction
+const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
 
 export const Reminders = () => {
   const navigate = useNavigate();
   const { isPremium, isOnTrial } = useStore();
   const { data: reminders } = useQuery<Reminder[]>({
     queryKey: ['reminders'],
-    queryFn: () => contactsService.getReminders()
+    queryFn: () => contactsService.getReminders(),
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
-    queryFn: contactsService.getContacts
+    queryFn: contactsService.getContacts,
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: totalCount } = useQuery<number>({
@@ -297,13 +301,17 @@ export const Reminders = () => {
         </div>
       </div>
       {quickInteraction && (
-        <QuickInteraction
-          isOpen={quickInteraction.isOpen}
-          onClose={() => setQuickInteraction(null)}
-          contactId={quickInteraction.contactId}
-          contactName={quickInteraction.contactName}
-          defaultType={quickInteraction.type}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
+          <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
+        </div>}>
+          <QuickInteraction
+            isOpen={quickInteraction.isOpen}
+            onClose={() => setQuickInteraction(null)}
+            contactId={quickInteraction.contactId}
+            contactName={quickInteraction.contactName}
+            defaultType={quickInteraction.type}
+          />
+        </Suspense>
       )}
     </>
   );

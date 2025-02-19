@@ -8,9 +8,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-    registerType: 'prompt',
-    injectRegister: 'script',
-    includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      registerType: 'prompt',
+      injectRegister: 'script',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'TouchBase',
         short_name: 'TouchBase',
@@ -89,26 +89,54 @@ export default defineConfig({
     sourcemap: false, // Disable source maps in production
     target: 'esnext', // Enable latest JS features
     chunkSizeWarningLimit: 1000, // Set chunk size warning limit
-    // Add compression settings
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
-        ecma: 2020
+        ecma: 2020,
+        passes: 2
       }
     },
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@heroicons/react'],
-          db: ['@supabase/supabase-js'],
-          payment: ['@paypal/react-paypal-js'],
-          utils: ['dayjs', 'dayjs/plugin/utc', 'dayjs/plugin/timezone'],
-          // Add smaller chunks for pages
-          settings: ['./src/pages/Settings.tsx'],
-          dashboard: ['./src/pages/Dashboard.tsx'],
-          contacts: ['./src/pages/Contacts.tsx']
+          // Core vendor chunks
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@headlessui/react', '@heroicons/react'],
+          'vendor-state': ['@tanstack/react-query'],
+          'vendor-date': ['dayjs', 'dayjs/plugin/utc', 'dayjs/plugin/timezone', 'dayjs/plugin/relativeTime'],
+          
+          // Feature-specific chunks
+          'feature-auth': [
+            '@supabase/supabase-js',
+            './src/lib/supabase/client.ts',
+            './src/lib/auth/google.ts'
+          ],
+
+          // Route-based chunks (automatically code-split)
+          'route-dashboard': [
+            './src/pages/Dashboard.tsx',
+            './src/components/dashboard/DashboardMetrics.tsx',
+            './src/components/dashboard/RecentContacts.tsx'
+          ],
+          'route-contacts': [
+            './src/pages/Contacts.tsx',
+            './src/components/contacts/ContactForm.tsx'
+          ],
+          'route-settings': [
+            './src/pages/Settings.tsx',
+            './src/components/settings/AISettings.tsx',
+            './src/components/settings/NotificationSettings.tsx',
+            './src/components/settings/SubscriptionSettings.tsx'
+          ],
+
+          // Lazy-loaded features
+          'feature-interactions': [
+            './src/components/contacts/QuickInteraction.tsx'
+          ],
+          'feature-feedback': [
+            './src/components/shared/FeedbackModal.tsx'
+          ]
         },
         // Output chunks with content hash for better caching
         entryFileNames: 'assets/[name]-[hash].js',

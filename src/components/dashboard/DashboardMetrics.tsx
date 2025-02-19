@@ -1,0 +1,87 @@
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { contactsService } from '../../services/contacts';
+import { UserGroupIcon, CalendarIcon } from '@heroicons/react/24/outline/esm/index.js';
+import { useStore } from '../../stores/useStore';
+import dayjs from 'dayjs';
+import type { Reminder } from '../../lib/supabase/types';
+
+export const DashboardMetrics = () => {
+  const { isPremium, isOnTrial } = useStore();
+  const { data: contacts } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: contactsService.getContacts,
+    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+  });
+
+  const { data: reminders } = useQuery({
+    queryKey: ['reminders'],
+    queryFn: () => contactsService.getReminders(),
+    staleTime: 5 * 60 * 1000
+  });
+
+  const today = dayjs();
+  const sortedContacts = contacts?.sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+  const visibleContacts = isPremium || isOnTrial ? sortedContacts : sortedContacts?.slice(0, 15);
+  const metrics = {
+    totalContacts: visibleContacts?.length || 0,
+    dueToday: reminders?.filter((r: Reminder) => {
+      const dueDate = dayjs(r.due_date);
+      return dueDate.isSame(today, 'day');
+    }).length || 0,
+    upcomingReminders: reminders?.filter((r: Reminder) => {
+      const dueDate = dayjs(r.due_date);
+      return dueDate.isAfter(today) && !dueDate.isSame(today, 'day');
+    }).length || 0,
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <Link to="/contacts" className="flex">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
+          <div className="flex items-center w-full">
+            <div className="p-3 bg-primary-50 rounded-lg">
+              <UserGroupIcon className="h-8 w-8 text-primary-500" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">All Contacts</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.totalContacts}</p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      <Link to="/reminders" className="flex">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
+          <div className="flex items-center w-full">
+            <div className="p-3 bg-yellow-50 rounded-lg">
+              <CalendarIcon className="h-8 w-8 text-yellow-500" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Interactions Due Today</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.dueToday}</p>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      <Link to="/reminders" className="flex">
+        <div className="bg-white rounded-xl shadow-soft p-6 hover:shadow-lg transition-shadow cursor-pointer flex-1 flex items-center justify-center">
+          <div className="flex items-center w-full">
+            <div className="p-3 bg-primary-50 rounded-lg">
+              <CalendarIcon className="h-8 w-8 text-primary-500" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">Upcoming Reminders</p>
+              <p className="text-2xl font-semibold text-gray-900">{metrics.upcomingReminders}</p>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+};
+
+export default DashboardMetrics;

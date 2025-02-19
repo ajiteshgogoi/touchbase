@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
 import { SparklesIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../services/contacts';
-import { ClockIcon, TrashIcon, PencilSquareIcon, ChevronUpDownIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, TrashIcon, PencilSquareIcon, ChevronUpDownIcon, ArrowLeftIcon } from '@heroicons/react/24/outline/esm/index.js';
 import dayjs from 'dayjs';
 import type { Interaction } from '../lib/supabase/types';
-import { QuickInteraction } from '../components/contacts/QuickInteraction';
+
+// Lazy load QuickInteraction
+const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
 
 type SortField = 'date' | 'type' | 'sentiment';
 type SortOrder = 'asc' | 'desc';
@@ -26,12 +28,14 @@ export const InteractionHistory = () => {
 
   const { data: contact, isLoading: isLoadingContact } = useQuery({
     queryKey: ['contact', contactId],
-    queryFn: () => contactsService.getContact(contactId!)
+    queryFn: () => contactsService.getContact(contactId!),
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: interactions, isLoading: isLoadingInteractions } = useQuery({
     queryKey: ['interactions', contactId],
-    queryFn: () => contactsService.getInteractions(contactId!)
+    queryFn: () => contactsService.getInteractions(contactId!),
+    staleTime: 5 * 60 * 1000
   });
 
   useEffect(() => {
@@ -279,24 +283,28 @@ export const InteractionHistory = () => {
       </div>
 
       {editingInteraction && (
-        <QuickInteraction
-          isOpen={editingInteraction.isOpen}
-          onClose={() => setEditingInteraction(null)}
-          contactId={contactId!}
-          contactName={contact.name}
-          defaultType={editingInteraction.interaction.type}
-          defaultDate={editingInteraction.interaction.date}
-          defaultNotes={editingInteraction.interaction.notes}
-          defaultSentiment={editingInteraction.interaction.sentiment}
-          interactionId={editingInteraction.interaction.id}
-          onSuccess={() => {
-            setEditingInteraction(null);
-            void queryClient.invalidateQueries({
-              queryKey: ['interactions', contactId],
-              exact: true
-            });
-          }}
-        />
+        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
+          <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
+        </div>}>
+          <QuickInteraction
+            isOpen={editingInteraction.isOpen}
+            onClose={() => setEditingInteraction(null)}
+            contactId={contactId!}
+            contactName={contact.name}
+            defaultType={editingInteraction.interaction.type}
+            defaultDate={editingInteraction.interaction.date}
+            defaultNotes={editingInteraction.interaction.notes}
+            defaultSentiment={editingInteraction.interaction.sentiment}
+            interactionId={editingInteraction.interaction.id}
+            onSuccess={() => {
+              setEditingInteraction(null);
+              void queryClient.invalidateQueries({
+                queryKey: ['interactions', contactId],
+                exact: true
+              });
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );
