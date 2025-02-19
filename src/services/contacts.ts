@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
 import { paymentService } from './payment';
+import { getQueryClient } from '../utils/queryClient';
 import { calculateNextContactDate, RelationshipLevel, ContactFrequency} from '../utils/date';
 
 // Extend dayjs with the relativeTime plugin
@@ -107,6 +108,9 @@ export const contactsService = {
 
     if (reminderError) throw reminderError;
     
+    // Invalidate reminders cache after creating a new reminder
+    getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    
     return data;
   },
 
@@ -155,6 +159,9 @@ export const contactsService = {
           });
 
         if (reminderError) throw reminderError;
+        
+        // Invalidate reminders cache after updating a reminder
+        getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
       }
     }
 

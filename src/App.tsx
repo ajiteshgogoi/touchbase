@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
 import { supabase } from './lib/supabase/client';
+import { setQueryClient } from './utils/queryClient';
 import { paymentService } from './services/payment';
 import { notificationService } from './services/notifications';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
@@ -94,6 +95,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+setQueryClient(queryClient);
 
 const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useStore();
