@@ -1,4 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -16,29 +17,74 @@ import { AuthCallback } from './components/auth/AuthCallback';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 
 // Lazy load pages and non-critical components
-// Lazy loading component wrapper
+// Lazy loading component wrapper with error boundary
 const LazyComponent = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={
-    <div className="flex items-center justify-center min-h-screen">
-      <LoadingSpinner />
-    </div>
-  }>
-    {children}
-  </Suspense>
+  <ErrorBoundary>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner />
+      </div>
+    }>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
 );
 
-// Lazy loaded components
-const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
-const Contacts = lazy(() => import('./pages/Contacts').then(module => ({ default: module.Contacts })));
-const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
-const Reminders = lazy(() => import('./pages/Reminders').then(module => ({ default: module.Reminders })));
-const Help = lazy(() => import('./pages/Help').then(module => ({ default: module.Help })));
-const Analytics = lazy(() => import('./pages/Analytics').then(module => ({ default: module.Analytics })));
-const ConversationPrompts = lazy(() => import('./pages/ConversationPrompts').then(module => ({ default: module.default })));
-const Terms = lazy(() => import('./pages/Terms').then(module => ({ default: module.Terms })));
-const Privacy = lazy(() => import('./pages/Privacy').then(module => ({ default: module.Privacy })));
-const ContactForm = lazy(() => import('./components/contacts/ContactForm').then(module => ({ default: module.ContactForm })));
-const InteractionHistory = lazy(() => import('./pages/InteractionHistory').then(module => ({ default: module.InteractionHistory })));
+// Lazy loaded components with async imports
+const Dashboard = lazy(async () => {
+  const module = await import('./pages/Dashboard');
+  return { default: module.Dashboard };
+});
+
+const Contacts = lazy(async () => {
+  const module = await import('./pages/Contacts');
+  return { default: module.Contacts };
+});
+
+const Settings = lazy(async () => {
+  const module = await import('./pages/Settings');
+  return { default: module.Settings };
+});
+
+const Reminders = lazy(async () => {
+  const module = await import('./pages/Reminders');
+  return { default: module.Reminders };
+});
+
+const Help = lazy(async () => {
+  const module = await import('./pages/Help');
+  return { default: module.Help };
+});
+
+const Analytics = lazy(async () => {
+  const module = await import('./pages/Analytics');
+  return { default: module.Analytics };
+});
+
+const ConversationPrompts = lazy(async () => {
+  const module = await import('./pages/ConversationPrompts');
+  return { default: module.default };
+});
+
+const Terms = lazy(async () => {
+  const module = await import('./pages/Terms');
+  return { default: module.Terms };
+});
+
+const Privacy = lazy(async () => {
+  const module = await import('./pages/Privacy');
+  return { default: module.Privacy };
+});
+
+const ContactForm = lazy(async () => {
+  const module = await import('./components/contacts/ContactForm');
+  return { default: module.ContactForm };
+});
+
+const InteractionHistory = lazy(async () => {
+  const module = await import('./pages/InteractionHistory');
+  return { default: module.InteractionHistory };
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
