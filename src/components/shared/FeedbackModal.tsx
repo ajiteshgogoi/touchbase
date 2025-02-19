@@ -78,6 +78,7 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
                   <button
                     onClick={onClose}
                     className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                    aria-label="Close"
                   >
                     <XMarkIcon className="w-5 h-5" />
                   </button>

@@ -58,6 +58,7 @@ export const InstallModal = ({ isOpen, onClose }: InstallModalProps) => {
                     type="button"
                     className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
                     onClick={onClose}
+                    aria-label="Close"
                   >
                     Got it
                   </button>
