@@ -120,7 +120,21 @@ export const Terms = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">9. Account Termination</h2>
+          <h2 className="text-2xl font-semibold mb-4">9. Cancellation and Refund Policy</h2>
+          <p className="text-gray-700">
+            When you cancel your subscription:
+          </p>
+          <ul className="list-disc ml-6 mt-2 text-gray-700">
+            <li>You will continue to have access to all subscription benefits until the end of your current billing period</li>
+            <li>Your subscription will not auto-renew for the next billing period</li>
+            <li>No partial refunds will be provided for the remaining subscription period</li>
+            <li>Refunds are only considered under exceptional circumstances, at TouchBase's sole discretion</li>
+            <li>All refund decisions made by TouchBase are final</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">10. Account Termination</h2>
           <p className="text-gray-700">
             TouchBase may terminate accounts that:
           </p>
@@ -137,14 +151,14 @@ export const Terms = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">10. Changes to Terms</h2>
+          <h2 className="text-2xl font-semibold mb-4">11. Changes to Terms</h2>
           <p className="text-gray-700">
             We may update these Terms of Service to reflect service improvements or legal requirements. We will notify you of material changes via email or in-app notification. Continued use after changes constitutes acceptance of new terms.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">11. Contact Information</h2>
+          <h2 className="text-2xl font-semibold mb-4">12. Contact Information</h2>
           <p className="text-gray-700">
             For questions about these Terms of Service or to report violations, please contact us through our help section. We aim to respond to all enquiries within 48 hours.
           </p>
