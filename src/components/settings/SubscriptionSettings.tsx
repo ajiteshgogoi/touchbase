@@ -50,7 +50,20 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
     }
   };
 
-  const handleResumeSubscription = () => {
+  const handleResumeSubscription = async () => {
+    try {
+      setIsSubscribing(true);
+      // Use the same payment method as before
+      const paymentMethod: PaymentMethod = subscription?.google_play_token ? 'google_play' : 'paypal';
+      await paymentService.createSubscription('premium', paymentMethod);
+    } catch (error: any) {
+      console.error('Resume subscription error:', error);
+      toast.error(error?.message || 'Failed to resume subscription');
+      setIsSubscribing(false);
+    }
+  };
+
+  const handleNewSubscription = () => {
     setIsModalOpen(true);
   };
 
@@ -102,7 +115,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
                 </ul>
                 {plan.id === 'premium' && !isPremium && (
                   <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={handleNewSubscription}
                     disabled={isSubscribing}
                     className="w-full px-4 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
