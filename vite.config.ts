@@ -5,6 +5,11 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  optimizeDeps: {
+    disabled: false,
+    entries: ['src/**/*.tsx', 'src/**/*.ts'],
+    exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx']
+  },
   plugins: [
     react(),
     VitePWA({
@@ -91,22 +96,43 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true
+      polyfill: true,
+      resolveDependencies: (filename) => {
+        if (filename.includes('node_modules')) {
+          return [];
+        }
+        return undefined;
+      }
     },
+    cssCodeSplit: true,
+    reportCompressedSize: true,
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console logs in production
+        drop_console: true,
         ecma: 2020,
-        passes: 3, // Increase optimization passes
+        passes: 4,
         pure_getters: true,
         unsafe: true,
         unsafe_comps: true,
         unsafe_methods: true,
         unsafe_proto: true,
-        toplevel: true
+        toplevel: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        drop_debugger: true,
+        reduce_vars: true,
+        booleans_as_integers: true,
+        keep_fargs: false
       },
       mangle: {
-        toplevel: true
+        toplevel: true,
+        safari10: true,
+        properties: {
+          regex: /^_/
+        }
+      },
+      format: {
+        comments: false,
+        ecma: 2020
       }
     },
     rollupOptions: {
@@ -116,8 +142,17 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]',
         generatedCode: {
           preset: 'es2015',
-          symbols: false
-        }
+          symbols: false,
+          constBindings: true
+        },
+        compact: true,
+        freeze: false,
+        externalLiveBindings: false
+      },
+      treeshake: {
+        moduleSideEffects: 'no-external',
+        propertyReadSideEffects: false,
+        tryCatchDeoptimization: false
       }
     }
   },
