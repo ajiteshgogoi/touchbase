@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ProfileMenu } from './ProfileMenu';
+import { lazy, Suspense } from 'react';
+
+const ProfileMenu = lazy(() => import('./ProfileMenu').then(mod => ({ default: mod.ProfileMenu })));
 
 export const Navbar = () => {
   return (
@@ -25,7 +27,11 @@ export const Navbar = () => {
           </div>
 
           <div className="flex items-center">
-            <ProfileMenu />
+            <Suspense fallback={
+              <div className="h-9 w-9 rounded-full bg-gray-100 animate-pulse"></div>
+            }>
+              <ProfileMenu />
+            </Suspense>
           </div>
         </div>
       </div>

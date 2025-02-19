@@ -1,10 +1,43 @@
-import { Fragment, useState } from 'react';
-import { Menu, Transition } from '@headlessui/react';
+import { Fragment, useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { UserCircleIcon, ChevronDownIcon, SparklesIcon, ChatBubbleOvalLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../../stores/useStore';
 import { signOut } from '../../lib/supabase/client';
 import { initiateGoogleLogin } from '../../lib/auth/google';
+import { Menu, Transition } from '@headlessui/react';
+
+// Lazy load icons individually to reduce initial bundle size
+const UserCircleIcon = lazy(() => import('@heroicons/react/24/outline/UserCircleIcon').then(mod => ({ default: mod.default })));
+const ChevronDownIcon = lazy(() => import('@heroicons/react/24/outline/ChevronDownIcon').then(mod => ({ default: mod.default })));
+const SparklesIcon = lazy(() => import('@heroicons/react/24/outline/SparklesIcon').then(mod => ({ default: mod.default })));
+const ChatBubbleIcon = lazy(() => import('@heroicons/react/24/outline/ChatBubbleOvalLeftEllipsisIcon').then(mod => ({ default: mod.default })));
+
+const IconFallback = () => <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />;
+
+// Pre-compute styles outside of render
+const menuStyles = {
+  base: "group flex w-full items-center rounded-md px-2 py-2 text-sm",
+  active: "bg-primary-50 text-primary-600",
+  inactive: "text-gray-700"
+};
+
+// Menu item component to handle active state
+const MenuItem: React.FC<{
+  to?: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+}> = ({ to, onClick, children }) => {
+  return (
+    <Menu.Item>
+      {({ active }) => {
+        const className = `${menuStyles.base} ${active ? menuStyles.active : menuStyles.inactive}`;
+        if (to) {
+          return <Link to={to} className={className}>{children}</Link>;
+        }
+        return <button onClick={onClick} className={className}>{children}</button>;
+      }}
+    </Menu.Item>
+  );
+};
 
 export const ProfileMenu = () => {
   const { user, isPremium } = useStore();
@@ -64,11 +97,6 @@ export const ProfileMenu = () => {
     );
   }
 
-  // Pre-compute menu item styles
-  const menuItemBaseStyle = "group flex w-full items-center rounded-md px-2 py-2 text-sm";
-  const menuItemActiveStyle = "bg-primary-50 text-primary-600";
-  const menuItemInactiveStyle = "text-gray-700";
-
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div className="flex items-center gap-2">
@@ -77,12 +105,18 @@ export const ProfileMenu = () => {
             isPremium ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'
           }`}
         >
-          <SparklesIcon className="h-3 w-3" />
+          <Suspense fallback={<IconFallback />}>
+            <SparklesIcon className="h-3 w-3" />
+          </Suspense>
           <span>Premium</span>
         </div>
         <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200">
-          <UserCircleIcon className="h-6 w-6" />
-          <ChevronDownIcon className="h-4 w-4" />
+          <Suspense fallback={<IconFallback />}>
+            <UserCircleIcon className="h-6 w-6" />
+          </Suspense>
+          <Suspense fallback={<IconFallback />}>
+            <ChevronDownIcon className="h-4 w-4" />
+          </Suspense>
         </Menu.Button>
       </div>
 
@@ -95,56 +129,25 @@ export const ProfileMenu = () => {
         leaveFrom="opacity-100 scale-100"
         leaveTo="opacity-0 scale-95"
       >
-        <Menu.Items
-          className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50"
-          style={{
-            willChange: 'transform, opacity'
-          }}
-        >
+        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50">
           <div className="px-1 py-1">
-            <Menu.Item>
-              {({ active }) => (
-                <Link
-                  to="/conversation-prompts"
-                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
-                >
-                  <ChatBubbleOvalLeftEllipsisIcon className="h-5 w-5 mr-2 text-primary-500" />
-                  Conversation Prompts
-                </Link>
-              )}
-            </Menu.Item>
-            <Menu.Item>
-              {({ active }) => (
-                <Link
-                  to="/help"
-                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
-                >
-                  How to Use
-                </Link>
-              )}
-            </Menu.Item>
-            <Menu.Item>
-              {({ active }) => (
-                <Link
-                  to="/settings"
-                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
-                >
-                  Settings
-                </Link>
-              )}
-            </Menu.Item>
+            <MenuItem to="/conversation-prompts">
+              <Suspense fallback={<IconFallback />}>
+                <ChatBubbleIcon className="h-5 w-5 mr-2 text-primary-500" />
+              </Suspense>
+              Conversation Prompts
+            </MenuItem>
+            <MenuItem to="/help">
+              How to Use
+            </MenuItem>
+            <MenuItem to="/settings">
+              Settings
+            </MenuItem>
           </div>
           <div className="px-1 py-1">
-            <Menu.Item>
-              {({ active }) => (
-                <button
-                  onClick={handleSignOut}
-                  className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
-                >
-                  Sign Out
-                </button>
-              )}
-            </Menu.Item>
+            <MenuItem onClick={handleSignOut}>
+              Sign Out
+            </MenuItem>
           </div>
         </Menu.Items>
       </Transition>

@@ -86,10 +86,13 @@ export default defineConfig({
     }
   },
   build: {
-    sourcemap: false, // Disable source maps in production
-    target: 'esnext', // Enable latest JS features
-    chunkSizeWarningLimit: 1000, // Set chunk size warning limit
+    sourcemap: false,
+    target: 'esnext',
+    chunkSizeWarningLimit: 1000,
     minify: 'terser',
+    modulePreload: {
+      polyfill: true // Enable module preload polyfill
+    },
     terserOptions: {
       compress: {
         drop_console: true,
@@ -99,44 +102,49 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core vendor chunks
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['@headlessui/react', '@heroicons/react'],
-          'vendor-state': ['@tanstack/react-query'],
-          'vendor-date': ['dayjs', 'dayjs/plugin/utc', 'dayjs/plugin/timezone', 'dayjs/plugin/relativeTime'],
+        manualChunks(id) {
+          // Core dependencies
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@headlessui') || id.includes('@heroicons')) {
+              // Split UI components into smaller chunks
+              const chunk = id.includes('@headlessui') ? 'headless-ui' : 'heroicons';
+              return `vendor-ui-${chunk}`;
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-state';
+            }
+            if (id.includes('dayjs')) {
+              return 'vendor-date';
+            }
+            // Other node_modules go to vendor chunk
+            return 'vendor';
+          }
           
-          // Feature-specific chunks
-          'feature-auth': [
-            '@supabase/supabase-js',
-            './src/lib/supabase/client.ts',
-            './src/lib/auth/google.ts'
-          ],
-
-          // Route-based chunks (automatically code-split)
-          'route-dashboard': [
-            './src/pages/Dashboard.tsx',
-            './src/components/dashboard/DashboardMetrics.tsx',
-            './src/components/dashboard/RecentContacts.tsx'
-          ],
-          'route-contacts': [
-            './src/pages/Contacts.tsx',
-            './src/components/contacts/ContactForm.tsx'
-          ],
-          'route-settings': [
-            './src/pages/Settings.tsx',
-            './src/components/settings/AISettings.tsx',
-            './src/components/settings/NotificationSettings.tsx',
-            './src/components/settings/SubscriptionSettings.tsx'
-          ],
-
-          // Lazy-loaded features
-          'feature-interactions': [
-            './src/components/contacts/QuickInteraction.tsx'
-          ],
-          'feature-feedback': [
-            './src/components/shared/FeedbackModal.tsx'
-          ]
+          // Feature-based code splitting
+          if (id.includes('/components/')) {
+            if (id.includes('/layout/')) {
+              return 'layout';
+            }
+            if (id.includes('/shared/')) {
+              return 'shared';
+            }
+            // Split other components by their directory
+            const match = id.match(/\/components\/([^/]+)\//);
+            if (match) {
+              return `feature-${match[1]}`;
+            }
+          }
+          
+          // Route-based code splitting
+          if (id.includes('/pages/')) {
+            const match = id.match(/\/pages\/([^/]+)\./);
+            if (match) {
+              return `route-${match[1].toLowerCase()}`;
+            }
+          }
         },
         // Output chunks with content hash for better caching
         entryFileNames: 'assets/[name]-[hash].js',
