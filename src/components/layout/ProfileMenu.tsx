@@ -110,7 +110,7 @@ export const ProfileMenu = () => {
           </Suspense>
           <span>Premium</span>
         </div>
-        <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200">
+        <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200" aria-label="Profile menu">
           <Suspense fallback={<IconFallback />}>
             <UserCircleIcon className="h-6 w-6" />
           </Suspense>
