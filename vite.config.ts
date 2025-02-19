@@ -91,7 +91,14 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true // Enable module preload polyfill
+      polyfill: true, // Enable module preload polyfill
+      resolveDependencies: (filename, deps) => {
+        // Always preload critical chunks
+        if (filename.includes('index.html')) {
+          return [...deps, 'vendor-react', 'vendor-ui', 'vendor'];
+        }
+        return deps;
+      }
     },
     terserOptions: {
       compress: {
@@ -103,48 +110,29 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Core dependencies
           if (id.includes('node_modules')) {
-            if (id.includes('react')) {
+            // Group React and related packages together
+            if (id.includes('react') || id.includes('@tanstack/react-query')) {
               return 'vendor-react';
             }
+            // Group UI-related packages
             if (id.includes('@headlessui') || id.includes('@heroicons')) {
-              // Split UI components into smaller chunks
-              const chunk = id.includes('@headlessui') ? 'headless-ui' : 'heroicons';
-              return `vendor-ui-${chunk}`;
+              return 'vendor-ui';
             }
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-state';
-            }
-            if (id.includes('dayjs')) {
-              return 'vendor-date';
-            }
-            // Other node_modules go to vendor chunk
+            // All other dependencies in one chunk
             return 'vendor';
           }
           
-          // Feature-based code splitting
-          if (id.includes('/components/')) {
-            if (id.includes('/layout/')) {
-              return 'layout';
-            }
-            if (id.includes('/shared/')) {
-              return 'shared';
-            }
-            // Split other components by their directory
-            const match = id.match(/\/components\/([^/]+)\//);
-            if (match) {
-              return `feature-${match[1]}`;
-            }
-          }
-          
-          // Route-based code splitting
+          // Only split routes, keep components together
           if (id.includes('/pages/')) {
             const match = id.match(/\/pages\/([^/]+)\./);
             if (match) {
               return `route-${match[1].toLowerCase()}`;
             }
           }
+          
+          // Keep shared and feature components in the main bundle
+          return undefined;
         },
         // Output chunks with content hash for better caching
         entryFileNames: 'assets/[name]-[hash].js',
