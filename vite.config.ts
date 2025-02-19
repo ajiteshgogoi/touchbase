@@ -91,28 +91,33 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true, // Enable module preload polyfill
-      resolveDependencies: (filename, deps) => {
-        // Always preload critical chunks
-        if (filename.includes('index.html')) {
-          return [...deps, 'vendor-react', 'vendor-ui', 'vendor'];
-        }
-        return deps;
-      }
+      polyfill: true
     },
     terserOptions: {
       compress: {
-        drop_console: false, // Keep console logs for debugging
+        drop_console: true, // Remove console logs in production
         ecma: 2020,
-        passes: 2
+        passes: 3, // Increase optimization passes
+        pure_getters: true,
+        unsafe: true,
+        unsafe_comps: true,
+        unsafe_methods: true,
+        unsafe_proto: true,
+        toplevel: true
+      },
+      mangle: {
+        toplevel: true
       }
     },
     rollupOptions: {
       output: {
-        // Only keep hash-based filenames for caching
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        generatedCode: {
+          preset: 'es2015',
+          symbols: false
+        }
       }
     }
   },
