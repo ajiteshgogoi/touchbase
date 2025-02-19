@@ -60,7 +60,7 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
 
         {/* Timezone Settings */}
         <div className="flex flex-col">
-          <label className="text-gray-900 font-medium">
+          <label htmlFor="timezone-select" className="text-gray-900 font-medium">
             Timezone
           </label>
           <p className="text-sm text-gray-600 mt-1">
@@ -72,8 +72,10 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
             placeholder="Search timezone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search through timezone list"
           />
           <select
+            id="timezone-select"
             className="block w-full rounded-b-md border-t-0 border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
             value={settings.timezone}
             onChange={(e) => onUpdate({

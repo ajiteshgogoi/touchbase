@@ -189,6 +189,7 @@ export const Contacts = () => {
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value as SortField)}
                   className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none bg-white text-sm"
+                  aria-label="Sort contacts by"
                 >
                   <option value="name">Sort by Name</option>
                   <option value="last_contacted">Sort by Last Contacted</option>
