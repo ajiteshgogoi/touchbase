@@ -8,11 +8,11 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white overflow-x-hidden flex flex-col">
+    <div className="min-h-screen min-w-[320px] bg-gradient-to-br from-primary-50 to-white flex flex-col">
       <Analytics />
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 pt-8 flex-grow">
-        <div className="bg-white rounded-xl shadow-soft p-6 sm:p-8">
+      <main className="w-full min-w-[320px] max-w-7xl mx-auto px-4 pb-4 pt-8 flex-grow">
+        <div className="w-full bg-white rounded-xl shadow-soft p-6">
           {children}
         </div>
       </main>
