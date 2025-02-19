@@ -79,9 +79,9 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                 </Dialog.Title>
 
                 {isProcessing ? (
-                  <div className="flex flex-col items-center justify-center py-8">
+                  <div className="flex flex-col items-center justify-center h-40">
                     <LoadingSpinner />
-                    <p className="mt-4 text-gray-600">Processing payment...</p>
+                    <p className="mt-4 text-primary-500">Processing payment...</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
