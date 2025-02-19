@@ -86,21 +86,47 @@ export const Contacts = () => {
     if (confirm('Are you sure you want to delete this contact?')) {
       try {
         await contactsService.deleteContact(contactId);
-        // Invalidate both contacts and reminders queries
+        
+        // Optimistically update the contacts list
+        queryClient.setQueryData(['contacts'], (old: Contact[] | undefined) =>
+          old ? old.filter(contact => contact.id !== contactId) : []
+        );
+        
+        // Optimistically update the total count for free users
+        if (!isPremium && !isOnTrial) {
+          queryClient.setQueryData(['contactsCount'], (old: number | undefined) =>
+            old !== undefined ? old - 1 : undefined
+          );
+        }
+        
+        // Then trigger background refetch to ensure data consistency
         await Promise.all([
           queryClient.invalidateQueries({
             queryKey: ['contacts'],
-            exact: true,
-            refetchType: 'all'
+            exact: true
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['contactsCount'],
+            exact: true
           }),
           queryClient.invalidateQueries({
             queryKey: ['reminders'],
-            exact: true,
-            refetchType: 'all'
+            exact: true
           })
         ]);
       } catch (error) {
         console.error('Error deleting contact:', error);
+        // Refetch on error to restore correct state
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ['contacts'],
+            exact: true
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['contactsCount'],
+            exact: true
+          })
+        ]);
       }
     }
   };
@@ -209,15 +235,15 @@ export const Contacts = () => {
         </div>
 
         <div className="p-4 space-y-4">
-          {/* Show warning only to free users who previously had more than 15 contacts (during trial/premium) */}
-          {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
+          {/* Show banner only to free users when total contacts exceed 15 */}
+          {!isPremium && !isOnTrial && !countLoading && totalCount !== undefined && totalCount > 15 && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
               <p className="text-sm text-amber-800">
                 You're seeing your 15 most recent contacts. {' '}
                 <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                   Upgrade to Premium
                 </Link>{' '}
-                to access all {totalCount} of your contacts.
+                to manage all {totalCount} of your contacts.
               </p>
             </div>
           )}

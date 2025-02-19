@@ -94,15 +94,15 @@ export const Reminders = () => {
           </div>
         </div>
 
-        {/* Show warning only to free users who previously had more than 15 contacts (during trial/premium) */}
-        {!isPremium && !isOnTrial && contacts && totalCount && totalCount > contacts.length && (
+        {/* Show banner only to free users when total contacts exceed 15 */}
+        {!isPremium && !isOnTrial && totalCount !== undefined && totalCount > 15 && (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
               You're seeing reminders for your 15 most recent contacts. {' '}
               <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                 Upgrade to Premium
               </Link>{' '}
-              to manage reminders for all {totalCount} contacts.
+              to manage reminders for all {totalCount} of your contacts.
             </p>
           </div>
         )}

@@ -219,12 +219,15 @@ export const contactsService = {
   },
 
   async getTotalContactCount(): Promise<number> {
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from('contacts')
-      .select('id', { count: 'exact' });
+      .select('*', {
+        count: 'exact',
+        head: true  // Only get count, don't return actual rows
+      });
     
     if (error) throw error;
-    return data?.length || 0;
+    return count || 0;
   },
 
   async getReminders(contactId?: string): Promise<Reminder[]> {

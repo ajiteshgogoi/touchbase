@@ -30,21 +30,47 @@ export const RecentContacts = () => {
     if (confirm('Are you sure you want to delete this contact?')) {
       try {
         await contactsService.deleteContact(contactId);
-        // Invalidate both contacts and reminders queries
+        
+        // Optimistically update the contacts list
+        queryClient.setQueryData(['contacts'], (old: Contact[] | undefined) =>
+          old ? old.filter(contact => contact.id !== contactId) : []
+        );
+        
+        // Optimistically update the total count for free users
+        if (!isPremium && !isOnTrial) {
+          queryClient.setQueryData(['contactsCount'], (old: number | undefined) =>
+            old !== undefined ? old - 1 : undefined
+          );
+        }
+        
+        // Then trigger background refetch to ensure data consistency
         await Promise.all([
           queryClient.invalidateQueries({
             queryKey: ['contacts'],
-            exact: true,
-            refetchType: 'all'
+            exact: true
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['contactsCount'],
+            exact: true
           }),
           queryClient.invalidateQueries({
             queryKey: ['reminders'],
-            exact: true,
-            refetchType: 'all'
+            exact: true
           })
         ]);
       } catch (error) {
         console.error('Error deleting contact:', error);
+        // Refetch on error to restore correct state
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ['contacts'],
+            exact: true
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['contactsCount'],
+            exact: true
+          })
+        ]);
       }
     }
   };
