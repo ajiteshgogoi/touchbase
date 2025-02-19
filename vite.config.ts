@@ -91,22 +91,40 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true
+      polyfill: true,
+      resolveDependencies: (filename, deps) => {
+        if (filename.includes('index.html')) {
+          return deps.filter(dep => !dep.includes('node_modules'));
+        }
+        return deps;
+      }
     },
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console logs in production
+        drop_console: true,
         ecma: 2020,
-        passes: 3, // Increase optimization passes
+        passes: 4,
         pure_getters: true,
         unsafe: true,
         unsafe_comps: true,
         unsafe_methods: true,
         unsafe_proto: true,
-        toplevel: true
+        unsafe_regexp: true,
+        toplevel: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        drop_debugger: true,
+        reduce_vars: true,
+        reduce_funcs: true,
+        keep_fargs: false,
+        arrows: true
       },
       mangle: {
-        toplevel: true
+        toplevel: true,
+        safari10: true
+      },
+      format: {
+        comments: false,
+        ascii_only: true
       }
     },
     rollupOptions: {
@@ -117,6 +135,19 @@ export default defineConfig({
         generatedCode: {
           preset: 'es2015',
           symbols: false
+        },
+        manualChunks(id) {
+          // Group react runtime together
+          if (id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/')) {
+            return 'react-runtime';
+          }
+          // Group major UI dependencies
+          if (id.includes('node_modules/@headlessui/') ||
+              id.includes('node_modules/@heroicons/')) {
+            return 'ui-libs';
+          }
         }
       }
     }
