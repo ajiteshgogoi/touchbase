@@ -1,13 +1,26 @@
 import { useEffect } from 'react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 export const Support = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8">Support</h1>
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+          aria-label="Go back"
+        >
+          <ArrowLeftIcon className="h-5 w-5" />
+        </button>
+        <h1 className="text-3xl font-bold">Support</h1>
+      </div>
 
       <div className="space-y-6">
         <section>
