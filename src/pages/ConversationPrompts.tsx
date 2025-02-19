@@ -186,6 +186,9 @@ const ConversationPrompts: React.FC = () => {
               <p>
                 Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
               </p>
+              <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
+                <strong>Note:</strong> Conversation prompts are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
+              </p>
             </div>
           </div>
         </div>
