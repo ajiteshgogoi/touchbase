@@ -109,9 +109,8 @@ export default defineConfig({
               return 'vendor-react';
             }
             if (id.includes('@headlessui') || id.includes('@heroicons')) {
-              // Split UI components into smaller chunks
-              const chunk = id.includes('@headlessui') ? 'headless-ui' : 'heroicons';
-              return `vendor-ui-${chunk}`;
+              // Combine UI components into a single chunk
+              return 'vendor-ui';
             }
             if (id.includes('@tanstack/react-query')) {
               return 'vendor-state';
@@ -122,25 +121,15 @@ export default defineConfig({
             // Other node_modules go to vendor chunk
             return 'vendor';
           }
-          
-          // Feature-based code splitting
+
+          // Feature-based code splitting (simplified)
           if (id.includes('/components/')) {
-            if (id.includes('/layout/')) {
-              return 'layout';
-            }
-            if (id.includes('/shared/')) {
-              return 'shared';
-            }
-            // Split other components by their directory
-            const match = id.match(/\/components\/([^/]+)\//);
-            if (match) {
-              return `feature-${match[1]}`;
-            }
+            return 'components';
           }
-          
-          // Route-based code splitting
+
+          // Route-based code splitting (more robust regex)
           if (id.includes('/pages/')) {
-            const match = id.match(/\/pages\/([^/]+)\./);
+            const match = id.match(/\/pages\/([a-zA-Z0-9-]+)\./);
             if (match) {
               return `route-${match[1].toLowerCase()}`;
             }
