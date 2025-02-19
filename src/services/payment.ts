@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase/client';
 import { platform } from '../utils/platform';
-import { subscriptionValidator } from './subscription-validator';
 
 interface SubscriptionPlan {
   id: string;
@@ -85,13 +84,15 @@ declare global {
   }
 }
 
-export const paymentService = {
-  async createSubscription(planId: string): Promise<string> {
-    try {
-      // Validate platform matches subscription type
-      await subscriptionValidator.validateSubscriptionPlatform();
+type PaymentMethod = 'paypal' | 'google_play';
 
-      if (platform.isAndroid()) {
+export const paymentService = {
+  async createSubscription(planId: string, paymentMethod: PaymentMethod): Promise<string> {
+    try {
+      if (paymentMethod === 'google_play') {
+        if (!platform.isGooglePlayBillingAvailable()) {
+          throw new Error('Google Play Billing is not available. Please download from Play Store to use this payment method.');
+        }
         return this._createGooglePlaySubscription(planId);
       } else {
         return this._createPayPalSubscription(planId);
@@ -317,15 +318,12 @@ export const paymentService = {
     }
   },
 
-  async cancelSubscription(): Promise<void> {
+  async cancelSubscription(paymentMethod: PaymentMethod): Promise<void> {
     try {
-      // Validate platform matches subscription type
-      await subscriptionValidator.validateSubscriptionPlatform();
-
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
-      if (platform.isAndroid()) {
+      if (paymentMethod === 'google_play') {
         await this._cancelGooglePlaySubscription(session.access_token);
       } else {
         await this._cancelPayPalSubscription(session.access_token);
@@ -373,8 +371,16 @@ export const paymentService = {
         }
       });
 
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        throw new Error('Failed to cancel subscription');
+        throw new Error(responseData.error || 'Failed to cancel subscription');
+      }
+
+      // Handle PayPal redirect URL if provided in response
+      if (responseData.redirectUrl) {
+        window.location.href = responseData.redirectUrl;
+        return;
       }
     } catch (error) {
       console.error('Error canceling PayPal subscription:', error);
