@@ -135,6 +135,19 @@ export default defineConfig({
         generatedCode: {
           preset: 'es2015',
           symbols: false
+        },
+        manualChunks(id) {
+          // Group react runtime together
+          if (id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/scheduler/')) {
+            return 'react-runtime';
+          }
+          // Group major UI dependencies
+          if (id.includes('node_modules/@headlessui/') ||
+              id.includes('node_modules/@heroicons/')) {
+            return 'ui-libs';
+          }
         }
       }
     }
