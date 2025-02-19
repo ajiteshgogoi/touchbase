@@ -293,7 +293,32 @@ function App() {
   }, [setUser, setIsLoading, setIsPremium]);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <ErrorBoundary fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white">
+        <div className="text-2xl font-semibold text-gray-900 mb-4">Application Error</div>
+        <div className="text-base text-gray-600 mb-6 text-center max-w-md">
+          An unexpected error occurred while loading the application. This might be due to network issues or a problem with loading required resources.
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+          >
+            Retry Loading
+          </button>
+          <button
+            onClick={() => {
+              localStorage.clear();
+              window.location.href = '/login';
+            }}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Reset & Login
+          </button>
+        </div>
+      </div>
+    }>
+      <QueryClientProvider client={queryClient}>
         <SpeedInsights />
         <Toaster
           position="top-right"
@@ -313,123 +338,124 @@ function App() {
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/terms" element={<LazyComponent><Terms /></LazyComponent>} />
               <Route path="/privacy" element={<LazyComponent><Privacy /></LazyComponent>} />
-              
+
               {/* Protected Routes */}
               <Route
-              path="/"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <Dashboard />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
-            
-            <Route
-              path="/contacts"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <Contacts />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
-            
-            <Route
-              path="/contacts/new"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <ContactForm />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
-            
-            <Route
-             path="/contacts/:id/edit"
-             element={
-               <AuthenticatedRoute>
-                 <LazyComponent>
-                   <ContactForm />
-                 </LazyComponent>
-               </AuthenticatedRoute>
-             }
-            />
+                path="/"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <Dashboard />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
 
-           <Route
-             path="/contacts/:contactId/interactions"
-             element={
-               <AuthenticatedRoute>
-                 <LazyComponent>
-                   <InteractionHistory />
-                 </LazyComponent>
-               </AuthenticatedRoute>
-             }
-            />
+              <Route
+                path="/contacts"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <Contacts />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
 
-           <Route
-              path="/analytics"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <Analytics />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
+              <Route
+                path="/contacts/new"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <ContactForm />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
 
-            <Route
-              path="/reminders"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <Reminders />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <Settings />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
+              <Route
+                path="/contacts/:id/edit"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <ContactForm />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
 
-            <Route
-              path="/help"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <Help />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
+              <Route
+                path="/contacts/:contactId/interactions"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <InteractionHistory />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
 
-            <Route
-              path="/conversation-prompts"
-              element={
-                <AuthenticatedRoute>
-                  <LazyComponent>
-                    <ConversationPrompts />
-                  </LazyComponent>
-                </AuthenticatedRoute>
-              }
-            />
-              
+              <Route
+                path="/analytics"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <Analytics />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route
+                path="/reminders"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <Reminders />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <Settings />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route
+                path="/help"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <Help />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route
+                path="/conversation-prompts"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <ConversationPrompts />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
+
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Layout>
         </BrowserRouter>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

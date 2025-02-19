@@ -95,57 +95,14 @@ export default defineConfig({
     },
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false, // Keep console logs for debugging
         ecma: 2020,
         passes: 2
       }
     },
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // Core dependencies
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) {
-              return 'vendor-react';
-            }
-            if (id.includes('@headlessui') || id.includes('@heroicons')) {
-              // Split UI components into smaller chunks
-              const chunk = id.includes('@headlessui') ? 'headless-ui' : 'heroicons';
-              return `vendor-ui-${chunk}`;
-            }
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-state';
-            }
-            if (id.includes('dayjs')) {
-              return 'vendor-date';
-            }
-            // Other node_modules go to vendor chunk
-            return 'vendor';
-          }
-          
-          // Feature-based code splitting
-          if (id.includes('/components/')) {
-            if (id.includes('/layout/')) {
-              return 'layout';
-            }
-            if (id.includes('/shared/')) {
-              return 'shared';
-            }
-            // Split other components by their directory
-            const match = id.match(/\/components\/([^/]+)\//);
-            if (match) {
-              return `feature-${match[1]}`;
-            }
-          }
-          
-          // Route-based code splitting
-          if (id.includes('/pages/')) {
-            const match = id.match(/\/pages\/([^/]+)\./);
-            if (match) {
-              return `route-${match[1].toLowerCase()}`;
-            }
-          }
-        },
+        manualChunks: undefined, // Temporarily disable manual chunks
         // Output chunks with content hash for better caching
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
