@@ -160,7 +160,7 @@ export const Terms = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-4">12. Contact Information</h2>
           <p className="text-gray-700">
-            For questions about these Terms of Service or to report violations, please visit our <a href="/support" className="text-blue-600 hover:underline">Support page</a>. We aim to respond to all enquiries within 48 hours.
+            For questions about these Terms of Service or to report violations, please visit our <a href="/support" className="text-primary-500 hover:text-primary-600 font-medium">Support page</a>. We aim to respond to all enquiries within 48 hours.
           </p>
         </section>
       </div>
