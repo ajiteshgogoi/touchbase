@@ -72,7 +72,7 @@ export default defineConfig({
               cacheName: 'static-resources',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+                maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
               }
             }
           }
