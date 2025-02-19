@@ -5,11 +5,6 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  optimizeDeps: {
-    disabled: false,
-    entries: ['src/**/*.tsx', 'src/**/*.ts'],
-    exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx']
-  },
   plugins: [
     react(),
     VitePWA({
@@ -96,43 +91,22 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
     modulePreload: {
-      polyfill: true,
-      resolveDependencies: (filename) => {
-        if (filename.includes('node_modules')) {
-          return [];
-        }
-        return undefined;
-      }
+      polyfill: true
     },
-    cssCodeSplit: true,
-    reportCompressedSize: true,
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: true, // Remove console logs in production
         ecma: 2020,
-        passes: 4,
+        passes: 3, // Increase optimization passes
         pure_getters: true,
         unsafe: true,
         unsafe_comps: true,
         unsafe_methods: true,
         unsafe_proto: true,
-        toplevel: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'],
-        drop_debugger: true,
-        reduce_vars: true,
-        booleans_as_integers: true,
-        keep_fargs: false
+        toplevel: true
       },
       mangle: {
-        toplevel: true,
-        safari10: true,
-        properties: {
-          regex: /^_/
-        }
-      },
-      format: {
-        comments: false,
-        ecma: 2020
+        toplevel: true
       }
     },
     rollupOptions: {
@@ -142,17 +116,8 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]',
         generatedCode: {
           preset: 'es2015',
-          symbols: false,
-          constBindings: true
-        },
-        compact: true,
-        freeze: false,
-        externalLiveBindings: false
-      },
-      treeshake: {
-        moduleSideEffects: 'no-external',
-        propertyReadSideEffects: false,
-        tryCatchDeoptimization: false
+          symbols: false
+        }
       }
     }
   },
