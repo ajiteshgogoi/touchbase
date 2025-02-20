@@ -46,7 +46,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     name: 'premium',
     price: 5,
     contactLimit: Infinity,
-    googlePlayProductId: 'touchbase.pro.premium.monthly', // Add your actual Google Play product ID
+    googlePlayProductId: 'touchbase_premium', // Google Play product ID
     features: [
       'Unlimited contacts',
       'Push notifications',
