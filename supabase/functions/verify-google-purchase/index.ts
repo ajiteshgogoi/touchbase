@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { GoogleAuth } from 'https://cdn.skypack.dev/google-auth-library@6.1.3'
+import { GoogleAuth } from 'https://esm.sh/v135/google-auth-library@9.6.3?target=deno'
 
 function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
