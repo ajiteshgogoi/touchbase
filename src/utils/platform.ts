@@ -16,16 +16,42 @@ export const platform = {
 
   async isGooglePlayBillingAvailable(): Promise<boolean> {
     try {
-      // Wait for Google Play Billing API to be available (max 10 seconds)
-      for (let i = 0; i < 20; i++) {
-        if (window.google?.payments?.subscriptions) {
-          return true;
-        }
-        await new Promise(resolve => setTimeout(resolve, 500));
+      // Check if we're on Android first
+      if (!this.isAndroid()) {
+        console.log('Not on Android, Google Play Billing not available');
+        return false;
       }
-      return false;
+
+      // Check if Payment Request API is available
+      if (!window.PaymentRequest) {
+        console.log('PaymentRequest API not available');
+        return false;
+      }
+
+      // Try to create a payment request with Google Play Billing
+      const request = new PaymentRequest(
+        [{
+          supportedMethods: 'https://play.google.com/billing',
+          data: { sku: 'dummy_test' }
+        }],
+        { total: { label: 'Test', amount: { currency: 'USD', value: '0' } } }
+      );
+
+      // Check if Google Play Billing is available
+      const canMakePayment = await request.canMakePayment();
+      console.log('Google Play Billing available:', canMakePayment);
+      
+      return canMakePayment;
     } catch (error) {
       console.error('Error checking Google Play Billing availability:', error);
+      // Log more details about the error if it's an Error object
+      if (error instanceof Error) {
+        console.log('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+      }
       return false;
     }
   },
