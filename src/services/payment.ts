@@ -125,11 +125,30 @@ export const paymentService = {
         throw new Error('Google Play Billing is not available. If you installed from Play Store, please try again in a few seconds.');
       }
 
+      // Log payment flow initiation with safe environment checks
+      console.log('[TWA-Payment] Payment flow starting...');
+      try {
+        const canUsePaymentRequest = typeof PaymentRequest !== 'undefined';
+        console.log('[TWA-Payment] Payment environment:', {
+          hasPaymentRequest: canUsePaymentRequest,
+          packageName: 'app.touchbase.site.twa',
+          productId: plan.googlePlayProductId
+        });
+
+        if (!canUsePaymentRequest) {
+          throw new Error('PaymentRequest API not available. Please ensure you are using the Play Store version.');
+        }
+      } catch (error) {
+        console.error('[TWA-Payment] Environment check failed:', error);
+        throw new Error('Failed to verify payment environment. Please try again.');
+      }
+
       // Create PaymentRequest for Google Play billing with detailed logging
-      console.log('[TWA-Payment] Starting payment request creation...');
+      console.log('[TWA-Payment] Creating payment request...');
       let request;
       try {
-        const paymentRequestData = {
+        // Construct payment method data array for PaymentRequest
+        const methodData = [{
           supportedMethods: 'https://play.google.com/billing',
           data: {
             sku: plan.googlePlayProductId,
@@ -140,12 +159,12 @@ export const paymentService = {
             subscriptionPeriod: 'P1M', // Monthly subscription
             method: 'https://play.google.com/billing' // Explicitly specify Digital Goods API
           }
-        };
+        }];
 
-        console.log('[TWA-Payment] Payment method data:', JSON.stringify(paymentRequestData, null, 2));
+        console.log('[TWA-Payment] Payment method data:', JSON.stringify(methodData, null, 2));
 
         request = new PaymentRequest(
-          [paymentRequestData],
+          methodData,
           {
             total: {
               label: `${plan.name} Subscription`,
@@ -190,10 +209,20 @@ export const paymentService = {
         throw new Error('Google Play Billing is not available on this device.');
       }
 
+      // Check payment state before showing
+      console.log('[TWA-Payment] Pre-show state:', {
+        hasRequest: Boolean(request),
+        requestId: request.id,
+        time: new Date().toISOString()
+      });
+
       // Start the payment flow with enhanced error handling
       console.log('[TWA-Payment] Starting payment flow');
       let paymentResponse;
       try {
+        // Add delay to ensure logs are written
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         console.log('[TWA-Payment] Calling show()...');
         paymentResponse = await request.show();
         console.log('[TWA-Payment] show() completed successfully');
