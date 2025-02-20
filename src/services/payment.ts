@@ -185,16 +185,27 @@ export const paymentService = {
         data: paymentResponse.details?.data
       }, null, 2));
 
-      // TWA Digital Goods API provides token in paymentMethodData
-      const purchaseToken = paymentResponse.details?.paymentMethodData?.data?.purchaseToken;
-      console.log('[TWA-Payment] Purchase token:', purchaseToken);
-      
-      if (!purchaseToken) {
-        console.error('[TWA-Payment] No purchase token in paymentMethodData:',
-          JSON.stringify(paymentResponse.details?.paymentMethodData, null, 2));
-        throw new Error('No purchase token received from Google Play. Please try again.');
+      // Validate paymentResponse structure according to Digital Goods API spec
+      if (!paymentResponse.details?.paymentMethodData?.data) {
+        console.error('[TWA-Payment] Invalid response structure. Missing paymentMethodData.data:',
+          JSON.stringify({
+            details: paymentResponse.details,
+            methodName: paymentResponse.methodName,
+            hasMethodData: Boolean(paymentResponse.details?.paymentMethodData)
+          }, null, 2)
+        );
+        throw new Error('Invalid payment response from Google Play. Please try again.');
       }
-      console.log('Extracted purchase token:', purchaseToken);
+
+      const purchaseToken = paymentResponse.details.paymentMethodData.data.purchaseToken;
+      if (!purchaseToken) {
+        console.error('[TWA-Payment] Missing purchase token in correct location:',
+          JSON.stringify(paymentResponse.details.paymentMethodData.data, null, 2)
+        );
+        throw new Error('Purchase token not found in Google Play response. Please try again.');
+      }
+      
+      console.log('[TWA-Payment] Successfully extracted purchase token');
       
       // Complete the payment to dismiss the payment UI
       await paymentResponse.complete('success');
