@@ -72,51 +72,62 @@ interface SubscriptionStatus {
 
 declare global {
   interface Window {
-    google?: {
-      payments: {
-        subscriptions: {
-          subscribe(sku: string): Promise<{ purchaseToken: string }>;
-          acknowledge(token: string): Promise<void>;
-          cancel(token: string): Promise<void>;
-        };
-      };
-    };
+    getDigitalGoodsService?: (paymentMethod: string) => Promise<any>;
   }
 }
 
 type PaymentMethod = 'paypal' | 'google_play';
 
 export const paymentService = {
-  // Track Google Play Billing initialization state
-  _isGooglePlayInitialized: false,
+  // Track Google Play Billing service
+  _googlePlayBillingService: null as any,
 
   // Initialize Google Play Billing - should be called before any Google Play operations
   async _initializeGooglePlayBilling(): Promise<void> {
-    // If already initialized, return immediately
-    if (this._isGooglePlayInitialized) return;
-
-    // Wait for Google Play Billing API to be available (max 10 seconds)
-    for (let i = 0; i < 20; i++) {
-      if (window.google?.payments?.subscriptions) {
-        this._isGooglePlayInitialized = true;
-        return;
+    console.log('Initializing Google Play Billing...');
+    try {
+      if (!window.getDigitalGoodsService) {
+        console.error('Digital Goods API not found in window object');
+        throw new Error('Digital Goods API not available');
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log('Getting Digital Goods Service for Google Play Billing...');
+      this._googlePlayBillingService = await window.getDigitalGoodsService('https://play.google.com/billing');
+      
+      if (!this._googlePlayBillingService) {
+        console.error('Failed to get Digital Goods Service - service is null');
+        throw new Error('Failed to initialize Google Play Billing service');
+      }
+
+      console.log('Successfully initialized Google Play Billing service:', this._googlePlayBillingService);
+    } catch (error) {
+      console.error('Error initializing Google Play Billing:', error);
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.log('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+      }
+      throw new Error('Google Play Billing initialization failed. If you installed from Play Store, please try again in a few seconds.');
     }
-    
-    throw new Error('Google Play Billing initialization timeout');
   },
 
   async createSubscription(planId: string, paymentMethod: PaymentMethod): Promise<string> {
     try {
       if (paymentMethod === 'google_play') {
+        console.log('Creating Google Play subscription for plan:', planId);
         // Check if Google Play Billing is available
         const isAvailable = await platform.isGooglePlayBillingAvailable();
+        console.log('Google Play Billing available:', isAvailable);
+        
         if (!isAvailable) {
           throw new Error('Google Play Billing is not available. If you installed from Play Store, please wait a few seconds and try again.');
         }
         return this._createGooglePlaySubscription(planId);
       } else {
+        console.log('Creating PayPal subscription for plan:', planId);
         return this._createPayPalSubscription(planId);
       }
     } catch (error) {
@@ -127,41 +138,52 @@ export const paymentService = {
 
   async _createGooglePlaySubscription(planId: string): Promise<string> {
     try {
+      console.log('Starting Google Play subscription creation for plan:', planId);
+      
       // Find the plan and verify it has a Google Play product ID
       const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
       if (!plan?.googlePlayProductId) {
+        console.error('Invalid or missing Google Play product ID for plan:', planId);
         throw new Error('Invalid plan for Google Play Billing');
       }
 
-      // Initialize Google Play Billing before attempting subscription
-      try {
+      console.log('Using Google Play product ID:', plan.googlePlayProductId);
+
+      // Initialize Google Play Billing if not already initialized
+      if (!this._googlePlayBillingService) {
+        console.log('Google Play Billing service not initialized, initializing now...');
         await this._initializeGooglePlayBilling();
-      } catch (error) {
-        console.error('Failed to initialize Google Play Billing:', error);
-        throw new Error('Google Play Billing is not available. If you installed from Play Store, please try again in a few seconds.');
       }
 
-      // Verify Google Pay Billing is available after initialization
-      const subscriptions = window.google?.payments?.subscriptions;
-      if (!subscriptions) {
-        throw new Error('Google Play Billing not properly initialized');
+      // Get the product details
+      console.log('Fetching product details from Google Play...');
+      const [item] = await this._googlePlayBillingService.getDetails([plan.googlePlayProductId]);
+      console.log('Product details received:', item);
+
+      if (!item) {
+        console.error('Product not found in Google Play:', plan.googlePlayProductId);
+        throw new Error('Product not found in Google Play');
       }
 
-      // Start the subscription purchase flow
-      const { purchaseToken } = await subscriptions.subscribe(plan.googlePlayProductId);
+      // Start the purchase flow
+      console.log('Starting purchase flow...');
+      const payment = await this._googlePlayBillingService.purchase(item);
+      console.log('Purchase response:', payment);
 
-      try {
-        // Acknowledge the purchase using the already verified subscriptions object
-        await subscriptions.acknowledge(purchaseToken);
-      } catch (error) {
-        console.error('Error acknowledging purchase:', error);
-        throw new Error('Failed to acknowledge purchase');
+      if (!payment) {
+        console.error('Purchase failed or was cancelled');
+        throw new Error('Purchase failed or was cancelled');
       }
 
       // Update subscription in backend
+      console.log('Updating subscription in backend...');
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session');
+      if (!session) {
+        console.error('No active session found');
+        throw new Error('No active session');
+      }
 
+      console.log('Verifying purchase with backend...');
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-google-purchase`, {
         method: 'POST',
         headers: {
@@ -169,18 +191,28 @@ export const paymentService = {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
-          purchaseToken,
+          purchaseToken: payment.purchaseToken,
           productId: plan.googlePlayProductId
         }),
       });
 
       if (!response.ok) {
+        console.error('Backend verification failed:', await response.text());
         throw new Error('Failed to verify purchase');
       }
 
-      return purchaseToken;
+      console.log('Successfully created Google Play subscription');
+      return payment.purchaseToken;
     } catch (error) {
       console.error('Error creating Google Play subscription:', error);
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.log('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+      }
       throw error;
     }
   },
@@ -313,24 +345,22 @@ export const paymentService = {
       ) ?? FREE_PLAN;
 
       const now = new Date();
-            // Check only plan_id and valid_until date for premium
-            const isPremium = currentPlan.id === 'premium' &&
-              subscription.valid_until &&
-              new Date(subscription.valid_until) > now;
+      const isPremium = currentPlan.id === 'premium' &&
+        subscription.valid_until &&
+        new Date(subscription.valid_until) > now;
       
-            let isOnTrial = false;
-            let trialDaysRemaining = null;
+      let isOnTrial = false;
+      let trialDaysRemaining = null;
       
-            // Only consider trial if user is on free plan AND trial period is active
-            if (subscription.trial_end_date && currentPlan.id === 'free') {
-              const trialEnd = new Date(subscription.trial_end_date);
-              
-              if (trialEnd > now) {
-                isOnTrial = true;
-                const diffTime = Math.abs(trialEnd.getTime() - now.getTime());
-                trialDaysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              }
-            }
+      if (subscription.trial_end_date && currentPlan.id === 'free') {
+        const trialEnd = new Date(subscription.trial_end_date);
+        
+        if (trialEnd > now) {
+          isOnTrial = true;
+          const diffTime = Math.abs(trialEnd.getTime() - now.getTime());
+          trialDaysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+      }
 
       return {
         isPremium,
@@ -353,13 +383,14 @@ export const paymentService = {
 
   async cancelSubscription(paymentMethod: PaymentMethod): Promise<void> {
     try {
+      console.log('Canceling subscription for payment method:', paymentMethod);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
       if (paymentMethod === 'google_play') {
-        const subscriptions = window.google?.payments?.subscriptions;
-        if (!subscriptions) {
-          throw new Error('Google Play Billing is not available. If you installed from Play Store, please wait a few seconds and try again.');
+        if (!this._googlePlayBillingService) {
+          console.log('Initializing Google Play Billing for cancellation...');
+          await this._initializeGooglePlayBilling();
         }
         await this._cancelGooglePlaySubscription(session.access_token);
       } else {
@@ -373,22 +404,29 @@ export const paymentService = {
 
   async _cancelGooglePlaySubscription(accessToken: string): Promise<void> {
     try {
+      console.log('Starting Google Play subscription cancellation...');
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('google_play_token')
         .single();
 
       if (!subscription?.google_play_token) {
+        console.error('No Google Play token found in subscription');
         throw new Error('No active Google Play subscription');
       }
 
-      // Use the same subscriptions object that was verified in cancelSubscription
-      const subscriptions = window.google?.payments?.subscriptions;
-      if (!subscriptions) {
-        throw new Error('Google Play Billing initialization failed');
-      }
-      await subscriptions.cancel(subscription.google_play_token);
+      console.log('Found Google Play token:', subscription.google_play_token);
 
+      if (this._googlePlayBillingService) {
+        console.log('Acknowledging cancellation with Google Play...');
+        await this._googlePlayBillingService.acknowledge(subscription.google_play_token);
+        console.log('Successfully acknowledged cancellation');
+      } else {
+        console.error('Google Play Billing service not initialized');
+        throw new Error('Google Play Billing service not initialized');
+      }
+
+      console.log('Notifying backend of cancellation...');
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
         method: 'POST',
         headers: {
@@ -397,8 +435,18 @@ export const paymentService = {
         },
         body: JSON.stringify({ token: subscription.google_play_token })
       });
+
+      console.log('Successfully cancelled Google Play subscription');
     } catch (error) {
       console.error('Error canceling Google Play subscription:', error);
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.log('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+      }
       throw error;
     }
   },

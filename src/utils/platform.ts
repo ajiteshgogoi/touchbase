@@ -6,6 +6,7 @@ declare global {
         window?: unknown;
       };
     };
+    getDigitalGoodsService?: (paymentMethod: string) => Promise<any>;
   }
 }
 
@@ -22,26 +23,15 @@ export const platform = {
         return false;
       }
 
-      // Check if Payment Request API is available
-      if (!window.PaymentRequest) {
-        console.log('PaymentRequest API not available');
+      // Check for Digital Goods API
+      if (!('getDigitalGoodsService' in window)) {
+        console.log('Digital Goods API not available');
         return false;
       }
 
-      // Try to create a payment request with Google Play Billing
-      const request = new PaymentRequest(
-        [{
-          supportedMethods: 'https://play.google.com/billing',
-          data: { sku: 'dummy_test' }
-        }],
-        { total: { label: 'Test', amount: { currency: 'USD', value: '0' } } }
-      );
-
-      // Check if Google Play Billing is available
-      const canMakePayment = await request.canMakePayment();
-      console.log('Google Play Billing available:', canMakePayment);
-      
-      return canMakePayment;
+      const service = await window.getDigitalGoodsService?.('https://play.google.com/billing');
+      console.log('Digital Goods Service available:', !!service);
+      return !!service;
     } catch (error) {
       console.error('Error checking Google Play Billing availability:', error);
       // Log more details about the error if it's an Error object
