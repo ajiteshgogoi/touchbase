@@ -128,48 +128,54 @@ export class GooglePlayService {
         const activityResultPromise = new Promise<PaymentResponse>((resolve, reject) => {
           let hasResult = false;
           
-          // Function to check if we have activity result
-          const checkActivityResult = async () => {
+          let showPromise: Promise<PaymentResponse> | null = null;
+
+          // Function to handle the payment flow
+          const handlePaymentFlow = async () => {
+            if (showPromise) {
+              return; // Already showing payment UI
+            }
+
             try {
-              console.log('[TWA-Payment] Checking for activity result...', {
+              console.log('[TWA-Payment] Starting payment flow...');
+              showPromise = request.show();
+              const response = await showPromise;
+              
+              console.log('[TWA-Payment] Payment flow completed', {
                 time: new Date().toISOString(),
-                hasResult
+                hasResponse: Boolean(response)
               });
-              const response = await request.show();
-              console.log('[TWA-Payment] Activity result received', {
-                time: new Date().toISOString(),
-                hasResponse: Boolean(response),
-                responseType: response ? typeof response : 'undefined'
-              });
+              
               hasResult = true;
               resolve(response);
             } catch (error) {
-              console.log('[TWA-Payment] Activity result check error:', {
+              console.log('[TWA-Payment] Payment flow error:', {
                 time: new Date().toISOString(),
                 errorType: error instanceof Error ? 'Error' : typeof error,
                 errorMessage: error instanceof Error ? error.message : String(error)
               });
+              
               if (!hasResult) {
                 reject(error);
               }
             }
           };
-          
-          // Start checking for activity result
-          console.log('[TWA-Payment] Starting initial activity result check');
-          checkActivityResult();
-          
-          // Set up periodic checks to handle activity recreation
-          console.log('[TWA-Payment] Setting up periodic activity checks');
+
+          // Start the payment flow
+          console.log('[TWA-Payment] Initiating payment flow');
+          handlePaymentFlow();
+
+          // Set up activity recreation handler
+          console.log('[TWA-Payment] Setting up activity recreation handler');
           const checkInterval = setInterval(() => {
-            if (!hasResult) {
-              console.log('[TWA-Payment] Periodic check - no result yet');
-              checkActivityResult();
-            } else {
-              console.log('[TWA-Payment] Periodic check - result received, cleaning up');
+            if (!hasResult && !showPromise) {
+              console.log('[TWA-Payment] Activity recreated - restarting payment flow');
+              handlePaymentFlow();
+            } else if (hasResult) {
+              console.log('[TWA-Payment] Payment completed - cleaning up');
               clearInterval(checkInterval);
             }
-          }, 500); // Check every 500ms
+          }, 1000); // Check every second
           
           // Clear interval after max timeout
           console.log('[TWA-Payment] Setting up timeout handler');
