@@ -61,6 +61,12 @@ export const Support = () => {
           </p>
         </section>
 
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Additional Resources</h2>
+          <p className="text-gray-700">
+            Check out our <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 font-medium">blog</a> for tips and updates.
+          </p>
+        </section>
       </div>
     </div>
   );
