@@ -72,6 +72,9 @@ async function createGoogleJWT(): Promise<string> {
   const privateKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY')?.replace(/\\n/g, '\n') ?? '';
   const email = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL') ?? '';
 
+  console.log('Creating JWT with email:', email);
+  console.log('Private key starts with:', privateKey.substring(0, 50) + '...');
+
   const header = {
     alg: 'RS256',
     typ: 'JWT',
@@ -85,6 +88,7 @@ async function createGoogleJWT(): Promise<string> {
     iat: now,
   };
 
+  console.log('JWT claims:', JSON.stringify(claim));
   const encodedHeader = base64url(new TextEncoder().encode(JSON.stringify(header)));
   const encodedClaim = base64url(new TextEncoder().encode(JSON.stringify(claim)));
   const signatureInput = `${encodedHeader}.${encodedClaim}`;
@@ -120,7 +124,11 @@ async function createGoogleJWT(): Promise<string> {
 }
 
 async function getGoogleAccessToken(): Promise<string> {
+  console.log('Creating JWT with claims...');
   const jwt = await createGoogleJWT();
+  console.log('JWT created successfully');
+
+  console.log('Requesting access token from Google OAuth...');
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: {
@@ -132,12 +140,17 @@ async function getGoogleAccessToken(): Promise<string> {
     }),
   });
 
+  const responseText = await response.text();
+  console.log('OAuth response status:', response.status);
+  console.log('OAuth response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+  console.log('OAuth response body:', responseText);
+
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to get access token: ${error}`);
+    throw new Error(`Failed to get access token: ${responseText}`);
   }
 
-  const data = await response.json();
+  const data = JSON.parse(responseText);
+  console.log('Access token obtained, token type:', data.token_type);
   return data.access_token;
 }
 
@@ -191,25 +204,28 @@ serve(async (req) => {
 
       // Verify purchase with Google Play API
       const packageName = Deno.env.get('ANDROID_PACKAGE_NAME')
-      console.log('Calling Google Play API');
-      const response = await fetch(
-        `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${purchaseToken}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      )
+      console.log('Package name from env:', packageName);
+      const apiUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${purchaseToken}`;
+      console.log('Calling Google Play API:', apiUrl);
+      console.log('Authorization header:', `Bearer ${accessToken.substring(0, 10)}...`);
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+        },
+      })
+
+      const responseText = await response.text();
+      console.log('Play API response status:', response.status);
+      console.log('Play API response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+      console.log('Play API response body:', responseText);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Google Play API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText,
-        });
-        throw new Error(`Failed to verify purchase with Google Play: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to verify purchase with Google Play: ${response.status} ${response.statusText}\nDetails: ${responseText}`);
       }
+
+      const purchaseData: GooglePlayPurchase = JSON.parse(responseText);
 
       const purchaseData: GooglePlayPurchase = await response.json()
       validatePurchaseData(purchaseData);
