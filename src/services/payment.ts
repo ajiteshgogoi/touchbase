@@ -216,16 +216,26 @@ export const paymentService = {
         time: new Date().toISOString()
       });
 
-      // Start the payment flow with enhanced error handling
+      // Start the payment flow with activity lifecycle handling
       console.log('[TWA-Payment] Starting payment flow');
-      let paymentResponse;
+      let paymentResponse: PaymentResponse;
       try {
-        // Add delay to ensure logs are written
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        console.log('[TWA-Payment] Calling show()...');
-        paymentResponse = await request.show();
-        console.log('[TWA-Payment] show() completed successfully');
+        // Set up the payment request before launching the flow
+        const canMakePayment = await request.canMakePayment();
+        console.log('[TWA-Payment] canMakePayment check:', canMakePayment);
+        if (!canMakePayment) {
+          throw new Error('Payment method not available. Please ensure you are using the Play Store version.');
+        }
+
+        // Launch the payment flow with activity state preservation
+        console.log('[TWA-Payment] Launching Google Play billing flow...');
+        paymentResponse = await Promise.race<PaymentResponse>([
+          request.show(),
+          // Set up a timeout that's longer than the activity transition
+          new Promise<PaymentResponse>((_, reject) => setTimeout(() =>
+            reject(new Error('Payment request timed out. Please try again.')), 30000))
+        ]);
+        console.log('[TWA-Payment] Payment flow completed successfully', paymentResponse);
       } catch (error) {
         console.error('[TWA-Payment] Payment flow interrupted');
         console.error('[TWA-Payment] Error type:', typeof error);
