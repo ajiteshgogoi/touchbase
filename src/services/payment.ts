@@ -132,7 +132,11 @@ export const paymentService = {
           supportedMethods: 'https://play.google.com/billing',
           data: {
             sku: plan.googlePlayProductId,
-            type: 'recurring' // Specify recurring for subscriptions
+            type: 'subscriptionPurchase',
+            purchaseToken: undefined, // Required for subscriptions but should be undefined for new purchases
+            oldSkuPurchaseToken: undefined, // For subscription upgrades
+            packageName: 'app.touchbase.site.twa', // Must match the TWA package name
+            subscriptionPeriod: 'P1M' // Monthly subscription
           }
         }],
         {
@@ -140,8 +144,20 @@ export const paymentService = {
             label: `${plan.name} Subscription`,
             amount: { currency: 'USD', value: plan.price.toString() }
           }
+        },
+        // Optional parameters
+        {
+          requestPayerName: false,
+          requestPayerEmail: false,
+          requestPayerPhone: false
         }
       );
+
+      // Log the request for debugging
+      console.log('Payment request details:', {
+        sku: plan.googlePlayProductId,
+        packageName: 'app.touchbase.site.twa'
+      });
 
       // Start the payment flow
       console.log('Starting subscription purchase flow...');
@@ -149,11 +165,19 @@ export const paymentService = {
       
       // Extract purchase details from the payment response
       console.log('Payment response received:', paymentResponse);
-      const purchaseDetails = paymentResponse.details;
-      if (!purchaseDetails?.purchaseToken) {
-        throw new Error('No purchase token received from Google Play');
+      console.log('Payment response details:', paymentResponse.details);
+      
+      // TWA billing response contains purchaseToken in details.data
+      const purchaseData = paymentResponse.details?.data;
+      console.log('Purchase data:', purchaseData);
+      
+      if (!purchaseData?.purchaseToken) {
+        console.error('Missing purchase token in response:', paymentResponse.details);
+        throw new Error('No purchase token received from Google Play. Please try again.');
       }
-      const purchaseToken = purchaseDetails.purchaseToken;
+      
+      const purchaseToken = purchaseData.purchaseToken;
+      console.log('Extracted purchase token:', purchaseToken);
       
       // Complete the payment to dismiss the payment UI
       await paymentResponse.complete('success');
@@ -406,8 +430,10 @@ export const paymentService = {
         [{
           supportedMethods: 'https://play.google.com/billing',
           data: {
-            method: 'cancel',
-            token: subscription.google_play_token
+            type: 'subscriptionManage',
+            packageName: 'app.touchbase.site.twa',
+            purchaseToken: subscription.google_play_token,
+            action: 'cancel'
           }
         }],
         {
@@ -415,8 +441,20 @@ export const paymentService = {
             label: 'Cancel Subscription',
             amount: { currency: 'USD', value: '0' }
           }
+        },
+        {
+          requestPayerName: false,
+          requestPayerEmail: false,
+          requestPayerPhone: false
         }
       );
+
+      // Log the request for debugging
+      console.log('Cancellation request details:', {
+        type: 'subscriptionManage',
+        purchaseToken: subscription.google_play_token,
+        packageName: 'app.touchbase.site.twa'
+      });
 
       // Start the cancellation flow
       console.log('Starting cancellation flow...');
