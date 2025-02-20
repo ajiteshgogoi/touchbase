@@ -232,8 +232,6 @@ serve(async (req) => {
         console.error('Failed to parse purchase data:', e);
         throw new Error('Invalid purchase data format received from Google Play');
       }
-
-      const purchaseData: GooglePlayPurchase = await response.json()
       validatePurchaseData(purchaseData);
 
       // Update subscription in database
