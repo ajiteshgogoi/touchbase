@@ -6,7 +6,15 @@ declare global {
         window?: unknown;
       };
     };
-    getDigitalGoodsService?: (paymentMethod: string) => Promise<any>;
+    google?: {
+      payments: {
+        subscriptions: {
+          subscribe(sku: string): Promise<{ purchaseToken: string }>;
+          acknowledge(token: string): Promise<void>;
+          cancel(token: string): Promise<void>;
+        };
+      };
+    };
   }
 }
 
@@ -23,15 +31,13 @@ export const platform = {
         return false;
       }
 
-      // Check for Digital Goods API
-      if (!('getDigitalGoodsService' in window)) {
-        console.log('Digital Goods API not available');
+      // Check if Google Payments API is available
+      if (!window.google?.payments?.subscriptions) {
+        console.log('Google Payments API not available');
         return false;
       }
 
-      const service = await window.getDigitalGoodsService?.('https://play.google.com/billing');
-      console.log('Digital Goods Service available:', !!service);
-      return !!service;
+      return true;
     } catch (error) {
       console.error('Error checking Google Play Billing availability:', error);
       // Log more details about the error if it's an Error object
