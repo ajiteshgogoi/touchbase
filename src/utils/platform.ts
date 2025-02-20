@@ -31,13 +31,27 @@ export const platform = {
         return false;
       }
 
-      // Check if Google Payments API is available
-      if (!window.google?.payments?.subscriptions) {
-        console.log('Google Payments API not available');
+      // In TWA, Google Play Billing is exposed through PaymentRequest API
+      // Check if PaymentRequest API is available
+      if (typeof PaymentRequest === 'undefined') {
+        console.log('PaymentRequest API not available');
         return false;
       }
 
-      return true;
+      // Check if Google Play billing method is supported
+      const request = new PaymentRequest(
+        [{
+          supportedMethods: 'https://play.google.com/billing',
+          data: { test: 'test' } // Minimal data to test support
+        }],
+        { total: { label: 'Test', amount: { currency: 'USD', value: '0' } } }
+      );
+
+      console.log('Checking Google Play Billing support...');
+      const canMakePayment = await request.canMakePayment();
+      console.log('Google Play Billing support result:', canMakePayment);
+
+      return canMakePayment;
     } catch (error) {
       console.error('Error checking Google Play Billing availability:', error);
       // Log more details about the error if it's an Error object

@@ -77,47 +77,11 @@ export const paymentService = {
   _isGooglePlayInitialized: false,
 
   // Initialize Google Play Billing - should be called before any Google Play operations
+  // No initialization needed for TWA billing since it uses PaymentRequest API
   async _initializeGooglePlayBilling(): Promise<void> {
-    console.log('Initializing Google Play Billing...');
-    
-    // If already initialized, return immediately
-    if (this._isGooglePlayInitialized) {
-      console.log('Google Play Billing already initialized');
-      return;
-    }
-
-    // Create a timeout promise
-    const timeout = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Google Play Billing initialization timeout')), 10000);
-    });
-
-    // Create initialization promise
-    const initialize = new Promise<void>((resolve, reject) => {
-      const checkAvailability = async () => {
-        if (window.google?.payments?.subscriptions) {
-          console.log('Google Payments API found');
-          this._isGooglePlayInitialized = true;
-          resolve();
-          return;
-        }
-        
-        // If not available, retry after delay
-        await new Promise(r => setTimeout(r, 500));
-        checkAvailability();
-      };
-
-      checkAvailability().catch(reject);
-    });
-
-    // Race between timeout and initialization
-    try {
-      await Promise.race([initialize, timeout]);
-      console.log('Google Play Billing initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize Google Play Billing:', error);
-      this._isGooglePlayInitialized = false;
-      throw new Error('Google Play Billing initialization failed. If you installed from Play Store, please wait a few seconds and try again.');
-    }
+    console.log('TWA Google Play Billing uses PaymentRequest API, no initialization needed');
+    this._isGooglePlayInitialized = true;
+    return Promise.resolve();
   },
 
   async createSubscription(planId: string, paymentMethod: PaymentMethod): Promise<string> {
@@ -161,27 +125,39 @@ export const paymentService = {
         throw new Error('Google Play Billing is not available. If you installed from Play Store, please try again in a few seconds.');
       }
 
-      // Verify Google Pay Billing is available after initialization
-      const subscriptions = window.google?.payments?.subscriptions;
-      if (!subscriptions) {
-        console.error('Google Play Billing API not found after initialization');
-        throw new Error('Google Play Billing not properly initialized');
-      }
+      // Create PaymentRequest for Google Play billing
+      console.log('Creating PaymentRequest for Google Play billing...');
+      const request = new PaymentRequest(
+        [{
+          supportedMethods: 'https://play.google.com/billing',
+          data: {
+            sku: plan.googlePlayProductId,
+            type: 'recurring' // Specify recurring for subscriptions
+          }
+        }],
+        {
+          total: {
+            label: `${plan.name} Subscription`,
+            amount: { currency: 'USD', value: plan.price.toString() }
+          }
+        }
+      );
 
-      // Start the subscription purchase flow
+      // Start the payment flow
       console.log('Starting subscription purchase flow...');
-      const { purchaseToken } = await subscriptions.subscribe(plan.googlePlayProductId);
-      console.log('Purchase token received:', purchaseToken);
-
-      try {
-        // Acknowledge the purchase
-        console.log('Acknowledging purchase...');
-        await subscriptions.acknowledge(purchaseToken);
-        console.log('Purchase acknowledged successfully');
-      } catch (error) {
-        console.error('Error acknowledging purchase:', error);
-        throw new Error('Failed to acknowledge purchase');
+      const paymentResponse = await request.show();
+      
+      // Extract purchase details from the payment response
+      console.log('Payment response received:', paymentResponse);
+      const purchaseDetails = paymentResponse.details;
+      if (!purchaseDetails?.purchaseToken) {
+        throw new Error('No purchase token received from Google Play');
       }
+      const purchaseToken = purchaseDetails.purchaseToken;
+      
+      // Complete the payment to dismiss the payment UI
+      await paymentResponse.complete('success');
+      console.log('Payment UI completed successfully');
 
       // Update subscription in backend
       console.log('Updating subscription in backend...');
@@ -191,7 +167,7 @@ export const paymentService = {
         throw new Error('No active session');
       }
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-google-purchase`, {
+      const backendResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-google-purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +179,7 @@ export const paymentService = {
         }),
       });
 
-      if (!response.ok) {
+      if (!backendResponse.ok) {
         console.error('Failed to verify purchase with backend');
         throw new Error('Failed to verify purchase');
       }
@@ -395,9 +371,9 @@ export const paymentService = {
       if (!session) throw new Error('No active session');
 
       if (paymentMethod === 'google_play') {
-        const subscriptions = window.google?.payments?.subscriptions;
-        if (!subscriptions) {
-          throw new Error('Google Play Billing is not available. If you installed from Play Store, please try again in a few seconds.');
+        // Check if PaymentRequest API is available
+        if (typeof PaymentRequest === 'undefined') {
+          throw new Error('Google Play Billing is not available. If you installed from Play Store, please wait a few seconds and try again.');
         }
         await this._cancelGooglePlaySubscription(session.access_token);
       } else {
@@ -423,14 +399,32 @@ export const paymentService = {
       }
 
       console.log('Found Google Play token, proceeding with cancellation');
-      const subscriptions = window.google?.payments?.subscriptions;
-      if (!subscriptions) {
-        console.error('Google Play Billing API not found');
-        throw new Error('Google Play Billing initialization failed');
-      }
+      
+      // Create PaymentRequest for cancellation
+      console.log('Creating PaymentRequest for Google Play cancellation...');
+      const request = new PaymentRequest(
+        [{
+          supportedMethods: 'https://play.google.com/billing',
+          data: {
+            method: 'cancel',
+            token: subscription.google_play_token
+          }
+        }],
+        {
+          total: {
+            label: 'Cancel Subscription',
+            amount: { currency: 'USD', value: '0' }
+          }
+        }
+      );
 
-      console.log('Canceling subscription with Google Play...');
-      await subscriptions.cancel(subscription.google_play_token);
+      // Start the cancellation flow
+      console.log('Starting cancellation flow...');
+      const paymentResponse = await request.show();
+      
+      // Complete the cancellation UI
+      await paymentResponse.complete('success');
+      console.log('Cancellation UI completed successfully');
 
       console.log('Notifying backend of cancellation...');
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
