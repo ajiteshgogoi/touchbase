@@ -14,8 +14,20 @@ export const platform = {
     return /Android/i.test(navigator.userAgent);
   },
 
-  isGooglePlayBillingAvailable(): boolean {
-    return !!window.google?.payments?.subscriptions?.subscribe;
+  async isGooglePlayBillingAvailable(): Promise<boolean> {
+    try {
+      // Wait for Google Play Billing API to be available (max 10 seconds)
+      for (let i = 0; i < 20; i++) {
+        if (window.google?.payments?.subscriptions) {
+          return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking Google Play Billing availability:', error);
+      return false;
+    }
   },
 
   isIOS(): boolean {
