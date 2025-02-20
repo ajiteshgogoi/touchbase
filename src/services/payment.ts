@@ -158,19 +158,30 @@ export const paymentService = {
       const paymentResponse = await request.show();
       
       // Extract purchase details from the payment response
-      console.log('Payment response received:', paymentResponse);
-      console.log('Payment response details:', paymentResponse.details);
+      console.log('[TWA-Payment] Response received:', paymentResponse);
+      console.log('[TWA-Payment] Full response data:', JSON.stringify(paymentResponse, null, 2));
+      console.log('[TWA-Payment] Response details:', JSON.stringify(paymentResponse.details, null, 2));
+      console.log('[TWA-Payment] Response type:', typeof paymentResponse.details);
+      console.log('[TWA-Payment] Method data:', JSON.stringify(paymentResponse.methodName, null, 2));
+      
+      // Log all potential token locations
+      console.log('[TWA-Payment] Direct token:', paymentResponse.details?.purchaseToken);
+      console.log('[TWA-Payment] Data token:', paymentResponse.details?.data?.purchaseToken);
+      console.log('[TWA-Payment] Method token:', paymentResponse.details?.paymentMethodData?.data?.purchaseToken);
       
       // TWA billing response contains purchaseToken in details.data
-      const purchaseData = paymentResponse.details?.data;
-      console.log('Purchase data:', purchaseData);
+      // Try to find purchase token in different possible locations
+      const purchaseToken =
+        paymentResponse.details?.purchaseToken || // Direct token
+        paymentResponse.details?.data?.purchaseToken || // Current location
+        paymentResponse.details?.paymentMethodData?.data?.purchaseToken; // Method data token
       
-      if (!purchaseData?.purchaseToken) {
-        console.error('Missing purchase token in response:', paymentResponse.details);
+      console.log('[TWA-Payment] Extracted token:', purchaseToken);
+      
+      if (!purchaseToken) {
+        console.error('[TWA-Payment] Missing purchase token. Full response:', paymentResponse.details);
         throw new Error('No purchase token received from Google Play. Please try again.');
       }
-      
-      const purchaseToken = purchaseData.purchaseToken;
       console.log('Extracted purchase token:', purchaseToken);
       
       // Complete the payment to dismiss the payment UI
