@@ -143,7 +143,10 @@ export class GooglePlayService {
               
               console.log('[TWA-Payment] Payment flow completed', {
                 time: new Date().toISOString(),
-                hasResponse: Boolean(response)
+                hasResponse: Boolean(response),
+                responseType: response ? typeof response : 'undefined',
+                hasDetails: Boolean(response?.details),
+                methodName: response?.methodName
               });
               
               hasResult = true;
@@ -222,18 +225,45 @@ export class GooglePlayService {
         }
       }
       
+      // Log full payment response details for debugging
+      console.log('[TWA-Payment] Full payment response:', JSON.stringify({
+        details: paymentResponse.details,
+        methodName: paymentResponse.methodName,
+        requestId: paymentResponse.requestId
+      }, null, 2));
+
       // Extract purchase details from the payment response
-      const purchaseToken =
-        paymentResponse.details?.paymentMethodData?.data?.purchaseToken ||
-        paymentResponse.details?.data?.purchaseToken ||
-        paymentResponse.details?.purchaseToken;
+      console.log('[TWA-Payment] Attempting to extract purchase token...');
+      
+      let purchaseToken: string | undefined;
+      const paths = [
+        'details.paymentMethodData.data.purchaseToken',
+        'details.data.purchaseToken',
+        'details.purchaseToken',
+        'details.androidPayProvidedData.purchaseToken'
+      ];
+
+      // Log each path attempt
+      paths.forEach(path => {
+        const value = path.split('.').reduce((obj, key) => obj?.[key], paymentResponse as any);
+        console.log(`[TWA-Payment] Checking ${path}:`, value);
+        if (value && !purchaseToken) {
+          purchaseToken = value;
+          console.log(`[TWA-Payment] Found purchase token in ${path}`);
+        }
+      });
 
       if (!purchaseToken) {
-        console.error('[TWA-Payment] Purchase token not found in any expected location');
+        console.error('[TWA-Payment] Purchase token not found in response. Full details:', {
+          methodName: paymentResponse.methodName,
+          hasDetails: Boolean(paymentResponse.details),
+          detailsKeys: paymentResponse.details ? Object.keys(paymentResponse.details) : [],
+          detailsType: paymentResponse.details ? typeof paymentResponse.details : 'undefined'
+        });
         throw new Error('No purchase token received from Google Play. Please try again.');
       }
 
-      console.log('[TWA-Payment] Successfully extracted purchase token');
+      console.log('[TWA-Payment] Successfully extracted purchase token from response');
       
       // Complete the payment to dismiss the payment UI
       await paymentResponse.complete('success');
