@@ -279,33 +279,40 @@ export const paymentService = {
       console.log('[TWA-Payment] Data token:', paymentResponse.details?.data?.purchaseToken);
       console.log('[TWA-Payment] Method token:', paymentResponse.details?.paymentMethodData?.data?.purchaseToken);
       
-      // TWA billing response contains purchaseToken in details.data
-      // Extract purchase token from TWA Digital Goods API response
-      console.log('[TWA-Payment] Full response structure:', JSON.stringify({
+      // TWA billing response can contain purchaseToken in multiple locations
+      console.log('[TWA-Payment] Checking for purchase token in response:', JSON.stringify({
         methodName: paymentResponse.methodName,
-        paymentMethodData: paymentResponse.details?.paymentMethodData,
-        data: paymentResponse.details?.data
+        hasDetails: Boolean(paymentResponse.details),
+        hasMethodData: Boolean(paymentResponse.details?.paymentMethodData),
+        hasDirectData: Boolean(paymentResponse.details?.data)
       }, null, 2));
 
-      // Validate paymentResponse structure according to Digital Goods API spec
-      if (!paymentResponse.details?.paymentMethodData?.data) {
-        console.error('[TWA-Payment] Invalid response structure. Missing paymentMethodData.data:',
+      // Log the full response structure for debugging
+      console.log('[TWA-Payment] Full response details:', JSON.stringify(paymentResponse.details, null, 2));
+
+      // Try to extract purchase token from all possible locations
+      const purchaseToken =
+        // Check paymentMethodData.data path first (most common)
+        paymentResponse.details?.paymentMethodData?.data?.purchaseToken ||
+        // Check direct data path
+        paymentResponse.details?.data?.purchaseToken ||
+        // Check direct details path
+        paymentResponse.details?.purchaseToken;
+
+      if (!purchaseToken) {
+        console.error('[TWA-Payment] Purchase token not found in any expected location. Response structure:',
           JSON.stringify({
-            details: paymentResponse.details,
-            methodName: paymentResponse.methodName,
-            hasMethodData: Boolean(paymentResponse.details?.paymentMethodData)
+            hasDetails: Boolean(paymentResponse.details),
+            detailsType: typeof paymentResponse.details,
+            paymentMethodData: paymentResponse.details?.paymentMethodData,
+            directData: paymentResponse.details?.data,
+            directToken: paymentResponse.details?.purchaseToken
           }, null, 2)
         );
-        throw new Error('Invalid payment response from Google Play. Please try again.');
+        throw new Error('No purchase token received from Google Play. Please try again.');
       }
 
-      const purchaseToken = paymentResponse.details.paymentMethodData.data.purchaseToken;
-      if (!purchaseToken) {
-        console.error('[TWA-Payment] Missing purchase token in correct location:',
-          JSON.stringify(paymentResponse.details.paymentMethodData.data, null, 2)
-        );
-        throw new Error('Purchase token not found in Google Play response. Please try again.');
-      }
+      console.log('[TWA-Payment] Successfully extracted purchase token');
       
       console.log('[TWA-Payment] Successfully extracted purchase token');
       
