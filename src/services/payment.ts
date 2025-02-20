@@ -154,8 +154,15 @@ export const paymentService = {
       });
 
       // Start the payment flow
-      console.log('Starting subscription purchase flow...');
-      const paymentResponse = await request.show();
+      console.log('[TWA-Payment] Starting flow');
+      let paymentResponse;
+      try {
+        paymentResponse = await request.show();
+        console.log('[TWA-Payment] Show completed');
+      } catch (error) {
+        console.log('[TWA-Payment] Show failed:', error);
+        throw error;
+      }
       
       // Extract purchase details from the payment response
       console.log('[TWA-Payment] Response received:', paymentResponse);
