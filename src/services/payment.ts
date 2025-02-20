@@ -136,7 +136,8 @@ export const paymentService = {
             purchaseToken: undefined, // Required for subscriptions but should be undefined for new purchases
             oldSkuPurchaseToken: undefined, // For subscription upgrades
             packageName: 'app.touchbase.site.twa', // Must match the TWA package name
-            subscriptionPeriod: 'P1M' // Monthly subscription
+            subscriptionPeriod: 'P1M', // Monthly subscription
+            method: 'https://play.google.com/billing' // Explicitly specify Digital Goods API
           }
         }],
         {
@@ -177,16 +178,20 @@ export const paymentService = {
       console.log('[TWA-Payment] Method token:', paymentResponse.details?.paymentMethodData?.data?.purchaseToken);
       
       // TWA billing response contains purchaseToken in details.data
-      // Try to find purchase token in different possible locations
-      const purchaseToken =
-        paymentResponse.details?.purchaseToken || // Direct token
-        paymentResponse.details?.data?.purchaseToken || // Current location
-        paymentResponse.details?.paymentMethodData?.data?.purchaseToken; // Method data token
-      
-      console.log('[TWA-Payment] Extracted token:', purchaseToken);
+      // Extract purchase token from TWA Digital Goods API response
+      console.log('[TWA-Payment] Full response structure:', JSON.stringify({
+        methodName: paymentResponse.methodName,
+        paymentMethodData: paymentResponse.details?.paymentMethodData,
+        data: paymentResponse.details?.data
+      }, null, 2));
+
+      // TWA Digital Goods API provides token in paymentMethodData
+      const purchaseToken = paymentResponse.details?.paymentMethodData?.data?.purchaseToken;
+      console.log('[TWA-Payment] Purchase token:', purchaseToken);
       
       if (!purchaseToken) {
-        console.error('[TWA-Payment] Missing purchase token. Full response:', paymentResponse.details);
+        console.error('[TWA-Payment] No purchase token in paymentMethodData:',
+          JSON.stringify(paymentResponse.details?.paymentMethodData, null, 2));
         throw new Error('No purchase token received from Google Play. Please try again.');
       }
       console.log('Extracted purchase token:', purchaseToken);
