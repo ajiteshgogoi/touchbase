@@ -144,12 +144,6 @@ export const paymentService = {
             label: `${plan.name} Subscription`,
             amount: { currency: 'USD', value: plan.price.toString() }
           }
-        },
-        // Optional parameters
-        {
-          requestPayerName: false,
-          requestPayerEmail: false,
-          requestPayerPhone: false
         }
       );
 
@@ -441,11 +435,6 @@ export const paymentService = {
             label: 'Cancel Subscription',
             amount: { currency: 'USD', value: '0' }
           }
-        },
-        {
-          requestPayerName: false,
-          requestPayerEmail: false,
-          requestPayerPhone: false
         }
       );
 
