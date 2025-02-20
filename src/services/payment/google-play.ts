@@ -139,9 +139,38 @@ export class GooglePlayService {
             try {
               console.log('[TWA-Payment] Starting payment flow...');
               showPromise = request.show();
-              const response = await showPromise;
               
-              console.log('[TWA-Payment] Payment flow completed', {
+              // Handle potential activity recreation during show()
+              const showPromiseWithRetry = new Promise<PaymentResponse>(async (resolveShow, rejectShow) => {
+                try {
+                  const response = await showPromise;
+                  console.log('[TWA-Payment] Initial payment flow response received', {
+                    time: new Date().toISOString(),
+                    hasResponse: Boolean(response),
+                    responseType: response ? typeof response : 'undefined',
+                    hasDetails: Boolean(response?.details),
+                    methodName: response?.methodName
+                  });
+                  
+                  // Validate response before resolving
+                  if (!response || !response.details) {
+                    console.log('[TWA-Payment] Response validation failed, waiting for activity recreation...');
+                    // Don't reject immediately - allow activity recreation to potentially recover
+                    return;
+                  }
+                  
+                  resolveShow(response);
+                } catch (e) {
+                  console.log('[TWA-Payment] Show promise error:', e);
+                  if (e instanceof Error && e.name !== 'AbortError') {
+                    rejectShow(e);
+                  }
+                  // For AbortError, let the activity recreation handler take over
+                }
+              });
+
+              const response = await showPromiseWithRetry;
+              console.log('[TWA-Payment] Payment flow completed successfully', {
                 time: new Date().toISOString(),
                 hasResponse: Boolean(response),
                 responseType: response ? typeof response : 'undefined',
@@ -168,30 +197,75 @@ export class GooglePlayService {
           console.log('[TWA-Payment] Initiating payment flow');
           handlePaymentFlow();
 
-          // Set up activity recreation handler
-          console.log('[TWA-Payment] Setting up activity recreation handler');
+          // Track activity state and handle recreation
+          let attemptCount = 0;
+          const maxAttempts = 3;
+          let lastActivityState = 'initial';
+          
+          console.log('[TWA-Payment] Setting up activity state tracking');
+          
           const checkInterval = setInterval(() => {
-            if (!hasResult && !showPromise) {
-              console.log('[TWA-Payment] Activity recreated - restarting payment flow');
-              handlePaymentFlow();
-            } else if (hasResult) {
+            if (hasResult) {
               console.log('[TWA-Payment] Payment completed - cleaning up');
               clearInterval(checkInterval);
+              return;
             }
-          }, 1000); // Check every second
-          
-          // Clear interval after max timeout
+
+            // Check if we need to restart the flow
+            const needsRestart = !showPromise ||
+              (lastActivityState === 'paused' && document.visibilityState === 'visible');
+
+            if (needsRestart && attemptCount < maxAttempts) {
+              attemptCount++;
+              console.log('[TWA-Payment] Activity state change detected', {
+                attemptCount,
+                lastState: lastActivityState,
+                currentState: document.visibilityState,
+                hasShowPromise: Boolean(showPromise)
+              });
+              
+              // Clear existing promise
+              showPromise = null;
+              
+              // Restart payment flow
+              console.log('[TWA-Payment] Restarting payment flow (attempt ${attemptCount}/${maxAttempts})');
+              handlePaymentFlow();
+            }
+
+            // Update activity state
+            lastActivityState = document.visibilityState;
+          }, 1000);
+
+          // Listen for visibility changes
+          const visibilityHandler = () => {
+            console.log('[TWA-Payment] Visibility changed:', {
+              state: document.visibilityState,
+              hasResult,
+              hasShowPromise: Boolean(showPromise)
+            });
+          };
+          document.addEventListener('visibilitychange', visibilityHandler);
+
+          // Clear interval and cleanup after timeout
+          const timeoutDuration = 45000; // 45 seconds to account for activity transitions
           console.log('[TWA-Payment] Setting up timeout handler');
           setTimeout(() => {
-            console.log('[TWA-Payment] Timeout reached, cleaning up');
+            console.log('[TWA-Payment] Timeout status:', {
+              hasResult,
+              attemptCount,
+              visibilityState: document.visibilityState
+            });
+            
             clearInterval(checkInterval);
+            document.removeEventListener('visibilitychange', visibilityHandler);
+            
             if (!hasResult) {
               console.log('[TWA-Payment] Timeout reached without result, failing');
-              reject(new Error('Payment request timed out. Please try again.'));
+              reject(new Error(`Payment request timed out after ${attemptCount} attempts. Please try again.`));
             } else {
               console.log('[TWA-Payment] Timeout reached but result was already received');
             }
-          }, 30000);
+          }, timeoutDuration);
         });
         
         paymentResponse = await activityResultPromise;
@@ -240,27 +314,71 @@ export class GooglePlayService {
         'details.paymentMethodData.data.purchaseToken',
         'details.data.purchaseToken',
         'details.purchaseToken',
-        'details.androidPayProvidedData.purchaseToken'
+        'details.androidPayProvidedData.purchaseToken',
+        'details.digitalGoods.purchaseToken',
+        'details.googlePlayResponse.purchaseToken',
+        'paymentMethodData.data.purchaseToken',
+        'paymentMethodData.digitalGoods.purchaseToken'
       ];
 
-      // Log each path attempt
-      paths.forEach(path => {
-        const value = path.split('.').reduce((obj, key) => obj?.[key], paymentResponse as any);
-        console.log(`[TWA-Payment] Checking ${path}:`, value);
-        if (value && !purchaseToken) {
-          purchaseToken = value;
-          console.log(`[TWA-Payment] Found purchase token in ${path}`);
+      // First try direct path access
+      for (const path of paths) {
+        try {
+          const value = path.split('.').reduce((obj, key) => obj?.[key], paymentResponse as any);
+          console.log(`[TWA-Payment] Checking ${path}:`, value);
+          if (value && typeof value === 'string') {
+            purchaseToken = value;
+            console.log(`[TWA-Payment] Found purchase token in ${path}`);
+            break;
+          }
+        } catch (e) {
+          console.log(`[TWA-Payment] Error checking path ${path}:`, e);
         }
-      });
+      }
+
+      // If no token found, try parsing nested JSON strings
+      if (!purchaseToken && paymentResponse.details) {
+        console.log('[TWA-Payment] Attempting to parse nested response data...');
+        try {
+          // Try parsing details if it's a string
+          const parsedDetails = typeof paymentResponse.details === 'string'
+            ? JSON.parse(paymentResponse.details)
+            : paymentResponse.details;
+
+          // Look for token in parsed details
+          const possibleTokens = [
+            parsedDetails?.purchaseToken,
+            parsedDetails?.data?.purchaseToken,
+            parsedDetails?.paymentMethodData?.data?.purchaseToken,
+            parsedDetails?.digitalGoods?.purchaseToken
+          ];
+
+          for (const token of possibleTokens) {
+            if (token && typeof token === 'string') {
+              purchaseToken = token;
+              console.log('[TWA-Payment] Found token in parsed details');
+              break;
+            }
+          }
+
+          // If still no token, log the parsed structure
+          if (!purchaseToken) {
+            console.log('[TWA-Payment] Parsed details structure:', JSON.stringify(parsedDetails, null, 2));
+          }
+        } catch (e) {
+          console.log('[TWA-Payment] Error parsing nested response:', e);
+        }
+      }
 
       if (!purchaseToken) {
-        console.error('[TWA-Payment] Purchase token not found in response. Full details:', {
+        console.error('[TWA-Payment] Purchase token not found. Response details:', {
           methodName: paymentResponse.methodName,
           hasDetails: Boolean(paymentResponse.details),
           detailsKeys: paymentResponse.details ? Object.keys(paymentResponse.details) : [],
-          detailsType: paymentResponse.details ? typeof paymentResponse.details : 'undefined'
+          detailsType: paymentResponse.details ? typeof paymentResponse.details : 'undefined',
+          fullResponse: JSON.stringify(paymentResponse, null, 2)
         });
-        throw new Error('No purchase token received from Google Play. Please try again.');
+        throw new Error('No purchase token received from Google Play. Please check console logs and try again.');
       }
 
       console.log('[TWA-Payment] Successfully extracted purchase token from response');
