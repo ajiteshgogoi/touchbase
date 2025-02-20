@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { encode as base64url } from "https://deno.land/std@0.168.0/encoding/base64url.ts";
+import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
@@ -96,7 +97,7 @@ async function createGoogleJWT(): Promise<string> {
     privateKey.indexOf(pemFooter),
   ).replace(/\s/g, '');
   
-  const binaryKey = base64url.decode(pemContents);
+  const binaryKey = base64Decode(pemContents);
   const key = await crypto.subtle.importKey(
     'pkcs8',
     binaryKey,
