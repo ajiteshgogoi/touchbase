@@ -5,25 +5,6 @@ import { paypalService } from './paypal';
 import { subscriptionService } from './subscription';
 export { SUBSCRIPTION_PLANS } from './plans';
 
-// Payment completion handling
-type PaymentCallback = () => void;
-const paymentCallbacks: PaymentCallback[] = [];
-
-export const addPaymentCompletionListener = (callback: PaymentCallback): (() => void) => {
-  paymentCallbacks.push(callback);
-  return () => {
-    const index = paymentCallbacks.indexOf(callback);
-    if (index > -1) {
-      paymentCallbacks.splice(index, 1);
-    }
-  };
-};
-
-export const notifyPaymentComplete = () => {
-  paymentCallbacks.forEach(callback => callback());
-  paymentCallbacks.length = 0;
-};
-
 export const paymentService = {
   // Track Google Play Billing initialization state
   _isGooglePlayInitialized: false,
@@ -37,32 +18,12 @@ export const paymentService = {
     console.log('Creating subscription:', { planId, paymentMethod });
     try {
       if (paymentMethod === 'google_play') {
-        // Initialize polling for completion if using Google Play
-        let pollAttempts = 0;
-        const pollInterval = setInterval(() => {
-          if (!document.querySelector('.PaymentActivity') || pollAttempts >= 60) {
-            clearInterval(pollInterval);
-            if (pollAttempts < 60) {
-              notifyPaymentComplete();
-            }
-          }
-          pollAttempts++;
-        }, 500);
-
-        // Ensure cleanup
-        setTimeout(() => {
-          clearInterval(pollInterval);
-          document.body.classList.remove('modal-open');
-        }, 30000);
-
         return googlePlayService.createSubscription(planId);
       } else {
         return paypalService.createSubscription(planId);
       }
     } catch (error) {
       console.error('Error creating subscription:', error);
-      // Cleanup on error
-      document.body.classList.remove('modal-open');
       throw error;
     }
   },

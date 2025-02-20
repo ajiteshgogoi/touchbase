@@ -35,21 +35,9 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: Props) => {
-  const handleClose = () => {
-    if (!isProcessing) {
-      // Only allow closing if not processing
-      onClose();
-    }
-  };
-
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-50"
-        onClose={handleClose}
-        static // Prevent closing while processing
-      >
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -98,27 +86,13 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                     {PAYMENT_METHODS.map((method) => (
                       <button
                         key={method.id}
-                        onClick={() => {
-                          if (!method.disabled && !isProcessing) {
-                            // Check payment method availability
-                            if (method.id === 'google_play' && typeof PaymentRequest === 'undefined') {
-                              method.disabled = true;
-                              method.disabledReason = 'Google Play Billing is not available. Please ensure you installed from Play Store.';
-                              return;
-                            }
-                            // Prevent double-clicks
-                            if (!isProcessing) {
-                              onSelect(method.id);
-                            }
-                          }
-                        }}
-                        disabled={method.disabled || isProcessing}
+                        onClick={() => !method.disabled && onSelect(method.id)}
+                        disabled={method.disabled}
                         className={`w-full p-4 text-left border rounded-lg transition-colors flex items-start gap-4 ${
-                          method.disabled || isProcessing
+                          method.disabled 
                             ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                            : 'hover:border-primary-500 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
+                            : 'hover:border-primary-500 hover:bg-primary-50'
                         }`}
-                        aria-disabled={method.disabled || isProcessing}
                       >
                         <span className="text-2xl">{method.icon}</span>
                         <div>

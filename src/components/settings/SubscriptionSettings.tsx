@@ -25,41 +25,12 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
   const handleSubscribe = async (paymentMethod: PaymentMethod) => {
     try {
       setIsSubscribing(true);
-      setIsModalOpen(false); // Close payment method modal
-      
-      if (paymentMethod === 'google_play') {
-        // For Google Play, add a completion listener
-        const checkCompletion = setInterval(() => {
-          // Check if payment activity is gone
-          if (!document.querySelector('.PaymentActivity')) {
-            clearInterval(checkCompletion);
-            setIsSubscribing(false);
-            document.body.classList.remove('modal-open');
-            queryClient.invalidateQueries({ queryKey: ['subscription'] });
-            toast.success('Subscription activated successfully');
-          }
-        }, 500);
-
-        // Cleanup after 30s to prevent infinite checking
-        setTimeout(() => {
-          clearInterval(checkCompletion);
-          setIsSubscribing(false);
-          document.body.classList.remove('modal-open');
-        }, 30000);
-      }
-
       await paymentService.createSubscription('premium', paymentMethod);
-
-      if (paymentMethod === 'paypal') {
-        // PayPal handles its own redirect flow
-        toast.success('Redirecting to PayPal...');
-      }
+      // Success toast will be shown after PayPal redirect or Google Play purchase
     } catch (error: any) {
       console.error('Subscription error:', error);
       toast.error(error?.message || 'Failed to create subscription');
       setIsSubscribing(false);
-      setIsModalOpen(false);
-      document.body.classList.remove('modal-open');
     }
   };
 
