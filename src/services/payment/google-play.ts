@@ -68,7 +68,8 @@ export class GooglePlayService {
             oldSkuPurchaseToken: undefined, // For subscription upgrades
             packageName: 'app.touchbase.site.twa', // Must match the TWA package name
             subscriptionPeriod: 'P1M', // Monthly subscription
-            method: 'https://play.google.com/billing' // Explicitly specify Digital Goods API
+            method: 'https://play.google.com/billing', // Explicitly specify Digital Goods API
+            api: 'digitalGoods' // Explicitly request Digital Goods API
           }
         }];
 
@@ -310,6 +311,9 @@ export class GooglePlayService {
       console.log('[TWA-Payment] Attempting to extract purchase token...');
       
       let purchaseToken: string | undefined;
+      // Log raw payment response first
+      console.log('[TWA-Payment] Raw payment response:', JSON.stringify(paymentResponse, null, 2));
+      
       const paths = [
         'details.paymentMethodData.data.purchaseToken',
         'details.data.purchaseToken',
@@ -318,7 +322,16 @@ export class GooglePlayService {
         'details.digitalGoods.purchaseToken',
         'details.googlePlayResponse.purchaseToken',
         'paymentMethodData.data.purchaseToken',
-        'paymentMethodData.digitalGoods.purchaseToken'
+        'paymentMethodData.digitalGoods.purchaseToken',
+        // Additional paths based on Digital Goods API
+        'details.paymentMethodData.digitalGoods.purchaseToken',
+        'details.paymentMethodData.googlePlayResponse.purchaseToken',
+        'details.response.purchaseToken',
+        'details.billing.purchaseToken',
+        // Check deeply nested structures
+        'details.paymentMethodData.data.digitalGoods.purchaseToken',
+        'details.paymentMethodData.data.googlePlayBilling.purchaseToken',
+        'details.paymentMethodData.data.response.purchaseToken'
       ];
 
       // First try direct path access
@@ -371,14 +384,51 @@ export class GooglePlayService {
       }
 
       if (!purchaseToken) {
-        console.error('[TWA-Payment] Purchase token not found. Response details:', {
+        // Additional debug logging for payment response structure
+        console.error('[TWA-Payment] Purchase token extraction failed. Detailed response analysis:', {
           methodName: paymentResponse.methodName,
           hasDetails: Boolean(paymentResponse.details),
           detailsKeys: paymentResponse.details ? Object.keys(paymentResponse.details) : [],
           detailsType: paymentResponse.details ? typeof paymentResponse.details : 'undefined',
+          responseStructure: {
+            details: paymentResponse.details ? typeof paymentResponse.details : 'undefined',
+            methodName: paymentResponse.methodName ? typeof paymentResponse.methodName : 'undefined',
+            requestId: paymentResponse.requestId ? typeof paymentResponse.requestId : 'undefined'
+          },
           fullResponse: JSON.stringify(paymentResponse, null, 2)
         });
-        throw new Error('No purchase token received from Google Play. Please check console logs and try again.');
+
+        // Attempt one last parsing of stringified content
+        if (typeof paymentResponse.details === 'string') {
+          try {
+            const parsedContent = JSON.parse(paymentResponse.details);
+            console.log('[TWA-Payment] Parsed string content:', parsedContent);
+            
+            // Check common locations in parsed content
+            const possibleToken =
+              parsedContent.purchaseToken ||
+              parsedContent.token ||
+              parsedContent.payment_token ||
+              parsedContent.digitalGoods?.purchaseToken ||
+              parsedContent.paymentMethodData?.digitalGoods?.purchaseToken;
+            
+            if (possibleToken && typeof possibleToken === 'string') {
+              console.log('[TWA-Payment] Found token in parsed string content');
+              purchaseToken = possibleToken;
+            }
+          } catch (e) {
+            console.log('[TWA-Payment] Failed to parse response details as JSON:', e);
+          }
+        }
+
+        // If still no token, throw error with more context
+        if (!purchaseToken) {
+          throw new Error(
+            'No purchase token received from Google Play. ' +
+            'This might happen if the payment process was interrupted. ' +
+            'Please try again and ensure you complete the payment flow.'
+          );
+        }
       }
 
       console.log('[TWA-Payment] Successfully extracted purchase token from response');
