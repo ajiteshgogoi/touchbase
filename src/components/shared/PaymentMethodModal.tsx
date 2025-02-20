@@ -29,10 +29,8 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: 'google_play',
     name: 'Google Play',
-    description: 'Pay through Google Play (coming soon)',
-    icon: '🎮',
-    disabled: true,
-    disabledReason: 'Google Play billing will be available once the app is published on Play Store'
+    description: 'Pay through Google Play (only available if installed from Play Store)',
+    icon: '🎮'
   }
 ];
 
