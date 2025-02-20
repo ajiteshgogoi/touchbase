@@ -227,14 +227,71 @@ export const paymentService = {
           throw new Error('Payment method not available. Please ensure you are using the Play Store version.');
         }
 
-        // Launch the payment flow with activity state preservation
+        // Launch the payment flow and wait for activity result
         console.log('[TWA-Payment] Launching Google Play billing flow...');
-        paymentResponse = await Promise.race<PaymentResponse>([
-          request.show(),
-          // Set up a timeout that's longer than the activity transition
-          new Promise<PaymentResponse>((_, reject) => setTimeout(() =>
-            reject(new Error('Payment request timed out. Please try again.')), 30000))
-        ]);
+        
+        // Create a promise that resolves when the activity result completes
+        const activityResultPromise = new Promise<PaymentResponse>((resolve, reject) => {
+          let hasResult = false;
+          
+          // Function to check if we have activity result
+          const checkActivityResult = async () => {
+            try {
+              console.log('[TWA-Payment] Checking for activity result...', {
+                time: new Date().toISOString(),
+                hasResult
+              });
+              const response = await request.show();
+              console.log('[TWA-Payment] Activity result received', {
+                time: new Date().toISOString(),
+                hasResponse: Boolean(response),
+                responseType: response ? typeof response : 'undefined'
+              });
+              hasResult = true;
+              resolve(response);
+            } catch (error) {
+              console.log('[TWA-Payment] Activity result check error:', {
+                time: new Date().toISOString(),
+                errorType: error instanceof Error ? 'Error' : typeof error,
+                errorMessage: error instanceof Error ? error.message : String(error)
+              });
+              if (!hasResult) {
+                reject(error);
+              }
+            }
+          };
+          
+          // Start checking for activity result
+          console.log('[TWA-Payment] Starting initial activity result check');
+          checkActivityResult();
+          
+          // Set up periodic checks to handle activity recreation
+          console.log('[TWA-Payment] Setting up periodic activity checks');
+          const checkInterval = setInterval(() => {
+            if (!hasResult) {
+              console.log('[TWA-Payment] Periodic check - no result yet');
+              checkActivityResult();
+            } else {
+              console.log('[TWA-Payment] Periodic check - result received, cleaning up');
+              clearInterval(checkInterval);
+            }
+          }, 500); // Check every 500ms
+          
+          // Clear interval after max timeout
+          console.log('[TWA-Payment] Setting up timeout handler');
+          setTimeout(() => {
+            console.log('[TWA-Payment] Timeout reached, cleaning up');
+            clearInterval(checkInterval);
+            if (!hasResult) {
+              console.log('[TWA-Payment] Timeout reached without result, failing');
+              reject(new Error('Payment request timed out. Please try again.'));
+            } else {
+              console.log('[TWA-Payment] Timeout reached but result was already received');
+            }
+          }, 30000);
+        });
+        
+        paymentResponse = await activityResultPromise;
         console.log('[TWA-Payment] Payment flow completed successfully', paymentResponse);
       } catch (error) {
         console.error('[TWA-Payment] Payment flow interrupted');
