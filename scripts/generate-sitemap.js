@@ -17,6 +17,11 @@ const publicPages = [
     url: '/terms',
     changefreq: 'monthly',
     priority: 0.8
+  },
+  {
+    url: '/support',
+    changefreq: 'monthly',
+    priority: 0.8
   }
 ];
 
