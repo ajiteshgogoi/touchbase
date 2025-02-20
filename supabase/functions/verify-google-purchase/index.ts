@@ -225,7 +225,13 @@ serve(async (req) => {
         throw new Error(`Failed to verify purchase with Google Play: ${response.status} ${response.statusText}\nDetails: ${responseText}`);
       }
 
-      const purchaseData: GooglePlayPurchase = JSON.parse(responseText);
+      let purchaseData: GooglePlayPurchase;
+      try {
+        purchaseData = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse purchase data:', e);
+        throw new Error('Invalid purchase data format received from Google Play');
+      }
 
       const purchaseData: GooglePlayPurchase = await response.json()
       validatePurchaseData(purchaseData);
