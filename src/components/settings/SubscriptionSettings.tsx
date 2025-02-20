@@ -29,8 +29,17 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
       // Success toast will be shown after PayPal redirect or Google Play purchase
     } catch (error: any) {
       console.error('Subscription error:', error);
-      toast.error(error?.message || 'Failed to create subscription');
+      
+      // Handle already subscribed case
+      if (error?.message === 'ALREADY_SUBSCRIBED') {
+        toast.success('You are already subscribed to this plan');
+        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      } else {
+        toast.error(error?.message || 'Failed to create subscription');
+      }
+    } finally {
       setIsSubscribing(false);
+      setIsModalOpen(false); // Always close modal regardless of outcome
     }
   };
 

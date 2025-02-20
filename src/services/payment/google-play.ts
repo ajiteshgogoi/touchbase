@@ -292,12 +292,25 @@ export class GooglePlayService {
           console.error('[TWA-Payment] Raw error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         }
 
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Payment was cancelled by user.');
-        } else {
-          throw new Error('Payment flow failed unexpectedly. Please try again. ' +
-            (error instanceof Error ? error.message : 'Unknown error occurred'));
+        // Check for specific error messages that indicate user is already subscribed
+        if (error instanceof Error) {
+          const errorMessage = error.message.toLowerCase();
+          if (
+            errorMessage.includes('already own') ||
+            errorMessage.includes('already subscribed') ||
+            errorMessage.includes('already purchased') ||
+            error.name === 'AlreadySubscribedError'
+          ) {
+            throw new Error('ALREADY_SUBSCRIBED');
+          }
+          
+          if (error.name === 'AbortError') {
+            throw new Error('Payment was cancelled by user.');
+          }
         }
+  
+        throw new Error('Payment flow failed unexpectedly. Please try again. ' +
+          (error instanceof Error ? error.message : 'Unknown error occurred'));
       }
       
       // Log full payment response details for debugging
