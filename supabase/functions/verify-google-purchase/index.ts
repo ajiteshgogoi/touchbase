@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { GoogleAuth } from 'https://esm.sh/v135/google-auth-library@9.6.3?target=deno'
+import { encode as base64url } from "https://deno.land/std@0.168.0/encoding/base64url.ts";
 
 function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
@@ -45,7 +45,6 @@ function validateEnvironmentVars() {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 
-  // Log non-sensitive environment variable presence
   console.log('Environment validation:', {
     hasSupabaseUrl: !!Deno.env.get('SUPABASE_URL'),
     hasServiceAccountEmail: !!Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL'),
@@ -65,6 +64,80 @@ function validatePurchaseData(data: GooglePlayPurchase) {
     orderId: data.orderId ? '[PRESENT]' : '[MISSING]',
     expiryDate: new Date(parseInt(data.expiryTimeMillis)).toISOString(),
   });
+}
+
+async function createGoogleJWT(): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  const privateKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY')?.replace(/\\n/g, '\n') ?? '';
+  const email = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL') ?? '';
+
+  const header = {
+    alg: 'RS256',
+    typ: 'JWT',
+  };
+
+  const claim = {
+    iss: email,
+    scope: 'https://www.googleapis.com/auth/androidpublisher',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now,
+  };
+
+  const encodedHeader = base64url(new TextEncoder().encode(JSON.stringify(header)));
+  const encodedClaim = base64url(new TextEncoder().encode(JSON.stringify(claim)));
+  const signatureInput = `${encodedHeader}.${encodedClaim}`;
+
+  // Convert PEM to raw private key
+  const pemHeader = '-----BEGIN PRIVATE KEY-----';
+  const pemFooter = '-----END PRIVATE KEY-----';
+  const pemContents = privateKey.substring(
+    privateKey.indexOf(pemHeader) + pemHeader.length,
+    privateKey.indexOf(pemFooter),
+  ).replace(/\s/g, '');
+  
+  const binaryKey = base64url.decode(pemContents);
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    binaryKey,
+    {
+      name: 'RSASSA-PKCS1-v1_5',
+      hash: 'SHA-256',
+    },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    { name: 'RSASSA-PKCS1-v1_5' },
+    key,
+    new TextEncoder().encode(signatureInput)
+  );
+
+  const encodedSignature = base64url(new Uint8Array(signature));
+  return `${signatureInput}.${encodedSignature}`;
+}
+
+async function getGoogleAccessToken(): Promise<string> {
+  const jwt = await createGoogleJWT();
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to get access token: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
 }
 
 serve(async (req) => {
@@ -110,20 +183,10 @@ serve(async (req) => {
     console.log('Verifying purchase:', { productId, tokenLength: purchaseToken.length });
 
     try {
-      // Initialize Google Auth
-      const auth = new GoogleAuth({
-        credentials: {
-          client_email: Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL'),
-          private_key: Deno.env.get('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY')?.replace(/\\n/g, '\n'),
-        },
-        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-      })
-
       // Get access token
       console.log('Getting Google access token');
-      const client = await auth.getClient()
-      const accessToken = await client.getAccessToken()
-      console.log('Got access token:', { type: accessToken.type });
+      const accessToken = await getGoogleAccessToken();
+      console.log('Got access token');
 
       // Verify purchase with Google Play API
       const packageName = Deno.env.get('ANDROID_PACKAGE_NAME')
@@ -132,7 +195,7 @@ serve(async (req) => {
         `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${purchaseToken}`,
         {
           headers: {
-            Authorization: `Bearer ${accessToken.token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       )
