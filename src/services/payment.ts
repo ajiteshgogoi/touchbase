@@ -125,10 +125,11 @@ export const paymentService = {
         throw new Error('Google Play Billing is not available. If you installed from Play Store, please try again in a few seconds.');
       }
 
-      // Create PaymentRequest for Google Play billing
-      console.log('Creating PaymentRequest for Google Play billing...');
-      const request = new PaymentRequest(
-        [{
+      // Create PaymentRequest for Google Play billing with detailed logging
+      console.log('[TWA-Payment] Starting payment request creation...');
+      let request;
+      try {
+        const paymentRequestData = {
           supportedMethods: 'https://play.google.com/billing',
           data: {
             sku: plan.googlePlayProductId,
@@ -139,30 +140,92 @@ export const paymentService = {
             subscriptionPeriod: 'P1M', // Monthly subscription
             method: 'https://play.google.com/billing' // Explicitly specify Digital Goods API
           }
-        }],
-        {
-          total: {
-            label: `${plan.name} Subscription`,
-            amount: { currency: 'USD', value: plan.price.toString() }
-          }
-        }
-      );
+        };
 
-      // Log the request for debugging
-      console.log('Payment request details:', {
-        sku: plan.googlePlayProductId,
-        packageName: 'app.touchbase.site.twa'
+        console.log('[TWA-Payment] Payment method data:', JSON.stringify(paymentRequestData, null, 2));
+
+        request = new PaymentRequest(
+          [paymentRequestData],
+          {
+            total: {
+              label: `${plan.name} Subscription`,
+              amount: { currency: 'USD', value: plan.price.toString() }
+            }
+          }
+        );
+
+        console.log('[TWA-Payment] Request created successfully');
+      } catch (error) {
+        console.error('[TWA-Payment] Failed to create payment request:', error);
+        if (error instanceof Error) {
+          console.error('[TWA-Payment] Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          });
+        }
+        throw new Error('Failed to initialize payment request. Please try again.');
+      }
+
+      // Log payment request object
+      console.log('[TWA-Payment] Request configuration:', {
+        hasCanMakePayment: typeof request.canMakePayment === 'function',
+        hasShow: typeof request.show === 'function',
+        id: request.id
       });
 
-      // Start the payment flow
-      console.log('[TWA-Payment] Starting flow');
+      // Check canMakePayment before showing
+      console.log('[TWA-Payment] Checking canMakePayment...');
+      let canMake = false;
+      try {
+        canMake = await request.canMakePayment();
+        console.log('[TWA-Payment] canMakePayment result:', canMake);
+      } catch (error) {
+        console.error('[TWA-Payment] canMakePayment check failed:', error);
+        throw new Error('Payment method not available. Please ensure you are using the Play Store version of the app.');
+      }
+
+      if (!canMake) {
+        console.error('[TWA-Payment] Payment method not supported');
+        throw new Error('Google Play Billing is not available on this device.');
+      }
+
+      // Start the payment flow with enhanced error handling
+      console.log('[TWA-Payment] Starting payment flow');
       let paymentResponse;
       try {
+        console.log('[TWA-Payment] Calling show()...');
         paymentResponse = await request.show();
-        console.log('[TWA-Payment] Show completed');
+        console.log('[TWA-Payment] show() completed successfully');
       } catch (error) {
-        console.log('[TWA-Payment] Show failed:', error);
-        throw error;
+        console.error('[TWA-Payment] Payment flow interrupted');
+        console.error('[TWA-Payment] Error type:', typeof error);
+        
+        if (error instanceof Error) {
+          console.error('[TWA-Payment] Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            // For payment errors, there might be additional properties
+            ...(error as any)
+          });
+        } else if (error instanceof DOMException) {
+          console.error('[TWA-Payment] DOMException details:', {
+            name: error.name,
+            code: error.code,
+            message: error.message
+          });
+        } else {
+          // Log raw error object in case it's a non-standard error
+          console.error('[TWA-Payment] Raw error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        }
+
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Payment was cancelled by user.');
+        } else {
+          throw new Error('Payment flow failed unexpectedly. Please try again. ' +
+            (error instanceof Error ? error.message : 'Unknown error occurred'));
+        }
       }
       
       // Extract purchase details from the payment response
