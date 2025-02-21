@@ -399,12 +399,24 @@ serve(async (req) => {
     }
 
     // Prepare update data
-    const updateData: any = {
-      status,
-      valid_until: subscriptionDetails.expiryTimeMillis
-        ? new Date(parseInt(subscriptionDetails.expiryTimeMillis)).toISOString()
-        : undefined,
-    };
+    const updateData: any = { status };
+
+    // Only update valid_until for active subscriptions
+    if (status === 'active' && subscriptionDetails.expiryTimeMillis) {
+      updateData.valid_until = new Date(parseInt(subscriptionDetails.expiryTimeMillis)).toISOString();
+      console.log('[Google Play Webhook] Updating valid_until for active subscription:', {
+        id: subscription.id,
+        oldValidUntil: subscription.valid_until,
+        newValidUntil: updateData.valid_until,
+        expiryTimeMillis: subscriptionDetails.expiryTimeMillis
+      });
+    } else {
+      console.log('[Google Play Webhook] Preserving valid_until for non-active status:', {
+        id: subscription.id,
+        status,
+        currentValidUntil: subscription.valid_until
+      });
+    }
 
     // Nullify token if subscription is canceled/expired
     if (shouldNullifyToken) {
@@ -416,7 +428,7 @@ serve(async (req) => {
       oldStatus: subscription.status,
       newStatus: status,
       willNullifyToken: shouldNullifyToken,
-      newValidUntil: updateData.valid_until
+      validUntilChanged: 'valid_until' in updateData
     });
 
     // Update the subscription in our database
@@ -440,6 +452,8 @@ serve(async (req) => {
       oldStatus: subscription.status,
       newStatus: status,
       tokenNullified: shouldNullifyToken,
+      validUntilChanged: 'valid_until' in updateData,
+      validUntil: updateData.valid_until || subscription.valid_until, // Log current valid_until
       notificationType: notification.subscriptionNotification.notificationType
     });
 
