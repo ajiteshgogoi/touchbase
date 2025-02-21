@@ -140,6 +140,9 @@ export class GooglePlayService {
 
             try {
               console.log('[TWA-Payment] Starting payment flow...');
+              // Emit event before showing Google Play UI
+              const { paymentEvents, PAYMENT_EVENTS } = await import('./payment-events');
+              paymentEvents.emit(PAYMENT_EVENTS.GOOGLE_PLAY_UI_SHOWN);
               showPromise = request.show();
               
               // Handle potential activity recreation during show()

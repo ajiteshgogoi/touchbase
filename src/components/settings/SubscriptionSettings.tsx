@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useStore } from '../../stores/useStore';
@@ -6,6 +6,7 @@ import { CheckIcon } from '@heroicons/react/24/outline';
 import { formatDateWithTimezone } from '../../utils/date';
 import { PaymentMethodModal } from '../shared/PaymentMethodModal';
 import { paymentService, SUBSCRIPTION_PLANS } from '../../services/payment';
+import { paymentEvents, PAYMENT_EVENTS } from '../../services/payment/payment-events';
 
 import type { Subscription } from '../../types/subscription';
 
@@ -24,15 +25,21 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
   const [isModalOpen, setIsModalOpen] = useState(false);
   const selectedPlan = isPremium ? 'premium' : 'free';
 
+  useEffect(() => {
+    const handleGooglePlayUIShown = () => {
+      setIsSubscribing(false);
+      setIsModalOpen(false);
+    };
+
+    paymentEvents.on(PAYMENT_EVENTS.GOOGLE_PLAY_UI_SHOWN, handleGooglePlayUIShown);
+    return () => {
+      paymentEvents.off(PAYMENT_EVENTS.GOOGLE_PLAY_UI_SHOWN, handleGooglePlayUIShown);
+    };
+  }, []);
+
   const handleSubscribe = async (paymentMethod: PaymentMethod) => {
     try {
       setIsSubscribing(true);
-      
-      // For Google Play, close modal immediately after initiating payment
-      if (paymentMethod === 'google_play') {
-        setIsModalOpen(false);
-      }
-      
       await paymentService.createSubscription('premium', paymentMethod);
       // Success toast will be shown after PayPal redirect or Google Play purchase
     } catch (error: any) {
@@ -47,9 +54,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
       }
     } finally {
       setIsSubscribing(false);
-      if (paymentMethod !== 'google_play') {
-        setIsModalOpen(false); // Close modal for non-Google Play payments
-      }
+      setIsModalOpen(false); // Close modal for PayPal redirect
     }
   };
 
