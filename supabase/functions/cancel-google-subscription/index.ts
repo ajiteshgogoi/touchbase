@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { GoogleAuth } from 'https://esm.sh/google-auth-library@8.7.0'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { encode as base64url } from "https://deno.land/std@0.168.0/encoding/base64url.ts";
+import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
@@ -9,6 +10,93 @@ function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Max-Age', '86400');
   headers.set('Access-Control-Allow-Credentials', 'true');
   return headers;
+}
+
+async function createGoogleJWT(): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  const privateKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY')?.replace(/\\n/g, '\n') ?? '';
+  const email = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL') ?? '';
+
+  console.log('Creating JWT with email:', email);
+  console.log('Private key starts with:', privateKey.substring(0, 50) + '...');
+
+  const header = {
+    alg: 'RS256',
+    typ: 'JWT',
+  };
+
+  const claim = {
+    iss: email,
+    scope: 'https://www.googleapis.com/auth/androidpublisher',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now,
+  };
+
+  console.log('JWT claims:', JSON.stringify(claim));
+  const encodedHeader = base64url(new TextEncoder().encode(JSON.stringify(header)));
+  const encodedClaim = base64url(new TextEncoder().encode(JSON.stringify(claim)));
+  const signatureInput = `${encodedHeader}.${encodedClaim}`;
+
+  // Convert PEM to raw private key
+  const pemHeader = '-----BEGIN PRIVATE KEY-----';
+  const pemFooter = '-----END PRIVATE KEY-----';
+  const pemContents = privateKey.substring(
+    privateKey.indexOf(pemHeader) + pemHeader.length,
+    privateKey.indexOf(pemFooter),
+  ).replace(/\s/g, '');
+  
+  const binaryKey = base64Decode(pemContents);
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    binaryKey,
+    {
+      name: 'RSASSA-PKCS1-v1_5',
+      hash: 'SHA-256',
+    },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    { name: 'RSASSA-PKCS1-v1_5' },
+    key,
+    new TextEncoder().encode(signatureInput)
+  );
+
+  const encodedSignature = base64url(new Uint8Array(signature));
+  return `${signatureInput}.${encodedSignature}`;
+}
+
+async function getGoogleAccessToken(): Promise<string> {
+  console.log('Creating JWT with claims...');
+  const jwt = await createGoogleJWT();
+  console.log('JWT created successfully');
+
+  console.log('Requesting access token from Google OAuth...');
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt,
+    }),
+  });
+
+  const responseText = await response.text();
+  console.log('OAuth response status:', response.status);
+  console.log('OAuth response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+  console.log('OAuth response body:', responseText);
+
+  if (!response.ok) {
+    throw new Error(`Failed to get access token: ${responseText}`);
+  }
+
+  const data = JSON.parse(responseText);
+  console.log('Access token obtained, token type:', data.token_type);
+  return data.access_token;
 }
 
 serve(async (req) => {
@@ -24,19 +112,6 @@ serve(async (req) => {
 
     // Get request body
     const { token } = await req.json()
-
-    // Initialize Google Auth
-    const auth = new GoogleAuth({
-      credentials: {
-        client_email: Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL'),
-        private_key: Deno.env.get('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY')?.replace(/\\n/g, '\n'),
-      },
-      scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-    })
-
-    // Get access token
-    const client = await auth.getClient()
-    const accessToken = await client.getAccessToken()
 
     // Get subscription details
     console.log('Fetching subscription details for token:', token);
@@ -77,6 +152,11 @@ serve(async (req) => {
       validUntil: subscription.valid_until
     });
 
+    // Get access token
+    console.log('Getting Google access token');
+    const accessToken = await getGoogleAccessToken();
+    console.log('Got access token');
+
     // Get the product ID from the premium plan
     const premiumPlan = {
       googlePlayProductId: 'touchbase_premium'
@@ -95,13 +175,18 @@ serve(async (req) => {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken.token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     )
 
+    const responseText = await response.text();
+    console.log('Play API response status:', response.status);
+    console.log('Play API response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+    console.log('Play API response body:', responseText);
+
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = JSON.parse(responseText);
       console.error('Google Play API error:', {
         status: response.status,
         statusText: response.statusText,
