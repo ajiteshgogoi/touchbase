@@ -91,8 +91,6 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
       // Pass dummy payment method since it will be determined by tokens
       await paymentService.cancelSubscription('paypal');
       
-      toast.success('Subscription cancelled successfully');
-      
       // Refetch to get the actual state
       await queryClient.invalidateQueries({ queryKey: ['subscription'] });
     } catch (error: any) {
