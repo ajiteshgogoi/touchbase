@@ -477,15 +477,10 @@ export class GooglePlayService {
         throw new Error('Failed to verify purchase');
       }
 
-      // Parse response to get expiry date
-      const verificationResult = await backendResponse.json();
+      // Parse response
+      await backendResponse.json();
       
-      // Show success toast with expiry date if available
-      const successMessage = verificationResult.expiryDate
-        ? `Subscription activated! Valid until ${new Date(verificationResult.expiryDate).toLocaleDateString()}`
-        : 'Subscription activated successfully!';
-      
-      toast.success(successMessage);
+      toast.success('Subscription activated successfully!');
       console.log('Subscription created successfully');
       return purchaseToken;
     } catch (error) {

@@ -38,15 +38,23 @@ export const paymentService = {
 
   async cancelSubscription(paymentMethod: PaymentMethod): Promise<void> {
     try {
-      console.log('Canceling subscription for payment method:', paymentMethod);
+      console.log('[Payment] Starting cancellation with method:', paymentMethod);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
       // Fetch subscription details to verify active subscriptions
+      console.log('[Payment] Fetching subscription details...');
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('paypal_subscription_id, google_play_token')
         .single();
+
+      console.log('[Payment] Fetched subscription:', {
+        hasSubscription: Boolean(subscription),
+        hasGooglePlayToken: Boolean(subscription?.google_play_token),
+        hasPayPalId: Boolean(subscription?.paypal_subscription_id),
+        fullDetails: subscription
+      });
 
       if (!subscription) {
         throw new Error('No active subscription found');
@@ -56,11 +64,20 @@ export const paymentService = {
       const hasGooglePlay = Boolean(subscription.google_play_token);
       const hasPayPal = Boolean(subscription.paypal_subscription_id);
 
+      console.log('[Payment] Subscription validation:', {
+        hasGooglePlay,
+        hasPayPal,
+        requestedMethod: paymentMethod,
+        googlePlayToken: subscription.google_play_token
+      });
+
       if (hasGooglePlay && paymentMethod !== 'google_play') {
+        console.error('[Payment] Mismatch: Has Google Play token but wrong payment method requested');
         throw new Error('Please cancel your Google Play subscription');
       }
 
       if (hasPayPal && paymentMethod !== 'paypal') {
+        console.error('[Payment] Mismatch: Has PayPal ID but wrong payment method requested');
         throw new Error('Please cancel your PayPal subscription');
       }
 

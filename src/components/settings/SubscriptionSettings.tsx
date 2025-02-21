@@ -48,13 +48,26 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
     if (!confirm('You will lose access to premium features at the end of your billing period. Are you absolutely sure?')) return;
     
     try {
+      // Log subscription details
+      console.log('[Cancel] Subscription details:', {
+        hasGooglePlayToken: Boolean(subscription?.google_play_token),
+        token: subscription?.google_play_token,
+        status: subscription?.status
+      });
+
       // Determine payment method from subscription data
       const paymentMethod: PaymentMethod = subscription?.google_play_token ? 'google_play' : 'paypal';
+      console.log('[Cancel] Determined payment method:', paymentMethod);
+
       await paymentService.cancelSubscription(paymentMethod);
       toast.success('Subscription cancelled successfully');
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
     } catch (error: any) {
-      console.error('Cancel subscription error:', error);
+      console.error('[Cancel] Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
       toast.error(error.message || 'Failed to cancel subscription');
     }
   };
