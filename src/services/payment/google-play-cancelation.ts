@@ -56,13 +56,12 @@ export class GooglePlayCancelationHandler {
             [{
               supportedMethods: 'https://play.google.com/billing',
               data: {
-                type: 'manageSub',
+                type: 'subscriptionPurchase',
                 packageName: 'app.touchbase.site.twa',
                 purchaseToken: token,
-                action: 'cancel',
-                method: 'https://play.google.com/billing/digital-goods',
-                api: 'digitalGoods@1.0',
-                subscriptionPeriod: 'P1M'
+                method: 'https://play.google.com/billing',
+                api: 'digitalGoods',
+                action: 'manage'
               }
             }],
             {
