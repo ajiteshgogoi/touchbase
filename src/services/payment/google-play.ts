@@ -2,8 +2,6 @@ import { supabase } from '../../lib/supabase/client';
 import { platform } from '../../utils/platform';
 import { SUBSCRIPTION_PLANS } from './plans';
 import toast from 'react-hot-toast';
-import { googlePlayCancelationHandler } from './google-play-cancelation';
-
 export class GooglePlayService {
   async _initializeGooglePlayBilling(): Promise<void> {
     console.log('TWA Google Play Billing uses PaymentRequest API, no initialization needed');
@@ -508,13 +506,6 @@ export class GooglePlayService {
         console.error('No Google Play token found');
         throw new Error('No active Google Play subscription');
       }
-// Use the new cancelation handler
-const result = await googlePlayCancelationHandler.handleCancelation(subscription.google_play_token);
-
-if (!result.success) {
-  throw new Error(result.error || 'Failed to cancel subscription');
-}
-
 console.log('Processing cancelation...');
       console.log('Notifying backend of cancelation...');
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
