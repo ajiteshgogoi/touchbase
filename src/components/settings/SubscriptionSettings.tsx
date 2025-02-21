@@ -27,6 +27,12 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
   const handleSubscribe = async (paymentMethod: PaymentMethod) => {
     try {
       setIsSubscribing(true);
+      
+      // For Google Play, close modal immediately after initiating payment
+      if (paymentMethod === 'google_play') {
+        setIsModalOpen(false);
+      }
+      
       await paymentService.createSubscription('premium', paymentMethod);
       // Success toast will be shown after PayPal redirect or Google Play purchase
     } catch (error: any) {
@@ -41,7 +47,9 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
       }
     } finally {
       setIsSubscribing(false);
-      setIsModalOpen(false); // Always close modal regardless of outcome
+      if (paymentMethod !== 'google_play') {
+        setIsModalOpen(false); // Close modal for non-Google Play payments
+      }
     }
   };
 
