@@ -67,6 +67,19 @@ function validatePurchaseData(data: GooglePlayPurchase) {
   });
 }
 
+// Function to handle product ID transformation
+function getBaseProductId(productId: string): string {
+  console.log('Transforming product ID:', productId);
+  // Default to touchbase_premium if the productId matches our known transformed pattern
+  if (productId === 'touchbase.pro.premium.monthly') {
+    console.log('Found transformed product ID, using base product ID: touchbase_premium');
+    return 'touchbase_premium';
+  }
+  // Otherwise return the original ID
+  console.log('Using original product ID:', productId);
+  return productId;
+}
+
 async function createGoogleJWT(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const privateKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY')?.replace(/\\n/g, '\n') ?? '';
@@ -202,10 +215,13 @@ serve(async (req) => {
       const accessToken = await getGoogleAccessToken();
       console.log('Got access token');
 
+      // Transform product ID if needed
+      const baseProductId = getBaseProductId(productId);
+
       // Verify purchase with Google Play API
       const packageName = Deno.env.get('ANDROID_PACKAGE_NAME')
       console.log('Package name from env:', packageName);
-      const apiUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${purchaseToken}`;
+      const apiUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${baseProductId}/tokens/${purchaseToken}`;
       console.log('Calling Google Play API:', apiUrl);
       console.log('Authorization header:', `Bearer ${accessToken.substring(0, 10)}...`);
       
