@@ -2,6 +2,7 @@ import { supabase } from '../../lib/supabase/client';
 import { platform } from '../../utils/platform';
 import { SUBSCRIPTION_PLANS } from './plans';
 import toast from 'react-hot-toast';
+import { googlePlayCancelationHandler } from './google-play-cancelation';
 
 export class GooglePlayService {
   async _initializeGooglePlayBilling(): Promise<void> {
@@ -513,37 +514,14 @@ export class GooglePlayService {
         throw new Error('No active Google Play subscription');
       }
 
-      console.log('Found Google Play token, proceeding with cancellation');
+      // Use the new cancelation handler
+      const { success, error } = await googlePlayCancelationHandler.handleCancelation(subscription.google_play_token);
       
-      // Create PaymentRequest for cancellation
-      console.log('Creating PaymentRequest for Google Play cancellation...');
-      const request = new PaymentRequest(
-        [{
-          supportedMethods: 'https://play.google.com/billing',
-          data: {
-            type: 'subscriptionManage',
-            packageName: 'app.touchbase.site.twa',
-            purchaseToken: subscription.google_play_token,
-            action: 'cancel'
-          }
-        }],
-        {
-          total: {
-            label: 'Cancel Subscription',
-            amount: { currency: 'USD', value: '0' }
-          }
-        }
-      );
+      if (!success) {
+        throw new Error(error || 'Failed to process cancelation');
+      }
 
-      // Start the cancellation flow
-      console.log('Starting cancellation flow...');
-      const paymentResponse = await request.show();
-      
-      // Complete the cancellation UI
-      await paymentResponse.complete('success');
-      console.log('Cancellation UI completed successfully');
-
-      console.log('Notifying backend of cancellation...');
+      console.log('Notifying backend of cancelation...');
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
         method: 'POST',
         headers: {
