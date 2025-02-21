@@ -5,19 +5,19 @@ import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/b
 
 // Google Play RTDN notification types
 enum NotificationType {
-  SUBSCRIPTION_RECOVERED = 1, // Subscription was recovered from account hold
-  SUBSCRIPTION_RENEWED = 2, // Subscription was renewed
-  SUBSCRIPTION_CANCELED = 3, // Subscription was voluntarily or involuntarily canceled
-  SUBSCRIPTION_PURCHASED = 4, // Subscription was purchased
-  SUBSCRIPTION_ON_HOLD = 5, // Subscription entered account hold
-  SUBSCRIPTION_IN_GRACE_PERIOD = 6, // Subscription entered grace period
-  SUBSCRIPTION_RESTARTED = 7, // User has reactivated their subscription
+  SUBSCRIPTION_RECOVERED = 1,
+  SUBSCRIPTION_RENEWED = 2,
+  SUBSCRIPTION_CANCELED = 3,
+  SUBSCRIPTION_PURCHASED = 4,
+  SUBSCRIPTION_ON_HOLD = 5,
+  SUBSCRIPTION_IN_GRACE_PERIOD = 6,
+  SUBSCRIPTION_RESTARTED = 7,
   SUBSCRIPTION_PRICE_CHANGE_CONFIRMED = 8,
-  SUBSCRIPTION_DEFERRED = 9, // Subscription was deferred
-  SUBSCRIPTION_PAUSED = 10, // Subscription was paused
+  SUBSCRIPTION_DEFERRED = 9,
+  SUBSCRIPTION_PAUSED = 10,
   SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED = 11,
-  SUBSCRIPTION_REVOKED = 12, // Subscription was revoked
-  SUBSCRIPTION_EXPIRED = 13, // Subscription has expired
+  SUBSCRIPTION_REVOKED = 12,
+  SUBSCRIPTION_EXPIRED = 13,
 }
 
 interface GooglePlayNotification {
@@ -30,6 +30,133 @@ interface GooglePlayNotification {
     purchaseToken: string;
     subscriptionId: string;
   };
+}
+
+interface PubSubMessage {
+  message: {
+    data: string;
+    messageId: string;
+    publishTime: string;
+    attributes?: Record<string, string>;
+  };
+  subscription: string;
+}
+
+interface JWTHeader {
+  kid: string;
+  alg: string;
+}
+
+// Cache for Google's public keys
+let publicKeysCache: {
+  keys: Record<string, CryptoKey>;
+  expiresAt: number;
+} | null = null;
+
+async function fetchGooglePublicKeys(): Promise<Record<string, CryptoKey>> {
+  if (publicKeysCache && Date.now() < publicKeysCache.expiresAt) {
+    return publicKeysCache.keys;
+  }
+
+  const response = await fetch('https://www.googleapis.com/oauth2/v3/certs');
+  if (!response.ok) {
+    throw new Error('Failed to fetch Google public keys');
+  }
+
+  const cacheControl = response.headers.get('cache-control');
+  let maxAge = 3600; // Default to 1 hour
+  if (cacheControl) {
+    const match = cacheControl.match(/max-age=(\d+)/);
+    if (match) {
+      maxAge = parseInt(match[1], 10);
+    }
+  }
+
+  const keys = await response.json();
+  const publicKeys: Record<string, CryptoKey> = {};
+
+  // Convert JWK to CryptoKey
+  for (const key of keys.keys) {
+    const publicKey = await crypto.subtle.importKey(
+      'jwk',
+      key,
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        hash: 'SHA-256',
+      },
+      true,
+      ['verify']
+    );
+    publicKeys[key.kid] = publicKey;
+  }
+
+  publicKeysCache = {
+    keys: publicKeys,
+    expiresAt: Date.now() + (maxAge * 1000),
+  };
+
+  return publicKeys;
+}
+
+async function verifyPubSubJWT(authHeader: string | null): Promise<void> {
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new Error('Missing or invalid Authorization header');
+  }
+
+  const token = authHeader.substring(7);
+  const [headerB64, payloadB64, signatureB64] = token.split('.');
+
+  if (!headerB64 || !payloadB64 || !signatureB64) {
+    throw new Error('Invalid JWT format');
+  }
+
+  // Decode the header to get the key ID
+  const header = JSON.parse(atob(headerB64)) as JWTHeader;
+  const publicKeys = await fetchGooglePublicKeys();
+  const publicKey = publicKeys[header.kid];
+
+  if (!publicKey) {
+    throw new Error('No matching public key found');
+  }
+
+  // Verify the signature
+  const signatureInput = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+  const signature = base64Decode(signatureB64.replace(/-/g, '+').replace(/_/g, '/'));
+
+  const isValid = await crypto.subtle.verify(
+    'RSASSA-PKCS1-v1_5',
+    publicKey,
+    signature,
+    signatureInput
+  );
+
+  if (!isValid) {
+    throw new Error('Invalid JWT signature');
+  }
+
+  // Verify claims
+  const payload = JSON.parse(atob(payloadB64));
+  const now = Math.floor(Date.now() / 1000);
+
+  if (payload.exp && now >= payload.exp) {
+    throw new Error('JWT has expired');
+  }
+
+  if (payload.iat && now < payload.iat) {
+    throw new Error('JWT issued in the future');
+  }
+
+  // Verify audience is our Cloud Function URL
+  const expectedAudience = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-play-webhooks`;
+  if (payload.aud !== expectedAudience) {
+    throw new Error('Invalid JWT audience');
+  }
+
+  // Verify issuer is Google
+  const expectedIssuer = 'https://cloud.google.com/pubsub/google.pubsub.v1.Publisher';
+  if (payload.iss !== expectedIssuer) {
+    throw new Error('Invalid JWT issuer');
+  }
 }
 
 async function getGoogleAccessToken(): Promise<string> {
@@ -117,9 +244,27 @@ async function getSubscriptionDetails(
 
 serve(async (req) => {
   try {
-    // Verify the request
+    // Verify request method
+    if (req.method === 'OPTIONS') {
+      return new Response('ok', {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST',
+          'Access-Control-Allow-Headers': 'authorization, content-type',
+        }
+      });
+    }
+    
     if (req.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 });
+    }
+
+    // Verify the Pub/Sub JWT token
+    try {
+      await verifyPubSubJWT(req.headers.get('Authorization'));
+    } catch (error) {
+      console.error('JWT verification failed:', error);
+      return new Response(`Unauthorized: ${error.message}`, { status: 401 });
     }
 
     // Initialize Supabase client
@@ -130,9 +275,31 @@ serve(async (req) => {
     }
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Parse the notification
-    const notification = await req.json() as GooglePlayNotification;
-    console.log('Received notification:', JSON.stringify(notification));
+    // Get the raw body and parse the Pub/Sub message
+    const rawBody = await req.text();
+    console.log('Received raw body:', rawBody);
+
+    let notification: GooglePlayNotification;
+    try {
+      // Parse the Pub/Sub message wrapper
+      const pubSubMessage = JSON.parse(rawBody) as PubSubMessage;
+      console.log('Parsed Pub/Sub message:', pubSubMessage);
+
+      if (!pubSubMessage.message?.data) {
+        throw new Error('Invalid Pub/Sub message format');
+      }
+
+      // Decode the base64-encoded data
+      const decodedData = atob(pubSubMessage.message.data);
+      console.log('Decoded notification data:', decodedData);
+
+      // Parse the actual notification
+      notification = JSON.parse(decodedData);
+      console.log('Parsed notification:', notification);
+    } catch (error) {
+      console.error('Error parsing message:', error);
+      return new Response('Invalid message format', { status: 400 });
+    }
 
     if (!notification.subscriptionNotification) {
       return new Response('Not a subscription notification', { status: 400 });
@@ -196,6 +363,7 @@ serve(async (req) => {
       throw updateError;
     }
 
+    // Acknowledge the message by returning a success response
     return new Response('OK', { status: 200 });
   } catch (error) {
     console.error('Error processing webhook:', error);
