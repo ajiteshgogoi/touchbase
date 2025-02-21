@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useStore } from '../../stores/useStore';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { formatDateWithTimezone } from '../../utils/date';
 import { PaymentMethodModal } from '../shared/PaymentMethodModal';
@@ -18,6 +19,7 @@ type PaymentMethod = 'paypal' | 'google_play';
 
 export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Props) => {
   const queryClient = useQueryClient();
+  const { user } = useStore();
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const selectedPlan = isPremium ? 'premium' : 'free';
@@ -47,6 +49,8 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
     if (!confirm('Are you sure you want to cancel your subscription?')) return;
     if (!confirm('You will lose access to premium features at the end of your billing period. Are you absolutely sure?')) return;
     
+    const currentSubscription = queryClient.getQueryData<Subscription>(['subscription', user?.id]);
+    
     try {
       // Log subscription details
       console.log('[Cancel] Subscription details:', {
@@ -59,15 +63,34 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
       const paymentMethod: PaymentMethod = subscription?.google_play_token ? 'google_play' : 'paypal';
       console.log('[Cancel] Determined payment method:', paymentMethod);
 
+      // Optimistic update for subscription
+      const optimisticSubscription: Subscription = {
+        ...(currentSubscription as Subscription),
+        status: 'canceled'
+      };
+      
+      // Update React Query cache and Zustand store
+      queryClient.setQueryData(['subscription', user?.id], optimisticSubscription);
+      useStore.getState().setIsPremium(false);
+
+      // Perform the actual cancellation
       await paymentService.cancelSubscription(paymentMethod);
+      
       toast.success('Subscription cancelled successfully');
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      
+      // Refetch to get the actual state
+      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
     } catch (error: any) {
       console.error('[Cancel] Error details:', {
         message: error.message,
         name: error.name,
         stack: error.stack
       });
+
+      // Roll back the subscription state
+      queryClient.setQueryData(['subscription', user?.id], currentSubscription);
+      useStore.getState().setIsPremium(isPremium);
+
       toast.error(error.message || 'Failed to cancel subscription');
     }
   };

@@ -38,8 +38,10 @@ export const Settings = () => {
   });
 
   // Get subscription details
-  const { data: subscription } = useQuery<Subscription | null>({
-    queryKey: ['subscription', user?.id],
+  // Get subscription details
+  // Get subscription details with automatic store sync
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id] as const,
     queryFn: async () => {
       if (!user?.id) return null;
 
@@ -50,7 +52,27 @@ export const Settings = () => {
         .single();
 
       if (error) throw error;
-      return data as Subscription;
+      
+      const subscriptionData = data as Subscription;
+      
+      // Sync with store
+      const now = new Date();
+      const isPremium = Boolean(
+        subscriptionData.plan_id === 'premium' &&
+        subscriptionData.valid_until &&
+        new Date(subscriptionData.valid_until) > now
+      );
+      
+      useStore.getState().setIsPremium(isPremium);
+      
+      const isOnTrial = subscriptionData.trial_end_date ? new Date(subscriptionData.trial_end_date) > now : false;
+      const trialDaysRemaining = subscriptionData.trial_end_date
+        ? Math.ceil((new Date(subscriptionData.trial_end_date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+      
+      useStore.getState().setTrialStatus(isOnTrial, trialDaysRemaining);
+      
+      return subscriptionData;
     },
     enabled: !!user?.id
   });
@@ -121,6 +143,20 @@ export const Settings = () => {
           const { data: { session } } = await supabase.auth.getSession();
           if (!session) throw new Error('No active session');
 
+          // Optimistically update the subscription in the cache
+          const optimisticSubscription: Subscription = {
+            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+            status: 'active',
+            trial_end_date: null,
+            plan_id: 'premium'
+          };
+
+          // Update React Query cache
+          queryClient.setQueryData(['subscription', user?.id], optimisticSubscription);
+          
+          // Update Zustand store
+          useStore.getState().setIsPremium(true);
+
           const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-subscription`, {
             method: 'POST',
             headers: {
@@ -135,9 +171,16 @@ export const Settings = () => {
           }
 
           toast.success('Subscription activated successfully');
-          queryClient.invalidateQueries({ queryKey: ['subscription'] });
+          
+          // Refetch to get the actual subscription data
+          await queryClient.invalidateQueries({ queryKey: ['subscription'] });
         } catch (error) {
           console.error('Subscription activation error:', error);
+          
+          // Revert optimistic updates on error
+          queryClient.setQueryData(['subscription', user?.id], subscription); // Revert to previous state
+          useStore.getState().setIsPremium(isPremium); // Revert to previous state
+          
           toast.error('Failed to activate subscription');
         }
         // Clean up URL
