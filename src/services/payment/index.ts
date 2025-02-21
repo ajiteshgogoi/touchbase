@@ -44,16 +44,18 @@ export const paymentService = {
 
       // Fetch subscription details to verify active subscriptions
       console.log('[Payment] Fetching subscription details...');
-      const { data: subscription } = await supabase
+      const { data: subscription, error: fetchError } = await supabase
         .from('subscriptions')
-        .select('paypal_subscription_id, google_play_token')
+        .select('paypal_subscription_id, google_play_token, status')
         .single();
 
       console.log('[Payment] Fetched subscription:', {
         hasSubscription: Boolean(subscription),
         hasGooglePlayToken: Boolean(subscription?.google_play_token),
         hasPayPalId: Boolean(subscription?.paypal_subscription_id),
-        fullDetails: subscription
+        status: subscription?.status,
+        rawSubscription: subscription,
+        error: fetchError
       });
 
       if (!subscription) {
@@ -64,15 +66,26 @@ export const paymentService = {
       const hasGooglePlay = Boolean(subscription.google_play_token);
       const hasPayPal = Boolean(subscription.paypal_subscription_id);
 
-      console.log('[Payment] Subscription validation:', {
+      console.log('[Payment] Payment method validation:', {
         hasGooglePlay,
         hasPayPal,
         requestedMethod: paymentMethod,
-        googlePlayToken: subscription.google_play_token
+        googlePlayToken: subscription.google_play_token,
+        paypalId: subscription.paypal_subscription_id,
+        subscriptionStatus: subscription.status,
+        typeCheck: {
+          tokenType: typeof subscription.google_play_token,
+          tokenLength: subscription.google_play_token?.length,
+          isNullOrUndefined: subscription.google_play_token == null
+        }
       });
 
       if (hasGooglePlay && paymentMethod !== 'google_play') {
-        console.error('[Payment] Mismatch: Has Google Play token but wrong payment method requested');
+        console.error('[Payment] Google Play mismatch:', {
+          detected: 'google_play',
+          requested: paymentMethod,
+          token: subscription.google_play_token
+        });
         throw new Error('Please cancel your Google Play subscription');
       }
 
