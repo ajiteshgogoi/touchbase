@@ -275,35 +275,57 @@ serve(async (req) => {
     }
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get the raw body and parse the Pub/Sub message
-    const rawBody = await req.text();
-    console.log('Received raw body:', rawBody);
+   // Get the raw body and parse the Pub/Sub message
+   const rawBody = await req.text();
+   console.log('[Google Play Webhook] Received request:', {
+     timestamp: new Date().toISOString(),
+     bodyLength: rawBody.length,
+     headers: Object.fromEntries(req.headers.entries())
+   });
 
-    let notification: GooglePlayNotification;
-    try {
-      // Parse the Pub/Sub message wrapper
-      const pubSubMessage = JSON.parse(rawBody) as PubSubMessage;
-      console.log('Parsed Pub/Sub message:', pubSubMessage);
+   let notification: GooglePlayNotification;
+   try {
+     // Parse the Pub/Sub message wrapper
+     const pubSubMessage = JSON.parse(rawBody) as PubSubMessage;
+     console.log('[Google Play Webhook] Parsed Pub/Sub message:', {
+       messageId: pubSubMessage.message.messageId,
+       publishTime: pubSubMessage.message.publishTime,
+       subscription: pubSubMessage.subscription
+     });
 
-      if (!pubSubMessage.message?.data) {
-        throw new Error('Invalid Pub/Sub message format');
-      }
+     if (!pubSubMessage.message?.data) {
+       throw new Error('Invalid Pub/Sub message format');
+     }
 
-      // Decode the base64-encoded data
-      const decodedData = atob(pubSubMessage.message.data);
-      console.log('Decoded notification data:', decodedData);
+     // Decode the base64-encoded data
+     const decodedData = atob(pubSubMessage.message.data);
+     
+     // Parse the actual notification
+     notification = JSON.parse(decodedData);
+     console.log('[Google Play Webhook] Parsed notification:', {
+       version: notification.version,
+       packageName: notification.packageName,
+       eventTime: new Date(parseInt(notification.eventTimeMillis)).toISOString(),
+       notificationType: notification.subscriptionNotification?.notificationType,
+       subscriptionId: notification.subscriptionNotification?.subscriptionId
+     });
+   } catch (error) {
+     console.error('[Google Play Webhook] Error parsing message:', {
+       error: error.message,
+       stack: error.stack,
+       timestamp: new Date().toISOString()
+     });
+     return new Response('Invalid message format', { status: 400 });
+   }
 
-      // Parse the actual notification
-      notification = JSON.parse(decodedData);
-      console.log('Parsed notification:', notification);
-    } catch (error) {
-      console.error('Error parsing message:', error);
-      return new Response('Invalid message format', { status: 400 });
-    }
-
-    if (!notification.subscriptionNotification) {
-      return new Response('Not a subscription notification', { status: 400 });
-    }
+   if (!notification.subscriptionNotification) {
+     console.log('[Google Play Webhook] Ignoring non-subscription notification:', {
+       version: notification.version,
+       packageName: notification.packageName,
+       eventTime: new Date(parseInt(notification.eventTimeMillis)).toISOString()
+     });
+     return new Response('Not a subscription notification', { status: 400 });
+   }
 
     // Get subscription details from Google Play
     const accessToken = await getGoogleAccessToken();
@@ -328,45 +350,151 @@ serve(async (req) => {
 
     // Update subscription status based on notification type
     let status: 'active' | 'canceled' | 'expired' = 'active';
+    let shouldNullifyToken = false;
+
+    console.log('[Google Play Webhook] Processing subscription status change:', {
+      notificationType: notification.subscriptionNotification.notificationType,
+      purchaseToken: notification.subscriptionNotification.purchaseToken,
+      subscriptionId: notification.subscriptionNotification.subscriptionId,
+      currentStatus: subscription.status
+    });
+
     switch (notification.subscriptionNotification.notificationType) {
       case NotificationType.SUBSCRIPTION_CANCELED:
       case NotificationType.SUBSCRIPTION_REVOKED:
         status = 'canceled';
+        shouldNullifyToken = true;
+        console.log('[Google Play Webhook] Subscription canceled/revoked:', {
+          id: subscription.id,
+          userId: subscription.user_id,
+          notificationType: notification.subscriptionNotification.notificationType
+        });
         break;
       case NotificationType.SUBSCRIPTION_EXPIRED:
         status = 'expired';
+        shouldNullifyToken = true;
+        console.log('[Google Play Webhook] Subscription expired:', {
+          id: subscription.id,
+          userId: subscription.user_id,
+          notificationType: notification.subscriptionNotification.notificationType
+        });
         break;
       case NotificationType.SUBSCRIPTION_PURCHASED:
       case NotificationType.SUBSCRIPTION_RENEWED:
       case NotificationType.SUBSCRIPTION_RECOVERED:
       case NotificationType.SUBSCRIPTION_RESTARTED:
         status = 'active';
+        console.log('[Google Play Webhook] Subscription activated/renewed:', {
+          id: subscription.id,
+          userId: subscription.user_id,
+          notificationType: notification.subscriptionNotification.notificationType
+        });
         break;
-      // Handle other states as 'active' but log them
       default:
-        console.log('Unhandled notification type:', notification.subscriptionNotification.notificationType);
+        console.log('[Google Play Webhook] Unhandled notification type:', {
+          notificationType: notification.subscriptionNotification.notificationType,
+          subscriptionId: subscription.id,
+          userId: subscription.user_id
+        });
     }
+
+    // Prepare update data
+    const updateData: any = {
+      status,
+      valid_until: subscriptionDetails.expiryTimeMillis
+        ? new Date(parseInt(subscriptionDetails.expiryTimeMillis)).toISOString()
+        : undefined,
+    };
+
+    // Nullify token if subscription is canceled/expired
+    if (shouldNullifyToken) {
+      updateData.google_play_token = null;
+    }
+
+    console.log('[Google Play Webhook] Updating subscription:', {
+      id: subscription.id,
+      oldStatus: subscription.status,
+      newStatus: status,
+      willNullifyToken: shouldNullifyToken,
+      newValidUntil: updateData.valid_until
+    });
 
     // Update the subscription in our database
     const { error: updateError } = await supabase
       .from('subscriptions')
-      .update({
-        status,
-        valid_until: subscriptionDetails.expiryTimeMillis 
-          ? new Date(parseInt(subscriptionDetails.expiryTimeMillis)).toISOString()
-          : undefined,
-      })
+      .update(updateData)
       .eq('id', subscription.id);
 
     if (updateError) {
-      console.error('Failed to update subscription:', updateError);
+      console.error('[Google Play Webhook] Failed to update subscription:', {
+        error: updateError,
+        subscriptionId: subscription.id,
+        userId: subscription.user_id,
+        notificationType: notification.subscriptionNotification.notificationType
+      });
       throw updateError;
     }
+
+    console.log('[Google Play Webhook] Successfully updated subscription:', {
+      id: subscription.id,
+      oldStatus: subscription.status,
+      newStatus: status,
+      tokenNullified: shouldNullifyToken,
+      notificationType: notification.subscriptionNotification.notificationType
+    });
+
+    // Log successful completion
+    console.log('[Google Play Webhook] Successfully processed event:', {
+      eventType: notification.subscriptionNotification.notificationType,
+      subscriptionId: subscription.id,
+      timestamp: new Date().toISOString()
+    });
 
     // Acknowledge the message by returning a success response
     return new Response('OK', { status: 200 });
   } catch (error) {
-    console.error('Error processing webhook:', error);
-    return new Response(error.message, { status: 500 });
+    // Get detailed error information
+    const errorDetails = {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      cause: error.cause
+    };
+
+    // Determine appropriate status code
+    let status = 400;
+    if (error.message.includes('Missing Supabase credentials') ||
+        error.message.includes('Failed to get access token')) {
+      status = 500;
+    } else if (error.message.includes('Invalid JWT') ||
+               error.message.includes('Unauthorized')) {
+      status = 401;
+    } else if (error.message.includes('Subscription not found')) {
+      status = 404;
+    }
+
+    // Log the full error details
+    console.error('[Google Play Webhook] Error processing webhook:', {
+      ...errorDetails,
+      timestamp: new Date().toISOString(),
+      status,
+      endpoint: req.url,
+      method: req.method,
+      headers: Object.fromEntries(req.headers.entries())
+    });
+    
+    return new Response(
+      JSON.stringify({
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        status
+      }),
+      {
+        status,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
   }
 });
