@@ -260,6 +260,9 @@ serve(async (req) => {
           status: 'active',
           google_play_token: purchaseToken,
           valid_until: new Date(parseInt(purchaseData.expiryTimeMillis)).toISOString(),
+        }, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
         })
 
       if (updateError) {
