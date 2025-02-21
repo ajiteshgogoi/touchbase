@@ -39,19 +39,24 @@ serve(async (req) => {
     const accessToken = await client.getAccessToken()
 
     // Get subscription details
-    const { data: subscription } = await supabaseClient
+    const { data: subscription, error: fetchError } = await supabaseClient
       .from('subscriptions')
       .select('*')
       .eq('google_play_token', token)
       .single()
 
-    if (!subscription) {
-      throw new Error('Subscription not found')
+    if (fetchError || !subscription) {
+      throw new Error('Subscription not found');
+    }
+
+    // Only proceed if subscription is active
+    if (subscription.status !== 'active') {
+      throw new Error('Subscription is not active');
     }
 
     // Get the product ID from the premium plan
     const premiumPlan = {
-      googlePlayProductId: 'touchbase.pro.premium.monthly'
+      googlePlayProductId: 'touchbase_premium'
     };
 
     // Cancel subscription with Google Play API
@@ -67,27 +72,41 @@ serve(async (req) => {
     )
 
     if (!response.ok) {
-      throw new Error('Failed to cancel subscription with Google Play')
+      const errorData = await response.json();
+      console.error('Google Play API error:', errorData);
+      throw new Error(`Failed to cancel subscription with Google Play: ${errorData.error?.message || 'Unknown error'}`);
     }
 
     // Update subscription status in database
     const { error: updateError } = await supabaseClient
       .from('subscriptions')
       .update({
-        status: 'cancelled',
-        google_play_token: null,
+        status: 'canceled', // Using the correct status from schema
+        // Keep google_play_token for potential UI needs
       })
       .eq('google_play_token', token)
 
-    if (updateError) throw updateError
+    if (updateError) {
+      console.error('Database update error:', updateError);
+      throw updateError;
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
       status: 200,
     })
   } catch (error) {
+    console.error('Cancellation error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack || 'No stack trace available'
+      }),
       {
         headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
         status: 400,
