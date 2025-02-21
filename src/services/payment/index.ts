@@ -86,7 +86,7 @@ export const paymentService = {
         if (typeof PaymentRequest === 'undefined') {
           throw new Error('Google Play Billing is not available. If you installed from Play Store, please wait a few seconds and try again.');
         }
-        await googlePlayService.cancelSubscription(session.access_token);
+        await googlePlayService.cancelSubscription();
       } else {
         await paypalService.cancelSubscription(session.access_token);
       }
