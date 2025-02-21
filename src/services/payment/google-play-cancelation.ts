@@ -1,11 +1,6 @@
 interface CancelationResult {
   success: boolean;
   error?: string;
-  validUntil?: string;
-  details?: {
-    timestamp: string;
-    state: string;
-  };
 }
 
 export class GooglePlayCancelationHandler {
@@ -123,13 +118,7 @@ export class GooglePlayCancelationHandler {
           console.log('[TWA-Cancelation] Cancelation UI completed successfully');
 
           hasResult = true;
-          resolve({
-            success: true,
-            details: {
-              timestamp: new Date().toISOString(),
-              state: status || 'completed'
-            }
-          });
+          resolve({ success: true });
 
         } catch (error: any) {
           console.error('[TWA-Cancelation] Attempt failed:', error);
@@ -138,13 +127,9 @@ export class GooglePlayCancelationHandler {
           // Special handling for user abort
           if (error instanceof Error && error.name === 'AbortError') {
             hasResult = true;
-            resolve({ 
-              success: false, 
-              error: 'Cancelation was aborted by user.',
-              details: {
-                timestamp: new Date().toISOString(),
-                state: 'aborted'
-              }
+            resolve({
+              success: false,
+              error: 'Cancelation was aborted by user.'
             });
             return;
           }

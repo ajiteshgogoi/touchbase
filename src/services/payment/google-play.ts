@@ -513,23 +513,14 @@ export class GooglePlayService {
         console.error('No Google Play token found');
         throw new Error('No active Google Play subscription');
       }
+// Use the new cancelation handler
+const result = await googlePlayCancelationHandler.handleCancelation(subscription.google_play_token);
 
-      // Use the new cancelation handler with enhanced error handling
-      const result = await googlePlayCancelationHandler.handleCancelation(subscription.google_play_token);
-      
-      if (!result.success) {
-        console.error('Cancelation failed:', {
-          error: result.error,
-          details: result.details
-        });
-        throw new Error(result.error || 'Failed to process cancelation');
-      }
+if (!result.success) {
+  throw new Error(result.error || 'Failed to cancel subscription');
+}
 
-      console.log('Cancelation successful:', {
-        timestamp: result.details?.timestamp,
-        state: result.details?.state
-      });
-
+console.log('Processing cancelation...');
       console.log('Notifying backend of cancelation...');
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
         method: 'POST',
