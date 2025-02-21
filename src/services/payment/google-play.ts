@@ -11,6 +11,8 @@ export class GooglePlayService {
   async createSubscription(planId: string): Promise<string> {
     console.log('Creating Google Play subscription for plan:', planId);
     try {
+      let paymentResponse: PaymentResponse | undefined;
+      
       // Check if Google Play Billing is available
       const isAvailable = await platform.isGooglePlayBillingAvailable();
       console.log('Google Play Billing available:', isAvailable);
@@ -123,7 +125,6 @@ export class GooglePlayService {
 
       // Start the payment flow with activity lifecycle handling
       console.log('[TWA-Payment] Starting payment flow');
-      let paymentResponse: PaymentResponse;
       try {
         // Create a promise that resolves when the activity result completes
         const activityResultPromise = new Promise<PaymentResponse>((resolve, reject) => {
@@ -304,11 +305,20 @@ export class GooglePlayService {
             throw new Error('ALREADY_SUBSCRIBED');
           }
           
-          if (error.name === 'AbortError') {
-            throw new Error('Payment was cancelled by user.');
+          // For AbortError or any cancellation, ensure it propagates cleanly
+          if (error.name === 'AbortError' || error.message.includes('cancelled') || error.message.includes('canceled')) {
+            // Explicitly close the payment UI in case it's still open
+            try {
+              if (paymentResponse) {
+                await paymentResponse.complete('fail');
+              }
+            } catch (e) {
+              console.log('Failed to complete payment UI:', e);
+            }
+            throw error; // Propagate original error to trigger modal cleanup
           }
         }
-  
+
         throw new Error('Payment flow failed unexpectedly. Please try again. ' +
           (error instanceof Error ? error.message : 'Unknown error occurred'));
       }
