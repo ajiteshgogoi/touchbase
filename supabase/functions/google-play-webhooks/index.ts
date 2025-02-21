@@ -152,8 +152,8 @@ async function verifyPubSubJWT(authHeader: string | null): Promise<void> {
     throw new Error('Invalid JWT audience');
   }
 
-  // Verify issuer is Google
-  const expectedIssuer = 'https://cloud.google.com/pubsub/google.pubsub.v1.Publisher';
+  // Verify issuer is Google Cloud Pub/Sub
+  const expectedIssuer = 'https://accounts.google.com';
   if (payload.iss !== expectedIssuer) {
     throw new Error('Invalid JWT issuer');
   }
