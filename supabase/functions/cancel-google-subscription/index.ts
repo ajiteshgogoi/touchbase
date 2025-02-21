@@ -39,20 +39,43 @@ serve(async (req) => {
     const accessToken = await client.getAccessToken()
 
     // Get subscription details
+    console.log('Fetching subscription details for token:', token);
     const { data: subscription, error: fetchError } = await supabaseClient
       .from('subscriptions')
       .select('*')
       .eq('google_play_token', token)
       .single()
 
+    console.log('Subscription fetch result:', {
+      hasData: Boolean(subscription),
+      error: fetchError,
+      subscriptionStatus: subscription?.status,
+      token: token
+    });
+
     if (fetchError || !subscription) {
+      console.error('Subscription not found:', {
+        error: fetchError,
+        token: token
+      });
       throw new Error('Subscription not found');
     }
 
     // Only proceed if subscription is active
     if (subscription.status !== 'active') {
+      console.error('Invalid subscription status:', {
+        currentStatus: subscription.status,
+        token: token,
+        validUntil: subscription.valid_until
+      });
       throw new Error('Subscription is not active');
     }
+
+    console.log('Verified active subscription:', {
+      status: subscription.status,
+      token: token,
+      validUntil: subscription.valid_until
+    });
 
     // Get the product ID from the premium plan
     const premiumPlan = {
@@ -61,6 +84,12 @@ serve(async (req) => {
 
     // Cancel subscription with Google Play API
     const packageName = Deno.env.get('ANDROID_PACKAGE_NAME')
+    console.log('Initiating Google Play subscription cancellation...', {
+      packageName,
+      productId: premiumPlan.googlePlayProductId,
+      token: token
+    });
+
     const response = await fetch(
       `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${premiumPlan.googlePlayProductId}/tokens/${token}:cancel`,
       {
@@ -73,9 +102,19 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Google Play API error:', errorData);
+      console.error('Google Play API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+        token: token
+      });
       throw new Error(`Failed to cancel subscription with Google Play: ${errorData.error?.message || 'Unknown error'}`);
     }
+
+    console.log('Google Play cancellation successful', {
+      status: response.status,
+      token: token
+    });
 
     // Update subscription status in database
     const { error: updateError } = await supabaseClient
