@@ -169,7 +169,7 @@ android {
     }
 
     // Add namespace for better organization
-    namespace 'app.touchbase.twa'
+    namespace 'app.touchbase.site.twa'
     lintOptions {
         checkReleaseBuilds false
         baseline file("lint-baseline.xml")
