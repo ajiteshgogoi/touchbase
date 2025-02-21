@@ -23,7 +23,8 @@ class NotificationService {
 
       try {
         // Request notification permission early if not already granted
-        if (Notification.permission === 'default') {
+        // Only request permission if it's denied - this handles both browser and TWA
+        if (Notification.permission === 'denied') {
           console.log('Requesting notification permission...');
           const permission = await Notification.requestPermission();
           console.log('Notification permission result:', permission);
@@ -324,18 +325,14 @@ class NotificationService {
       return false;
     }
 
-    if (Notification.permission === 'granted') {
-      return true;
-    }
-
+    // Only request if permission is currently denied
     if (Notification.permission === 'denied') {
-      return false;
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
     }
 
-    // Only request if permission state is 'default' (not yet decided)
-    // This maintains consistency with initialize()
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
+    // Return current permission state
+    return Notification.permission === 'granted';
   }
 
   async sendTestNotification(userId: string, message?: string): Promise<void> {
@@ -370,11 +367,6 @@ class NotificationService {
         // Then ensure admin's registration is valid
         if (!this.registration?.active) {
           console.log('Initializing admin FCM registration...');
-          // Check for notification permission
-          if (Notification.permission !== 'granted') {
-            throw new Error('Notification permission required for admin operations');
-          }
-
           // Force a clean service worker registration
           if (this.registration) {
             await this.registration.unregister();
