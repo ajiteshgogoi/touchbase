@@ -35,6 +35,20 @@
       "description": "View your contacts",
       "url": "/contacts",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Reminders",
+      "short_name": "Reminders",
+      "description": "View your reminders",
+      "url": "/reminders",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Conversation Prompts",
+      "short_name": "Prompts",
+      "description": "Get conversation prompts",
+      "url": "/conversation-prompts",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ],
   "categories": ["social", "productivity"],

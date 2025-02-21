@@ -34,6 +34,18 @@
       "shortName": "Contacts",
       "url": "https://touchbase.site/contacts",
       "chosenIconUrl": "https://touchbase.site/icon-192.png"
+    },
+    {
+      "name": "View Reminders",
+      "shortName": "Reminders",
+      "url": "https://touchbase.site/reminders",
+      "chosenIconUrl": "https://touchbase.site/icon-192.png"
+    },
+    {
+      "name": "Conversation Prompts",
+      "shortName": "Prompts",
+      "url": "https://touchbase.site/conversation-prompts",
+      "chosenIconUrl": "https://touchbase.site/icon-192.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",
