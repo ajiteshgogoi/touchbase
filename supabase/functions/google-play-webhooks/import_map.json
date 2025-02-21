@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.38.4",
+    "std/http/server": "https://deno.land/std@0.168.0/http/server.ts",
+    "std/encoding/base64url": "https://deno.land/std@0.168.0/encoding/base64url.ts",
+    "std/encoding/base64": "https://deno.land/std@0.168.0/encoding/base64.ts"
+  }
+}

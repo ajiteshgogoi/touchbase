@@ -1,0 +1,7 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts",
+    "deploy": "supabase functions deploy google-play-webhooks"
+  },
+  "importMap": "./import_map.json"
+}
