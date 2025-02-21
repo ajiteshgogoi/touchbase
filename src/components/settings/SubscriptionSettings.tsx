@@ -91,17 +91,8 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
     }
   };
 
-  const handleResumeSubscription = async () => {
-    try {
-      setIsSubscribing(true);
-      // Use the same payment method as before
-      const paymentMethod: PaymentMethod = subscription?.google_play_token ? 'google_play' : 'paypal';
-      await paymentService.createSubscription('premium', paymentMethod);
-    } catch (error: any) {
-      console.error('Resume subscription error:', error);
-      toast.error(error?.message || 'Failed to resume subscription');
-      setIsSubscribing(false);
-    }
+  const handleResumeSubscription = () => {
+    setIsModalOpen(true);
   };
 
   const handleNewSubscription = () => {
