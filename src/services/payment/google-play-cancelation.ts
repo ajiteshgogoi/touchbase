@@ -7,37 +7,43 @@ export class GooglePlayCancelationHandler {
   async handleCancelation(token: string): Promise<CancelationResult> {
     console.log('[TWA-Cancelation] Starting cancelation flow...');
 
-    const isTWA = window.matchMedia('(display-mode: standalone)').matches ||
-                  document.referrer.includes('android-app://');
-    
-    if (!isTWA) {
-      return {
-        success: false,
-        error: 'Must be launched from Play Store version to manage subscription.'
-      };
-    }
-    
-    if (!window.google?.payments?.subscriptions?.cancel) {
-      return {
-        success: false,
-        error: 'Google Play subscription service not available. Please ensure you are using the Play Store version.'
-      };
-    }
-
     try {
-      await window.google.payments.subscriptions.cancel(token);
+      const request = new PaymentRequest(
+        [{
+          supportedMethods: 'https://play.google.com/billing',
+          data: {
+            type: 'subscriptionPurchase',
+            packageName: 'app.touchbase.site.twa',
+            purchaseToken: token,
+            method: 'https://play.google.com/billing'
+          }
+        }],
+        {
+          total: {
+            label: 'Cancel Subscription',
+            amount: { currency: 'USD', value: '0' }
+          }
+        }
+      );
+
+      console.log('[TWA-Cancelation] Checking canMakePayment...');
+      const canMake = await request.canMakePayment();
+      if (!canMake) {
+        throw new Error('Google Play Billing is not available on this device.');
+      }
+
+      console.log('[TWA-Cancelation] Starting payment UI...');
+      const response = await request.show();
+      await response.complete('success');
+      
       console.log('[TWA-Cancelation] Cancelation completed successfully');
       return { success: true };
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to cancel subscription';
-      console.error('[TWA-Cancelation] Cancelation failed:', {
-        errorType: error instanceof Error ? 'Error' : typeof error,
-        name: error instanceof Error ? error.name : undefined,
-        message: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-        time: new Date().toISOString()
-      });
-      return { success: false, error: errorMessage };
+      console.error('[TWA-Cancelation] Operation failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to cancel subscription'
+      };
     }
   }
 }
