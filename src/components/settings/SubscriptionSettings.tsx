@@ -52,41 +52,13 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
     const currentSubscription = queryClient.getQueryData<Subscription>(['subscription', user?.id]);
     
     try {
-      // Log subscription details
+      // Log subscription details for debugging
       console.log('[Cancel] Subscription details:', {
         hasGooglePlayToken: Boolean(subscription?.google_play_token),
-        token: subscription?.google_play_token,
+        hasPayPalId: Boolean(subscription?.paypal_subscription_id),
         status: subscription?.status
       });
-
-      // Log subscription details
-      console.log('[Cancel] Raw subscription data:', subscription);
       
-      // First try to use stored payment method
-      const storedMethod = subscription?.payment_method as PaymentMethod | undefined;
-      const hasGooglePlayToken = Boolean(subscription?.google_play_token);
-      const hasPayPalId = Boolean(subscription?.paypal_subscription_id);
-      
-      console.log('[Cancel] Payment method analysis:', {
-        storedMethod,
-        hasGooglePlayToken,
-        hasPayPalId,
-        tokens: {
-          googlePlay: subscription?.google_play_token,
-          paypal: subscription?.paypal_subscription_id
-        }
-      });
-
-      // Use stored method if available, otherwise detect from tokens
-      const paymentMethod: PaymentMethod = storedMethod || (hasGooglePlayToken ? 'google_play' : 'paypal');
-      
-      console.log('[Cancel] Selected payment method:', {
-        method: paymentMethod,
-        reason: storedMethod
-          ? 'Using stored payment method'
-          : (hasGooglePlayToken ? 'Detected from Google Play token' : 'Defaulting to PayPal')
-      });
-
       // Optimistic update for subscription
       const optimisticSubscription: Subscription = {
         ...(currentSubscription as Subscription),
@@ -97,8 +69,8 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
       queryClient.setQueryData(['subscription', user?.id], optimisticSubscription);
       useStore.getState().setIsPremium(false);
 
-      // Perform the actual cancellation
-      await paymentService.cancelSubscription(paymentMethod);
+      // Pass dummy payment method since it will be determined by tokens
+      await paymentService.cancelSubscription('paypal');
       
       toast.success('Subscription cancelled successfully');
       

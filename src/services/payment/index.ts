@@ -36,15 +36,14 @@ export const paymentService = {
     return subscriptionService.getSubscriptionStatus();
   },
 
-  async cancelSubscription(paymentMethod: PaymentMethod): Promise<void> {
+  async cancelSubscription(_paymentMethod?: PaymentMethod): Promise<void> {
     try {
-      console.log('[Payment] Starting cancellation with method:', paymentMethod);
+      console.log('[Payment] Starting cancellation process');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
-      // Fetch subscription details to verify active subscriptions
+      // Fetch subscription details
       console.log('[Payment] Fetching subscription details...');
-      // Fetch full subscription details
       const { data: subscription, error: fetchError } = await supabase
         .from('subscriptions')
         .select('*')
@@ -52,14 +51,9 @@ export const paymentService = {
 
       console.log('[Payment] Fetched subscription:', {
         hasSubscription: Boolean(subscription),
-        subscriptionData: {
-          hasGooglePlayToken: Boolean(subscription?.google_play_token),
-          hasPayPalId: Boolean(subscription?.paypal_subscription_id),
-          status: subscription?.status,
-          method: subscription?.payment_method
-        },
-        rawData: subscription,
-        error: fetchError
+        hasGooglePlayToken: Boolean(subscription?.google_play_token),
+        hasPayPalId: Boolean(subscription?.paypal_subscription_id),
+        status: subscription?.status
       });
 
       if (fetchError) {
@@ -71,66 +65,15 @@ export const paymentService = {
         throw new Error('No active subscription found');
       }
 
-      // Determine correct payment method using stored method first, then tokens
-      const storedMethod = subscription.payment_method;
-      const hasGooglePlay = Boolean(subscription.google_play_token);
-      const hasPayPal = Boolean(subscription.paypal_subscription_id);
-
-      console.log('[Payment] Payment method analysis:', {
-        storedMethod,
-        hasGooglePlay,
-        hasPayPal,
-        requestedMethod: paymentMethod,
-        tokens: {
-          googlePlay: subscription.google_play_token,
-          paypal: subscription.paypal_subscription_id
-        },
-        status: subscription.status
-      });
-
-      // If stored method exists, ensure it matches requested method
-      if (storedMethod && storedMethod !== paymentMethod) {
-        console.error('[Payment] Method mismatch:', {
-          stored: storedMethod,
-          requested: paymentMethod
-        });
-        throw new Error(`Please cancel your ${storedMethod === 'google_play' ? 'Google Play' : 'PayPal'} subscription`);
-      }
-
-      // Fallback to token-based detection if no stored method
-      if (!storedMethod) {
-        if (hasGooglePlay && paymentMethod !== 'google_play') {
-          console.error('[Payment] Token-based Google Play detection:', {
-            detected: 'google_play',
-            requested: paymentMethod,
-            token: subscription.google_play_token
-          });
-          throw new Error('Please cancel your Google Play subscription');
-        }
-
-        if (hasPayPal && paymentMethod !== 'paypal') {
-          console.error('[Payment] Token-based PayPal detection:', {
-            detected: 'paypal',
-            requested: paymentMethod,
-            token: subscription.paypal_subscription_id
-          });
-          throw new Error('Please cancel your PayPal subscription');
-        }
-      }
-
-      if (hasPayPal && paymentMethod !== 'paypal') {
-        console.error('[Payment] Mismatch: Has PayPal ID but wrong payment method requested');
-        throw new Error('Please cancel your PayPal subscription');
-      }
-
-      if (paymentMethod === 'google_play') {
-        // Check if PaymentRequest API is available
-        if (typeof PaymentRequest === 'undefined') {
-          throw new Error('Google Play Billing is not available. If you installed from Play Store, please wait a few seconds and try again.');
-        }
+      // Determine payment method based on tokens in database
+      if (subscription.google_play_token) {
+        console.log('[Payment] Using Google Play cancellation');
         await googlePlayService.cancelSubscription();
-      } else {
+      } else if (subscription.paypal_subscription_id) {
+        console.log('[Payment] Using PayPal cancellation');
         await paypalService.cancelSubscription(session.access_token);
+      } else {
+        throw new Error('No valid payment method found for this subscription');
       }
     } catch (error) {
       console.error('Error canceling subscription:', error);
