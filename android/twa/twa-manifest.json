@@ -17,7 +17,7 @@
   "maskableIconUrl": "https://touchbase.site/icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "C:\\dev\\github\\touchbase\\android\\twa\\android.keystore",
+    "path": "C:\\dev\\github\\touchbase\\android\\keystore\\touchbase.keystore",
     "alias": "android"
   },
   "appVersionName": "2",
@@ -33,6 +33,18 @@
       "name": "View Contacts",
       "shortName": "Contacts",
       "url": "https://touchbase.site/contacts",
+      "chosenIconUrl": "https://touchbase.site/icon-192.png"
+    },
+    {
+      "name": "View Reminders",
+      "shortName": "Reminders",
+      "url": "https://touchbase.site/reminders",
+      "chosenIconUrl": "https://touchbase.site/icon-192.png"
+    },
+    {
+      "name": "Conversation Prompts",
+      "shortName": "Prompts",
+      "url": "https://touchbase.site/conversation-prompts",
       "chosenIconUrl": "https://touchbase.site/icon-192.png"
     }
   ],
