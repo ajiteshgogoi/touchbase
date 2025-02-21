@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase/client';
 import { platform } from '../../utils/platform';
 import { SUBSCRIPTION_PLANS } from './plans';
+import toast from 'react-hot-toast';
 
 export class GooglePlayService {
   async _initializeGooglePlayBilling(): Promise<void> {
@@ -475,6 +476,15 @@ export class GooglePlayService {
         throw new Error('Failed to verify purchase');
       }
 
+      // Parse response to get expiry date
+      const verificationResult = await backendResponse.json();
+      
+      // Show success toast with expiry date if available
+      const successMessage = verificationResult.expiryDate
+        ? `Subscription activated! Valid until ${new Date(verificationResult.expiryDate).toLocaleDateString()}`
+        : 'Subscription activated successfully!';
+      
+      toast.success(successMessage);
       console.log('Subscription created successfully');
       return purchaseToken;
     } catch (error) {
