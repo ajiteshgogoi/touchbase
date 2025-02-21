@@ -42,6 +42,28 @@ export const paymentService = {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
+      // Fetch subscription details to verify active subscriptions
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('paypal_subscription_id, google_play_token')
+        .single();
+
+      if (!subscription) {
+        throw new Error('No active subscription found');
+      }
+
+      // Determine which subscription type is actually active
+      const hasGooglePlay = Boolean(subscription.google_play_token);
+      const hasPayPal = Boolean(subscription.paypal_subscription_id);
+
+      if (hasGooglePlay && paymentMethod !== 'google_play') {
+        throw new Error('Please cancel your Google Play subscription');
+      }
+
+      if (hasPayPal && paymentMethod !== 'paypal') {
+        throw new Error('Please cancel your PayPal subscription');
+      }
+
       if (paymentMethod === 'google_play') {
         // Check if PaymentRequest API is available
         if (typeof PaymentRequest === 'undefined') {
