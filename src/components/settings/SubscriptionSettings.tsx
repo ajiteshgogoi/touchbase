@@ -26,20 +26,26 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
   const selectedPlan = isPremium ? 'premium' : 'free';
 
   useEffect(() => {
-    const handleGooglePlayUIShown = () => {
+    const handlePaymentFlowStart = () => {
+      setIsSubscribing(true);
+    };
+
+    const handleGooglePlayUIReady = () => {
       setIsSubscribing(false);
       setIsModalOpen(false);
     };
 
-    paymentEvents.on(PAYMENT_EVENTS.GOOGLE_PLAY_UI_SHOWN, handleGooglePlayUIShown);
+    paymentEvents.on(PAYMENT_EVENTS.PAYMENT_FLOW_START, handlePaymentFlowStart);
+    paymentEvents.on(PAYMENT_EVENTS.GOOGLE_PLAY_UI_READY, handleGooglePlayUIReady);
+    
     return () => {
-      paymentEvents.off(PAYMENT_EVENTS.GOOGLE_PLAY_UI_SHOWN, handleGooglePlayUIShown);
+      paymentEvents.off(PAYMENT_EVENTS.PAYMENT_FLOW_START, handlePaymentFlowStart);
+      paymentEvents.off(PAYMENT_EVENTS.GOOGLE_PLAY_UI_READY, handleGooglePlayUIReady);
     };
   }, []);
 
   const handleSubscribe = async (paymentMethod: PaymentMethod) => {
     try {
-      setIsSubscribing(true);
       await paymentService.createSubscription('premium', paymentMethod);
       // Success toast will be shown after PayPal redirect or Google Play purchase
     } catch (error: any) {

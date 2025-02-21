@@ -13,6 +13,10 @@ export class GooglePlayService {
     try {
       let paymentResponse: PaymentResponse | undefined;
       
+      // Emit event when starting payment flow
+      const { paymentEvents, PAYMENT_EVENTS } = await import('./payment-events');
+      paymentEvents.emit(PAYMENT_EVENTS.PAYMENT_FLOW_START);
+      
       // Check if Google Play Billing is available
       const isAvailable = await platform.isGooglePlayBillingAvailable();
       console.log('Google Play Billing available:', isAvailable);
@@ -140,9 +144,9 @@ export class GooglePlayService {
 
             try {
               console.log('[TWA-Payment] Starting payment flow...');
-              // Emit event before showing Google Play UI
               const { paymentEvents, PAYMENT_EVENTS } = await import('./payment-events');
-              paymentEvents.emit(PAYMENT_EVENTS.GOOGLE_PLAY_UI_SHOWN);
+              // Emit event when Google Play UI is ready
+              paymentEvents.emit(PAYMENT_EVENTS.GOOGLE_PLAY_UI_READY);
               showPromise = request.show();
               
               // Handle potential activity recreation during show()
