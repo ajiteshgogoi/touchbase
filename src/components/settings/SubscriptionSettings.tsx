@@ -59,9 +59,33 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
         status: subscription?.status
       });
 
-      // Determine payment method from subscription data
-      const paymentMethod: PaymentMethod = subscription?.google_play_token ? 'google_play' : 'paypal';
-      console.log('[Cancel] Determined payment method:', paymentMethod);
+      // Log subscription details
+      console.log('[Cancel] Raw subscription data:', subscription);
+      
+      // First try to use stored payment method
+      const storedMethod = subscription?.payment_method as PaymentMethod | undefined;
+      const hasGooglePlayToken = Boolean(subscription?.google_play_token);
+      const hasPayPalId = Boolean(subscription?.paypal_subscription_id);
+      
+      console.log('[Cancel] Payment method analysis:', {
+        storedMethod,
+        hasGooglePlayToken,
+        hasPayPalId,
+        tokens: {
+          googlePlay: subscription?.google_play_token,
+          paypal: subscription?.paypal_subscription_id
+        }
+      });
+
+      // Use stored method if available, otherwise detect from tokens
+      const paymentMethod: PaymentMethod = storedMethod || (hasGooglePlayToken ? 'google_play' : 'paypal');
+      
+      console.log('[Cancel] Selected payment method:', {
+        method: paymentMethod,
+        reason: storedMethod
+          ? 'Using stored payment method'
+          : (hasGooglePlayToken ? 'Detected from Google Play token' : 'Defaulting to PayPal')
+      });
 
       // Optimistic update for subscription
       const optimisticSubscription: Subscription = {

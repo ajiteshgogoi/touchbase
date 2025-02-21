@@ -44,49 +44,78 @@ export const paymentService = {
 
       // Fetch subscription details to verify active subscriptions
       console.log('[Payment] Fetching subscription details...');
+      // Fetch full subscription details
       const { data: subscription, error: fetchError } = await supabase
         .from('subscriptions')
-        .select('paypal_subscription_id, google_play_token, status')
+        .select('*')
         .single();
 
       console.log('[Payment] Fetched subscription:', {
         hasSubscription: Boolean(subscription),
-        hasGooglePlayToken: Boolean(subscription?.google_play_token),
-        hasPayPalId: Boolean(subscription?.paypal_subscription_id),
-        status: subscription?.status,
-        rawSubscription: subscription,
+        subscriptionData: {
+          hasGooglePlayToken: Boolean(subscription?.google_play_token),
+          hasPayPalId: Boolean(subscription?.paypal_subscription_id),
+          status: subscription?.status,
+          method: subscription?.payment_method
+        },
+        rawData: subscription,
         error: fetchError
       });
+
+      if (fetchError) {
+        console.error('[Payment] Error fetching subscription:', fetchError);
+        throw new Error('Failed to fetch subscription details');
+      }
 
       if (!subscription) {
         throw new Error('No active subscription found');
       }
 
-      // Determine which subscription type is actually active
+      // Determine correct payment method using stored method first, then tokens
+      const storedMethod = subscription.payment_method;
       const hasGooglePlay = Boolean(subscription.google_play_token);
       const hasPayPal = Boolean(subscription.paypal_subscription_id);
 
-      console.log('[Payment] Payment method validation:', {
+      console.log('[Payment] Payment method analysis:', {
+        storedMethod,
         hasGooglePlay,
         hasPayPal,
         requestedMethod: paymentMethod,
-        googlePlayToken: subscription.google_play_token,
-        paypalId: subscription.paypal_subscription_id,
-        subscriptionStatus: subscription.status,
-        typeCheck: {
-          tokenType: typeof subscription.google_play_token,
-          tokenLength: subscription.google_play_token?.length,
-          isNullOrUndefined: subscription.google_play_token == null
-        }
+        tokens: {
+          googlePlay: subscription.google_play_token,
+          paypal: subscription.paypal_subscription_id
+        },
+        status: subscription.status
       });
 
-      if (hasGooglePlay && paymentMethod !== 'google_play') {
-        console.error('[Payment] Google Play mismatch:', {
-          detected: 'google_play',
-          requested: paymentMethod,
-          token: subscription.google_play_token
+      // If stored method exists, ensure it matches requested method
+      if (storedMethod && storedMethod !== paymentMethod) {
+        console.error('[Payment] Method mismatch:', {
+          stored: storedMethod,
+          requested: paymentMethod
         });
-        throw new Error('Please cancel your Google Play subscription');
+        throw new Error(`Please cancel your ${storedMethod === 'google_play' ? 'Google Play' : 'PayPal'} subscription`);
+      }
+
+      // Fallback to token-based detection if no stored method
+      if (!storedMethod) {
+        if (hasGooglePlay && paymentMethod !== 'google_play') {
+          console.error('[Payment] Token-based Google Play detection:', {
+            detected: 'google_play',
+            requested: paymentMethod,
+            token: subscription.google_play_token
+          });
+          throw new Error('Please cancel your Google Play subscription');
+        }
+
+        if (hasPayPal && paymentMethod !== 'paypal') {
+          console.error('[Payment] Token-based PayPal detection:', {
+            detected: 'paypal',
+            requested: paymentMethod,
+            token: subscription.paypal_subscription_id
+          });
+          throw new Error('Please cancel your PayPal subscription');
+        }
       }
 
       if (hasPayPal && paymentMethod !== 'paypal') {
