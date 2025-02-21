@@ -494,6 +494,14 @@ export class GooglePlayService {
 
       // Parse response
       await backendResponse.json();
+
+      // Update client state
+      const { getQueryClient } = await import('../../utils/queryClient');
+      const { useStore } = await import('../../stores/useStore');
+
+      // Invalidate subscription query and update premium status
+      getQueryClient().invalidateQueries({ queryKey: ['subscription'] });
+      useStore.getState().setIsPremium(true);
       
       toast.success('Subscription activated successfully!');
       console.log('Subscription created successfully');
