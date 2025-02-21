@@ -57,7 +57,10 @@ export class GooglePlayCancelationHandler {
                 type: 'subscriptionManage',
                 packageName: 'app.touchbase.site.twa',
                 purchaseToken: token,
-                action: 'cancel'
+                action: 'cancel',
+                method: 'https://play.google.com/billing',
+                api: 'digitalGoods',
+                subscriptionPeriod: 'P1M' // Match the subscription period from creation
               }
             }],
             {
@@ -202,81 +205,165 @@ export class GooglePlayCancelationHandler {
 
   private async verifyEnvironment() {
     try {
+      // Check if we're running in TWA context
+      const isTWA = window.matchMedia('(display-mode: standalone)').matches ||
+                   document.referrer.includes('android-app://');
+      
+      // Verify Payment Request API
       const canUsePaymentRequest = typeof PaymentRequest !== 'undefined';
+      
+      // Check Digital Goods API support
+      const hasDigitalGoods = 'PaymentRequest' in window &&
+        PaymentRequest.prototype.hasOwnProperty('canMakePayment');
+
+      // Get detailed environment info
       const details = {
         hasPaymentRequest: canUsePaymentRequest,
+        hasDigitalGoods,
+        isTWA,
         userAgent: navigator.userAgent,
         platform: navigator.platform,
-        packageName: 'app.touchbase.site.twa'
+        packageName: 'app.touchbase.site.twa',
+        displayMode: window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser',
+        referrer: document.referrer
       };
 
+      console.log('[TWA-Cancelation] Environment details:', details);
+
+      // Determine if environment is valid
+      const isValid = canUsePaymentRequest && isTWA;
+      let error;
+
+      if (!isValid) {
+        if (!canUsePaymentRequest) {
+          error = 'PaymentRequest API not available. Please ensure you are using the Play Store version.';
+        } else if (!isTWA) {
+          error = 'Must be launched from Play Store version to manage subscription.';
+        }
+      }
+
       return {
-        isValid: canUsePaymentRequest,
+        isValid,
         details,
-        error: canUsePaymentRequest ? undefined : 'PaymentRequest API not available'
+        error
       };
     } catch (e) {
+      console.error('[TWA-Cancelation] Environment verification failed:', e);
       return {
         isValid: false,
-        error: e instanceof Error ? e.message : 'Unknown environment error'
+        error: e instanceof Error
+          ? `Environment check failed: ${e.message}`
+          : 'Failed to verify app environment'
       };
     }
   }
 
   private validateResponse(response: PaymentResponse): string | undefined {
-    console.log('[TWA-Cancelation] Validating response...');
+    console.log('[TWA-Cancelation] Validating response...', {
+      hasResponse: Boolean(response),
+      methodName: response.methodName,
+      hasDetails: Boolean(response.details),
+      detailsType: typeof response.details
+    });
+
+    // Log raw response for debugging
+    console.log('[TWA-Cancelation] Raw response:', JSON.stringify(response, null, 2));
     
+    let status: string | undefined;
+
     // First try direct path access
     for (const path of this.responseValidationPaths) {
       try {
         const value = path.split('.').reduce((obj, key) => obj?.[key], response as any);
         console.log(`[TWA-Cancelation] Checking ${path}:`, value);
         if (value && typeof value === 'string') {
-          return value;
+          status = value;
+          console.log(`[TWA-Cancelation] Found status in ${path}:`, status);
+          break;
         }
       } catch (e) {
         console.log(`[TWA-Cancelation] Error checking path ${path}:`, e);
       }
     }
 
-    // Try parsing nested JSON
-    if (response.details) {
+    // Try parsing nested JSON if no status found
+    if (!status && response.details) {
       try {
         const parsedDetails = typeof response.details === 'string'
           ? JSON.parse(response.details)
           : response.details;
 
-        console.log('[TWA-Cancelation] Parsed response details:', parsedDetails);
-        return parsedDetails?.status || parsedDetails?.state || 'completed';
+        console.log('[TWA-Cancelation] Parsed response details:', JSON.stringify(parsedDetails, null, 2));
+        
+        // Check common response patterns
+        status = parsedDetails?.status ||
+                parsedDetails?.state ||
+                parsedDetails?.digitalGoods?.status ||
+                parsedDetails?.paymentMethodData?.digitalGoods?.status ||
+                parsedDetails?.response?.status;
+
+        if (status) {
+          console.log('[TWA-Cancelation] Found status in parsed details:', status);
+        }
+
+        // If still no status, check if we have a success indicator
+        if (!status && (parsedDetails?.success === true || parsedDetails?.completed === true)) {
+          status = 'completed';
+          console.log('[TWA-Cancelation] No explicit status found, but success indicator present');
+        }
       } catch (e) {
-        console.log('[TWA-Cancelation] Error parsing response details:', e);
+        console.error('[TWA-Cancelation] Error parsing response details:', e);
       }
     }
 
-    return undefined;
+    // Log final validation result
+    console.log('[TWA-Cancelation] Final validation result:', {
+      foundStatus: Boolean(status),
+      statusValue: status
+    });
+
+    return status;
   }
 
   private isRetryableError(error: Error): boolean {
-    const message = error.message.toLowerCase();
-    return !message.includes('aborted') && 
-           !message.includes('cancelled') &&
-           !message.includes('denied') &&
-           error.name !== 'SecurityError';
+  const message = error.message.toLowerCase();
+  const retryableErrors = [
+    'payment request failed',
+    'network error',
+    'timeout',
+    'temporarily unavailable'
+  ];
+  
+  // Check if error matches any retryable conditions
+  return retryableErrors.some(errText => message.includes(errText)) &&
+         !message.includes('aborted') &&
+         !message.includes('cancelled') &&
+         !message.includes('denied') &&
+         error.name !== 'SecurityError';
+}
+
+private enhanceError(error: any): Error {
+  if (!(error instanceof Error)) {
+    return new Error('Unknown error occurred during cancelation');
   }
 
-  private enhanceError(error: any): Error {
-    if (!(error instanceof Error)) {
-      return new Error('Unknown error occurred during cancelation');
-    }
-
-    // Add more context to the error
-    const enhancedMessage = `Cancelation failed: ${error.message}. ` +
-      'Please ensure you are using the Play Store version and try again.';
-    
-    const enhancedError = new Error(enhancedMessage);
-    enhancedError.name = error.name;
-    return enhancedError;
+  let enhancedMessage = `Cancelation failed: ${error.message}. `;
+  
+  // Add specific guidance based on error type
+  if (error.name === 'NotSupportedError' || !window.PaymentRequest) {
+    enhancedMessage += 'Please ensure you are using the latest Play Store version of the app.';
+  } else if (error.name === 'SecurityError') {
+    enhancedMessage += 'This operation is not allowed. Please ensure you are using the Play Store version.';
+  } else if (error.message.toLowerCase().includes('payment request')) {
+    enhancedMessage += 'The Google Play billing service is not responding. Please try again in a few moments.';
+  } else {
+    enhancedMessage += 'Please ensure you are using the Play Store version and try again.';
   }
+  
+  const enhancedError = new Error(enhancedMessage);
+  enhancedError.name = error.name;
+  return enhancedError;
+}
 
   private logPaymentError(error: any) {
     console.error('[TWA-Cancelation] Detailed error log:', {
