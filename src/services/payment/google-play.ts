@@ -493,31 +493,47 @@ export class GooglePlayService {
       throw error;
     }
   }
+async cancelSubscription(): Promise<void> {
+  try {
+    // Get current session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('No active session');
+    }
 
-  async cancelSubscription(accessToken: string): Promise<void> {
-    try {
-      console.log('Fetching subscription details...');
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('google_play_token')
-        .single();
+    console.log('Fetching subscription details...');
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('google_play_token')
+      .single();
 
-      if (!subscription?.google_play_token) {
-        console.error('No Google Play token found');
-        throw new Error('No active Google Play subscription');
-      }
-console.log('Processing cancelation...');
-      console.log('Notifying backend of cancelation...');
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({ token: subscription.google_play_token })
-      });
+    if (!subscription?.google_play_token) {
+      console.error('No Google Play token found');
+      throw new Error('No active Google Play subscription');
+    }
 
-      console.log('Successfully canceled subscription');
+    console.log('Processing cancelation with token:', subscription.google_play_token);
+console.log('Notifying backend of cancelation...');
+const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${session.access_token}`
+  },
+  body: JSON.stringify({ token: subscription.google_play_token })
+});
+
+const result = await response.json();
+
+if (!response.ok || !result.success) {
+  const error = result.error || 'Failed to cancel subscription';
+  console.error('Cancellation failed:', error);
+  toast.error(error);
+  throw new Error(error);
+}
+
+console.log('Successfully canceled subscription');
+toast.success('Subscription successfully canceled');
     } catch (error) {
       console.error('Error canceling Google Play subscription:', error);
       if (error instanceof Error) {
