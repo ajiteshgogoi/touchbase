@@ -16,19 +16,7 @@ class NotificationService {
         return;
       }
 
-      if (!('Notification' in window)) {
-        console.warn('Notifications not supported');
-        return;
-      }
-
       try {
-        // Request notification permission early if not already granted
-        if (Notification.permission === 'default') {
-          console.log('Requesting notification permission...');
-          const permission = await Notification.requestPermission();
-          console.log('Notification permission result:', permission);
-        }
-
         // Wait for valid session before proceeding
         const maxRetries = 3;
         let authToken = null;
@@ -170,9 +158,10 @@ class NotificationService {
 
       console.log('Starting FCM token registration process...');
       
-      // Check if we have notification permission
-      if (Notification.permission !== 'granted') {
-        throw new Error('Notification permission not granted');
+      // Request permission first
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notification permission denied');
       }
 
       // Check IndexedDB access before proceeding
@@ -332,8 +321,6 @@ class NotificationService {
       return false;
     }
 
-    // Only request if permission state is 'default' (not yet decided)
-    // This maintains consistency with initialize()
     const permission = await Notification.requestPermission();
     return permission === 'granted';
   }
@@ -370,8 +357,9 @@ class NotificationService {
         // Then ensure admin's registration is valid
         if (!this.registration?.active) {
           console.log('Initializing admin FCM registration...');
-          // Check for notification permission
-          if (Notification.permission !== 'granted') {
+          // First ensure admin has notification permission
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
             throw new Error('Notification permission required for admin operations');
           }
 
