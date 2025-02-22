@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import type { Contact } from '../../lib/supabase/types';
 import { contactsService } from '../../services/contacts';
 import { contactValidationService } from '../../services/contact-validation';
 import { useStore } from '../../stores/useStore';
@@ -74,7 +75,8 @@ export const ContactForm = () => {
 
   // Mutations for creating and updating contacts
   const createMutation = useMutation({
-    mutationFn: contactsService.createContact,
+    mutationFn: (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) =>
+      contactsService.createContact(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       navigate(-1);
