@@ -73,21 +73,12 @@ export const contactsService = {
   async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
     await this.checkContactLimit();
     
-    // Use last_contacted as base date if provided, otherwise use current date
-    const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
-    const nextContactDue = calculateNextContactDate(
-      contact.relationship_level as RelationshipLevel,
-      contact.contact_frequency as ContactFrequency | null,
-      0,
-      baseDate
-    ).toISOString();
-
     // First create the contact to get its ID
     const { data, error } = await supabase
       .from('contacts')
       .insert({
         ...contact,
-        next_contact_due: nextContactDue,
+        next_contact_due: new Date().toISOString(), // Temporary date, will be recalculated
         missed_interactions: 0
       })
       .select()
@@ -95,23 +86,16 @@ export const contactsService = {
       
     if (error) throw error;
 
-    // Then create the initial reminder
-    const { error: reminderError } = await supabase
-      .from('reminders')
-      .insert({
-        contact_id: data.id,
-        user_id: data.user_id,
-        type: data.preferred_contact_method || 'message',
-        due_date: nextContactDue,
-        completed: false
-      });
-
-    if (reminderError) throw reminderError;
+    // After contact is created, calculate next due date considering important events
+    await this.recalculateNextContactDue(data.id);
     
     // Invalidate reminders cache after creating a new reminder
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     
-    return data;
+    // Return updated contact with proper next_contact_due
+    const updatedContact = await this.getContact(data.id);
+    if (!updatedContact) throw new Error('Failed to create contact');
+    return updatedContact;
   },
 
   /**
@@ -279,60 +263,27 @@ export const contactsService = {
     const contact = await this.getContact(id);
     if (!contact) throw new Error('Contact not found');
 
-    let updatedFields = { ...updates };
-    
-    // Only recalculate next_contact_due if we have a last_contacted date
-    if (updates.last_contacted ||
-        (updates.relationship_level || updates.contact_frequency) && contact.last_contacted) {
-      const level = (updates.relationship_level || contact.relationship_level) as RelationshipLevel;
-      const frequency = (updates.contact_frequency || contact.contact_frequency) as ContactFrequency | null;
-      
-      // Always use the most recent last_contacted date for calculations
-      const baseDate = updates.last_contacted ? new Date(updates.last_contacted) :
-                      contact.last_contacted ? new Date(contact.last_contacted) : null;
-      
-      if (baseDate) {
-        updatedFields.next_contact_due = calculateNextContactDate(
-          level,
-          frequency,
-          0, // Reset missed interactions when updating contact
-          baseDate
-        ).toISOString();
-
-        // Always remove existing reminders before creating new ones
-        const { error: deleteError } = await supabase
-          .from('reminders')
-          .delete()
-          .eq('contact_id', id);
-        
-        if (deleteError) throw deleteError;
-        
-        // Create new reminder for next contact due date
-        const { error: reminderError } = await supabase
-          .from('reminders')
-          .insert({
-            contact_id: id,
-            user_id: contact.user_id,
-            type: contact.preferred_contact_method || 'message',
-            due_date: updatedFields.next_contact_due,
-            completed: false
-          });
-
-        if (reminderError) throw reminderError;
-        
-        // Invalidate reminders cache after updating a reminder
-        getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
-      }
-    }
-
+    // Save the base updates
     const { data, error } = await supabase
       .from('contacts')
-      .update(updatedFields)
+      .update(updates)
       .eq('id', id)
       .select()
       .single();
     
     if (error) throw error;
+
+    // Recalculate next due date if necessary fields were updated
+    if (updates.last_contacted ||
+        updates.relationship_level ||
+        updates.contact_frequency) {
+      await this.recalculateNextContactDue(id);
+      // Get the final state after recalculation
+      const updatedContact = await this.getContact(id);
+      if (!updatedContact) throw new Error('Failed to retrieve updated contact');
+      return updatedContact;
+    }
+
     return data;
   },
 
@@ -376,7 +327,7 @@ export const contactsService = {
   },
 
   async addInteraction(interaction: Omit<Interaction, 'id' | 'created_at'>): Promise<Interaction> {
-    // Just record the interaction without handling reminders
+    // Record the interaction
     const { data: interactionData, error: interactionError } = await supabase
       .from('interactions')
       .insert(interaction)
@@ -384,6 +335,10 @@ export const contactsService = {
       .single();
     
     if (interactionError) throw interactionError;
+
+    // Recalculate next due date considering important events
+    await this.recalculateNextContactDue(interaction.contact_id);
+
     return interactionData;
   },
 
