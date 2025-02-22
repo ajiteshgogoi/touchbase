@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import type { Contact } from '../../lib/supabase/types';
 import { contactsService } from '../../services/contacts';
 import { contactValidationService } from '../../services/contact-validation';
 import { useStore } from '../../stores/useStore';
@@ -98,9 +97,11 @@ export const ContactForm = () => {
 
   // Mutations for creating and updating contacts
   const createMutation = useMutation({
-    mutationFn: async (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (data: ContactFormData) => {
+      // Extract important_events from data and create contact without it
+      const { important_events, ...contactData } = data;
       // First create the contact
-      const contact = await contactsService.createContact(data);
+      const contact = await contactsService.createContact(contactData);
       
       // Then create any important events
       if (formData.important_events.length > 0) {
@@ -125,8 +126,10 @@ export const ContactForm = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ContactFormData> }) => {
+      // Extract important_events from updates
+      const { important_events, ...contactUpdates } = updates;
       // First update the contact
-      const contact = await contactsService.updateContact(id, updates);
+      const contact = await contactsService.updateContact(id, contactUpdates);
       
       // Then handle important events - we'll replace all events with new ones
       const currentEvents = await contactsService.getImportantEvents(id);
