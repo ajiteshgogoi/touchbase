@@ -1,10 +1,23 @@
 import { useState } from 'react';
-import { CalendarIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidEventDate, isValidEventName, formatEventDate, getEventTypeDisplay } from './utils';
+import { isValidEventName, formatEventDate, getEventTypeDisplay } from './utils';
+
+const getEventIcon = (type: string) => {
+  switch (type) {
+    case 'birthday':
+      return <CakeIcon className="h-5 w-5 text-primary-600" />;
+    case 'anniversary':
+      return <HeartIcon className="h-5 w-5 text-primary-600" />;
+    case 'custom':
+      return <StarIcon className="h-5 w-5 text-primary-600" />;
+    default:
+      return <CalendarIcon className="h-5 w-5 text-primary-600" />;
+  }
+};
 
 /**
- * ImportantEvents component for managing a contact's important dates
+ * ImportantEvents component for managing a contact's important recurring events
  * like birthdays, anniversaries, and custom events
  */
 export const ImportantEvents = ({
@@ -26,9 +39,6 @@ export const ImportantEvents = ({
 
     // Validate the event
     const newErrors = [];
-    if (!isValidEventDate(date)) {
-      newErrors.push('Event date cannot be in the past');
-    }
     if (type === 'custom' && !isValidEventName(name)) {
       newErrors.push('Custom events require a name (max 100 characters)');
     }
@@ -64,7 +74,12 @@ export const ImportantEvents = ({
   return (
     <div className="bg-white rounded-xl shadow-soft p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-800">Important Events</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">Important Events</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            All events are recurring yearly
+          </p>
+        </div>
         {formData.important_events.length < 5 && (
           <button
             type="button"
@@ -89,7 +104,7 @@ export const ImportantEvents = ({
             >
               <div className="flex items-center space-x-4">
                 <div className="p-2 bg-primary-50 rounded-lg">
-                  <CalendarIcon className="h-5 w-5 text-primary-600" />
+                  {getEventIcon(event.type)}
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">
@@ -145,6 +160,9 @@ export const ImportantEvents = ({
                 required
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Events will recur yearly on this date
+              </p>
             </div>
           </div>
 

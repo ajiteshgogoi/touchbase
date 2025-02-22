@@ -31,15 +31,13 @@ export const formatLocalDateTime = (date: Date): string => {
 };
 
 /**
- * Validates an important event date to ensure it's not in the past
+ * Validates an important event date
+ * No date validation needed since events are recurring yearly
  * @param date - The date to validate
- * @returns boolean indicating if the date is valid
+ * @returns Always returns true since all dates are valid for recurring events
  */
 export const isValidEventDate = (date: string): boolean => {
-  const eventDate = new Date(date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
-  return eventDate >= today;
+  return true; // All dates are valid since events are recurring yearly
 };
 
 /**
@@ -49,6 +47,50 @@ export const isValidEventDate = (date: string): boolean => {
  */
 export const isValidEventName = (name: string | null): boolean => {
   return name !== null && name.trim().length > 0 && name.trim().length <= 100;
+};
+
+/**
+ * Check if an event is upcoming within the next specified days
+ * @param eventDate - The event date string
+ * @param daysThreshold - Number of days to look ahead (default 7)
+ * @returns boolean indicating if the event is upcoming
+ */
+export const isUpcomingEvent = (eventDate: string, daysThreshold: number = 7): boolean => {
+  const today = new Date();
+  const event = new Date(eventDate);
+  
+  // Set event to this year
+  event.setFullYear(today.getFullYear());
+  
+  // If event already passed this year, check next year's date
+  if (event < today) {
+    event.setFullYear(today.getFullYear() + 1);
+  }
+  
+  const diffTime = event.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays >= 0 && diffDays <= daysThreshold;
+};
+
+/**
+ * Get the next occurrence of an event
+ * @param eventDate - The event date string
+ * @returns Date object for the next occurrence
+ */
+export const getNextOccurrence = (eventDate: string): Date => {
+  const today = new Date();
+  const event = new Date(eventDate);
+  
+  // Set event to this year
+  event.setFullYear(today.getFullYear());
+  
+  // If event already passed this year, use next year's date
+  if (event < today) {
+    event.setFullYear(today.getFullYear() + 1);
+  }
+  
+  return event;
 };
 
 /**
@@ -85,11 +127,10 @@ export const initialErrors = {
 /**
  * Format a date for display in the UI
  * @param date - ISO date string
- * @returns Formatted date string (e.g., "March 15, 2025")
+ * @returns Formatted date string (e.g., "March 15")
  */
 export const formatEventDate = (date: string): string => {
   return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
     month: 'long',
     day: 'numeric'
   });

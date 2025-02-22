@@ -6,10 +6,24 @@ import { contentReportsService } from '../services/content-reports';
 import { useStore } from '../stores/useStore';
 import dayjs from 'dayjs';
 import type { Reminder, Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
-import { CalendarIcon, ArrowLeftIcon, FlagIcon } from '@heroicons/react/24/outline/esm/index.js';
+import { CalendarIcon, ArrowLeftIcon, FlagIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline/esm/index.js';
+import { getEventTypeDisplay, formatEventDate } from '../components/contacts/utils';
 
 // Lazy load QuickInteraction
 const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
+
+const getEventIcon = (type: string) => {
+  switch (type) {
+    case 'birthday':
+      return <CakeIcon className="h-4 w-4 text-pink-500" />;
+    case 'anniversary':
+      return <HeartIcon className="h-4 w-4 text-rose-500" />;
+    case 'custom':
+      return <StarIcon className="h-4 w-4 text-purple-500" />;
+    default:
+      return <CalendarIcon className="h-4 w-4 text-primary-500" />;
+  }
+};
 
 export const Reminders = () => {
   const navigate = useNavigate();
@@ -68,16 +82,16 @@ export const Reminders = () => {
     return acc;
   }, {} as Record<string, Contact>) || {};
 
- const importantEventsMap: Record<string, ImportantEvent[]> = {};
- importantEvents?.forEach((event: ImportantEvent) => {
-   if (event) {
-     const contactId = event.contact_id as string;
-     if (!importantEventsMap[contactId]) {
-       importantEventsMap[contactId] = [];
-     }
-     importantEventsMap[contactId].push(event);
-   }
- });
+  const importantEventsMap: Record<string, ImportantEvent[]> = {};
+  importantEvents?.forEach((event: ImportantEvent) => {
+    if (event) {
+      const contactId = event.contact_id as string;
+      if (!importantEventsMap[contactId]) {
+        importantEventsMap[contactId] = [];
+      }
+      importantEventsMap[contactId].push(event);
+    }
+  });
 
   const today = dayjs();
   const dueTodayReminders = reminders?.filter((r: Reminder) => {
@@ -90,9 +104,16 @@ export const Reminders = () => {
     return dueDate.isAfter(today) && !dueDate.isSame(today, 'day');
   }) || [];
 
-  const isBirthdayToday = (contactId: string): boolean => {
+  // Find important events for a contact that fall on the given date
+  const getImportantEventsForDate = (contactId: string, date: string): ImportantEvent[] => {
     const events = importantEventsMap[contactId] || [];
-    return events.some(event => event.type === 'birthday' && dayjs(event.date).isSame(today, 'day'));
+    const reminderDate = dayjs(date);
+    
+    return events.filter(event => {
+      const eventDate = dayjs(event.date);
+      return eventDate.month() === reminderDate.month() && 
+             eventDate.date() === reminderDate.date();
+    });
   };
 
   return (
@@ -144,18 +165,30 @@ export const Reminders = () => {
               ) : (
                 dueTodayReminders.map((reminder) => {
                   const contact = contactsMap[reminder.contact_id];
-                  const isBirthday = isBirthdayToday(reminder.contact_id);
+                  const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
 
                   return (
                     <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
                           <div className="space-y-2.5">
-                            <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="flex flex-wrap items-center gap-4 text-sm">
                               <span className="text-lg font-semibold text-primary-500">
                                 {contact?.name || 'Unknown'}
-                                {isBirthday && ' 🎂'}
                               </span>
+                              {/* Show important events badges */}
+                              {events.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  {events.map((event, idx) => (
+                                    <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50">
+                                      {getEventIcon(event.type)}
+                                      <span className="text-xs font-medium">
+                                        {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span>
@@ -234,7 +267,7 @@ export const Reminders = () => {
             </div>
           </div>
 
-          {/* Upcoming Reminders Column */}
+          {/* Upcoming Column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="p-2 bg-primary-50 rounded-lg">
@@ -248,18 +281,30 @@ export const Reminders = () => {
               ) : (
                 upcomingReminders.map((reminder) => {
                   const contact = contactsMap[reminder.contact_id];
-                  const isBirthday = isBirthdayToday(reminder.contact_id);
+                  const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
 
                   return (
                     <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
                           <div className="space-y-2.5">
-                            <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="flex flex-wrap items-center gap-4 text-sm">
                               <span className="text-lg font-semibold text-primary-500">
                                 {contact?.name || 'Unknown'}
-                                {isBirthday && ' 🎂'}
                               </span>
+                              {/* Show important events badges */}
+                              {events.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  {events.map((event, idx) => (
+                                    <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50">
+                                      {getEventIcon(event.type)}
+                                      <span className="text-xs font-medium">
+                                        {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span>

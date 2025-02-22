@@ -13,9 +13,13 @@ import {
   ChevronUpDownIcon,
   ArrowLeftIcon,
   FlagIcon,
-  AtSymbolIcon
+  AtSymbolIcon,
+  CakeIcon,
+  HeartIcon,
+  StarIcon
 } from '@heroicons/react/24/outline/esm/index.js';
-import type { Contact, Interaction } from '../lib/supabase/types';
+import type { Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
+import { isUpcomingEvent, getEventTypeDisplay, formatEventDate } from '../components/contacts/utils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -61,6 +65,24 @@ export const Contacts = () => {
     // Only fetch total count for free users
     enabled: !isPremium && !isOnTrial
   });
+
+  const { data: importantEvents } = useQuery<ImportantEvent[]>({
+    queryKey: ['important-events'],
+    queryFn: () => contactsService.getImportantEvents(),
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Map of contact ID to their upcoming events
+  const upcomingEventsMap = importantEvents?.reduce((acc, event) => {
+    if (event && isUpcomingEvent(event.date)) {
+      const contactId = event.contact_id as string;
+      if (!acc[contactId]) {
+        acc[contactId] = [];
+      }
+      acc[contactId].push(event);
+    }
+    return acc;
+  }, {} as Record<string, ImportantEvent[]>) || {};
 
   const isLoading = contactsLoading || countLoading;
 
@@ -262,9 +284,27 @@ export const Contacts = () => {
                 <div className="flex flex-col gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <h3 className="text-lg font-semibold text-primary-500">
-                        {contact.name}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-primary-500">
+                          {contact.name}
+                        </h3>
+                        {/* Show upcoming event indicators */}
+                        {upcomingEventsMap[contact.id]?.map((event, idx) => (
+                          <div
+                            key={idx}
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full ${
+                              event.type === 'birthday' ? 'bg-pink-50' :
+                              event.type === 'anniversary' ? 'bg-rose-50' :
+                              'bg-purple-50'
+                            }`}
+                            title={`${getEventTypeDisplay(event.type)}${event.type === 'custom' ? `: ${event.name}` : ''} - ${formatEventDate(event.date)}`}
+                          >
+                            {event.type === 'birthday' ? <CakeIcon className="h-3 w-3 text-pink-500" /> :
+                             event.type === 'anniversary' ? <HeartIcon className="h-3 w-3 text-rose-500" /> :
+                             <StarIcon className="h-3 w-3 text-purple-500" />}
+                          </div>
+                        ))}
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         <Link
                           to={`/contacts/${contact.id}/edit`}
