@@ -7,7 +7,7 @@ import { useStore } from '../stores/useStore';
 import dayjs from 'dayjs';
 import type { Reminder, Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
 import { CalendarIcon, ArrowLeftIcon, FlagIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline/esm/index.js';
-import { getEventTypeDisplay, formatEventDate } from '../components/contacts/utils';
+import { getEventTypeDisplay } from '../components/contacts/utils';
 
 // Lazy load QuickInteraction
 const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));

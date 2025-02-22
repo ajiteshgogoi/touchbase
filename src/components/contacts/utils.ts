@@ -36,7 +36,7 @@ export const formatLocalDateTime = (date: Date): string => {
  * @param date - The date to validate
  * @returns Always returns true since all dates are valid for recurring events
  */
-export const isValidEventDate = (date: string): boolean => {
+export const isValidEventDate = (_date: string): boolean => {
   return true; // All dates are valid since events are recurring yearly
 };
 
