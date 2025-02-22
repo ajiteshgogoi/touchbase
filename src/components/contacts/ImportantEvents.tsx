@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidEventName, formatEventDate, getEventTypeDisplay } from './utils';
+import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventInputToISO } from './utils';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+// Enable UTC plugin for dayjs for consistent date handling
+dayjs.extend(utc);
 
 const getEventIcon = (type: string) => {
   switch (type) {
@@ -28,13 +33,18 @@ export const ImportantEvents = ({
 }: ContactFormProps) => {
   const [showNewEventForm, setShowNewEventForm] = useState(false);
 
+  /**
+   * Handle adding a new important event
+   * Standardizes date format using dayjs for consistent timezone handling
+   * Events are collected in formData and saved together with contact
+   */
   const handleAddEvent = (event: React.FormEvent) => {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
     const formDataObj = new FormData(form);
     
     const type = formDataObj.get('type') as 'birthday' | 'anniversary' | 'custom';
-    const date = formDataObj.get('date') as string;
+    const rawDate = formDataObj.get('date') as string;
     const name = formDataObj.get('name') as string;
 
     // Validate the event
@@ -43,10 +53,17 @@ export const ImportantEvents = ({
       newErrors.push('Custom events require a name (max 100 characters)');
     }
 
+    if (!rawDate) {
+      newErrors.push('Date is required');
+    }
+
     if (newErrors.length > 0) {
       onError({ important_events: newErrors });
       return;
     }
+
+    // Format date to ISO string with standardized time (noon UTC)
+    const date = formatEventInputToISO(rawDate);
 
     // Add the new event
     const newEvent = {

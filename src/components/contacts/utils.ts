@@ -1,3 +1,9 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+// Enable UTC plugin for consistent date handling
+dayjs.extend(utc);
+
 /**
  * Validates a phone number against common formats
  * Accepts formats: +1234567890, 123-456-7890, (123) 456-7890, 1234567890
@@ -50,47 +56,67 @@ export const isValidEventName = (name: string | null): boolean => {
 };
 
 /**
+ * Formats a date to ISO string for form submission
+ * Standardizes the time to noon UTC to avoid timezone issues
+ * @param date - The date string from the form input
+ * @returns ISO date string with standardized time
+ */
+export const formatEventInputToISO = (date: string): string => {
+  return dayjs.utc(date).hour(12).minute(0).second(0).toISOString();
+};
+
+/**
  * Check if an event is upcoming within the next specified days
+ * Uses dayjs for consistent date handling across timezones
  * @param eventDate - The event date string
  * @param daysThreshold - Number of days to look ahead (default 7)
  * @returns boolean indicating if the event is upcoming
  */
 export const isUpcomingEvent = (eventDate: string, daysThreshold: number = 7): boolean => {
-  const today = new Date();
-  const event = new Date(eventDate);
+  const today = dayjs().startOf('day');
+  let event = dayjs.utc(eventDate);
   
-  // Set event to this year
-  event.setFullYear(today.getFullYear());
+  // Set event to this year, maintaining the month and day
+  event = event.year(today.year());
   
   // If event already passed this year, check next year's date
-  if (event < today) {
-    event.setFullYear(today.getFullYear() + 1);
+  if (event.isBefore(today)) {
+    event = event.add(1, 'year');
   }
   
-  const diffTime = event.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+  const diffDays = event.diff(today, 'day');
   return diffDays >= 0 && diffDays <= daysThreshold;
 };
 
 /**
  * Get the next occurrence of an event
+ * Uses dayjs for consistent date handling across timezones
  * @param eventDate - The event date string
- * @returns Date object for the next occurrence
+ * @returns ISO date string for the next occurrence
  */
-export const getNextOccurrence = (eventDate: string): Date => {
-  const today = new Date();
-  const event = new Date(eventDate);
+export const getNextOccurrence = (eventDate: string): string => {
+  const today = dayjs().startOf('day');
+  let event = dayjs.utc(eventDate);
   
-  // Set event to this year
-  event.setFullYear(today.getFullYear());
+  // Set event to this year, maintaining the month and day
+  event = event.year(today.year());
   
   // If event already passed this year, use next year's date
-  if (event < today) {
-    event.setFullYear(today.getFullYear() + 1);
+  if (event.isBefore(today)) {
+    event = event.add(1, 'year');
   }
   
-  return event;
+  return event.toISOString();
+};
+
+/**
+ * Format a date for display in the UI
+ * Uses dayjs for consistent date handling across timezones
+ * @param date - ISO date string
+ * @returns Formatted date string (e.g., "March 15")
+ */
+export const formatEventDate = (date: string): string => {
+  return dayjs.utc(date).format('MMMM D');
 };
 
 /**
@@ -122,18 +148,6 @@ export const initialErrors = {
   phone: '',
   social_media_handle: '',
   important_events: [] // Array of error messages for each event
-};
-
-/**
- * Format a date for display in the UI
- * @param date - ISO date string
- * @returns Formatted date string (e.g., "March 15")
- */
-export const formatEventDate = (date: string): string => {
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric'
-  });
 };
 
 /**
