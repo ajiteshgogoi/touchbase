@@ -161,6 +161,9 @@ export const contactsService = {
     // Recalculate next due date since an important event might be sooner
     await this.recalculateNextContactDue(event.contact_id);
 
+    // Invalidate important events cache so the UI updates
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
+
     return data;
   },
 
@@ -185,6 +188,9 @@ export const contactsService = {
       await this.recalculateNextContactDue(data.contact_id);
     }
 
+    // Invalidate important events cache so the UI updates
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
+
     return data;
   },
 
@@ -201,6 +207,9 @@ export const contactsService = {
 
     // Recalculate next due date since an important event was removed
     await this.recalculateNextContactDue(contactId);
+
+    // Invalidate important events cache so the UI updates
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
   },
 
   /**
