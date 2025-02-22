@@ -38,14 +38,17 @@ export const ImportantEvents = ({
    * Standardizes date format using dayjs for consistent timezone handling
    * Events are collected in formData and saved together with contact
    */
-  const handleAddEvent = (event: React.FormEvent) => {
-    event.preventDefault();
-    const form = event.target as HTMLFormElement;
-    const formDataObj = new FormData(form);
+  const handleAddEvent = (e: React.MouseEvent) => {
+    e.preventDefault();
     
-    const type = formDataObj.get('type') as 'birthday' | 'anniversary' | 'custom';
-    const rawDate = formDataObj.get('date') as string;
-    const name = formDataObj.get('name') as string;
+    // Get form data from refs instead of form submission
+    const typeSelect = document.getElementById('event-type') as HTMLSelectElement;
+    const dateInput = document.getElementById('event-date') as HTMLInputElement;
+    const nameInput = document.getElementById('event-name') as HTMLInputElement;
+
+    const type = typeSelect.value as 'birthday' | 'anniversary' | 'custom';
+    const rawDate = dateInput.value;
+    const name = nameInput.value;
 
     // Validate the event
     const newErrors = [];
@@ -76,8 +79,10 @@ export const ImportantEvents = ({
       important_events: [...formData.important_events, newEvent]
     });
 
-    // Clear the form and hide it
-    form.reset();
+    // Clear inputs and hide form
+    typeSelect.value = 'birthday';
+    dateInput.value = '';
+    nameInput.value = '';
     setShowNewEventForm(false);
     onError({ important_events: [] });
   };
@@ -146,17 +151,16 @@ export const ImportantEvents = ({
         )}
       </div>
 
-      {/* New event form */}
+      {/* New event section */}
       {showNewEventForm && (
-        <form onSubmit={handleAddEvent} className="space-y-4 border-t pt-4">
+        <div className="space-y-4 border-t pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="event-type" className="block text-sm font-medium text-gray-700">
                 Event Type *
               </label>
               <select
-                id="type"
-                name="type"
+                id="event-type"
                 required
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
                 defaultValue="birthday"
@@ -167,13 +171,12 @@ export const ImportantEvents = ({
               </select>
             </div>
             <div>
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="event-date" className="block text-sm font-medium text-gray-700">
                 Date *
               </label>
               <input
                 type="date"
-                id="date"
-                name="date"
+                id="event-date"
                 required
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
               />
@@ -184,13 +187,12 @@ export const ImportantEvents = ({
           </div>
 
           <div className="custom-event-name">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="event-name" className="block text-sm font-medium text-gray-700">
               Event Name (for custom events)
             </label>
             <input
               type="text"
-              id="name"
-              name="name"
+              id="event-name"
               className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
               placeholder="Enter event name"
             />
@@ -218,13 +220,14 @@ export const ImportantEvents = ({
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleAddEvent}
               className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               Save Event
             </button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );
