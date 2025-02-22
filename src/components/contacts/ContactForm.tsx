@@ -120,6 +120,7 @@ export const ContactForm = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['important-events'] });
       navigate(-1);
     },
   });
@@ -155,7 +156,8 @@ export const ContactForm = () => {
       return contact;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contacts', 'important-events'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['important-events'] });
       navigate(-1);
     },
   });
