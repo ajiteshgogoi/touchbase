@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase/client';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import type { Contact, Interaction, Reminder } from '../lib/supabase/types';
+import type { Contact, Interaction, Reminder, ImportantEvent } from '../lib/supabase/types';
 import { paymentService } from './payment';
 import { getQueryClient } from '../utils/queryClient';
 import { calculateNextContactDate, RelationshipLevel, ContactFrequency} from '../utils/date';
@@ -114,6 +114,157 @@ export const contactsService = {
     return data;
   },
 
+  /**
+   * Get all important events for a contact
+   * @param contactId Optional - if provided, gets events only for that contact
+   * @returns Array of important events sorted by date
+   */
+  async getImportantEvents(contactId?: string): Promise<ImportantEvent[]> {
+    let query = supabase
+      .from('important_events')
+      .select('*')
+      .order('date');
+
+    if (contactId) {
+      query = query.eq('contact_id', contactId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Create a new important event for a contact
+   * Enforces the maximum limit of 5 events per contact
+   */
+  async addImportantEvent(event: Omit<ImportantEvent, 'id' | 'created_at' | 'updated_at'>): Promise<ImportantEvent> {
+    // Check if contact already has 5 events
+    const existingEvents = await this.getImportantEvents(event.contact_id);
+    if (existingEvents.length >= 5) {
+      throw new Error('Maximum of 5 important events allowed per contact');
+    }
+
+    // Validate custom event has a name
+    if (event.type === 'custom' && !event.name) {
+      throw new Error('Custom events must have a name');
+    }
+
+    const { data, error } = await supabase
+      .from('important_events')
+      .insert(event)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Recalculate next due date since an important event might be sooner
+    await this.recalculateNextContactDue(event.contact_id);
+
+    return data;
+  },
+
+  /**
+   * Update an important event
+   */
+  async updateImportantEvent(
+    id: string, 
+    updates: Partial<Omit<ImportantEvent, 'id' | 'created_at' | 'updated_at'>>
+  ): Promise<ImportantEvent> {
+    const { data, error } = await supabase
+      .from('important_events')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // If date was updated, recalculate next due date
+    if (updates.date) {
+      await this.recalculateNextContactDue(data.contact_id);
+    }
+
+    return data;
+  },
+
+  /**
+   * Delete an important event
+   */
+  async deleteImportantEvent(id: string, contactId: string): Promise<void> {
+    const { error } = await supabase
+      .from('important_events')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    // Recalculate next due date since an important event was removed
+    await this.recalculateNextContactDue(contactId);
+  },
+
+  /**
+   * Calculate the next due date considering both regular frequency and important events
+   */
+  async recalculateNextContactDue(contactId: string): Promise<void> {
+    const contact = await this.getContact(contactId);
+    if (!contact) throw new Error('Contact not found');
+
+    const importantEvents = await this.getImportantEvents(contactId);
+
+    // Calculate regular next due date
+    const regularDueDate = calculateNextContactDate(
+      contact.relationship_level as RelationshipLevel,
+      contact.contact_frequency as ContactFrequency | null,
+      contact.missed_interactions,
+      contact.last_contacted ? new Date(contact.last_contacted) : null
+    );
+
+    // Find next important event date (if any)
+    const today = new Date();
+    const nextImportantEvent = importantEvents
+      .map(event => new Date(event.date))
+      .filter(date => date > today)
+      .sort((a, b) => a.getTime() - b.getTime())[0];
+
+    // Use the earlier of regular due date and next important event
+    const nextDueDate = nextImportantEvent && nextImportantEvent < regularDueDate
+      ? nextImportantEvent
+      : regularDueDate;
+
+    // Update contact and create/update reminder
+    const { error: updateError } = await supabase
+      .from('contacts')
+      .update({ next_contact_due: nextDueDate.toISOString() })
+      .eq('id', contactId);
+
+    if (updateError) throw updateError;
+
+    // Delete existing reminder
+    const { error: deleteError } = await supabase
+      .from('reminders')
+      .delete()
+      .eq('contact_id', contactId);
+
+    if (deleteError) throw deleteError;
+
+    // Create new reminder
+    const { error: reminderError } = await supabase
+      .from('reminders')
+      .insert({
+        contact_id: contactId,
+        user_id: contact.user_id,
+        type: contact.preferred_contact_method || 'message',
+        due_date: nextDueDate.toISOString(),
+        completed: false
+      });
+
+    if (reminderError) throw reminderError;
+
+    // Invalidate reminders cache
+    getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+  },
+
   async updateContact(id: string, updates: Partial<Contact>): Promise<Contact> {
     // Get current contact data for calculations
     const contact = await this.getContact(id);
@@ -192,6 +343,8 @@ export const contactsService = {
       .eq('contact_id', id);
     
     if (remindersError) throw remindersError;
+
+    // Important events will be automatically deleted due to ON DELETE CASCADE
 
     // Finally delete the contact
     const { error: contactError } = await supabase

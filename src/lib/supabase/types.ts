@@ -17,6 +17,17 @@ export interface Contact {
   updated_at: string;
 }
 
+export interface ImportantEvent {
+  id: string;
+  contact_id: string;
+  user_id: string;
+  type: 'birthday' | 'anniversary' | 'custom';
+  name: string | null; // Required for custom events, optional for birthday/anniversary
+  date: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Interaction {
   id: string;
   user_id: string;
@@ -95,6 +106,11 @@ export interface Database {
         Row: Contact;
         Insert: Omit<Contact, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Contact, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      important_events: {
+        Row: ImportantEvent;
+        Insert: Omit<ImportantEvent, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<ImportantEvent, 'id' | 'created_at' | 'updated_at'>>;
       };
       interactions: {
         Row: Interaction;

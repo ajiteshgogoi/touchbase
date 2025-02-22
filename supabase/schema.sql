@@ -24,6 +24,24 @@ create table public.contacts (
     updated_at timestamp with time zone default now()
 );
 
+-- Important events table for tracking birthdays, anniversaries, and custom events
+create table public.important_events (
+    id uuid primary key default uuid_generate_v4(),
+    contact_id uuid references public.contacts on delete cascade not null,
+    user_id uuid references auth.users not null,
+    type text check (type in ('birthday', 'anniversary', 'custom')) not null,
+    name text, -- Required for custom events, optional for birthday/anniversary
+    date timestamp with time zone not null,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now(),
+    -- Ensure each contact can have max 5 important events
+    constraint max_events_per_contact unique (contact_id, type, date),
+    constraint check_custom_event_name check (
+        (type = 'custom' and name is not null) or 
+        (type in ('birthday', 'anniversary'))
+    )
+);
+
 create table public.interactions (
     id uuid primary key default uuid_generate_v4(),
     contact_id uuid references public.contacts on delete cascade not null,
@@ -182,6 +200,12 @@ create index content_reports_user_id_idx on public.content_reports(user_id);
 create index content_reports_contact_id_idx on public.content_reports(contact_id);
 create index feedback_user_id_idx on public.feedback(user_id);
 
+-- Indexes for important_events
+create index important_events_contact_id_idx on public.important_events(contact_id);
+create index important_events_user_id_idx on public.important_events(user_id);
+create index important_events_type_idx on public.important_events(type);
+create index important_events_date_idx on public.important_events(date);
+
 -- Enable Row Level Security
 alter table public.contacts enable row level security;
 alter table public.interactions enable row level security;
@@ -195,6 +219,7 @@ alter table public.contact_analytics enable row level security;
 alter table public.prompt_generation_logs enable row level security;
 alter table public.content_reports enable row level security;
 alter table public.feedback enable row level security;
+alter table public.important_events enable row level security;
 
 -- Create policies
 create policy "Users can view their own contacts"
@@ -212,6 +237,24 @@ create policy "Users can update their own contacts"
 
 create policy "Users can delete their own contacts"
     on public.contacts for delete
+    using (auth.uid() = user_id);
+
+-- Important events policies
+create policy "Users can view their own important events"
+    on public.important_events for select
+    using (auth.uid() = user_id);
+
+create policy "Users can insert their own important events"
+    on public.important_events for insert
+    with check (auth.uid() = user_id);
+
+create policy "Users can update their own important events"
+    on public.important_events for update
+    using (auth.uid() = user_id)
+    with check (auth.uid() = user_id);
+
+create policy "Users can delete their own important events"
+    on public.important_events for delete
     using (auth.uid() = user_id);
 
 create policy "Users can view their own interactions"
@@ -381,5 +424,10 @@ create trigger handle_subscriptions_updated_at
 
 create trigger handle_push_subscriptions_updated_at
     before update on public.push_subscriptions
+    for each row
+    execute function public.handle_updated_at();
+
+create trigger handle_important_events_updated_at
+    before update on public.important_events
     for each row
     execute function public.handle_updated_at();

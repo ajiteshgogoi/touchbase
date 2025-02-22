@@ -13,6 +13,7 @@ import type { Contact } from '../lib/supabase/types';
 const DashboardMetrics = lazy(() => import('../components/dashboard/DashboardMetrics'));
 const RecentContacts = lazy(() => import('../components/dashboard/RecentContacts'));
 const TrialBanner = lazy(() => import('../components/dashboard/TrialBanner'));
+const ImportantEventsTimeline = lazy(() => import('../components/dashboard/ImportantEventsTimeline'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -122,7 +123,11 @@ export const Dashboard = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Suspense fallback={<LoadingFallback />}>
+          <ImportantEventsTimeline />
+        </Suspense>
+
         <Suspense fallback={<LoadingFallback />}>
           <RecentContacts />
         </Suspense>

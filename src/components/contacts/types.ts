@@ -1,4 +1,14 @@
-import { Contact } from '../../lib/supabase/types';
+import { Contact, ImportantEvent } from '../../lib/supabase/types';
+
+/**
+ * Represents a single important event in the form
+ */
+export interface ImportantEventFormData {
+  id?: string; // Only present for existing events
+  type: 'birthday' | 'anniversary' | 'custom';
+  name: string | null;
+  date: string;
+}
 
 /**
  * Represents the form data structure for creating or editing a contact
@@ -31,6 +41,8 @@ export interface ContactFormData {
   ai_last_suggestion_date: string | null;
   /** Number of times contact was due but not made */
   missed_interactions: number;
+  /** Important events for this contact */
+  important_events: ImportantEventFormData[];
 }
 
 /**
@@ -43,6 +55,8 @@ export interface FormErrors {
   phone: string;
   /** Social media handle validation error message */
   social_media_handle: string;
+  /** Important events validation error messages */
+  important_events: string[];
 }
 
 /**
@@ -57,6 +71,8 @@ export interface ContactFormProps {
   onChange: (updates: Partial<ContactFormData>) => void;
   /** Callback for updating error messages */
   onError: (updates: Partial<FormErrors>) => void;
+  /** Optional prop to indicate if the component should be in edit mode */
+  isEditMode?: boolean;
 }
 
 /**
@@ -64,3 +80,9 @@ export interface ContactFormProps {
  * Excludes auto-generated fields from the Contact type
  */
 export type ContactMutationData = Omit<Contact, 'id' | 'created_at' | 'updated_at'>;
+
+/**
+ * Type for important event mutation operations (create/update)
+ * Excludes auto-generated fields from the ImportantEvent type
+ */
+export type ImportantEventMutationData = Omit<ImportantEvent, 'id' | 'created_at' | 'updated_at'>;

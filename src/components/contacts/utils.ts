@@ -31,6 +31,27 @@ export const formatLocalDateTime = (date: Date): string => {
 };
 
 /**
+ * Validates an important event date to ensure it's not in the past
+ * @param date - The date to validate
+ * @returns boolean indicating if the date is valid
+ */
+export const isValidEventDate = (date: string): boolean => {
+  const eventDate = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+  return eventDate >= today;
+};
+
+/**
+ * Validates an important event name for custom events
+ * @param name - The name to validate
+ * @returns boolean indicating if the name is valid
+ */
+export const isValidEventName = (name: string | null): boolean => {
+  return name !== null && name.trim().length > 0 && name.trim().length <= 100;
+};
+
+/**
  * Initial state for a new contact form
  * Sets default values for all required fields
  */
@@ -48,7 +69,8 @@ export const initialFormData = {
   ai_last_suggestion: null,
   ai_last_suggestion_date: null,
   missed_interactions: 0,
-} as const;
+  important_events: [] // Initialize with empty array
+};
 
 /**
  * Initial state for form validation errors
@@ -57,4 +79,32 @@ export const initialErrors = {
   name: '',
   phone: '',
   social_media_handle: '',
-} as const;
+  important_events: [] // Array of error messages for each event
+};
+
+/**
+ * Format a date for display in the UI
+ * @param date - ISO date string
+ * @returns Formatted date string (e.g., "March 15, 2025")
+ */
+export const formatEventDate = (date: string): string => {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+/**
+ * Get event type display name
+ * @param type - Event type ('birthday', 'anniversary', 'custom')
+ * @returns Display name for the event type
+ */
+export const getEventTypeDisplay = (type: string): string => {
+  const typeMap: Record<string, string> = {
+    birthday: 'Birthday',
+    anniversary: 'Anniversary',
+    custom: 'Custom Event'
+  };
+  return typeMap[type] || type;
+};

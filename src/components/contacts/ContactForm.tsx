@@ -9,7 +9,8 @@ import { useStore } from '../../stores/useStore';
 import { BasicInformation } from './BasicInformation';
 import { ContactPreferences } from './ContactPreferences';
 import { PersonalNotes } from './PersonalNotes';
-import { ContactFormData, FormErrors } from './types';
+import { ImportantEvents } from './ImportantEvents';
+import { ContactFormData, FormErrors, ImportantEventFormData } from './types';
 import { initialFormData, initialErrors } from './utils';
 
 /**
@@ -36,7 +37,14 @@ export const ContactForm = () => {
     enabled: isEditMode,
   });
 
-  // Update form data when contact is loaded
+  // Fetch important events in edit mode
+  const { data: importantEvents } = useQuery({
+    queryKey: ['important-events', id],
+    queryFn: () => contactsService.getImportantEvents(id!),
+    enabled: isEditMode,
+  });
+
+  // Update form data when contact and events are loaded
   useEffect(() => {
     if (contact) {
       setFormData({
@@ -53,9 +61,25 @@ export const ContactForm = () => {
         ai_last_suggestion: contact.ai_last_suggestion,
         ai_last_suggestion_date: contact.ai_last_suggestion_date,
         missed_interactions: contact.missed_interactions,
+        important_events: [] // Will be populated when events are loaded
       });
     }
   }, [contact]);
+
+  // Update important events when loaded
+  useEffect(() => {
+    if (importantEvents) {
+      setFormData(current => ({
+        ...current,
+        important_events: importantEvents.map(event => ({
+          id: event.id,
+          type: event.type as ImportantEventFormData['type'],
+          name: event.name,
+          date: event.date
+        }))
+      }));
+    }
+  }, [importantEvents]);
 
   // Update user_id when user changes
   useEffect(() => {
@@ -74,8 +98,25 @@ export const ContactForm = () => {
 
   // Mutations for creating and updating contacts
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) =>
-      contactsService.createContact(data),
+    mutationFn: async (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
+      // First create the contact
+      const contact = await contactsService.createContact(data);
+      
+      // Then create any important events
+      if (formData.important_events.length > 0) {
+        await Promise.all(formData.important_events.map(event => 
+          contactsService.addImportantEvent({
+            contact_id: contact.id,
+            user_id: contact.user_id,
+            type: event.type,
+            name: event.name,
+            date: event.date
+          })
+        ));
+      }
+      
+      return contact;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       navigate(-1);
@@ -83,10 +124,35 @@ export const ContactForm = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<ContactFormData> }) =>
-      contactsService.updateContact(id, updates),
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ContactFormData> }) => {
+      // First update the contact
+      const contact = await contactsService.updateContact(id, updates);
+      
+      // Then handle important events - we'll replace all events with new ones
+      const currentEvents = await contactsService.getImportantEvents(id);
+      
+      // Delete all existing events
+      await Promise.all(currentEvents.map(event => 
+        contactsService.deleteImportantEvent(event.id, id)
+      ));
+      
+      // Create new events
+      if (formData.important_events.length > 0) {
+        await Promise.all(formData.important_events.map(event => 
+          contactsService.addImportantEvent({
+            contact_id: id,
+            user_id: contact.user_id,
+            type: event.type,
+            name: event.name,
+            date: event.date
+          })
+        ));
+      }
+      
+      return contact;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts', 'important-events'] });
       navigate(-1);
     },
   });
@@ -193,6 +259,14 @@ export const ContactForm = () => {
           errors={errors}
           onChange={handleFormDataChange}
           onError={handleErrorChange}
+        />
+
+        <ImportantEvents
+          formData={formData}
+          errors={errors}
+          onChange={handleFormDataChange}
+          onError={handleErrorChange}
+          isEditMode={isEditMode}
         />
 
         <PersonalNotes
