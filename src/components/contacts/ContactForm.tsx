@@ -1,61 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
 import { contactValidationService } from '../../services/contact-validation';
 import { useStore } from '../../stores/useStore';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
-import type { Contact } from '../../lib/supabase/types';
+import { BasicInformation } from './BasicInformation';
+import { ContactPreferences } from './ContactPreferences';
+import { PersonalNotes } from './PersonalNotes';
+import { ContactFormData, FormErrors } from './types';
+import { initialFormData, initialErrors } from './utils';
 
-interface ContactFormData {
-  name: string;
-  phone: string;
-  social_media_handle: string;
-  preferred_contact_method: 'call' | 'message' | 'social' | null;
-  notes: string;
-  relationship_level: number;
-  contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
-  user_id: string;
-  last_contacted: string | null; // Format: YYYY-MM-DDThh:mm in local timezone
-  next_contact_due: string | null;
-  ai_last_suggestion: string | null;
-  ai_last_suggestion_date: string | null;
-  missed_interactions: number;
-}
-
-// Validation functions
-const isValidPhoneNumber = (phone: string) => {
-  // Matches formats: +1234567890, 123-456-7890, (123) 456-7890, 1234567890
-  const phoneRegex = /^(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
-  return phoneRegex.test(phone.trim());
-};
-
-const isValidSocialHandle = (handle: string) => {
-  return handle === '' || handle.startsWith('@');
-};
-
-const formatLocalDateTime = (date: Date) => {
-  // Format date in ISO format, maintaining UTC
-  return date.toISOString().slice(0, -8); // Remove seconds and timezone
-};
-
-const initialFormData: ContactFormData = {
-  name: '',
-  phone: '',
-  social_media_handle: '',
-  preferred_contact_method: null,
-  notes: '',
-  relationship_level: 3,
-  contact_frequency: null,
-  user_id: '',
-  last_contacted: formatLocalDateTime(new Date()),
-  next_contact_due: null,
-  ai_last_suggestion: null,
-  ai_last_suggestion_date: null,
-  missed_interactions: 0,
-};
-
+/**
+ * ContactForm component for creating and editing contacts
+ * Manages form state and validation across child components
+ */
 export const ContactForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -65,19 +25,18 @@ export const ContactForm = () => {
     ...initialFormData,
     user_id: user?.id || '',
   });
-  const [errors, setErrors] = useState({
-    name: '',
-    phone: '',
-    social_media_handle: '',
-  });
+  const [errors, setErrors] = useState<FormErrors>(initialErrors);
+  const [isValidating, setIsValidating] = useState(false);
   const isEditMode = Boolean(id);
 
+  // Fetch contact data in edit mode
   const { data: contact, isLoading: isLoadingContact } = useQuery({
     queryKey: ['contact', id],
     queryFn: () => contactsService.getContact(id!),
     enabled: isEditMode,
   });
 
+  // Update form data when contact is loaded
   useEffect(() => {
     if (contact) {
       setFormData({
@@ -98,6 +57,7 @@ export const ContactForm = () => {
     }
   }, [contact]);
 
+  // Update user_id when user changes
   useEffect(() => {
     if (user) {
       setFormData(current => ({
@@ -107,14 +67,14 @@ export const ContactForm = () => {
     }
   }, [user]);
 
+  // Scroll to top on mount
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
 
+  // Mutations for creating and updating contacts
   const createMutation = useMutation({
-    mutationFn: (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => 
-      contactsService.createContact(data),
+    mutationFn: contactsService.createContact,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       navigate(-1);
@@ -122,7 +82,7 @@ export const ContactForm = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Contact> }) =>
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<ContactFormData> }) =>
       contactsService.updateContact(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -130,27 +90,10 @@ export const ContactForm = () => {
     },
   });
 
-  const [isValidating, setIsValidating] = useState(false);
-
+  // Form validation
   const validateForm = async () => {
     if (!user?.id) {
       console.error('No user ID available');
-      return false;
-    }
-
-    if (formData.phone && !isValidPhoneNumber(formData.phone)) {
-      setErrors(prev => ({
-        ...prev,
-        phone: 'Please enter a valid phone number (e.g., +91-9999955555)'
-      }));
-      return false;
-    }
-
-    if (formData.social_media_handle && !isValidSocialHandle(formData.social_media_handle)) {
-      setErrors(prev => ({
-        ...prev,
-        social_media_handle: 'Social media handle must start with @'
-      }));
       return false;
     }
 
@@ -177,6 +120,7 @@ export const ContactForm = () => {
     }
   };
 
+  // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsValidating(true);
@@ -193,13 +137,14 @@ export const ContactForm = () => {
       } else {
         await createMutation.mutateAsync(formData);
       }
-      setIsValidating(false); // Reset validation state on success
+      setIsValidating(false);
     } catch (error) {
       console.error('Error saving contact:', error);
       setIsValidating(false);
     }
   };
 
+  // Loading state
   if (isEditMode && isLoadingContact) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -208,8 +153,18 @@ export const ContactForm = () => {
     );
   }
 
+  // Event handlers for child components
+  const handleFormDataChange = (updates: Partial<ContactFormData>) => {
+    setFormData(current => ({ ...current, ...updates }));
+  };
+
+  const handleErrorChange = (updates: Partial<FormErrors>) => {
+    setErrors(current => ({ ...current, ...updates }));
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate(-1)}
@@ -223,269 +178,62 @@ export const ContactForm = () => {
         </h1>
       </div>
 
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Basic Information */}
-      <div className="bg-white rounded-xl shadow-soft p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-6">Basic Information</h2>
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className={`mt-1 block w-full rounded-lg px-4 py-2.5 shadow-sm transition-colors ${
-                errors.name
-                  ? 'border-red-300 focus:border-red-400 focus:ring-red-400 hover:border-red-400'
-                  : 'border-gray-200 focus:border-primary-400 focus:ring-primary-400 hover:border-gray-300'
-              }`}
-              placeholder="Enter name"
-            />
-          </div>
+        <BasicInformation
+          formData={formData}
+          errors={errors}
+          onChange={handleFormDataChange}
+          onError={handleErrorChange}
+        />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setFormData({ ...formData, phone: value });
-                  if (value && !isValidPhoneNumber(value)) {
-                    setErrors(prev => ({
-                      ...prev,
-                      phone: 'Please enter a valid phone number (e.g., +91-1234567890)'
-                    }));
-                  } else {
-                    setErrors(prev => ({ ...prev, phone: '' }));
-                  }
-                }}
-                className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-                placeholder="Enter phone number"
-              />
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-              )}
-            </div>
+        <ContactPreferences
+          formData={formData}
+          errors={errors}
+          onChange={handleFormDataChange}
+          onError={handleErrorChange}
+        />
 
-            <div>
-              <label htmlFor="social_media_handle" className="block text-sm font-medium text-gray-700">
-                Social Media Handle
-              </label>
-              <input
-                type="text"
-                id="social_media_handle"
-                value={formData.social_media_handle}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setFormData({ ...formData, social_media_handle: value });
-                  if (value && !isValidSocialHandle(value)) {
-                    setErrors(prev => ({
-                      ...prev,
-                      social_media_handle: 'Social media handle must start with @'
-                    }));
-                  } else {
-                    setErrors(prev => ({ ...prev, social_media_handle: '' }));
-                  }
-                }}
-                className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-                placeholder="@username"
-              />
-              {errors.social_media_handle && (
-                <p className="mt-1 text-sm text-red-600">{errors.social_media_handle}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+        <PersonalNotes
+          formData={formData}
+          errors={errors}
+          onChange={handleFormDataChange}
+          onError={handleErrorChange}
+          isPremium={isPremium}
+          isOnTrial={isOnTrial}
+        />
 
-      {/* Contact Preferences */}
-      <div className="bg-white rounded-xl shadow-soft p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-6">Contact Preferences</h2>
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="preferred_contact_method" className="block text-sm font-medium text-gray-700">
-              Preferred Contact Method
-            </label>
-            <select
-              id="preferred_contact_method"
-              value={formData.preferred_contact_method || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                preferred_contact_method: e.target.value as ContactFormData['preferred_contact_method']
-              })}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+        {/* Action Buttons and Error Messages */}
+        <div className="space-y-4">
+          <div className="flex justify-center space-x-4">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-6 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
             >
-              <option value="">No preference</option>
-              <option value="call">Call</option>
-              <option value="message">Message</option>
-              <option value="social">Social Media</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="contact_frequency" className="block text-sm font-medium text-gray-700">
-              Ideal Contact Frequency
-            </label>
-            <select
-              id="contact_frequency"
-              value={formData.contact_frequency || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                contact_frequency: e.target.value as ContactFormData['contact_frequency']
-              })}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="min-w-[140px] px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={isValidating || createMutation.isPending || updateMutation.isPending}
             >
-              <option value="">Choose frequency</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="fortnightly">Fortnightly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-            </select>
+              {isValidating || createMutation.isPending || updateMutation.isPending ? (
+                <>
+                  <LoadingSpinner />
+                  <span>Saving...</span>
+                </>
+              ) : 'Save Contact'}
+            </button>
           </div>
-
-          <div>
-            <label htmlFor="last_contacted" className="block text-sm font-medium text-gray-700">
-              Last Contacted
-            </label>
-            <input
-              type="datetime-local"
-              id="last_contacted"
-              max={formatLocalDateTime(new Date())}
-              value={formData.last_contacted || ''}
-              onChange={(e) => {
-                const selectedDate = e.target.value ? new Date(e.target.value) : null;
-                const now = new Date();
-                
-                if (selectedDate && selectedDate > now) {
-                  // If future date/time selected, set to current date/time
-                  setFormData({
-                    ...formData,
-                    last_contacted: formatLocalDateTime(now)
-                  });
-                } else {
-                  setFormData({
-                    ...formData,
-                    last_contacted: selectedDate ? formatLocalDateTime(selectedDate) : null
-                  });
-                }
-              }}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="relationship_level" className="block text-sm font-medium text-gray-700">
-              Relationship Closeness (drag the dot to indicate how close you are to this person)
-            </label>
-            <input
-              type="range"
-              id="relationship_level"
-              min="1"
-              max="5"
-              value={formData.relationship_level}
-              onChange={(e) => setFormData({ ...formData, relationship_level: parseInt(e.target.value) })}
-              className="mt-3 block w-full cursor-pointer
-                [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-red-400 [&::-webkit-slider-runnable-track]:to-green-400 [&::-webkit-slider-runnable-track]:rounded-xl [&::-webkit-slider-runnable-track]:h-1.5
-                [&::-moz-range-track]:bg-gradient-to-r [&::-moz-range-track]:from-red-400 [&::-moz-range-track]:to-green-400 [&::-moz-range-track]:rounded-xl [&::-moz-range-track]:h-1.5
-                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:mt-[-5px] [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-200 [&::-webkit-slider-thumb]:hover:border-primary-300
-                [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-200 [&::-moz-range-thumb]:hover:border-primary-300 [&::-moz-range-thumb]:-mt-[0.5px]"
-            />
-            <div className="mt-2 flex justify-between text-sm text-gray-600">
-              <span>Distant</span>
-              <span>Close</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Notes Section */}
-      <div className="bg-white rounded-xl shadow-soft p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-6">Personal Notes</h2>
-        <div>
-          {(isPremium || isOnTrial) ? (
-            <div className="mb-4 p-4 bg-primary-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">
-                Add details that can help maintain the relationship.
-                Examples:
-              </p>
-              <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-                <li>Their interests and hobbies</li>
-                <li>Important dates (birthdays, anniversaries)</li>
-                <li>Recent life events or achievements</li>
-                <li>Conversation preferences (topics they enjoy)</li>
-                <li>Shared memories or inside jokes</li>
-              </ul>
-            </div>
-          ) : (
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">
-                Add details that can help maintain the relationship.
-                <span className="block mt-2">
-                  ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions based on your notes!
-                </span>
-              </p>
+          {/* Error Messages Section */}
+          {errors.name && (
+            <div className="px-4 py-2 bg-red-50 rounded-lg">
+              <p className="text-sm text-red-600 text-center">{errors.name}</p>
             </div>
           )}
-          <div>
-            <textarea
-              id="notes"
-              rows={4}
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value.slice(0, 500) })}
-              maxLength={500}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-              placeholder="E.g., Loves hiking and photography. Birthday: March 15. Recently started a new job in tech."
-            />
-            <div className="mt-2 flex justify-end">
-              <span className="text-sm text-gray-500">
-                {formData.notes.length}/500 characters
-              </span>
-            </div>
-          </div>
         </div>
-      </div>
-
-      {/* Action Buttons and Error Messages */}
-      <div className="space-y-4">
-        <div className="flex justify-center space-x-4">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="px-6 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="min-w-[140px] px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            disabled={isValidating || createMutation.isPending || updateMutation.isPending}
-          >
-            {isValidating || createMutation.isPending || updateMutation.isPending ? (
-              <>
-                <LoadingSpinner />
-                <span>Saving...</span>
-              </>
-            ) : 'Save Contact'}
-          </button>
-        </div>
-        {/* Error Messages Section */}
-        {errors.name && (
-          <div className="px-4 py-2 bg-red-50 rounded-lg">
-            <p className="text-sm text-red-600 text-center">{errors.name}</p>
-          </div>
-        )}
-      </div>
-    </form>
+      </form>
     </div>
   );
 };
