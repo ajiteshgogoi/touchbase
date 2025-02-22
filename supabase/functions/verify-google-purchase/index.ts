@@ -136,6 +136,47 @@ async function createGoogleJWT(): Promise<string> {
   return `${signatureInput}.${encodedSignature}`;
 }
 
+// Acknowledges a subscription purchase with Google Play
+async function acknowledgeSubscription(
+  packageName: string,
+  productId: string,
+  purchaseToken: string,
+  accessToken: string
+): Promise<void> {
+  console.log('Acknowledging subscription purchase:', { productId, tokenLength: purchaseToken.length });
+  
+  const response = await fetch(
+    `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${purchaseToken}:acknowledge`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error('Failed to acknowledge subscription:', {
+      status: response.status,
+      error,
+      productId,
+      tokenLength: purchaseToken.length
+    });
+    
+    // If already acknowledged, that's fine
+    if (response.status === 400 && error.includes('already acknowledged')) {
+      console.log('Purchase was already acknowledged');
+      return;
+    }
+    
+    throw new Error(`Failed to acknowledge subscription: ${error}`);
+  }
+
+  console.log('Successfully acknowledged subscription purchase');
+}
+
 async function getGoogleAccessToken(): Promise<string> {
   console.log('Creating JWT with claims...');
   const jwt = await createGoogleJWT();
@@ -249,6 +290,15 @@ serve(async (req) => {
         throw new Error('Invalid purchase data format received from Google Play');
       }
       validatePurchaseData(purchaseData);
+
+      // Acknowledge the subscription purchase with Google Play
+      console.log('Acknowledging purchase with Google Play');
+      await acknowledgeSubscription(
+        packageName,
+        baseProductId,
+        purchaseToken,
+        accessToken
+      );
 
       // Update subscription in database
       console.log('Updating subscription in database');
