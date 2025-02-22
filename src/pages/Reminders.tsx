@@ -5,7 +5,7 @@ import { contactsService } from '../services/contacts';
 import { contentReportsService } from '../services/content-reports';
 import { useStore } from '../stores/useStore';
 import dayjs from 'dayjs';
-import type { Reminder, Contact, Interaction } from '../lib/supabase/types';
+import type { Reminder, Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
 import { CalendarIcon, ArrowLeftIcon, FlagIcon } from '@heroicons/react/24/outline/esm/index.js';
 
 // Lazy load QuickInteraction
@@ -30,6 +30,12 @@ export const Reminders = () => {
     queryKey: ['contactsCount'],
     queryFn: contactsService.getTotalContactCount,
     enabled: !isPremium && !isOnTrial
+  });
+
+  const { data: importantEvents } = useQuery<ImportantEvent[]>({
+    queryKey: ['important-events'],
+    queryFn: () => contactsService.getImportantEvents(),
+    staleTime: 5 * 60 * 1000
   });
 
   const handleReportContent = async (contactId: string, content: string) => {
@@ -62,6 +68,17 @@ export const Reminders = () => {
     return acc;
   }, {} as Record<string, Contact>) || {};
 
+ const importantEventsMap: Record<string, ImportantEvent[]> = {};
+ importantEvents?.forEach((event: ImportantEvent) => {
+   if (event) {
+     const contactId = event.contact_id as string;
+     if (!importantEventsMap[contactId]) {
+       importantEventsMap[contactId] = [];
+     }
+     importantEventsMap[contactId].push(event);
+   }
+ });
+
   const today = dayjs();
   const dueTodayReminders = reminders?.filter((r: Reminder) => {
     const dueDate = dayjs(r.due_date);
@@ -72,6 +89,11 @@ export const Reminders = () => {
     const dueDate = dayjs(r.due_date);
     return dueDate.isAfter(today) && !dueDate.isSame(today, 'day');
   }) || [];
+
+  const isBirthdayToday = (contactId: string): boolean => {
+    const events = importantEventsMap[contactId] || [];
+    return events.some(event => event.type === 'birthday' && dayjs(event.date).isSame(today, 'day'));
+  };
 
   return (
     <>
@@ -120,86 +142,94 @@ export const Reminders = () => {
               {dueTodayReminders.length === 0 ? (
                 <p className="text-sm text-gray-600">No interactions due today!</p>
               ) : (
-                dueTodayReminders.map((reminder) => (
-                  <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-                    <div className="flex flex-col gap-4">
-                      <div className="min-w-0">
-                        <div className="space-y-2.5">
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span>
-                              <span className="text-gray-700 font-medium">Contact due:</span>{' '}
-                              <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span>
-                              <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                              <span className="text-gray-600 whitespace-pre-line">
-                                {contactsMap[reminder.contact_id]?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                                  <div className="p-4 bg-gray-50 rounded-lg">
-                                    <span className="text-sm text-gray-600">
-                                      ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="group inline-flex items-start gap-1">
-                                    <span className="flex-1">
-                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'}
-                                    </span>
-                                    <button
-                                      onClick={() => handleReportContent(
-                                        reminder.contact_id,
-                                        contactsMap[reminder.contact_id]?.ai_last_suggestion || ''
-                                      )}
-                                      className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
-                                      title="Report inappropriate suggestion"
-                                    >
-                                      <FlagIcon className="h-4 w-4" />
-                                    </button>
-                                  </span>
-                                )}
+                dueTodayReminders.map((reminder) => {
+                  const contact = contactsMap[reminder.contact_id];
+                  const isBirthday = isBirthdayToday(reminder.contact_id);
+
+                  return (
+                    <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col gap-4">
+                        <div className="min-w-0">
+                          <div className="space-y-2.5">
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span className="text-lg font-semibold text-primary-500">
+                                {contact?.name || 'Unknown'}
+                                {isBirthday && ' 🎂'}
                               </span>
-                            </span>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span>
+                                <span className="text-gray-700 font-medium">Contact due:</span>{' '}
+                                <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span>
+                                <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
+                                <span className="text-gray-600 whitespace-pre-line">
+                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                    <div className="p-4 bg-gray-50 rounded-lg">
+                                      <span className="text-sm text-gray-600">
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="group inline-flex items-start gap-1">
+                                      <span className="flex-1">
+                                        {contact?.ai_last_suggestion || 'No suggestions available'}
+                                      </span>
+                                      <button
+                                        onClick={() => handleReportContent(
+                                          reminder.contact_id,
+                                          contact?.ai_last_suggestion || ''
+                                        )}
+                                        className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
+                                        title="Report inappropriate suggestion"
+                                      >
+                                        <FlagIcon className="h-4 w-4" />
+                                      </button>
+                                    </span>
+                                  )}
+                                </span>
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-start gap-2 w-full">
-                        <button
-                          onClick={() => setQuickInteraction({
-                            isOpen: true,
-                            contactId: reminder.contact_id,
-                            contactName: contactsMap[reminder.contact_id]?.name || 'Unknown',
-                            type: reminder.type
-                          })}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                          title="Log an interaction"
-                        >
-                          Log Interaction
-                        </button>
-                        {(isPremium || isOnTrial) ? (
-                          <Link
-                            to={`/contacts/${reminder.contact_id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
-                            title="View interaction history"
+                        <div className="flex items-center justify-start gap-2 w-full">
+                          <button
+                            onClick={() => setQuickInteraction({
+                              isOpen: true,
+                              contactId: reminder.contact_id,
+                              contactName: contact?.name || 'Unknown',
+                              type: reminder.type
+                            })}
+                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="Log an interaction"
                           >
-                            View History
-                          </Link>
-                        ) : (
-                          <Link
-                            to={`/contacts/${reminder.contact_id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
-                            title="Upgrade to view interaction history"
-                          >
-                            View History
-                          </Link>
-                        )}
+                            Log Interaction
+                          </button>
+                          {(isPremium || isOnTrial) ? (
+                            <Link
+                              to={`/contacts/${reminder.contact_id}/interactions`}
+                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="View interaction history"
+                            >
+                              View History
+                            </Link>
+                          ) : (
+                            <Link
+                              to={`/contacts/${reminder.contact_id}/interactions`}
+                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="Upgrade to view interaction history"
+                            >
+                              View History
+                            </Link>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -216,86 +246,94 @@ export const Reminders = () => {
               {upcomingReminders.length === 0 ? (
                 <p className="text-sm text-gray-600">No upcoming reminders!</p>
               ) : (
-                upcomingReminders.map((reminder) => (
-                  <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-                    <div className="flex flex-col gap-4">
-                      <div className="min-w-0">
-                        <div className="space-y-2.5">
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span className="text-lg font-semibold text-primary-500">{contactsMap[reminder.contact_id]?.name || 'Unknown'}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span>
-                              <span className="text-gray-700 font-medium">Contact due:</span>{' '}
-                              <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span>
-                              <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                              <span className="text-gray-600 whitespace-pre-line">
-                                {contactsMap[reminder.contact_id]?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                                  <div className="p-4 bg-gray-50 rounded-lg">
-                                    <span className="text-sm text-gray-600">
-                                      ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="group inline-flex items-start gap-1">
-                                    <span className="flex-1">
-                                      {contactsMap[reminder.contact_id]?.ai_last_suggestion || 'No suggestions available'}
-                                    </span>
-                                    <button
-                                      onClick={() => handleReportContent(
-                                        reminder.contact_id,
-                                        contactsMap[reminder.contact_id]?.ai_last_suggestion || ''
-                                      )}
-                                      className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
-                                      title="Report inappropriate suggestion"
-                                    >
-                                      <FlagIcon className="h-4 w-4" />
-                                    </button>
-                                  </span>
-                                )}
+                upcomingReminders.map((reminder) => {
+                  const contact = contactsMap[reminder.contact_id];
+                  const isBirthday = isBirthdayToday(reminder.contact_id);
+
+                  return (
+                    <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col gap-4">
+                        <div className="min-w-0">
+                          <div className="space-y-2.5">
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span className="text-lg font-semibold text-primary-500">
+                                {contact?.name || 'Unknown'}
+                                {isBirthday && ' 🎂'}
                               </span>
-                            </span>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span>
+                                <span className="text-gray-700 font-medium">Contact due:</span>{' '}
+                                <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-4 text-sm">
+                              <span>
+                                <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
+                                <span className="text-gray-600 whitespace-pre-line">
+                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                    <div className="p-4 bg-gray-50 rounded-lg">
+                                      <span className="text-sm text-gray-600">
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="group inline-flex items-start gap-1">
+                                      <span className="flex-1">
+                                        {contact?.ai_last_suggestion || 'No suggestions available'}
+                                      </span>
+                                      <button
+                                        onClick={() => handleReportContent(
+                                          reminder.contact_id,
+                                          contact?.ai_last_suggestion || ''
+                                        )}
+                                        className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
+                                        title="Report inappropriate suggestion"
+                                      >
+                                        <FlagIcon className="h-4 w-4" />
+                                      </button>
+                                    </span>
+                                  )}
+                                </span>
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-start gap-2 w-full">
-                        <button
-                          onClick={() => setQuickInteraction({
-                            isOpen: true,
-                            contactId: reminder.contact_id,
-                            contactName: contactsMap[reminder.contact_id]?.name || 'Unknown',
-                            type: reminder.type
-                          })}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                          title="Log an interaction"
-                        >
-                          Log Interaction
-                        </button>
-                        {(isPremium || isOnTrial) ? (
-                          <Link
-                            to={`/contacts/${reminder.contact_id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
-                            title="View interaction history"
+                        <div className="flex items-center justify-start gap-2 w-full">
+                          <button
+                            onClick={() => setQuickInteraction({
+                              isOpen: true,
+                              contactId: reminder.contact_id,
+                              contactName: contact?.name || 'Unknown',
+                              type: reminder.type
+                            })}
+                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="Log an interaction"
                           >
-                            View History
-                          </Link>
-                        ) : (
-                          <Link
-                            to={`/contacts/${reminder.contact_id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
-                            title="Upgrade to view interaction history"
-                          >
-                            View History
-                          </Link>
-                        )}
+                            Log Interaction
+                          </button>
+                          {(isPremium || isOnTrial) ? (
+                            <Link
+                              to={`/contacts/${reminder.contact_id}/interactions`}
+                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="View interaction history"
+                            >
+                              View History
+                            </Link>
+                          ) : (
+                            <Link
+                              to={`/contacts/${reminder.contact_id}/interactions`}
+                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="Upgrade to view interaction history"
+                            >
+                              View History
+                            </Link>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
