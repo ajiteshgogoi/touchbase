@@ -62,30 +62,6 @@ export const isValidEventName = (name: string | null): boolean => {
 
 
 /**
- * Check if an event is upcoming within the next specified days
- * Uses dayjs for consistent date handling across timezones
- * @param eventDate - The event date string
- * @param daysThreshold - Number of days to look ahead (default 7)
- * @returns boolean indicating if the event is upcoming
- */
-export const isUpcomingEvent = (eventDate: string, daysThreshold: number = 7): boolean => {
-  const today = dayjs().startOf('day');
-  // Parse the date and ensure we're only using date component by using startOf('day')
-  let event = dayjs.utc(eventDate).startOf('day');
-  
-  // Set event to this year, maintaining the month and day
-  event = event.year(today.year());
-  
-  // If event already passed this year, check next year's date
-  if (event.isBefore(today)) {
-    event = event.add(1, 'year');
-  }
-  
-  const diffDays = event.diff(today, 'day');
-  return diffDays >= 0 && diffDays <= daysThreshold;
-};
-
-/**
  * Get the next occurrence of an event
  * Uses dayjs for consistent date handling across timezones
  * @param eventDate - The event date string
