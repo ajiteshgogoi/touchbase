@@ -192,61 +192,61 @@ export const RecentContacts = () => {
                          ))}
                        </div>
                      )}
-                    </div>
-                    <div className="mt-4 space-y-3">
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        <span>
-                          <span className="text-gray-700 font-medium">Last contacted:</span>{' '}
-                          <span className="text-gray-600">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
-                        </span>
-                        <span>
-                          <span className="text-gray-700 font-medium">Next contact due:</span>{' '}
-                          <span className="text-gray-600">{contactsService.formatDueDate(contact.next_contact_due)}</span>
-                        </span>
-                        <span className="inline-flex items-baseline">
-                          <span className="text-gray-700 font-medium">Closeness:</span> <div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ml-1.5 translate-y-[0.5px] ${
-                            contact.relationship_level === 1 ? 'bg-red-400' :
-                            contact.relationship_level === 2 ? 'bg-[#f87171]' :
-                            contact.relationship_level === 3 ? 'bg-[#fbbf24]' :
-                            contact.relationship_level === 4 ? 'bg-[#34d399]' :
-                            'bg-green-400'
-                          }`}></div>
-                        </span>
-                        {contact.contact_frequency && (
-                          <span>
-                            <span className="text-gray-700 font-medium">Preferred frequency:</span>{' '}
-                            <span className="text-gray-600">{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)}</span>
-                          </span>
-                        )}
-                        {contact.ai_last_suggestion && (
-                          <span>
-                            <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                            <span className="text-gray-600 whitespace-pre-line">
-                              {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                                <div className="p-4 bg-gray-50 rounded-lg">
-                                  <span className="text-sm text-gray-600">
-                                    ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="group inline-flex items-start gap-1">
-                                  <span className="flex-1">
-                                    {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
-                                  </span>
-                                  <button
-                                    onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
-                                    className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
-                                    title="Report inappropriate suggestion"
-                                  >
-                                    <FlagIcon className="h-4 w-4" />
-                                  </button>
-                                </span>
-                              )}
-                            </span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
+
+                     {/* Other details line */}
+                     <div className="flex flex-wrap gap-4 text-sm">
+                       <span>
+                         <span className="text-gray-700 font-medium">Last contacted:</span>{' '}
+                         <span className="text-gray-600">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                       </span>
+                       <span>
+                         <span className="text-gray-700 font-medium">Next contact due:</span>{' '}
+                         <span className="text-gray-600">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                       </span>
+                       <span className="inline-flex items-baseline">
+                         <span className="text-gray-700 font-medium">Closeness:</span> <div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ml-1.5 translate-y-[0.5px] ${
+                           contact.relationship_level === 1 ? 'bg-red-400' :
+                           contact.relationship_level === 2 ? 'bg-[#f87171]' :
+                           contact.relationship_level === 3 ? 'bg-[#fbbf24]' :
+                           contact.relationship_level === 4 ? 'bg-[#34d399]' :
+                           'bg-green-400'
+                         }`}></div>
+                       </span>
+                       {contact.contact_frequency && (
+                         <span>
+                           <span className="text-gray-700 font-medium">Preferred frequency:</span>{' '}
+                           <span className="text-gray-600">{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)}</span>
+                         </span>
+                       )}
+                       {contact.ai_last_suggestion && (
+                         <span>
+                           <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
+                           <span className="text-gray-600 whitespace-pre-line">
+                             {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                               <div className="p-4 bg-gray-50 rounded-lg">
+                                 <span className="text-sm text-gray-600">
+                                   ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                 </span>
+                               </div>
+                             ) : (
+                               <span className="group inline-flex items-start gap-1">
+                                 <span className="flex-1">
+                                   {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                 </span>
+                                 <button
+                                   onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
+                                   className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
+                                   title="Report inappropriate suggestion"
+                                 >
+                                   <FlagIcon className="h-4 w-4" />
+                                 </button>
+                               </span>
+                             )}
+                           </span>
+                         </span>
+                       )}
+                     </div>
+                   </div>
                   </div>
                   <div className="flex items-center justify-start gap-2 w-full mt-3">
                     <button
