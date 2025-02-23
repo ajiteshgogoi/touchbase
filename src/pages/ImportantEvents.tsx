@@ -120,8 +120,7 @@ export const ImportantEventsPage = () => {
                             {contactName}
                           </Link>
                           <p className="text-sm text-gray-500">
-                            {getEventTypeDisplay(event.type)}
-                            {event.type === 'custom' && event.name ? `: ${event.name}` : ''}
+                            {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
                           </p>
                           <p className="text-xs text-gray-400">
                             {formatEventDate(event.date)}
