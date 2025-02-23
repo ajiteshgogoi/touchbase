@@ -100,7 +100,7 @@ export const ImportantEventsPage = () => {
           <div className="p-6 space-y-8">
             {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
               <div key={month} className="space-y-4">
-                <h2 className="text-lg font-medium text-gray-900 sticky top-0 bg-white py-2">{month}</h2>
+                <h2 className="text-sm font-medium text-gray-700 sticky top-0 bg-white py-2">{month}</h2>
                 <div className="space-y-4">
                   {monthEvents.map((event) => {
                     const contactName = getContactName(event.contact_id);
@@ -115,7 +115,7 @@ export const ImportantEventsPage = () => {
                         <div className="min-w-0 flex-1">
                           <Link
                             to={`/contacts#${event.contact_id}`}
-                            className="text-base font-medium text-gray-900 hover:text-primary-600"
+                            className="text-base font-medium text-primary-500 hover:text-primary-600"
                           >
                             {contactName}
                           </Link>

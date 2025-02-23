@@ -91,7 +91,7 @@ export const ImportantEventsTimeline = () => {
         <div className="p-4 space-y-8">
           {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
             <div key={month}>
-              <h3 className="text-sm font-medium text-gray-500 mb-4">{month}</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">{month}</h3>
               <div className="space-y-4">
                 {monthEvents.map((event) => {
                   const contactName = getContactName(event.contact_id);
@@ -106,7 +106,7 @@ export const ImportantEventsTimeline = () => {
                       <div className="min-w-0 flex-1">
                         <Link
                           to={`/contacts#${event.contact_id}`}
-                          className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                          className="text-sm font-medium text-primary-500 hover:text-primary-600"
                         >
                           {contactName}
                         </Link>
