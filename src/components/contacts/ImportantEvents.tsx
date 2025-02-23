@@ -52,6 +52,16 @@ export const ImportantEvents = ({
 
     // Validate the event
     const newErrors = [];
+
+    // Check for duplicate birthday or anniversary
+    if (type === 'birthday' || type === 'anniversary') {
+      const hasExistingEvent = formData.important_events.some(event => event.type === type);
+      if (hasExistingEvent) {
+        newErrors.push(`${type} has already been added. Only one ${type} is allowed.`);
+      }
+    }
+
+    // Validate custom event name
     if (type === 'custom' && !isValidEventName(name)) {
       newErrors.push('Custom events require a name (max 100 characters)');
     }
@@ -163,10 +173,14 @@ export const ImportantEvents = ({
                 id="event-type"
                 required
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-                defaultValue="birthday"
+                defaultValue={formData.important_events.some(event => event.type === 'birthday') ? 'custom' : 'birthday'}
               >
-                <option value="birthday">Birthday</option>
-                <option value="anniversary">Anniversary</option>
+                {!formData.important_events.some(event => event.type === 'birthday') && (
+                  <option value="birthday">Birthday</option>
+                )}
+                {!formData.important_events.some(event => event.type === 'anniversary') && (
+                  <option value="anniversary">Anniversary</option>
+                )}
                 <option value="custom">Custom Event</option>
               </select>
             </div>
