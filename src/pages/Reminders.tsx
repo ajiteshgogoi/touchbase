@@ -168,7 +168,12 @@ export const Reminders = () => {
                   const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
 
                   return (
-                    <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+                    <div
+                      key={reminder.id}
+                      className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
+                        events.length > 0 ? 'ring-2 ring-pink-300' : ''
+                      }`}
+                    >
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
                           <div className="space-y-2.5">
@@ -284,7 +289,12 @@ export const Reminders = () => {
                   const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
 
                   return (
-                    <div key={reminder.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+                    <div
+                      key={reminder.id}
+                      className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
+                        events.length > 0 ? 'ring-2 ring-pink-300' : ''
+                      }`}
+                    >
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
                           <div className="space-y-2.5">
