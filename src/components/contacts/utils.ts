@@ -238,9 +238,5 @@ export const getEventTypeDisplay = (type: string, customName?: string | null): s
   if (type === 'custom' && customName) {
     return customName;
   }
-  const typeMap: Record<string, string> = {
-    birthday: 'Birthday',
-    anniversary: 'Anniversary'
-  };
-  return typeMap[type] || type;
+  return type === 'birthday' ? 'Birthday' : type === 'anniversary' ? 'Anniversary' : '';
 };

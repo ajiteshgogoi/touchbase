@@ -143,14 +143,13 @@ export const ImportantEvents = ({
                 <div className="p-2 bg-primary-50 rounded-lg">
                   {getEventIcon(event.type)}
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900">
+                <div className="flex flex-col">
+                  <div className="text-sm font-medium text-gray-900">
                     {getEventTypeDisplay(event.type, event.name)}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {/* Show month, day and time in local timezone */}
+                  </div>
+                  <div className="text-sm text-gray-500">
                     {formatEventDate(event.date)}
-                  </p>
+                  </div>
                 </div>
               </div>
               <button
