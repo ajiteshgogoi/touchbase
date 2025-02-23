@@ -171,7 +171,11 @@ export const Reminders = () => {
                     <div
                       key={reminder.id}
                       className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
-                        events.length > 0 ? 'ring-2 ring-pink-300' : ''
+                        events.length > 0 ? `ring-2 ${
+                          events[0]?.type === 'birthday' ? 'ring-pink-300' :
+                          events[0]?.type === 'anniversary' ? 'ring-rose-300' :
+                          'ring-purple-300'
+                        }` : ''
                       }`}
                     >
                       <div className="flex flex-col gap-4">
@@ -296,7 +300,11 @@ export const Reminders = () => {
                     <div
                       key={reminder.id}
                       className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
-                        events.length > 0 ? 'ring-2 ring-pink-300' : ''
+                        events.length > 0 ? `ring-2 ${
+                          events[0]?.type === 'birthday' ? 'ring-pink-300' :
+                          events[0]?.type === 'anniversary' ? 'ring-rose-300' :
+                          'ring-purple-300'
+                        }` : ''
                       }`}
                     >
                       <div className="flex flex-col gap-4">
