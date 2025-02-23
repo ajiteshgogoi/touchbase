@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC, formatLocalDateTime } from './utils';
+import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC, formatEventForInput } from './utils';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -65,10 +65,12 @@ export const ImportantEvents = ({
       return;
     }
 
-    // Add the new event with properly formatted date
+    // Add the new event with properly formatted date in UTC
+    // The date is stored in YYYY-MM-DDThh:mm format without timezone suffix
+    // to maintain compatibility with datetime-local input while preserving UTC time
     const newEvent = {
       type,
-      date: formatEventToUTC(rawDate), // Convert local time to UTC for storage
+      date: formatEventToUTC(rawDate),
       name: type === 'custom' ? name : null
     };
 
@@ -131,7 +133,12 @@ export const ImportantEvents = ({
                     {event.type === 'custom' && `: ${event.name}`}
                   </h3>
                   <p className="text-sm text-gray-500">
+                    {/* Show only month and day for display, since events recur yearly */}
                     {formatEventDate(event.date)}
+                    {/* Show time if set */}
+                    {event.date.includes('T') &&
+                      ` at ${dayjs.utc(event.date).local().format('h:mm A')}`
+                    }
                   </p>
                 </div>
               </div>
@@ -176,7 +183,7 @@ export const ImportantEvents = ({
                 type="datetime-local"
                 id="event-date"
                 required
-                defaultValue={formatLocalDateTime(new Date())}
+                defaultValue={formatEventForInput(dayjs.utc().format())}
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
               />
               <p className="mt-1 text-xs text-gray-500">
