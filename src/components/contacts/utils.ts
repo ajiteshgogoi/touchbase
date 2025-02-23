@@ -217,6 +217,23 @@ export const initialErrors = {
  * @param type - Event type ('birthday', 'anniversary', 'custom')
  * @returns Display name for the event type
  */
+/**
+ * Sort important events in the order: birthday -> anniversary -> custom
+ * @param events - Array of important events to sort
+ * @returns Sorted array of events
+ */
+export const sortEventsByType = (events: any[]): any[] => {
+  const typeOrder: Record<string, number> = {
+    birthday: 0,
+    anniversary: 1,
+    custom: 2
+  };
+  
+  return [...events].sort((a, b) =>
+    (typeOrder[a.type] ?? 3) - (typeOrder[b.type] ?? 3)
+  );
+};
+
 export const getEventTypeDisplay = (type: string): string => {
   const typeMap: Record<string, string> = {
     birthday: 'Birthday',

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC } from './utils';
+import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC, sortEventsByType } from './utils';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -134,7 +134,7 @@ export const ImportantEvents = ({
         {formData.important_events.length === 0 ? (
           <p className="text-sm text-gray-500">No important events added yet</p>
         ) : (
-          formData.important_events.map((event, index) => (
+          sortEventsByType(formData.important_events).map((event, index) => (
             <div
               key={index}
               className="flex items-center justify-between p-4 bg-gray-50 rounded-lg group"
