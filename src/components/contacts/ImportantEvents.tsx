@@ -133,12 +133,8 @@ export const ImportantEvents = ({
                     {event.type === 'custom' && `: ${event.name}`}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {/* Show only month and day for display, since events recur yearly */}
+                    {/* Show month, day and time in local timezone */}
                     {formatEventDate(event.date)}
-                    {/* Show time if set */}
-                    {event.date.includes('T') &&
-                      ` at ${dayjs.utc(event.date).local().format('h:mm A')}`
-                    }
                   </p>
                 </div>
               </div>
@@ -183,7 +179,7 @@ export const ImportantEvents = ({
                 type="datetime-local"
                 id="event-date"
                 required
-                defaultValue={formatEventForInput(dayjs.utc().format())}
+                defaultValue={formatEventForInput(new Date())}
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
               />
               <p className="mt-1 text-xs text-gray-500">

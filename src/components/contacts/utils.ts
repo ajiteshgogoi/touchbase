@@ -136,7 +136,10 @@ export const getNextOccurrence = (eventDate: string): string => {
  * @returns Formatted date string (e.g., "March 15")
  */
 export const formatEventDate = (date: string): string => {
-  return dayjs.utc(date).format('MMMM D');
+  // Parse as UTC and convert to local time to respect user's timezone
+  // This matches the behavior in src/utils/date.ts formatDateWithTimezone
+  const localDate = dayjs.utc(date).local();
+  return localDate.format('MMMM D [at] h:mm A');
 };
 
 /**
@@ -147,28 +150,46 @@ export const formatEventDate = (date: string): string => {
  * @param date - ISO date string in UTC
  * @returns Formatted date string in YYYY-MM-DDThh:mm format (local time)
  */
-export const formatEventForInput = (date: string): string => {
-  // Parse the UTC date and convert to local time
-  const localDate = dayjs.utc(date).local();
-  // Return in format required by datetime-local input (YYYY-MM-DDThh:mm)
-  return localDate.format('YYYY-MM-DD[T]HH:mm');
+export const formatEventForInput = (date: string | Date | null): string => {
+  if (!date) {
+    // If no date provided, return current local time formatted for input
+    return dayjs().format('YYYY-MM-DDTHH:mm');
+  }
+  
+  // Parse the date (assuming UTC) and convert to local time
+  // Use local() to respect user's timezone
+  return dayjs.utc(date).local().format('YYYY-MM-DDTHH:mm');
 };
 
 /**
  * Format a datetime-local input value to UTC ISO string for storage
- * Handles the timezone conversion properly by:
- * 1. Parsing the input as local time (since datetime-local provides local time)
- * 2. Converting to UTC for storage
- * 3. Formatting without timezone suffix to work with datetime-local input
+ * Handles the timezone conversion properly
  *
  * @param localDate - Date string from datetime-local input (YYYY-MM-DDThh:mm)
- * @returns Date string in YYYY-MM-DDThh:mm format (UTC)
+ * @returns Date string in ISO format
  */
 export const formatEventToUTC = (localDate: string): string => {
-  // Parse the local input as-is (datetime-local input is always in local time)
-  const parsed = dayjs(localDate);
-  // Convert to UTC and format in the required format without timezone suffix
-  return parsed.utc().format('YYYY-MM-DD[T]HH:mm');
+  // Parse the local input and create UTC date
+  const localDayjs = dayjs(localDate);
+  
+  // Convert to UTC while preserving the local time components
+  const utcDate = localDayjs.utc();
+  
+  // Format for datetime-local input (YYYY-MM-DDThh:mm)
+  // This matches the expected format and maintains timezone awareness
+  return utcDate.format('YYYY-MM-DDTHH:mm');
+};
+
+/**
+ * Format a stored date for display in the datetime-local input
+ * Converts from UTC to local time
+ *
+ * @param storedDate - ISO date string from storage
+ * @returns Date string in YYYY-MM-DDThh:mm format for datetime-local input
+ */
+export const formatStoredEventForInput = (storedDate: string): string => {
+  // Convert from UTC to local and format without timezone info
+  return dayjs.utc(storedDate).local().format('YYYY-MM-DD[T]HH:mm');
 };
 
 /**
