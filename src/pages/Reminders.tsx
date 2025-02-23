@@ -177,13 +177,13 @@ export const Reminders = () => {
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
                           <div className="space-y-2.5">
-                            <div className="flex flex-wrap items-center gap-4 text-sm">
-                              <span className="text-lg font-semibold text-primary-500">
+                            <div className="space-y-2 text-sm">
+                              <span className="text-lg font-semibold text-primary-500 block">
                                 {contact?.name || 'Unknown'}
                               </span>
                               {/* Show important events badges */}
                               {events.length > 0 && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2 -ml-2">
                                   {events.map((event, idx) => (
                                     <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50">
                                       {getEventIcon(event.type)}
@@ -298,13 +298,13 @@ export const Reminders = () => {
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
                           <div className="space-y-2.5">
-                            <div className="flex flex-wrap items-center gap-4 text-sm">
-                              <span className="text-lg font-semibold text-primary-500">
+                            <div className="space-y-2 text-sm">
+                              <span className="text-lg font-semibold text-primary-500 block">
                                 {contact?.name || 'Unknown'}
                               </span>
                               {/* Show important events badges */}
                               {events.length > 0 && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2 -ml-2">
                                   {events.map((event, idx) => (
                                     <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50">
                                       {getEventIcon(event.type)}
