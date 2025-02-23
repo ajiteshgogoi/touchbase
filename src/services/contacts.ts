@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase/client';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import type { Contact, Interaction, Reminder, ImportantEvent } from '../lib/supabase/types';
+import type { Contact, Interaction, Reminder, ImportantEvent, QuickReminderInput } from '../lib/supabase/types';
 import { paymentService } from './payment';
 import { getQueryClient } from '../utils/queryClient';
 import { calculateNextContactDate, RelationshipLevel, ContactFrequency} from '../utils/date';
@@ -476,6 +476,37 @@ export const contactsService = {
       .single();
     
     if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Add a quick reminder that is not tied to recurring contact schedules
+   * These reminders are one-time only and are removed once completed
+   */
+  async addQuickReminder(reminder: QuickReminderInput): Promise<Reminder> {
+    const contact = await this.getContact(reminder.contact_id);
+    if (!contact) throw new Error('Contact not found');
+
+    // Create the quick reminder directly, without deleting existing reminders
+    // since quick reminders can coexist with regular reminders
+    const { data, error } = await supabase
+      .from('reminders')
+      .insert({
+        contact_id: reminder.contact_id,
+        user_id: contact.user_id,
+        type: reminder.type,
+        name: reminder.name,  // Store the quick reminder name
+        due_date: reminder.due_date,
+        completed: false
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+
+    // Invalidate reminders cache
+    getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    
     return data;
   },
 

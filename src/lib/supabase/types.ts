@@ -44,9 +44,17 @@ export interface Reminder {
   contact_id: string;
   user_id: string;
   type: 'call' | 'message' | 'social';
+  name?: string;  // Optional name for quick reminders
   due_date: string;
   completed: boolean;
   created_at: string;
+}
+
+export interface QuickReminderInput {
+  contact_id: string;
+  name: string;
+  due_date: string;
+  type: 'call' | 'message' | 'social';
 }
 
 export interface UserPreferences {

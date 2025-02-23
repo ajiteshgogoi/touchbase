@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import QuickReminderModal from '../components/reminders/QuickReminderModal';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
@@ -64,13 +65,16 @@ export const Reminders = () => {
       }
     }
   };
+const [quickInteraction, setQuickInteraction] = useState<{
+  isOpen: boolean;
+  contactId: string;
+  contactName: string;
+  type: Interaction['type'];
+} | null>(null);
 
-  const [quickInteraction, setQuickInteraction] = useState<{
-    isOpen: boolean;
-    contactId: string;
-    contactName: string;
-    type: Interaction['type'];
-  } | null>(null);
+const [quickReminder, setQuickReminder] = useState<{
+  isOpen: boolean;
+} | null>(null);
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -129,10 +133,22 @@ export const Reminders = () => {
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Reminders</h1>
-              <p className="mt-1 text-sm text-gray-600">
-                Track your upcoming reminders
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Reminders</h1>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Track your upcoming reminders
+                  </p>
+                </div>
+                {contacts && contacts.length > 0 && (
+                  <button
+                    onClick={() => setQuickReminder({ isOpen: true })}
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                  >
+                    Add Quick Reminder
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -426,6 +442,16 @@ export const Reminders = () => {
             contactId={quickInteraction.contactId}
             contactName={quickInteraction.contactName}
             defaultType={quickInteraction.type}
+          />
+        </Suspense>
+      )}
+      {quickReminder && (
+        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
+          <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
+        </div>}>
+          <QuickReminderModal
+            isOpen={quickReminder.isOpen}
+            onClose={() => setQuickReminder(null)}
           />
         </Suspense>
       )}
