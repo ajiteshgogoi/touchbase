@@ -28,8 +28,7 @@ export const PersonalNotes = ({
               Examples:
             </p>
             <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-              <li>Their interests and hobbies</li>
-              <li>Important dates (birthdays, anniversaries)</li>
+              <li>Their interests and hobbies</li>              
               <li>Recent life events or achievements</li>
               <li>Conversation preferences (topics they enjoy)</li>
               <li>Shared memories or inside jokes</li>
