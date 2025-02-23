@@ -63,7 +63,7 @@ export const ImportantEventsPage = () => {
       case 'birthday':
         return '🎂';
       case 'anniversary':
-        return '🎊';
+        return '❤️';
       default:
         return '📅';
     }

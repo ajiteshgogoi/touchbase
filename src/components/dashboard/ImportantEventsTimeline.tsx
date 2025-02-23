@@ -55,7 +55,7 @@ export const ImportantEventsTimeline = () => {
       case 'birthday':
         return '🎂';
       case 'anniversary':
-        return '🎊';
+        return '❤️';
       default:
         return '📅';
     }
