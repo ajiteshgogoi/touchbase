@@ -145,7 +145,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
 
               <div>
                 <label htmlFor="reminder-name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Reminder Name *
+                  Reminder Description *
                 </label>
                 <input
                   type="text"
@@ -154,7 +154,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                   onChange={(e) => setName(e.target.value)}
                   maxLength={50}
                   className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-                  placeholder="Enter reminder name"
+                  placeholder="Enter what the reminder is about"
                   required
                 />
                 <div className="mt-1 text-xs text-gray-500 text-right">
