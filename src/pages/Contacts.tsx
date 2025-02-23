@@ -354,7 +354,7 @@ export const Contacts = () => {
                               ) : (
                                 <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
                               )}
-                              <span className="text-gray-700 font-medium">{getEventTypeDisplay(event.type)}: </span>
+                              <span className="text-gray-700 font-medium">{getEventTypeDisplay(event.type)}:&nbsp;</span>
                               <span className="text-gray-600">{event.type === 'custom' ? `${event.name} - ` : ''}{formatEventDate(event.date)}</span>
                             </span>
                           ))}
