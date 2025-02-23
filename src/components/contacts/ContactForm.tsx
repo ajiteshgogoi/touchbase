@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+// Enable UTC plugin for consistent date handling
+dayjs.extend(utc);
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
 import { contactValidationService } from '../../services/contact-validation';
@@ -10,7 +15,7 @@ import { ContactPreferences } from './ContactPreferences';
 import { PersonalNotes } from './PersonalNotes';
 import { ImportantEvents } from './ImportantEvents';
 import { ContactFormData, FormErrors, ImportantEventFormData } from './types';
-import { initialFormData, initialErrors, formatEventForInput } from './utils';
+import { initialFormData, initialErrors, formatEventForInput, formatEventToUTC } from './utils';
 
 /**
  * ContactForm component for creating and editing contacts
@@ -70,12 +75,15 @@ export const ContactForm = () => {
     if (importantEvents) {
       setFormData(current => ({
         ...current,
-        important_events: importantEvents.map(event => ({
-          id: event.id,
-          type: event.type as ImportantEventFormData['type'],
-          name: event.name,
-          date: formatEventForInput(event.date) // Format date for input display
-        }))
+        important_events: importantEvents.map(event => {
+          // Always format dates without timezone for datetime-local inputs
+          return {
+            id: event.id,
+            type: event.type as ImportantEventFormData['type'],
+            name: event.name,
+            date: formatEventForInput(event.date)
+          };
+        })
       }));
     }
   }, [importantEvents]);
@@ -111,7 +119,7 @@ export const ContactForm = () => {
             user_id: contact.user_id,
             type: event.type,
             name: event.name,
-            date: event.date
+            date: formatEventToUTC(event.date) // Convert to UTC for storage
           })
         ));
       }
@@ -148,7 +156,7 @@ export const ContactForm = () => {
             user_id: contact.user_id,
             type: event.type,
             name: event.name,
-            date: event.date
+            date: formatEventToUTC(event.date) // Convert back to UTC ISO format for storage
           })
         ));
       }

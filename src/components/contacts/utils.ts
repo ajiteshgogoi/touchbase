@@ -145,7 +145,20 @@ export const formatEventDate = (date: string): string => {
  * @returns Formatted date string in YYYY-MM-DDThh:mm format
  */
 export const formatEventForInput = (date: string): string => {
-  return dayjs(date).format('YYYY-MM-DDTHH:mm');
+  // Parse the UTC date
+  const d = dayjs.utc(date);
+  // Return only the date and time parts without timezone
+  return d.format('YYYY-MM-DD[T]HH:mm');
+};
+
+/**
+ * Format a datetime-local input value to UTC ISO string
+ * @param localDate - Date string from datetime-local input
+ * @returns ISO string in UTC
+ */
+export const formatEventToUTC = (localDate: string): string => {
+  // Parse the local datetime string and convert to UTC
+  return dayjs(localDate).utc().format();
 };
 
 /**

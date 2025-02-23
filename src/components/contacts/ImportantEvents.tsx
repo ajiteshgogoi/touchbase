@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventInputToISO, formatLocalDateTime } from './utils';
+import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC, formatLocalDateTime } from './utils';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -65,13 +65,10 @@ export const ImportantEvents = ({
       return;
     }
 
-    // Convert the input datetime back to ISO format for storage
-    const date = formatEventInputToISO(rawDate);
-
-    // Add the new event
+    // Add the new event with properly formatted date
     const newEvent = {
       type,
-      date,
+      date: formatEventToUTC(rawDate), // Convert local time to UTC for storage
       name: type === 'custom' ? name : null
     };
 
@@ -179,8 +176,8 @@ export const ImportantEvents = ({
                 type="datetime-local"
                 id="event-date"
                 required
-                className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
                 defaultValue={formatLocalDateTime(new Date())}
+                className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
               />
               <p className="mt-1 text-xs text-gray-500">
                 Events will recur yearly on this date
