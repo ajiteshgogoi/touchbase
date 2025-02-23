@@ -32,6 +32,10 @@ export const ImportantEvents = ({
   onError
 }: ContactFormProps) => {
   const [showNewEventForm, setShowNewEventForm] = useState(false);
+  const [selectedEventType, setSelectedEventType] = useState<'birthday' | 'anniversary' | 'custom'>(
+    formData.important_events.some(event => event.type === 'birthday') ? 'custom' : 'birthday'
+  );
+  const [eventNameLength, setEventNameLength] = useState(0);
 
   /**
    * Handle adding a new important event
@@ -63,7 +67,7 @@ export const ImportantEvents = ({
 
     // Validate custom event name
     if (type === 'custom' && !isValidEventName(name)) {
-      newErrors.push('Custom events require a name (max 100 characters)');
+      newErrors.push('Custom events require a name between 1 and 50 characters');
     }
 
     if (!rawDate) {
@@ -93,6 +97,8 @@ export const ImportantEvents = ({
     dateInput.value = '';
     nameInput.value = '';
     setShowNewEventForm(false);
+    setSelectedEventType(formData.important_events.some(event => event.type === 'birthday') ? 'custom' : 'birthday');
+    setEventNameLength(0);
     onError({ important_events: [] });
   };
 
@@ -173,7 +179,8 @@ export const ImportantEvents = ({
                 id="event-type"
                 required
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-                defaultValue={formData.important_events.some(event => event.type === 'birthday') ? 'custom' : 'birthday'}
+                value={selectedEventType}
+                onChange={(e) => setSelectedEventType(e.target.value as 'birthday' | 'anniversary' | 'custom')}
               >
                 {!formData.important_events.some(event => event.type === 'birthday') && (
                   <option value="birthday">Birthday</option>
@@ -207,12 +214,26 @@ export const ImportantEvents = ({
             <label htmlFor="event-name" className="block text-sm font-medium text-gray-700">
               Event Name (for custom events)
             </label>
-            <input
-              type="text"
-              id="event-name"
-              className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-              placeholder="Enter event name"
-            />
+            <div className="mt-1 relative">
+              <input
+                type="text"
+                id="event-name"
+                className={`block w-full rounded-lg border-gray-200 shadow-sm ${
+                  selectedEventType !== 'custom'
+                  ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                  : 'focus:border-primary-400 focus:ring-primary-400'
+                }`}
+                placeholder="Enter event name"
+                maxLength={50}
+                onChange={(e) => setEventNameLength(e.target.value.length)}
+                disabled={selectedEventType !== 'custom'}
+              />
+              {selectedEventType === 'custom' && (
+                <div className="mt-1 text-xs text-gray-500 text-right">
+                  {eventNameLength}/50 characters
+                </div>
+              )}
+            </div>
           </div>
 
           {errors.important_events.length > 0 && (
@@ -230,6 +251,8 @@ export const ImportantEvents = ({
               type="button"
               onClick={() => {
                 setShowNewEventForm(false);
+                setSelectedEventType(formData.important_events.some(event => event.type === 'birthday') ? 'custom' : 'birthday');
+                setEventNameLength(0);
                 onError({ important_events: [] });
               }}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"

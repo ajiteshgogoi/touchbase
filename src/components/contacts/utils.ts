@@ -57,7 +57,7 @@ export const isValidEventDate = (_date: string): boolean => {
  * @returns boolean indicating if the name is valid
  */
 export const isValidEventName = (name: string | null): boolean => {
-  return name !== null && name.trim().length > 0 && name.trim().length <= 100;
+  return name !== null && name.trim().length > 0 && name.trim().length <= 50;
 };
 
 
