@@ -19,7 +19,7 @@ import {
   StarIcon
 } from '@heroicons/react/24/outline/esm/index.js';
 import type { Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
-import { isUpcomingEvent, getEventTypeDisplay, formatEventDate } from '../components/contacts/utils';
+import { getEventTypeDisplay, formatEventDate } from '../components/contacts/utils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -72,9 +72,9 @@ export const Contacts = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  // Map of contact ID to their upcoming events
-  const upcomingEventsMap = importantEvents?.reduce((acc, event) => {
-    if (event && isUpcomingEvent(event.date)) {
+  // Map of contact ID to their events
+  const eventsMap = importantEvents?.reduce((acc, event) => {
+    if (event) {
       const contactId = event.contact_id as string;
       if (!acc[contactId]) {
         acc[contactId] = [];
@@ -343,9 +343,9 @@ export const Contacts = () => {
                       </div>
                       
                       {/* Events line */}
-                      {(upcomingEventsMap[contact.id] || []).length > 0 && (
+                      {(eventsMap[contact.id] || []).length > 0 && (
                         <div className="flex flex-wrap gap-4 text-sm">
-                          {(upcomingEventsMap[contact.id] || []).map((event, idx) => (
+                          {(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
                             <span key={idx} className="inline-flex items-center">
                               {event.type === 'birthday' ? (
                                 <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
