@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { Fragment, useState, useLayoutEffect } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../../services/contacts';
-import { Dialog } from '@headlessui/react';
 import { XMarkIcon, CalendarIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import { formatEventToUTC } from '../contacts/utils';
@@ -15,6 +15,28 @@ interface QuickReminderModalProps {
 const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
   const [name, setName] = useState('');
   const [date, setDate] = useState(dayjs().add(1, 'day').format('YYYY-MM-DD'));
+
+  useLayoutEffect(() => {
+    if (isOpen) {
+      // Calculate scrollbar width
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+      
+      // Add modal-open class to body
+      document.body.classList.add('modal-open');
+    } else {
+      // Remove modal-open class and reset scrollbar width
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.setProperty('--scrollbar-width', '0px');
+    }
+
+    return () => {
+      // Cleanup
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.setProperty('--scrollbar-width', '0px');
+    };
+  }, [isOpen]);
+
   const [selectedContact, setSelectedContact] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,138 +111,161 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-[100]">
-      <div className="min-h-full">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4 z-10">
-          <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
-            <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <Dialog.Title className="text-lg font-medium">Add Quick Reminder</Dialog.Title>
-              <button
-                onClick={onClose}
-                className="p-2 -m-2 text-gray-400 hover:text-gray-500"
-                aria-label="Close"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-            </div>
+    <Transition show={isOpen} as={Fragment}>
+      <Dialog as="div" className="fixed inset-0 z-[100] overflow-hidden" onClose={onClose}>
+        <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:p-0">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          </Transition.Child>
 
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1">
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Contact *
-                  </label>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enterTo="opacity-100 translate-y-0 sm:scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          >
+            <div className="inline-block w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <Dialog.Title as="h3" className="text-lg font-medium">
+                  Add Quick Reminder
+                </Dialog.Title>
+                <button
+                  onClick={onClose}
+                  className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                  aria-label="Close"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="max-h-[calc(100vh-16rem)] overflow-y-auto p-6 space-y-4">
                   <div className="space-y-2">
-                    <div className="relative">
-                      <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Search contacts..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="block w-full rounded-lg border-gray-200 pl-10 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-                      />
+                    <label className="block text-sm font-medium text-gray-700">
+                      Contact *
+                    </label>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search contacts..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="block w-full rounded-lg border-gray-200 pl-10 shadow-sm focus:border-primary-400 focus:ring-primary-400"
+                        />
+                      </div>
+                      <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200">
+                        {filteredContacts?.length === 0 ? (
+                          <div className="p-3 text-sm text-gray-500">No contacts found</div>
+                        ) : (
+                          filteredContacts?.map((contact) => (
+                            <button
+                              key={contact.id}
+                              type="button"
+                              onClick={() => setSelectedContact(contact.id)}
+                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                                selectedContact === contact.id ? 'bg-primary-50 text-primary-600' : 'text-gray-900'
+                              }`}
+                            >
+                              {contact.name}
+                            </button>
+                          ))
+                        )}
+                      </div>
                     </div>
-                    <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200">
-                      {filteredContacts?.length === 0 ? (
-                        <div className="p-3 text-sm text-gray-500">No contacts found</div>
-                      ) : (
-                        filteredContacts?.map((contact) => (
-                          <button
-                            key={contact.id}
-                            type="button"
-                            onClick={() => setSelectedContact(contact.id)}
-                            className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                              selectedContact === contact.id ? 'bg-primary-50 text-primary-600' : 'text-gray-900'
-                            }`}
-                          >
-                            {contact.name}
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-2 text-sm text-gray-600 h-5">
-                    <span className={selectedContactName ? 'opacity-100' : 'opacity-0'}>
-                      Selected: {selectedContactName || 'None'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="reminder-name" className="block text-sm font-medium text-gray-700">
-                    Reminder Description *
-                  </label>
-                  <div>
-                    <textarea
-                      id="reminder-name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={150}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-primary-400 focus:ring-primary-400"
-                      placeholder="Enter what the reminder is about..."
-                      required
-                    />
-                    <div className="mt-2 flex justify-end">
-                      <span className="text-sm text-gray-500">
-                        {name.length}/150 characters
+                    <div className="mt-2 text-sm text-gray-600 h-5">
+                      <span className={selectedContactName ? 'opacity-100' : 'opacity-0'}>
+                        Selected: {selectedContactName || 'None'}
                       </span>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="reminder-date" className="block text-sm font-medium text-gray-700">
-                    Due Date *
-                  </label>
-                  <input
-                    type="date"
-                    id="reminder-date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    min={dayjs().add(1, 'day').format('YYYY-MM-DD')}
-                    className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-                    required
-                  />
-                </div>
-
-                {error && (
-                  <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-                    {error}
+                  <div className="space-y-2">
+                    <label htmlFor="reminder-name" className="block text-sm font-medium text-gray-700">
+                      Reminder Description *
+                    </label>
+                    <div>
+                      <textarea
+                        id="reminder-name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        maxLength={150}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-primary-400 focus:ring-primary-400"
+                        placeholder="Enter what the reminder is about..."
+                        required
+                      />
+                      <div className="mt-2 flex justify-end">
+                        <span className="text-sm text-gray-500">
+                          {name.length}/150 characters
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className="flex-shrink-0 flex flex-col-reverse sm:flex-row justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <CalendarIcon className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                      Adding...
-                    </>
-                  ) : (
-                    'Add Reminder'
+                  <div className="space-y-2">
+                    <label htmlFor="reminder-date" className="block text-sm font-medium text-gray-700">
+                      Due Date *
+                    </label>
+                    <input
+                      type="date"
+                      id="reminder-date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      min={dayjs().add(1, 'day').format('YYYY-MM-DD')}
+                      className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
+                      required
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                      {error}
+                    </div>
                   )}
-                </button>
-              </div>
-            </form>
-          </Dialog.Panel>
+                </div>
+
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 p-6 bg-gray-50 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center justify-center">
+                        <CalendarIcon className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                        <span>Adding...</span>
+                      </div>
+                    ) : (
+                      'Add Reminder'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </Transition.Child>
         </div>
-      </div>
-    </Dialog>
+      </Dialog>
+    </Transition>
   );
 };
 
