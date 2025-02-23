@@ -186,9 +186,9 @@ export const Reminders = () => {
                                 <div className="flex flex-wrap items-center gap-2 -ml-2">
                                   {events.map((event, idx) => (
                                     <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
-                                      event.type === 'birthday' ? 'bg-pink-50' :
-                                      event.type === 'anniversary' ? 'bg-rose-50' :
-                                      'bg-purple-50'
+                                      event.type === 'birthday' ? 'bg-pink-50 text-pink-500' :
+                                      event.type === 'anniversary' ? 'bg-rose-50 text-rose-500' :
+                                      'bg-purple-50 text-purple-500'
                                     }`}>
                                       {getEventIcon(event.type)}
                                       <span className="text-xs font-medium">
@@ -311,9 +311,9 @@ export const Reminders = () => {
                                 <div className="flex flex-wrap items-center gap-2 -ml-2">
                                   {events.map((event, idx) => (
                                     <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
-                                      event.type === 'birthday' ? 'bg-pink-50' :
-                                      event.type === 'anniversary' ? 'bg-rose-50' :
-                                      'bg-purple-50'
+                                      event.type === 'birthday' ? 'bg-pink-50 text-pink-500' :
+                                      event.type === 'anniversary' ? 'bg-rose-50 text-rose-500' :
+                                      'bg-purple-50 text-purple-500'
                                     }`}>
                                       {getEventIcon(event.type)}
                                       <span className="text-xs font-medium">
