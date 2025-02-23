@@ -9,6 +9,13 @@ import {
   DEFAULT_BATCH_CONFIG
 } from './batch-types.js';
 import axios, { AxiosError } from 'axios';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+// Enable necessary plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions'; // LLM API endpoint //
 
@@ -311,12 +318,37 @@ export class BatchProcessor {
   }
 
   private async getLLMSuggestions(contact: Contact): Promise<string> {
+    // Get user's timezone preference
+    const { data: userPrefs } = await this.supabase
+      .from('user_preferences')
+      .select('timezone')
+      .eq('user_id', contact.user_id)
+      .single();
+
+    const userTimezone = userPrefs?.timezone || 'UTC';
+    
     const timeSinceLastContact = contact.last_contacted
       ? Math.floor(
           (Date.now() - new Date(contact.last_contacted).getTime()) /
             (1000 * 60 * 60 * 24)
         )
       : null;
+
+    // Get important events
+    const { data: importantEvents } = await this.supabase
+      .from('important_events')
+      .select('*')
+      .eq('contact_id', contact.id);
+
+    // Get tomorrow's date in user's timezone
+    const tomorrow = dayjs().tz(userTimezone).add(1, 'day').startOf('day');
+
+    // Find events occurring tomorrow
+    const tomorrowEvents = (importantEvents || []).filter(event => {
+      const eventDate = dayjs.utc(event.date);
+      return eventDate.month() === tomorrow.month() &&
+             eventDate.date() === tomorrow.date();
+    });
 
     const userMessage = [
       "Analyze this contact's information and provide 2-3 highly impactful suggestions to strengthen the relationship:",
@@ -333,6 +365,16 @@ export class BatchProcessor {
       `- Relationship level: ${contact.relationship_level}/5`,
       `- Notes: ${contact.notes || 'None'}`,
       '',
+      // Add tomorrow's events section if any are happening
+      ...(tomorrowEvents.length > 0 ? [
+        'Important Events Tomorrow:',
+        ...tomorrowEvents.map(event => {
+          const eventType = event.type === 'custom' ? event.name :
+                          event.type === 'birthday' ? 'Birthday' : 'Anniversary';
+          return `- ${eventType}! Make sure to acknowledge this special day`;
+        }),
+        ''
+      ] : []),
       'Recent Activity (chronological):',
       `${
         (contact.interactions || [])
