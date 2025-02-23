@@ -124,32 +124,33 @@ const [quickReminder, setQuickReminder] = useState<{
     <>
       <div className="space-y-8">
         <div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 -m-2 text-gray-400 hover:text-gray-500"
-              aria-label="Go back"
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                  aria-label="Go back"
+                >
+                  <ArrowLeftIcon className="h-5 w-5" />
+                </button>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Reminders</h1>
                   <p className="mt-1 text-sm text-gray-600">
                     Track your upcoming reminders
                   </p>
                 </div>
-                {contacts && contacts.length > 0 && (
-                  <button
-                    onClick={() => setQuickReminder({ isOpen: true })}
-                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                  >
-                    Add Quick Reminder
-                  </button>
-                )}
               </div>
             </div>
+            {contacts && contacts.length > 0 && (
+              <button
+                onClick={() => setQuickReminder({ isOpen: true })}
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all"
+              >
+                <CalendarIcon className="h-5 w-5 mr-2" />
+                Add Quick Reminder
+              </button>
+            )}
           </div>
         </div>
 

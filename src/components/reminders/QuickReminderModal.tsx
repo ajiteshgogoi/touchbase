@@ -137,11 +137,11 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                     )}
                   </div>
                 </div>
-                {selectedContactName && (
-                  <div className="mt-2 text-sm text-gray-600">
-                    Selected: {selectedContactName}
-                  </div>
-                )}
+                <div className="mt-2 text-sm text-gray-600 h-5">
+                  <span className={selectedContactName ? 'opacity-100' : 'opacity-0'}>
+                    Selected: {selectedContactName || 'None'}
+                  </span>
+                </div>
               </div>
 
               <div>
