@@ -10,8 +10,8 @@ import {
 } from './batch-types.js';
 import axios, { AxiosError } from 'axios';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
 
 // Enable necessary plugins
 dayjs.extend(utc);
