@@ -15,7 +15,7 @@ import { contactsService } from '../../services/contacts';
 import { contentReportsService } from '../../services/content-reports';
 import { useStore } from '../../stores/useStore';
 import type { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
-import { getEventTypeDisplay, formatEventDate } from '../../components/contacts/utils';
+import { getEventTypeDisplay, formatEventDate, sortEventsByType } from '../../components/contacts/utils';
 import dayjs from 'dayjs';
 import { lazy, Suspense } from 'react';
 
@@ -177,7 +177,7 @@ export const RecentContacts = () => {
                      {/* Events line */}
                      {(eventsMap[contact.id] || []).length > 0 && (
                        <div className="flex flex-wrap gap-4 text-sm">
-                         {(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
+                         {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
                            <span key={idx} className="inline-flex items-center">
                              {event.type === 'birthday' ? (
                                <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
