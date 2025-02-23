@@ -250,10 +250,19 @@ export const contactsService = {
       })
       .sort((a, b) => a.getTime() - b.getTime())[0];
 
-    // Use the earlier of regular due date and next important event
-    const nextDueDate = nextImportantEvent && nextImportantEvent < regularDueDate
-      ? nextImportantEvent
-      : regularDueDate;
+    // Determine next due date considering today's date
+    let nextDueDate = regularDueDate;
+    
+    if (nextImportantEvent) {
+      // If regular date is today, prefer important event date (which will be in future if today)
+      if (dayjs(regularDueDate).isSame(today, 'day')) {
+        nextDueDate = nextImportantEvent;
+      }
+      // If important event is not today and is earlier, use it
+      else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
+        nextDueDate = nextImportantEvent;
+      }
+    }
 
     // Update contact and create/update reminder
     const { error: updateError } = await supabase
