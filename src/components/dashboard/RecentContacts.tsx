@@ -15,7 +15,7 @@ import { contactsService } from '../../services/contacts';
 import { contentReportsService } from '../../services/content-reports';
 import { useStore } from '../../stores/useStore';
 import type { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
-import { isUpcomingEvent, getEventTypeDisplay, formatEventDate } from '../../components/contacts/utils';
+import { getEventTypeDisplay, formatEventDate } from '../../components/contacts/utils';
 import dayjs from 'dayjs';
 import { lazy, Suspense } from 'react';
 
@@ -36,9 +36,9 @@ export const RecentContacts = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  // Map of contact ID to their upcoming events
-  const upcomingEventsMap = importantEvents?.reduce((acc, event) => {
-    if (event && isUpcomingEvent(event.date)) {
+  // Map of contact ID to their events
+  const eventsMap = importantEvents?.reduce((acc, event) => {
+    if (event) {
       const contactId = event.contact_id;
       if (!acc[contactId]) {
         acc[contactId] = [];
@@ -175,9 +175,9 @@ export const RecentContacts = () => {
                      </div>
 
                      {/* Events line */}
-                     {(upcomingEventsMap[contact.id] || []).length > 0 && (
+                     {(eventsMap[contact.id] || []).length > 0 && (
                        <div className="flex flex-wrap gap-4 text-sm">
-                         {(upcomingEventsMap[contact.id] || []).map((event, idx) => (
+                         {(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
                            <span key={idx} className="inline-flex items-center">
                              {event.type === 'birthday' ? (
                                <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
