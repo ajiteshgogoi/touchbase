@@ -136,59 +136,62 @@ export const RecentContacts = () => {
               <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col gap-4">
                   <div className="min-w-0">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-semibold text-primary-500">{contact.name}</h3>
-                        {/* Important event icons */}
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {upcomingEventsMap[contact.id]?.map((event, idx) => (
-                            <div
-                              key={idx}
-                              title={`${getEventTypeDisplay(event.type)}${event.type === 'custom' ? `: ${event.name}` : ''} - ${formatEventDate(event.date)}`}
-                              className={`p-1 rounded-full ${
-                                event.type === 'birthday' ? 'bg-pink-50 text-pink-500 hover:bg-pink-100' :
-                                event.type === 'anniversary' ? 'bg-rose-50 text-rose-500 hover:bg-rose-100' :
-                                'bg-purple-50 text-purple-500 hover:bg-purple-100'
-                              } transition-colors cursor-default`}
-                            >
-                              {event.type === 'birthday' ? <CakeIcon className="h-4 w-4" /> :
-                               event.type === 'anniversary' ? <HeartIcon className="h-4 w-4" /> :
-                               <StarIcon className="h-4 w-4" />}
-                            </div>
-                          ))}
-                        </div>
-                        {/* Contact info */}
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-3">
-                          {contact.phone && (
-                            <span className="inline-flex items-center">
-                              <PhoneIcon className="h-4 w-4 mr-1.5 text-green-500 flex-shrink-0" />
-                              <span className="truncate leading-5">{contact.phone}</span>
-                            </span>
-                          )}
-                          {contact.social_media_handle && (
-                            <span className="inline-flex items-center">
-                              <AtSymbolIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
-                              <span className="truncate leading-5">{contact.social_media_handle}</span>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Link
-                          to={`/contacts/${contact.id}/edit`}
-                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                          title="Edit contact"
-                        >
-                          <PencilSquareIcon className="h-4 w-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteContact(contact.id)}
-                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete contact"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
+                   <div className="flex justify-between items-start">
+                     <div>
+                       <h3 className="text-lg font-semibold text-primary-500">{contact.name}</h3>
+                     </div>
+                     <div className="flex gap-2">
+                       <Link
+                         to={`/contacts/${contact.id}/edit`}
+                         className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                         title="Edit contact"
+                       >
+                         <PencilSquareIcon className="h-4 w-4" />
+                       </Link>
+                       <button
+                         onClick={() => handleDeleteContact(contact.id)}
+                         className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                         title="Delete contact"
+                       >
+                         <TrashIcon className="h-4 w-4" />
+                       </button>
+                     </div>
+                   </div>
+                   <div className="mt-3 space-y-2.5">
+                     {/* Contact details line */}
+                     <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                       {contact.phone && (
+                         <span className="inline-flex items-center">
+                           <PhoneIcon className="h-4 w-4 mr-1.5 text-green-500 flex-shrink-0" />
+                           <span className="truncate leading-5">{contact.phone}</span>
+                         </span>
+                       )}
+                       {contact.social_media_handle && (
+                         <span className="inline-flex items-center">
+                           <AtSymbolIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                           <span className="truncate leading-5">{contact.social_media_handle}</span>
+                         </span>
+                       )}
+                     </div>
+
+                     {/* Events line */}
+                     {(upcomingEventsMap[contact.id] || []).length > 0 && (
+                       <div className="flex flex-wrap gap-4 text-sm">
+                         {(upcomingEventsMap[contact.id] || []).map((event, idx) => (
+                           <span key={idx} className="inline-flex items-center">
+                             {event.type === 'birthday' ? (
+                               <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                             ) : event.type === 'anniversary' ? (
+                               <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
+                             ) : (
+                               <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
+                             )}
+                             <span className="text-gray-700 font-medium">{getEventTypeDisplay(event.type)}:&nbsp;</span>
+                             <span className="text-gray-600">{event.type === 'custom' ? `${event.name} - ` : ''}{formatEventDate(event.date)}</span>
+                           </span>
+                         ))}
+                       </div>
+                     )}
                     </div>
                     <div className="mt-4 space-y-3">
                       <div className="flex flex-wrap gap-4 text-sm">
