@@ -110,7 +110,7 @@ export const ImportantEvents = ({
 
   return (
     <div className="bg-white rounded-xl shadow-soft p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Important Events</h2>
           <p className="text-sm text-gray-600 mt-1">
@@ -121,7 +121,7 @@ export const ImportantEvents = ({
           <button
             type="button"
             onClick={() => setShowNewEventForm(true)}
-            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
           >
             <PlusIcon className="h-4 w-4 mr-1.5" />
             Add Event
@@ -137,17 +137,17 @@ export const ImportantEvents = ({
           sortEventsByType(formData.important_events).map((event, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg group"
+              className="flex flex-wrap sm:flex-nowrap items-start justify-between py-2 px-3 sm:p-4 bg-gray-50 rounded-lg group gap-2"
             >
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-primary-50 rounded-lg">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <div className="p-1.5 sm:p-2 bg-primary-50 rounded-lg shrink-0">
                   {getEventIcon(event.type)}
                 </div>
-                <div className="flex items-baseline">
-                  <div className="text-sm font-medium text-gray-900">
-                    {getEventTypeDisplay(event.type, event.name)}:
+                <div className="min-w-0 flex flex-col justify-center">
+                  <div className="text-sm font-medium text-gray-900 truncate leading-tight">
+                    {getEventTypeDisplay(event.type, event.name)}
                   </div>
-                  <div className="text-sm text-gray-500 ml-2">
+                  <div className="text-sm text-gray-500 leading-tight mt-0.5">
                     {formatEventDate(event.date)}
                   </div>
                 </div>
@@ -168,7 +168,7 @@ export const ImportantEvents = ({
       {/* New event section */}
       {showNewEventForm && (
         <div className="space-y-4 border-t pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label htmlFor="event-type" className="block text-sm font-medium text-gray-700">
                 Event Type *
@@ -244,7 +244,7 @@ export const ImportantEvents = ({
             </div>
           )}
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
             <button
               type="button"
               onClick={() => {
