@@ -226,11 +226,9 @@ export const ImportantEvents = ({
                 onChange={(e) => setEventNameLength(e.target.value.length)}
                 disabled={selectedEventType !== 'custom'}
               />
-              {selectedEventType === 'custom' && (
-                <div className="mt-1 text-xs text-gray-500 text-right">
-                  {eventNameLength}/50 characters
-                </div>
-              )}
+              <div className={`mt-1 text-xs text-gray-500 text-right ${selectedEventType === 'custom' ? 'visible' : 'invisible'}`}>
+                {eventNameLength}/50 characters
+              </div>
             </div>
           </div>
 
