@@ -36,7 +36,7 @@ export const ImportantEventsTimeline = () => {
     }))
     .filter(event => event.nextOccurrence >= new Date())
     .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime())
-    .slice(0, 8); // Show only next 8 events
+    .slice(0, 7); // Show only next 7 events
 
   // Group events by month using next occurrence date
   const groupedEvents = upcomingEvents?.reduce((groups, event) => {
@@ -88,15 +88,15 @@ export const ImportantEventsTimeline = () => {
         </p>
       </div>
       <div className="bg-white rounded-xl shadow-soft">
-        <div className="p-4 space-y-8">
+        <div className="p-4 space-y-4">
           {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
-            <div key={month}>
+            <div key={month} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
               <h3 className="text-sm font-medium text-gray-700 mb-4">{month}</h3>
               <div className="space-y-4">
                 {monthEvents.map((event) => {
                   const contactName = getContactName(event.contact_id);
                   return (
-                    <div 
+                    <div
                       key={event.id}
                       className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
@@ -124,18 +124,17 @@ export const ImportantEventsTimeline = () => {
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="p-6 border-t border-gray-100">
-        <Link
-          to="/important-events"
-          className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
-        >
-          View all events
-          <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-          </svg>
-        </Link>
+        <div className="p-6 border-t border-gray-100">
+          <Link
+            to="/important-events"
+            className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+          >
+            View all events
+            <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </Link>
+        </div>
       </div>
     </div>
   );

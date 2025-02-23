@@ -97,17 +97,17 @@ export const ImportantEventsPage = () => {
             No upcoming important events
           </div>
         ) : (
-          <div className="p-6 space-y-8">
+          <div className="p-4 space-y-4">
             {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
-              <div key={month} className="space-y-4">
-                <h2 className="text-sm font-medium text-gray-700 sticky top-0 bg-white py-2">{month}</h2>
+              <div key={month} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+                <h2 className="text-sm font-medium text-gray-700 mb-4">{month}</h2>
                 <div className="space-y-4">
                   {monthEvents.map((event) => {
                     const contactName = getContactName(event.contact_id);
                     return (
-                      <div 
+                      <div
                         key={event.id}
-                        className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       >
                         <div className="text-2xl" role="img" aria-label={event.type}>
                           {getEventEmoji(event.type)}
