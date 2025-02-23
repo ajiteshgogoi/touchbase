@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { supabase } from '../../lib/supabase/client';
 
 // Enable UTC plugin for consistent date handling
 dayjs.extend(utc);
@@ -110,18 +111,22 @@ export const ContactForm = () => {
       const { important_events, ...contactData } = data;
       // First create the contact
       const contact = await contactsService.createContact(contactData);
-      
-      // Then create any important events
+      // Create any important events without triggering recalculation
       if (formData.important_events.length > 0) {
-        await Promise.all(formData.important_events.map(event => 
-          contactsService.addImportantEvent({
-            contact_id: contact.id,
-            user_id: contact.user_id,
-            type: event.type,
-            name: event.name,
-            date: formatEventToUTC(event.date) // Convert to UTC for storage
-          })
+        await Promise.all(formData.important_events.map(event =>
+          supabase
+            .from('important_events')
+            .insert({
+              contact_id: contact.id,
+              user_id: contact.user_id,
+              type: event.type,
+              name: event.name,
+              date: formatEventToUTC(event.date) // Convert to UTC for storage
+            })
         ));
+
+        // Recalculate next contact due once after all events are added
+        await contactsService.recalculateNextContactDue(contact.id);
       }
       
       return contact;
@@ -143,23 +148,29 @@ export const ContactForm = () => {
       // Then handle important events - we'll replace all events with new ones
       const currentEvents = await contactsService.getImportantEvents(id);
       
-      // Delete all existing events
-      await Promise.all(currentEvents.map(event => 
+      // Delete all existing events (this also deletes associated reminders)
+      await Promise.all(currentEvents.map(event =>
         contactsService.deleteImportantEvent(event.id, id)
       ));
       
-      // Create new events
+      // Create new events without recalculating next contact due for each one
       if (formData.important_events.length > 0) {
-        await Promise.all(formData.important_events.map(event => 
-          contactsService.addImportantEvent({
-            contact_id: id,
-            user_id: contact.user_id,
-            type: event.type,
-            name: event.name,
-            date: formatEventToUTC(event.date) // Convert back to UTC ISO format for storage
-          })
+        await Promise.all(formData.important_events.map(event =>
+          // Use supabase directly to avoid triggering recalculation
+          supabase
+            .from('important_events')
+            .insert({
+              contact_id: id,
+              user_id: contact.user_id,
+              type: event.type,
+              name: event.name,
+              date: formatEventToUTC(event.date)
+            })
         ));
       }
+
+      // Recalculate next contact due once after all events are added
+      await contactsService.recalculateNextContactDue(id);
       
       return contact;
     },
