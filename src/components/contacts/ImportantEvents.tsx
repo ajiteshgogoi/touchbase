@@ -143,11 +143,11 @@ export const ImportantEvents = ({
                 <div className="p-2 bg-primary-50 rounded-lg">
                   {getEventIcon(event.type)}
                 </div>
-                <div className="flex flex-col">
+                <div className="flex items-baseline">
                   <div className="text-sm font-medium text-gray-900">
-                    {getEventTypeDisplay(event.type, event.name)}
+                    {getEventTypeDisplay(event.type, event.name)}:
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 ml-2">
                     {formatEventDate(event.date)}
                   </div>
                 </div>
