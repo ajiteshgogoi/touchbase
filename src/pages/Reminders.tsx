@@ -185,7 +185,11 @@ export const Reminders = () => {
                               {events.length > 0 && (
                                 <div className="flex flex-wrap items-center gap-2 -ml-2">
                                   {events.map((event, idx) => (
-                                    <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50">
+                                    <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+                                      event.type === 'birthday' ? 'bg-pink-50' :
+                                      event.type === 'anniversary' ? 'bg-rose-50' :
+                                      'bg-purple-50'
+                                    }`}>
                                       {getEventIcon(event.type)}
                                       <span className="text-xs font-medium">
                                         {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
@@ -306,7 +310,11 @@ export const Reminders = () => {
                               {events.length > 0 && (
                                 <div className="flex flex-wrap items-center gap-2 -ml-2">
                                   {events.map((event, idx) => (
-                                    <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50">
+                                    <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+                                      event.type === 'birthday' ? 'bg-pink-50' :
+                                      event.type === 'anniversary' ? 'bg-rose-50' :
+                                      'bg-purple-50'
+                                    }`}>
                                       {getEventIcon(event.type)}
                                       <span className="text-xs font-medium">
                                         {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
