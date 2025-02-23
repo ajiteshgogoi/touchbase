@@ -60,30 +60,6 @@ export const isValidEventName = (name: string | null): boolean => {
   return name !== null && name.trim().length > 0 && name.trim().length <= 100;
 };
 
-/**
- * Formats a date to ISO string for form submission
- * Standardizes the time to noon UTC to avoid timezone issues
- * @param date - The date string from the form input
- * @returns ISO date string with standardized time
- */
-export const formatEventInputToISO = (dateStr: string): string => {
-  // Parse the local datetime input value to a Date object
-  const localDate = new Date(dateStr);
-  
-  // Get the local hours and minutes from input
-  const hours = localDate.getHours();
-  const minutes = localDate.getMinutes();
-  
-  // Create UTC date preserving the local time
-  return dayjs.utc()
-    .year(localDate.getFullYear())
-    .month(localDate.getMonth())
-    .date(localDate.getDate())
-    .hour(hours)
-    .minute(minutes)
-    .second(0)
-    .toISOString();
-};
 
 /**
  * Check if an event is upcoming within the next specified days
@@ -179,25 +155,53 @@ export const formatEventToUTC = (localDate: string): string => {
 };
 
 /**
- * Format a stored date for display in the datetime-local input
+ * Format an ISO date string for date input
+ * Converts UTC date to local date format required by date input
+ * Uses dayjs for consistent cross-browser handling
+ *
+ * @param date - ISO date string in UTC or Date object
+ * @returns Formatted date string in YYYY-MM-DD format (local date)
+ */
+export const formatEventForInput = (date: string | Date | null): string => {
+  if (!date) {
+    // If no date provided, return current local date
+    return dayjs().format('YYYY-MM-DD');
+  }
+  
+  // First, ensure we're working with a UTC date
+  const utcDate = typeof date === 'string' ?
+    // For string dates (from DB), they're already in UTC
+    dayjs.utc(date) :
+    // For Date objects, convert to UTC
+    dayjs(date).utc();
+    
+  // Convert UTC to local date for display
+  const localDate = utcDate.local();
+  
+  // Format for date input (YYYY-MM-DD)
+  return localDate.format('YYYY-MM-DD');
+};
+
+/**
+ * Format a stored date for display in the date input
  * Converts from UTC to local time
  *
  * @param storedDate - ISO date string from storage
- * @returns Date string in YYYY-MM-DDThh:mm format for datetime-local input
+ * @returns Date string in YYYY-MM-DD format for date input
  */
 export const formatStoredEventForInput = (storedDate: string): string => {
   try {
     // For dates with timezone info, parse as UTC first
     if (storedDate.includes('+') || storedDate.includes('Z')) {
-      return dayjs.utc(storedDate).local().format('YYYY-MM-DDTHH:mm');
+      return dayjs.utc(storedDate).local().format('YYYY-MM-DD');
     }
     
-    // For dates without timezone (already in YYYY-MM-DDThh:mm format)
-    return dayjs(storedDate).format('YYYY-MM-DDTHH:mm');
+    // For dates without timezone, parse directly
+    return dayjs(storedDate).format('YYYY-MM-DD');
   } catch (error) {
-    // If there's any parsing error, return current time
+    // If there's any parsing error, return current date
     console.error('Error parsing stored date:', error);
-    return dayjs().format('YYYY-MM-DDTHH:mm');
+    return dayjs().format('YYYY-MM-DD');
   }
 };
 
