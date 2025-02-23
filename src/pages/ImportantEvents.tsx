@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import { useEffect } from 'react';
@@ -113,12 +113,12 @@ export const ImportantEventsPage = () => {
                           {getEventEmoji(event.type)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <a
-                            href={`/contacts/${event.contact_id}`}
+                          <Link
+                            to={`/contacts#${event.contact_id}`}
                             className="text-base font-medium text-gray-900 hover:text-primary-600"
                           >
                             {contactName}
-                          </a>
+                          </Link>
                           <p className="text-sm text-gray-500">
                             {getEventTypeDisplay(event.type)}
                             {event.type === 'custom' && event.name ? `: ${event.name}` : ''}

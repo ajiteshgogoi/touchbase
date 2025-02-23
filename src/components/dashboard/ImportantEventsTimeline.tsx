@@ -36,7 +36,7 @@ export const ImportantEventsTimeline = () => {
     }))
     .filter(event => event.nextOccurrence >= new Date())
     .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime())
-    .slice(0, 7); // Show only next 7 events
+    .slice(0, 8); // Show only next 8 events
 
   // Group events by month using next occurrence date
   const groupedEvents = upcomingEvents?.reduce((groups, event) => {
@@ -105,7 +105,7 @@ export const ImportantEventsTimeline = () => {
                       </div>
                       <div className="min-w-0 flex-1">
                         <Link
-                          to={`/contacts/${event.contact_id}`}
+                          to={`/contacts#${event.contact_id}`}
                           className="text-sm font-medium text-gray-900 hover:text-primary-600"
                         >
                           {contactName}

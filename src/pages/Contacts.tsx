@@ -87,9 +87,22 @@ export const Contacts = () => {
   const isLoading = contactsLoading || countLoading;
 
   useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
+    // If there's no hash, scroll to top when component mounts
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
   }, []);
+
+  // Handle scrolling to contact when hash changes
+  useEffect(() => {
+    const hash = window.location.hash.slice(1); // Remove the # symbol
+    if (hash) {
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [window.location.hash]);
 
   const handleReportContent = async (contactId: string, content: string) => {
     if (confirm('Report this AI suggestion as inappropriate?')) {
@@ -280,7 +293,11 @@ export const Contacts = () => {
           ) : (
             // For free users, only show first 15 contacts after filtering
             (isPremium || isOnTrial ? filteredContacts : filteredContacts?.slice(0, 15))?.map((contact) => (
-              <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+              <div
+                key={contact.id}
+                id={contact.id}
+                className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow scroll-mt-6"
+              >
                 <div className="flex flex-col gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
