@@ -37,7 +37,7 @@ export const ImportantEventsTimeline = () => {
     }))
     .filter(event => event.nextOccurrence >= new Date())
     .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime())
-    .slice(0, 10); // Show only next 10 events
+    .slice(0, 7); // Show only next 7 events
 
   // Group events by month using next occurrence date
   const groupedEvents = upcomingEvents?.reduce((groups, event) => {
@@ -77,50 +77,64 @@ export const ImportantEventsTimeline = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-soft p-6">
-      <div className="mb-6 flex items-center gap-2">
-        <div className="p-2 bg-primary-50 rounded-lg">
-          <CalendarDaysIcon className="h-5 w-5 text-primary-600" />
+    <div className="bg-white rounded-xl shadow-soft">
+      <div className="p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 bg-primary-50 rounded-lg">
+            <CalendarDaysIcon className="h-5 w-5 text-primary-600" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900">Important Events</h2>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900">Important Events</h2>
+
+        <div className="space-y-8">
+          {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
+            <div key={month}>
+              <h3 className="text-sm font-medium text-gray-500 mb-4">{month}</h3>
+              <div className="space-y-4">
+                {monthEvents.map((event) => {
+                  const contactName = getContactName(event.contact_id);
+                  return (
+                    <div 
+                      key={event.id}
+                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="text-2xl" role="img" aria-label={event.type}>
+                        {getEventEmoji(event.type)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          to={`/contacts/${event.contact_id}`}
+                          className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                        >
+                          {contactName}
+                        </Link>
+                        <p className="text-sm text-gray-500">
+                          {getEventTypeDisplay(event.type)}
+                          {event.type === 'custom' && event.name ? `: ${event.name}` : ''}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {formatEventDate(event.date)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-8">
-        {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
-          <div key={month}>
-            <h3 className="text-sm font-medium text-gray-500 mb-4">{month}</h3>
-            <div className="space-y-4">
-              {monthEvents.map((event) => {
-                const contactName = getContactName(event.contact_id);
-                return (
-                  <div 
-                    key={event.id}
-                    className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="text-2xl" role="img" aria-label={event.type}>
-                      {getEventEmoji(event.type)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <Link
-                        to={`/contacts/${event.contact_id}`}
-                        className="text-sm font-medium text-gray-900 hover:text-primary-600"
-                      >
-                        {contactName}
-                      </Link>
-                      <p className="text-sm text-gray-500">
-                        {getEventTypeDisplay(event.type)}
-                        {event.type === 'custom' && event.name ? `: ${event.name}` : ''}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {formatEventDate(event.date)}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+      <div className="p-6 border-t border-gray-100">
+        <Link
+          to="/important-events"
+          className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+        >
+          View all events
+          <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
+        </Link>
       </div>
     </div>
   );

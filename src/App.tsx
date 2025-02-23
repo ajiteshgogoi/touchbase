@@ -92,6 +92,11 @@ const InteractionHistory = lazy(async () => {
   return { default: module.InteractionHistory };
 });
 
+const ImportantEvents = lazy(async () => {
+  const module = await import('./pages/ImportantEvents');
+  return { default: module.ImportantEventsPage };
+});
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -453,6 +458,17 @@ function App() {
                   <AuthenticatedRoute>
                     <LazyComponent>
                       <ConversationPrompts />
+                    </LazyComponent>
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route
+                path="/important-events"
+                element={
+                  <AuthenticatedRoute>
+                    <LazyComponent>
+                      <ImportantEvents />
                     </LazyComponent>
                   </AuthenticatedRoute>
                 }
