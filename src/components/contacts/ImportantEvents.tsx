@@ -114,7 +114,7 @@ export const ImportantEvents = ({
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Important Events</h2>
           <p className="text-sm text-gray-600 mt-1">
-            All events are recurring yearly
+            Add yearly recurring events (birthday, anniversary, etc.)
           </p>
         </div>
         {formData.important_events.length < 5 && (
