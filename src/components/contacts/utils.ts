@@ -153,33 +153,6 @@ export const formatEventDate = (date: string): string => {
   }
 };
 
-/**
- * Format an ISO date string for datetime-local input
- * Converts UTC date to local datetime format required by datetime-local input
- * Uses dayjs for consistent cross-browser handling
- *
- * @param date - ISO date string in UTC
- * @returns Formatted date string in YYYY-MM-DDThh:mm format (local time)
- */
-export const formatEventForInput = (date: string | Date | null): string => {
-  if (!date) {
-    // If no date provided, return current local time formatted for input
-    return dayjs().format('YYYY-MM-DDTHH:mm');
-  }
-  
-  // First, ensure we're working with a UTC date
-  const utcDate = typeof date === 'string' ?
-    // For string dates (from DB), they're already in UTC
-    dayjs.utc(date) :
-    // For Date objects, convert to UTC
-    dayjs(date).utc();
-    
-  // Convert UTC to local time for display
-  const localDate = utcDate.local();
-  
-  // Format for datetime-local input (YYYY-MM-DDThh:mm)
-  return localDate.format('YYYY-MM-DDTHH:mm');
-};
 
 /**
  * Format a datetime-local input value to UTC ISO string for storage
