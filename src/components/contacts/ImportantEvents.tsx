@@ -145,8 +145,7 @@ export const ImportantEvents = ({
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">
-                    {getEventTypeDisplay(event.type)}
-                    {event.type === 'custom' && `: ${event.name}`}
+                    {getEventTypeDisplay(event.type, event.name)}
                   </h3>
                   <p className="text-sm text-gray-500">
                     {/* Show month, day and time in local timezone */}

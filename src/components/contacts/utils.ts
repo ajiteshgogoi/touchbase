@@ -234,11 +234,13 @@ export const sortEventsByType = (events: any[]): any[] => {
   );
 };
 
-export const getEventTypeDisplay = (type: string): string => {
+export const getEventTypeDisplay = (type: string, customName?: string | null): string => {
+  if (type === 'custom' && customName) {
+    return customName;
+  }
   const typeMap: Record<string, string> = {
     birthday: 'Birthday',
-    anniversary: 'Anniversary',
-    custom: 'Custom Event'
+    anniversary: 'Anniversary'
   };
   return typeMap[type] || type;
 };

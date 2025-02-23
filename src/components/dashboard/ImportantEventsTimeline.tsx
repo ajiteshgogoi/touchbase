@@ -111,7 +111,7 @@ export const ImportantEventsTimeline = () => {
                           {contactName}
                         </Link>
                         <p className="text-sm text-gray-500">
-                          {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
+                          {getEventTypeDisplay(event.type, event.name)}
                         </p>
                         <p className="text-xs text-gray-400">
                           {formatEventDate(event.date)}
