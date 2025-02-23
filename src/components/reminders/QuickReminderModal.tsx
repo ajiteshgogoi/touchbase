@@ -4,6 +4,7 @@ import { contactsService } from '../../services/contacts';
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon, CalendarIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
+import { formatEventToUTC } from '../contacts/utils';
 import type { Contact } from '../../lib/supabase/types';
 
 interface QuickReminderModalProps {
@@ -70,7 +71,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
       await contactsService.addQuickReminder({
         contact_id: selectedContact,
         name: name.trim(),
-        due_date: dayjs(date).format(), // Convert to ISO string
+        due_date: formatEventToUTC(date), // Convert to UTC with standardized time
         type: 'message', // Default to message type for quick reminders
       });
       
