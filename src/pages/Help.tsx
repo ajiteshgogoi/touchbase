@@ -57,7 +57,11 @@ export const Help = () => {
                   <li>Add their phone number and/or social media handle (optional)</li>
                   <li>Set your preferred contact method and frequency</li>
                   <li>Use the relationship closeness slider to indicate how close you are</li>
+                  <li>Add important recurring events (birthdays, anniversaries, etc.)</li>
                   <li>Add personal notes to help maintain the relationship</li>
+                  <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
+                    <strong>Pro Tip:</strong> You can add up to 5 important events per contact, including one birthday and one anniversary. Custom events give you flexibility to track any recurring date that matters to your relationship.
+                  </p>
                 </ol>
               </div>
             </div>
