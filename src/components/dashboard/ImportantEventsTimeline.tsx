@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { CalendarDaysIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import { contactsService } from '../../services/contacts';
 import { formatEventDate, getEventTypeDisplay, getNextOccurrence } from '../contacts/utils';
@@ -64,29 +63,32 @@ export const ImportantEventsTimeline = () => {
 
   if (!upcomingEvents?.length) {
     return (
-      <div className="bg-white rounded-xl shadow-soft p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="p-2 bg-primary-50 rounded-lg">
-            <CalendarDaysIcon className="h-5 w-5 text-primary-600" />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900">Important Events</h2>
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Important Events</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Upcoming events for your contacts
+          </p>
         </div>
-        <p className="text-sm text-gray-500">No upcoming important events</p>
+        <div className="bg-white rounded-xl shadow-soft">
+          <div className="p-4">
+            <p className="text-sm text-gray-500">No upcoming important events</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-soft">
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 bg-primary-50 rounded-lg">
-            <CalendarDaysIcon className="h-5 w-5 text-primary-600" />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900">Important Events</h2>
-        </div>
-
-        <div className="space-y-8">
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">Important Events</h2>
+        <p className="mt-1 text-sm text-gray-600">
+          Upcoming events for your contacts
+        </p>
+      </div>
+      <div className="bg-white rounded-xl shadow-soft">
+        <div className="p-4 space-y-8">
           {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
             <div key={month}>
               <h3 className="text-sm font-medium text-gray-500 mb-4">{month}</h3>
