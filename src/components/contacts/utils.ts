@@ -33,7 +33,12 @@ export const isValidSocialHandle = (handle: string): boolean => {
  * @returns Formatted date string in YYYY-MM-DDThh:mm format
  */
 export const formatLocalDateTime = (date: Date): string => {
-  return date.toISOString().slice(0, -8); // Remove seconds and timezone
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 /**
@@ -61,8 +66,23 @@ export const isValidEventName = (name: string | null): boolean => {
  * @param date - The date string from the form input
  * @returns ISO date string with standardized time
  */
-export const formatEventInputToISO = (date: string): string => {
-  return dayjs.utc(date).hour(12).minute(0).second(0).toISOString();
+export const formatEventInputToISO = (dateStr: string): string => {
+  // Parse the local datetime input value to a Date object
+  const localDate = new Date(dateStr);
+  
+  // Get the local hours and minutes from input
+  const hours = localDate.getHours();
+  const minutes = localDate.getMinutes();
+  
+  // Create UTC date preserving the local time
+  return dayjs.utc()
+    .year(localDate.getFullYear())
+    .month(localDate.getMonth())
+    .date(localDate.getDate())
+    .hour(hours)
+    .minute(minutes)
+    .second(0)
+    .toISOString();
 };
 
 /**

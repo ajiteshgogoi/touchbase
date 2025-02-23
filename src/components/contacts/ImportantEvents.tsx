@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventInputToISO } from './utils';
+import { isValidEventName, formatEventDate, getEventTypeDisplay, formatEventInputToISO, formatLocalDateTime } from './utils';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -172,13 +172,14 @@ export const ImportantEvents = ({
             </div>
             <div>
               <label htmlFor="event-date" className="block text-sm font-medium text-gray-700">
-                Date *
+                Event Date *
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 id="event-date"
                 required
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
+                defaultValue={formatLocalDateTime(new Date())}
               />
               <p className="mt-1 text-xs text-gray-500">
                 Events will recur yearly on this date
