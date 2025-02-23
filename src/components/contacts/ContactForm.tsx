@@ -35,23 +35,17 @@ export const ContactForm = () => {
   const [isValidating, setIsValidating] = useState(false);
   const isEditMode = Boolean(id);
 
-  // Fetch contact data in edit mode
-  const { data: contact, isLoading: isLoadingContact } = useQuery({
-    queryKey: ['contact', id],
-    queryFn: () => contactsService.getContact(id!),
+  // Fetch contact and events data together in edit mode
+  const { data: contactData, isLoading: isLoadingContact } = useQuery({
+    queryKey: ['contact-with-events', id],
+    queryFn: () => contactsService.getContactWithEvents(id!),
     enabled: isEditMode,
   });
 
-  // Fetch important events in edit mode
-  const { data: importantEvents } = useQuery({
-    queryKey: ['important-events', id],
-    queryFn: () => contactsService.getImportantEvents(id!),
-    enabled: isEditMode,
-  });
-
-  // Update form data when contact and events are loaded
+  // Update form data when contact and events are loaded together
   useEffect(() => {
-    if (contact) {
+    if (contactData?.contact) {
+      const contact = contactData.contact;
       setFormData({
         name: contact.name,
         phone: contact.phone || '',
@@ -66,28 +60,15 @@ export const ContactForm = () => {
         ai_last_suggestion: contact.ai_last_suggestion,
         ai_last_suggestion_date: contact.ai_last_suggestion_date,
         missed_interactions: contact.missed_interactions,
-        important_events: [] // Will be populated when events are loaded
+        important_events: contactData.events.map(event => ({
+          id: event.id,
+          type: event.type as ImportantEventFormData['type'],
+          name: event.name,
+          date: formatEventForInput(event.date)
+        }))
       });
     }
-  }, [contact]);
-
-  // Update important events when loaded
-  useEffect(() => {
-    if (importantEvents) {
-      setFormData(current => ({
-        ...current,
-        important_events: importantEvents.map(event => {
-          // Always format dates without timezone for datetime-local inputs
-          return {
-            id: event.id,
-            type: event.type as ImportantEventFormData['type'],
-            name: event.name,
-            date: formatEventForInput(event.date)
-          };
-        })
-      }));
-    }
-  }, [importantEvents]);
+  }, [contactData]);
 
   // Update user_id when user changes
   useEffect(() => {
@@ -133,7 +114,7 @@ export const ContactForm = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      queryClient.invalidateQueries({ queryKey: ['important-events'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
       navigate(-1);
     },
   });
@@ -176,7 +157,8 @@ export const ContactForm = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      queryClient.invalidateQueries({ queryKey: ['important-events'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
+      queryClient.invalidateQueries({ queryKey: ['important-events'] }); // Keep this for other components that may use it
       navigate(-1);
     },
   });

@@ -49,6 +49,29 @@ export const contactsService = {
     return data || [];
   },
 
+  async getContactWithEvents(id: string): Promise<{contact: Contact | null, events: ImportantEvent[]}> {
+    const [contactResult, eventsResult] = await Promise.all([
+      supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .single(),
+      supabase
+        .from('important_events')
+        .select('*')
+        .eq('contact_id', id)
+        .order('date')
+    ]);
+    
+    if (contactResult.error) throw contactResult.error;
+    if (eventsResult.error) throw eventsResult.error;
+    
+    return {
+      contact: contactResult.data,
+      events: eventsResult.data || []
+    };
+  },
+
   async getContact(id: string): Promise<Contact | null> {
     const { data, error } = await supabase
       .from('contacts')
