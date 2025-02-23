@@ -300,29 +300,31 @@ export const Contacts = () => {
               >
                 <div className="flex flex-col gap-4">
                   <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <div className="flex items-center gap-2">
+                    <div className="flex justify-between items-start">
+                      <div>
                         <h3 className="text-lg font-semibold text-primary-500">
                           {contact.name}
                         </h3>
-                        {/* Show upcoming event indicators */}
-                        {upcomingEventsMap[contact.id]?.map((event, idx) => (
-                          <div
-                            key={idx}
-                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full ${
-                              event.type === 'birthday' ? 'bg-pink-50' :
-                              event.type === 'anniversary' ? 'bg-rose-50' :
-                              'bg-purple-50'
-                            }`}
-                            title={`${getEventTypeDisplay(event.type)}${event.type === 'custom' ? `: ${event.name}` : ''} - ${formatEventDate(event.date)}`}
-                          >
-                            {event.type === 'birthday' ? <CakeIcon className="h-3 w-3 text-pink-500" /> :
-                             event.type === 'anniversary' ? <HeartIcon className="h-3 w-3 text-rose-500" /> :
-                             <StarIcon className="h-3 w-3 text-purple-500" />}
-                          </div>
-                        ))}
+                        {/* Important event icons */}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {upcomingEventsMap[contact.id]?.map((event, idx) => (
+                            <div
+                              key={idx}
+                              title={`${getEventTypeDisplay(event.type)}${event.type === 'custom' ? `: ${event.name}` : ''} - ${formatEventDate(event.date)}`}
+                              className={`p-1 rounded-full ${
+                                event.type === 'birthday' ? 'bg-pink-50 text-pink-500 hover:bg-pink-100' :
+                                event.type === 'anniversary' ? 'bg-rose-50 text-rose-500 hover:bg-rose-100' :
+                                'bg-purple-50 text-purple-500 hover:bg-purple-100'
+                              } transition-colors cursor-default`}
+                            >
+                              {event.type === 'birthday' ? <CakeIcon className="h-4 w-4" /> :
+                               event.type === 'anniversary' ? <HeartIcon className="h-4 w-4" /> :
+                               <StarIcon className="h-4 w-4" />}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex gap-2">
                         <Link
                           to={`/contacts/${contact.id}/edit`}
                           state={{ from: '/contacts' }}
