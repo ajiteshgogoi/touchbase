@@ -30,9 +30,11 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
   });
 
   // Filter contacts based on search query
-  const filteredContacts = contacts?.filter(contact => 
-    contact.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredContacts = contacts
+    ?.filter(contact =>
+      contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const selectedContactName = contacts?.find(c => c.id === selectedContact)?.name;
 
