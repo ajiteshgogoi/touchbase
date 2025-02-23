@@ -10,7 +10,7 @@ import { ContactPreferences } from './ContactPreferences';
 import { PersonalNotes } from './PersonalNotes';
 import { ImportantEvents } from './ImportantEvents';
 import { ContactFormData, FormErrors, ImportantEventFormData } from './types';
-import { initialFormData, initialErrors } from './utils';
+import { initialFormData, initialErrors, formatEventForInput } from './utils';
 
 /**
  * ContactForm component for creating and editing contacts
@@ -74,7 +74,7 @@ export const ContactForm = () => {
           id: event.id,
           type: event.type as ImportantEventFormData['type'],
           name: event.name,
-          date: event.date
+          date: formatEventForInput(event.date) // Format date for input display
         }))
       }));
     }

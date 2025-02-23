@@ -140,6 +140,15 @@ export const formatEventDate = (date: string): string => {
 };
 
 /**
+ * Format an ISO date string for datetime-local input
+ * @param date - ISO date string
+ * @returns Formatted date string in YYYY-MM-DDThh:mm format
+ */
+export const formatEventForInput = (date: string): string => {
+  return dayjs(date).format('YYYY-MM-DDTHH:mm');
+};
+
+/**
  * Initial state for a new contact form
  * Sets default values for all required fields
  */

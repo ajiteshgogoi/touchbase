@@ -65,7 +65,7 @@ export const ImportantEvents = ({
       return;
     }
 
-    // Format date to ISO string with standardized time (noon UTC)
+    // Convert the input datetime back to ISO format for storage
     const date = formatEventInputToISO(rawDate);
 
     // Add the new event
@@ -174,6 +174,7 @@ export const ImportantEvents = ({
               <label htmlFor="event-date" className="block text-sm font-medium text-gray-700">
                 Event Date *
               </label>
+              {/* Display existing event date if in edit mode */}
               <input
                 type="datetime-local"
                 id="event-date"
