@@ -213,11 +213,18 @@ export const contactsService = {
       contact.last_contacted ? new Date(contact.last_contacted) : null
     );
 
-    // Find next important event date (if any)
-    const today = new Date();
+    // Find next important event date considering yearly recurrence
+    const today = dayjs().startOf('day');
     const nextImportantEvent = importantEvents
-      .map(event => new Date(event.date))
-      .filter(date => date > today)
+      .map(event => {
+        // Use the same logic as getNextOccurrence
+        let eventDate = dayjs.utc(event.date).startOf('day');
+        eventDate = eventDate.year(today.year());
+        if (eventDate.isBefore(today)) {
+          eventDate = eventDate.add(1, 'year');
+        }
+        return eventDate.toDate();
+      })
       .sort((a, b) => a.getTime() - b.getTime())[0];
 
     // Use the earlier of regular due date and next important event

@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { CalendarDaysIcon } from '@heroicons/react/24/outline';
+import dayjs from 'dayjs';
 import { contactsService } from '../../services/contacts';
-import { formatEventDate, getEventTypeDisplay } from '../contacts/utils';
+import { formatEventDate, getEventTypeDisplay, getNextOccurrence } from '../contacts/utils';
 import type { Contact, ImportantEvent } from '../../lib/supabase/types';
 
 /**
@@ -28,15 +29,19 @@ export const ImportantEventsTimeline = () => {
     return contacts?.find(c => c.id === contactId)?.name || 'Unknown';
   };
 
-  // Filter and sort upcoming events
+  // Filter and sort upcoming events using yearly recurrence logic
   const upcomingEvents = events
-    ?.filter(event => new Date(event.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    ?.map(event => ({
+      ...event,
+      nextOccurrence: dayjs(getNextOccurrence(event.date)).toDate()
+    }))
+    .filter(event => event.nextOccurrence >= new Date())
+    .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime())
     .slice(0, 10); // Show only next 10 events
 
-  // Group events by month
+  // Group events by month using next occurrence date
   const groupedEvents = upcomingEvents?.reduce((groups, event) => {
-    const date = new Date(event.date);
+    const date = event.nextOccurrence;
     const month = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     if (!groups[month]) {
       groups[month] = [];
