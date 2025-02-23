@@ -94,7 +94,8 @@ export const formatEventInputToISO = (dateStr: string): string => {
  */
 export const isUpcomingEvent = (eventDate: string, daysThreshold: number = 7): boolean => {
   const today = dayjs().startOf('day');
-  let event = dayjs.utc(eventDate);
+  // Parse the date and ensure we're only using date component by using startOf('day')
+  let event = dayjs.utc(eventDate).startOf('day');
   
   // Set event to this year, maintaining the month and day
   event = event.year(today.year());
@@ -116,7 +117,8 @@ export const isUpcomingEvent = (eventDate: string, daysThreshold: number = 7): b
  */
 export const getNextOccurrence = (eventDate: string): string => {
   const today = dayjs().startOf('day');
-  let event = dayjs.utc(eventDate);
+  // Parse the date and ensure we're only using date component
+  let event = dayjs.utc(eventDate).startOf('day');
   
   // Set event to this year, maintaining the month and day
   event = event.year(today.year());
@@ -126,7 +128,7 @@ export const getNextOccurrence = (eventDate: string): string => {
     event = event.add(1, 'year');
   }
   
-  return event.toISOString();
+  return event.format('YYYY-MM-DD');
 };
 
 /**
@@ -140,11 +142,11 @@ export const formatEventDate = (date: string): string => {
     // For dates with timezone info, parse as UTC first
     if (date.includes('+') || date.includes('Z')) {
       const localDate = dayjs.utc(date).local();
-      return localDate.format('MMMM D [at] h:mm A');
+      return localDate.format('MMMM D');
     }
     
     // For dates without timezone, parse directly
-    return dayjs(date).format('MMMM D [at] h:mm A');
+    return dayjs(date).format('MMMM D');
   } catch (error) {
     console.error('Error formatting event date:', error);
     return 'Invalid date';
@@ -190,18 +192,17 @@ export const formatEventToUTC = (localDate: string): string => {
   // Create a dayjs object from the local input
   const localDayjs = dayjs(localDate);
   
-  // Create a UTC date with the same components as the local date
-  // This preserves the local time while storing it in UTC
+  // Create UTC date with just the date components, standardize time to midnight
   const utcDate = dayjs.utc()
     .year(localDayjs.year())
     .month(localDayjs.month())
     .date(localDayjs.date())
-    .hour(localDayjs.hour())
-    .minute(localDayjs.minute())
+    .hour(0)
+    .minute(0)
     .second(0);
   
-  // Return without timezone suffix to match datetime-local input format
-  return utcDate.format('YYYY-MM-DDTHH:mm');
+  // Return just the date portion
+  return utcDate.format('YYYY-MM-DD');
 };
 
 /**
