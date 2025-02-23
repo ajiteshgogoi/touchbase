@@ -174,12 +174,13 @@ export const ImportantEvents = ({
               <label htmlFor="event-date" className="block text-sm font-medium text-gray-700">
                 Event Date *
               </label>
-              {/* Display existing event date if in edit mode */}
+              {/* Show stored date if editing, otherwise current time */}
               <input
                 type="datetime-local"
                 id="event-date"
                 required
-                defaultValue={formatEventForInput(new Date())}
+                defaultValue={formatEventForInput(dayjs().toDate())}
+                key={showNewEventForm ? 'new' : 'edit'} // Force re-render on form toggle
                 className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
               />
               <p className="mt-1 text-xs text-gray-500">

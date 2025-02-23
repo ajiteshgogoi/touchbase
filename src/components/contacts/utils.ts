@@ -136,10 +136,19 @@ export const getNextOccurrence = (eventDate: string): string => {
  * @returns Formatted date string (e.g., "March 15")
  */
 export const formatEventDate = (date: string): string => {
-  // Parse as UTC and convert to local time to respect user's timezone
-  // This matches the behavior in src/utils/date.ts formatDateWithTimezone
-  const localDate = dayjs.utc(date).local();
-  return localDate.format('MMMM D [at] h:mm A');
+  try {
+    // For dates with timezone info, parse as UTC first
+    if (date.includes('+') || date.includes('Z')) {
+      const localDate = dayjs.utc(date).local();
+      return localDate.format('MMMM D [at] h:mm A');
+    }
+    
+    // For dates without timezone, parse directly
+    return dayjs(date).format('MMMM D [at] h:mm A');
+  } catch (error) {
+    console.error('Error formatting event date:', error);
+    return 'Invalid date';
+  }
 };
 
 /**
@@ -156,9 +165,18 @@ export const formatEventForInput = (date: string | Date | null): string => {
     return dayjs().format('YYYY-MM-DDTHH:mm');
   }
   
-  // Parse the date (assuming UTC) and convert to local time
-  // Use local() to respect user's timezone
-  return dayjs.utc(date).local().format('YYYY-MM-DDTHH:mm');
+  // First, ensure we're working with a UTC date
+  const utcDate = typeof date === 'string' ?
+    // For string dates (from DB), they're already in UTC
+    dayjs.utc(date) :
+    // For Date objects, convert to UTC
+    dayjs(date).utc();
+    
+  // Convert UTC to local time for display
+  const localDate = utcDate.local();
+  
+  // Format for datetime-local input (YYYY-MM-DDThh:mm)
+  return localDate.format('YYYY-MM-DDTHH:mm');
 };
 
 /**
@@ -169,14 +187,20 @@ export const formatEventForInput = (date: string | Date | null): string => {
  * @returns Date string in ISO format
  */
 export const formatEventToUTC = (localDate: string): string => {
-  // Parse the local input and create UTC date
+  // Create a dayjs object from the local input
   const localDayjs = dayjs(localDate);
   
-  // Convert to UTC while preserving the local time components
-  const utcDate = localDayjs.utc();
+  // Create a UTC date with the same components as the local date
+  // This preserves the local time while storing it in UTC
+  const utcDate = dayjs.utc()
+    .year(localDayjs.year())
+    .month(localDayjs.month())
+    .date(localDayjs.date())
+    .hour(localDayjs.hour())
+    .minute(localDayjs.minute())
+    .second(0);
   
-  // Format for datetime-local input (YYYY-MM-DDThh:mm)
-  // This matches the expected format and maintains timezone awareness
+  // Return without timezone suffix to match datetime-local input format
   return utcDate.format('YYYY-MM-DDTHH:mm');
 };
 
@@ -188,8 +212,19 @@ export const formatEventToUTC = (localDate: string): string => {
  * @returns Date string in YYYY-MM-DDThh:mm format for datetime-local input
  */
 export const formatStoredEventForInput = (storedDate: string): string => {
-  // Convert from UTC to local and format without timezone info
-  return dayjs.utc(storedDate).local().format('YYYY-MM-DD[T]HH:mm');
+  try {
+    // For dates with timezone info, parse as UTC first
+    if (storedDate.includes('+') || storedDate.includes('Z')) {
+      return dayjs.utc(storedDate).local().format('YYYY-MM-DDTHH:mm');
+    }
+    
+    // For dates without timezone (already in YYYY-MM-DDThh:mm format)
+    return dayjs(storedDate).format('YYYY-MM-DDTHH:mm');
+  } catch (error) {
+    // If there's any parsing error, return current time
+    console.error('Error parsing stored date:', error);
+    return dayjs().format('YYYY-MM-DDTHH:mm');
+  }
 };
 
 /**
