@@ -206,9 +206,9 @@ export const RecentContacts = () => {
                        <span className="inline-flex items-baseline">
                          <span className="text-gray-700 font-medium">Closeness:</span> <div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ml-1.5 translate-y-[0.5px] ${
                            contact.relationship_level === 1 ? 'bg-red-400' :
-                           contact.relationship_level === 2 ? 'bg-[#f87171]' :
-                           contact.relationship_level === 3 ? 'bg-[#fbbf24]' :
-                           contact.relationship_level === 4 ? 'bg-[#34d399]' :
+                           contact.relationship_level === 2 ? 'bg-orange-400' :
+                           contact.relationship_level === 3 ? 'bg-yellow-400' :
+                           contact.relationship_level === 4 ? 'bg-lime-400' :
                            'bg-green-400'
                          }`}></div>
                        </span>
