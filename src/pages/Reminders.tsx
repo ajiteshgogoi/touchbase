@@ -182,9 +182,12 @@ export const Reminders = () => {
                         <div className="min-w-0">
                           <div className="space-y-2.5">
                             <div className="space-y-2 text-sm">
-                              <span className="text-lg font-semibold text-primary-500 block">
+                              <Link
+                                to={`/contacts#${reminder.contact_id}`}
+                                className="text-lg font-semibold text-primary-500 block hover:text-primary-600"
+                              >
                                 {contact?.name || 'Unknown'}
-                              </span>
+                              </Link>
                               {/* Show important events badges */}
                               {events.length > 0 && (
                                 <div className="flex flex-wrap items-center gap-2 -ml-2">
@@ -311,9 +314,12 @@ export const Reminders = () => {
                         <div className="min-w-0">
                           <div className="space-y-2.5">
                             <div className="space-y-2 text-sm">
-                              <span className="text-lg font-semibold text-primary-500 block">
+                              <Link
+                                to={`/contacts#${reminder.contact_id}`}
+                                className="text-lg font-semibold text-primary-500 block hover:text-primary-600"
+                              >
                                 {contact?.name || 'Unknown'}
-                              </span>
+                              </Link>
                               {/* Show important events badges */}
                               {events.length > 0 && (
                                 <div className="flex flex-wrap items-center gap-2 -ml-2">
