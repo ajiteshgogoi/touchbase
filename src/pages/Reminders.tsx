@@ -187,6 +187,8 @@ const [quickReminder, setQuickReminder] = useState<{
                     <div
                       key={reminder.id}
                       className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
+                        reminder.name ? 'border-l-4 border-primary-500 ' : ''
+                      }${
                         events.length > 0 ? `ring-2 ${
                           events[0]?.type === 'birthday' ? 'ring-pink-300' :
                           events[0]?.type === 'anniversary' ? 'ring-rose-300' :
@@ -222,6 +224,14 @@ const [quickReminder, setQuickReminder] = useState<{
                                 </div>
                               )}
                             </div>
+                            {reminder.name && (
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                <span>
+                                  <span className="text-gray-700 font-medium">Quick Reminder:</span>{' '}
+                                  <span className="text-gray-600">{reminder.name}</span>
+                                </span>
+                              </div>
+                            )}
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span>
                                 <span className="text-gray-700 font-medium">Contact due:</span>{' '}
@@ -261,18 +271,36 @@ const [quickReminder, setQuickReminder] = useState<{
                           </div>
                         </div>
                         <div className="flex items-center justify-start gap-2 w-full">
-                          <button
-                            onClick={() => setQuickInteraction({
-                              isOpen: true,
-                              contactId: reminder.contact_id,
-                              contactName: contact?.name || 'Unknown',
-                              type: reminder.type
-                            })}
-                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                            title="Log an interaction"
-                          >
-                            Log Interaction
-                          </button>
+                          {reminder.name ? (
+                            <button
+                              onClick={async () => {
+                                if (confirm('Mark this quick reminder as complete?')) {
+                                  try {
+                                    await contactsService.completeQuickReminder(reminder.id);
+                                  } catch (error) {
+                                    console.error('Error completing quick reminder:', error);
+                                  }
+                                }
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="Complete quick reminder"
+                            >
+                              Complete
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setQuickInteraction({
+                                isOpen: true,
+                                contactId: reminder.contact_id,
+                                contactName: contact?.name || 'Unknown',
+                                type: reminder.type
+                              })}
+                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="Log an interaction"
+                            >
+                              Log Interaction
+                            </button>
+                          )}
                           {(isPremium || isOnTrial) ? (
                             <Link
                               to={`/contacts/${reminder.contact_id}/interactions`}
@@ -319,6 +347,8 @@ const [quickReminder, setQuickReminder] = useState<{
                     <div
                       key={reminder.id}
                       className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
+                        reminder.name ? 'border-l-4 border-primary-500 ' : ''
+                      }${
                         events.length > 0 ? `ring-2 ${
                           events[0]?.type === 'birthday' ? 'ring-pink-300' :
                           events[0]?.type === 'anniversary' ? 'ring-rose-300' :
@@ -354,6 +384,14 @@ const [quickReminder, setQuickReminder] = useState<{
                                 </div>
                               )}
                             </div>
+                            {reminder.name && (
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                <span>
+                                  <span className="text-gray-700 font-medium">Quick Reminder:</span>{' '}
+                                  <span className="text-gray-600">{reminder.name}</span>
+                                </span>
+                              </div>
+                            )}
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span>
                                 <span className="text-gray-700 font-medium">Contact due:</span>{' '}
@@ -393,18 +431,36 @@ const [quickReminder, setQuickReminder] = useState<{
                           </div>
                         </div>
                         <div className="flex items-center justify-start gap-2 w-full">
-                          <button
-                            onClick={() => setQuickInteraction({
-                              isOpen: true,
-                              contactId: reminder.contact_id,
-                              contactName: contact?.name || 'Unknown',
-                              type: reminder.type
-                            })}
-                            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                            title="Log an interaction"
-                          >
-                            Log Interaction
-                          </button>
+                          {reminder.name ? (
+                            <button
+                              onClick={async () => {
+                                if (confirm('Mark this quick reminder as complete?')) {
+                                  try {
+                                    await contactsService.completeQuickReminder(reminder.id);
+                                  } catch (error) {
+                                    console.error('Error completing quick reminder:', error);
+                                  }
+                                }
+                              }}
+                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="Complete quick reminder"
+                            >
+                              Complete
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setQuickInteraction({
+                                isOpen: true,
+                                contactId: reminder.contact_id,
+                                contactName: contact?.name || 'Unknown',
+                                type: reminder.type
+                              })}
+                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                              title="Log an interaction"
+                            >
+                              Log Interaction
+                            </button>
+                          )}
                           {(isPremium || isOnTrial) ? (
                             <Link
                               to={`/contacts/${reminder.contact_id}/interactions`}

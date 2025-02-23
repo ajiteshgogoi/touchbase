@@ -483,6 +483,36 @@ export const contactsService = {
    * Add a quick reminder that is not tied to recurring contact schedules
    * These reminders are one-time only and are removed once completed
    */
+  /**
+   * Complete a quick reminder without logging an interaction
+   * Unlike regular reminders which are completed via interactions,
+   * quick reminders are simply marked as completed and then deleted
+   */
+  async completeQuickReminder(id: string): Promise<void> {
+    // First verify this is a quick reminder (has a name field)
+    const { data: reminder, error: fetchError } = await supabase
+      .from('reminders')
+      .select('name')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!reminder?.name) {
+      throw new Error('Cannot complete a regular reminder directly. Log an interaction instead.');
+    }
+
+    // Delete the quick reminder
+    const { error: deleteError } = await supabase
+      .from('reminders')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) throw deleteError;
+
+    // Invalidate reminders cache
+    getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+  },
+
   async addQuickReminder(reminder: QuickReminderInput): Promise<Reminder> {
     const contact = await this.getContact(reminder.contact_id);
     if (!contact) throw new Error('Contact not found');
