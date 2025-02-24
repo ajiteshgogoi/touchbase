@@ -74,7 +74,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Simple & Personal</h3>
-            <p className="text-gray-600/90 leading-relaxed">Track meaningful interactions with your loved ones in one unified space</p>
+            <p className="text-gray-600/90 leading-relaxed">Track important interactions with your loved ones in one space</p>
           </div>
           
           <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-300">
@@ -94,7 +94,7 @@ export const Login = () => {
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Helpful Assistant</h3>
-            <p className="text-gray-600/90 leading-relaxed">Get personalised suggestions to make every conversation count</p>
+            <p className="text-gray-600/90 leading-relaxed">Personalised suggestions to make every conversation meaningful</p>
           </div>
         </div>
       </div>
