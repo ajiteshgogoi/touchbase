@@ -298,16 +298,28 @@ export const Contacts = () => {
                 id={contact.id}
                 className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow scroll-mt-6"
               >
-                <div className="flex flex-col gap-4">
-                  <div className="min-w-0">
+                <div className="flex flex-col gap-4 divide-y divide-gray-100">
+                  <div className="min-w-0 pb-3">
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="space-y-1">
                         <h3 className="text-lg font-semibold text-primary-500">
                           {contact.name}
                         </h3>
-
+                        {/* Inline status indicator */}
+                        <div className="flex items-center text-sm text-gray-500">
+                          <div className={`w-2 h-2 rounded-full mr-2 ${
+                            contact.relationship_level === 1 ? 'bg-red-400' :
+                            contact.relationship_level === 2 ? 'bg-orange-400' :
+                            contact.relationship_level === 3 ? 'bg-yellow-400' :
+                            contact.relationship_level === 4 ? 'bg-lime-400' :
+                            'bg-green-400'
+                          }`}></div>
+                          {contact.contact_frequency && (
+                            <span>{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)} contact</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 ml-4">
                         <Link
                           to={`/contacts/${contact.id}/edit`}
                           state={{ from: '/contacts' }}
@@ -325,145 +337,141 @@ export const Contacts = () => {
                         </button>
                       </div>
                     </div>
-                    <div className="mt-3 space-y-2.5">
-                      {/* Contact details line */}
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                    <div className="mt-4">
+                      {/* Contact details section */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600 mb-4">
                         {contact.phone && (
-                          <span className="inline-flex items-center">
-                            <PhoneIcon className="h-4 w-4 mr-1.5 text-green-500 flex-shrink-0" />
+                          <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
+                            <PhoneIcon className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />
                             <span className="truncate leading-5">{contact.phone}</span>
-                          </span>
+                          </div>
                         )}
                         {contact.social_media_handle && (
-                          <span className="inline-flex items-center">
-                            <AtSymbolIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                          <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
+                            <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500 flex-shrink-0" />
                             <span className="truncate leading-5">{contact.social_media_handle}</span>
-                          </span>
+                          </div>
                         )}
                       </div>
                       
-                      {/* Events line */}
+                      {/* Events section */}
                       {(eventsMap[contact.id] || []).length > 0 && (
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
-                            <span key={idx} className="inline-flex items-center">
-                              {event.type === 'birthday' ? (
-                                <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
-                              ) : event.type === 'anniversary' ? (
-                                <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
-                              ) : (
-                                <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
-                              )}
-                              <span className="text-gray-700 font-medium">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
-                              <span className="text-gray-600">{formatEventDate(event.date)}</span>
-                            </span>
-                          ))}
+                        <div className="mb-4 px-3 py-2 bg-gray-50 rounded-lg">
+                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Important Dates</div>
+                          <div className="flex flex-wrap gap-3 text-sm">
+                            {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
+                              <span key={idx} className="inline-flex items-center">
+                                {event.type === 'birthday' ? (
+                                  <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                                ) : event.type === 'anniversary' ? (
+                                  <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
+                                ) : (
+                                  <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
+                                )}
+                                <span className="text-gray-700 font-medium">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
+                                <span className="text-gray-600">{formatEventDate(event.date)}</span>
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
                       
-                      {/* Other details line */}
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        <span>
-                          <span className="text-gray-700 font-medium">Last contacted:</span>{' '}
-                          <span className="text-gray-600">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
-                        </span>
-                        <span>
-                          <span className="text-gray-700 font-medium">Next contact due:</span>{' '}
-                          <span className="text-gray-600">{contactsService.formatDueDate(contact.next_contact_due)}</span>
-                        </span>
-                        <span className="inline-flex items-baseline">
-                          <span className="text-gray-700 font-medium">Closeness:</span> <div className={`inline-flex items-center justify-center w-2.5 h-2.5 rounded-full ml-1.5 translate-y-[0.5px] ${
-                            contact.relationship_level === 1 ? 'bg-red-400' :
-                            contact.relationship_level === 2 ? 'bg-orange-400' :
-                            contact.relationship_level === 3 ? 'bg-yellow-400' :
-                            contact.relationship_level === 4 ? 'bg-lime-400' :
-                            'bg-green-400'
-                          }`}></div>
-                        </span>
-                        {contact.contact_frequency && (
-                          <span>
-                            <span className="text-gray-700 font-medium">Preferred frequency:</span>{' '}
-                            <span className="text-gray-600">{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)}</span>
-                          </span>
-                        )}
-                        {contact.ai_last_suggestion && (
-                          <span>
-                            <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                            <span className="text-gray-600 whitespace-pre-line">
-                              {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                                <div className="p-4 bg-gray-50 rounded-lg">
-                                  <span className="text-sm text-gray-600">
-                                    ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="group inline-flex items-start gap-1">
-                                  <span className="flex-1">
-                                    {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
-                                  </span>
-                                  <button
-                                    onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
-                                    className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
-                                    title="Report inappropriate suggestion"
-                                  >
-                                    <FlagIcon className="h-4 w-4" />
-                                  </button>
+                      {/* Contact status section */}
+                      <div className="mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="flex flex-col px-3 py-2 bg-gray-50 rounded-lg">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Last Contact</span>
+                            <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                          </div>
+                          <div className="flex flex-col px-3 py-2 bg-gray-50 rounded-lg">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Next Contact Due</span>
+                            <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* AI Suggestions section */}
+                      {contact.ai_last_suggestion && (
+                        <div className="bg-gray-50 rounded-lg overflow-hidden">
+                          <div className="px-3 py-2 bg-gray-100">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
+                          </div>
+                          <div className="px-3 py-2">
+                            {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">
+                                  ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
                                 </span>
-                              )}
-                            </span>
-                          </span>
+                              </div>
+                            ) : (
+                              <div className="group flex items-start gap-2">
+                                <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                                  {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                </span>
+                                <button
+                                  onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
+                                  className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                                  title="Report inappropriate suggestion"
+                                >
+                                  <FlagIcon className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      </div>
+                    </div>
+                    <div className="pt-3">
+                      <div className="flex items-center justify-start gap-2 w-full">
+                        <button
+                          onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                          title="Log an interaction"
+                        >
+                          Log Interaction
+                        </button>
+                        {(isPremium || isOnTrial) ? (
+                          <Link
+                            to={`/contacts/${contact.id}/interactions`}
+                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="View interaction history"
+                          >
+                            View History
+                          </Link>
+                        ) : (
+                          <Link
+                            to={`/contacts/${contact.id}/interactions`}
+                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                            title="Upgrade to view interaction history"
+                          >
+                            View History
+                          </Link>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-start gap-2 w-full mt-3">
-                    <button
-                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                      title="Log an interaction"
-                    >
-                      Log Interaction
-                    </button>
-                    {(isPremium || isOnTrial) ? (
-                      <Link
-                        to={`/contacts/${contact.id}/interactions`}
-                        className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
-                        title="View interaction history"
-                      >
-                        View History
-                      </Link>
-                    ) : (
-                      <Link
-                        to={`/contacts/${contact.id}/interactions`}
-                        className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
-                        title="Upgrade to view interaction history"
-                      >
-                        View History
-                      </Link>
-                    )}
-                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
+        {quickInteraction && (
+          <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
+            <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
+          </div>}>
+            <QuickInteraction
+              isOpen={quickInteraction.isOpen}
+              onClose={() => setQuickInteraction(null)}
+              contactId={quickInteraction.contactId}
+              contactName={quickInteraction.contactName}
+              defaultType={quickInteraction.type}
+              onSuccess={refetchContacts}
+            />
+          </Suspense>
+        )}
       </div>
-      {quickInteraction && (
-        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
-          <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
-        </div>}>
-          <QuickInteraction
-            isOpen={quickInteraction.isOpen}
-            onClose={() => setQuickInteraction(null)}
-            contactId={quickInteraction.contactId}
-            contactName={quickInteraction.contactName}
-            defaultType={quickInteraction.type}
-            onSuccess={refetchContacts}
-          />
-        </Suspense>
-      )}
-    </div>
-  );
-};
+    );
+  };
 
-export default Contacts;
+  export default Contacts;
