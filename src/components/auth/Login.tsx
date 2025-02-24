@@ -101,7 +101,7 @@ export const Login = () => {
 
       <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/80 backdrop-blur-sm border border-gray-100/50">
         <p className="text-[15px] text-gray-600/90 leading-relaxed">
-          TouchBase is your personal tool for nurturing real-world relationships. Unlike social networks, we focus on helping you strengthen your existing social connections.
+        TouchBase is your private space for nurturing real-world relationships. We're not a social network.
         </p>
       </div>
 
