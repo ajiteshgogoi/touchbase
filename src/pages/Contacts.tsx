@@ -356,22 +356,26 @@ export const Contacts = () => {
                       
                       {/* Events section */}
                       {(eventsMap[contact.id] || []).length > 0 && (
-                        <div className="mb-4 px-3 py-2 bg-gray-50 rounded-lg">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Important Dates</div>
-                          <div className="flex flex-wrap gap-3 text-sm">
-                            {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
-                              <span key={idx} className="inline-flex items-center">
-                                {event.type === 'birthday' ? (
-                                  <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
-                                ) : event.type === 'anniversary' ? (
-                                  <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
-                                ) : (
-                                  <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
-                                )}
-                                <span className="text-gray-700 font-medium">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
-                                <span className="text-gray-600">{formatEventDate(event.date)}</span>
-                              </span>
-                            ))}
+                        <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                          <div className="px-3 py-2 bg-gray-100">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
+                          </div>
+                          <div className="px-3 py-2">
+                            <div className="flex flex-wrap gap-3 text-sm">
+                              {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
+                                <span key={idx} className="inline-flex items-center">
+                                  {event.type === 'birthday' ? (
+                                    <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                                  ) : event.type === 'anniversary' ? (
+                                    <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
+                                  ) : (
+                                    <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
+                                  )}
+                                  <span className="text-gray-700 font-medium">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
+                                  <span className="text-gray-600">{formatEventDate(event.date)}</span>
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -379,13 +383,21 @@ export const Contacts = () => {
                       {/* Contact status section */}
                       <div className="mb-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="flex flex-col px-3 py-2 bg-gray-50 rounded-lg">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Last Contacted</span>
-                            <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                          <div className="bg-gray-50 rounded-lg overflow-hidden">
+                            <div className="px-3 py-2 bg-gray-100">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted</span>
+                            </div>
+                            <div className="px-3 py-2">
+                              <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                            </div>
                           </div>
-                          <div className="flex flex-col px-3 py-2 bg-gray-50 rounded-lg">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Next Contact Due</span>
-                            <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                          <div className="bg-gray-50 rounded-lg overflow-hidden">
+                            <div className="px-3 py-2 bg-gray-100">
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Contact Due</span>
+                            </div>
+                            <div className="px-3 py-2">
+                              <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
