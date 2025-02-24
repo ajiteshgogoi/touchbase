@@ -536,6 +536,16 @@ export const contactsService = {
 
     if (deleteError) throw deleteError;
 
+    // Delete corresponding important event if it exists
+    const { error: eventDeleteError } = await supabase
+      .from('important_events')
+      .delete()
+      .eq('contact_id', reminderData.contact_id)
+      .eq('type', 'custom')
+      .eq('name', reminderData.name);
+
+    if (eventDeleteError) throw eventDeleteError;
+
     // Get current time in user's timezone and convert to ISO string
     const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone })).toISOString();
     const { error: updateError } = await supabase
@@ -545,11 +555,10 @@ export const contactsService = {
 
     if (updateError) throw updateError;
 
-    // Recalculate next contact due date (it will get timezone from user preferences)
+    // Recalculate next contact due date and invalidate caches
     await this.recalculateNextContactDue(reminderData.contact_id);
-
-    // Invalidate reminders cache
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
   },
 
   async addQuickReminder(reminder: QuickReminderInput): Promise<Reminder> {
