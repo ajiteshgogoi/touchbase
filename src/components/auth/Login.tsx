@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../stores/useStore';
 import type { User } from '@supabase/supabase-js';
 import { initiateGoogleLogin } from '../../lib/auth/google';
+
 export const Login = () => {
   const navigate = useNavigate();
   const { user, setUser } = useStore();
@@ -52,51 +53,53 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-12 px-4">
-      <div className="text-center space-y-4 max-w-2xl">
-        <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-8 px-4 py-12">
+      <div className="text-center space-y-4 max-w-xl">
+        <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent">
           Welcome to TouchBase
         </h2>
-        <p className="text-xl sm:text-2xl text-gray-600">
+        <p className="text-xl sm:text-2xl text-gray-600/90 font-medium">
           Stay connected with the people who matter most
         </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 text-left">
-          <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
-            <div className="text-primary-500 mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </div>
+
+      <div className="max-w-4xl w-full px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+          <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-300">
+            <div className="text-primary-500/90 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Simple & Personal</h3>
-            <p className="text-gray-600">Track important interactions with your loved ones in one place</p>
+            <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Simple & Personal</h3>
+            <p className="text-gray-600/90 leading-relaxed">Track meaningful interactions with your loved ones in one unified space.</p>
           </div>
           
-          <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
-            <div className="text-primary-500 mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-300">
+            <div className="text-primary-500/90 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Timely Reminders</h3>
-            <p className="text-gray-600">Get gentle nudges to reconnect before life gets in the way</p>
+            <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Timely Reminders</h3>
+            <p className="text-gray-600/90 leading-relaxed">Get gentle nudges to reconnect before life gets in the way.</p>
           </div>
           
-          <div className="p-4 rounded-lg bg-white/50 backdrop-blur-sm border border-gray-100 shadow-sm">
-            <div className="text-primary-500 mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-300">
+            <div className="text-primary-500/90 mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800">Helpful Assistant</h3>
-            <p className="text-gray-600">Personalised suggestions to make every conversation meaningful</p>
+            <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Smart Assistant</h3>
+            <p className="text-gray-600/90 leading-relaxed">Get personalized suggestions to make every conversation count.</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-gradient-to-b from-white/50 to-white/30 backdrop-blur-sm px-12 py-10 rounded-2xl shadow-soft max-w-sm">
+      <div className="bg-white/70 backdrop-blur-xl px-12 py-8 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-all duration-300">
         {error && (
-          <div className="mb-4 p-3 text-sm text-red-700 bg-red-50 rounded-lg" role="alert">
+          <div className="mb-6 p-4 text-sm text-red-700 bg-red-50 rounded-xl" role="alert">
             {error}
           </div>
         )}
@@ -104,7 +107,7 @@ export const Login = () => {
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full h-[56px] flex items-center justify-center px-8 rounded-lg text-base font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-[56px] flex items-center justify-center px-8 rounded-xl text-base font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isLoading ? (
               <svg
@@ -148,17 +151,17 @@ export const Login = () => {
           {import.meta.env.DEV && (
             <button
               onClick={handleDevLogin}
-              className="w-full px-6 py-3 text-sm font-medium text-gray-700 bg-white hover:bg-primary-50 hover:border-primary-100 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+              className="w-full px-6 py-3 text-sm font-medium text-gray-700 bg-white hover:bg-primary-50 hover:border-primary-100 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
             >
               Development Mode Login
             </button>
           )}
         </div>
 
-        <p className="text-sm text-gray-500 text-center mt-6">
+        <p className="text-sm text-gray-500 text-center mt-6 leading-relaxed">
           By continuing, you agree to our{' '}
           <a href="/terms" className="text-primary-500 hover:text-primary-600 font-medium">
-           Terms of Service
+            Terms of Service
           </a>{' '}
           and{' '}
           <a href="/privacy" className="text-primary-500 hover:text-primary-600 font-medium">
@@ -167,16 +170,17 @@ export const Login = () => {
         </p>
       </div>
 
-      <div className="mt-12 text-center max-w-sm">
-        <p className="text-sm text-gray-600">
-          <img src="/icon.svg" alt="heart" className="inline-block w-5 h-5 text-primary-500 align-text-top -mt-[0.1px]" /> For the best experience, install TouchBase on your phone.{' '}
+      <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left text-sm text-gray-600 bg-white/60 backdrop-blur-sm px-6 py-3 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-all duration-300">
+        <img src="/icon.svg" alt="heart" className="w-5 h-5 text-primary-500" />
+        <span>
+          Install TouchBase on your phone for the best experience.{' '}
           <button
             onClick={() => setIsInstallModalOpen(true)}
             className="text-primary-500 hover:text-primary-600 font-medium"
           >
-            Click to learn how
+            Learn how
           </button>
-        </p>
+        </span>
       </div>
 
       <InstallModal
