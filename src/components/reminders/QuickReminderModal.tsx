@@ -2,7 +2,7 @@ import { Fragment, useState, useLayoutEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../../services/contacts';
-import { XMarkIcon, CalendarIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import { formatEventToUTC } from '../contacts/utils';
 import type { Contact } from '../../lib/supabase/types';
