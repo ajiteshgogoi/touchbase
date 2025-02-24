@@ -60,17 +60,20 @@ const ConversationPrompts: React.FC = () => {
 
       const result = await promptGenerator.generatePrompt(user.id);
       
-      // Set question immediately but keep loading state
+      // Keep loading state a bit longer for smooth transition
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Set question but keep it hidden with animation
       setQuestion(result.question);
       setIsFirstQuestion(false);
       setQuestionReceived(true);
-
-      // Keep loading state with slight overlap
-      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Remove loading and start fade-in
+      await new Promise(resolve => setTimeout(resolve, 100));
       setLoading(false);
-
-      // Allow animation to complete before removing animating state
-      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Complete the transition
+      await new Promise(resolve => setTimeout(resolve, 300));
       setIsAnimating(false);
     } catch (err: any) {
       console.error('Error generating question:', err);
@@ -109,7 +112,7 @@ const ConversationPrompts: React.FC = () => {
               <div className="relative z-10 w-full sm:w-[32rem] flex items-center justify-center px-4">
                 {loading && !questionReceived ? (
                   <div className="flex items-center justify-center max-w-xl mx-auto">
-                    <p className="text-primary-600/90 text-center text-base sm:text-lg font-[450] tracking-[-0.01em] transition-opacity duration-200">
+                    <p className="text-primary-600/90 text-center text-base sm:text-lg font-[450] tracking-[-0.01em] transition-all duration-200">
                       Generating question...
                     </p>
                   </div>
@@ -119,7 +122,7 @@ const ConversationPrompts: React.FC = () => {
                   </div>
                 ) : (
                   <div className="max-w-xl mx-auto w-full">
-                    <p className={`text-lg sm:text-xl font-[500] text-gray-800/90 text-center transition-all duration-300 leading-[1.4] tracking-[-0.01em] ${isAnimating ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'}`}>
+                    <p className={`text-lg sm:text-xl font-[500] text-primary-700/90 text-center transition-all duration-500 leading-[1.4] tracking-[-0.01em] ${isAnimating ? 'opacity-0 scale-[0.98] translate-y-2' : 'opacity-100 scale-100 translate-y-0'}`}>
                       {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
                     </p>
                   </div>
