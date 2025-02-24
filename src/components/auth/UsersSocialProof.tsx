@@ -92,7 +92,7 @@ export const UsersSocialProof = () => {
             <p className="text-[15px] leading-none text-gray-700 font-[450] text-center px-4">
               Join{' '}
               <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()}</span>
-              {' '}others improving their relationships
+              {' '}others improving their relationships...
             </p>
           )}
         </div>
