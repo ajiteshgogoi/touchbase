@@ -182,7 +182,7 @@ export const Help = () => {
         <div className="flex items-center justify-center w-full mb-8 relative">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -m-2 text-gray-400 hover:text-gray-500 absolute left-0 top-7"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0 top-7"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -200,28 +200,28 @@ export const Help = () => {
 
       <div className="space-y-4">
         {sections.map(section => (
-          <div key={section.id} className="bg-white rounded-xl shadow-soft overflow-hidden">
+          <div key={section.id} className="bg-white/60 backdrop-blur-xl rounded-xl shadow-lg border border-gray-100/50 overflow-hidden transition-all duration-300">
             <button
               onClick={() => toggleSection(section.id)}
-              className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-gray-50 transition-colors"
+              className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-white/70 transition-all duration-200"
             >
               <div className="flex items-center gap-4">
-                <div className="p-2 bg-primary-50 rounded-lg">
+                <div className="p-2.5 bg-primary-50/80 rounded-xl">
                   <section.icon className="h-6 w-6 text-primary-500" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">{section.title}</h2>
-                  <p className="mt-1 text-sm text-gray-600">{section.description}</p>
+                  <h2 className="text-lg font-[600] text-gray-900/90">{section.title}</h2>
+                  <p className="mt-1 text-[15px] leading-relaxed text-gray-600/90">{section.description}</p>
                 </div>
               </div>
               <ChevronDownIcon
-                className={`h-5 w-5 text-gray-400 transition-transform ${
+                className={`h-5 w-5 text-gray-400/80 transition-all duration-300 ${
                   expandedSection === section.id ? 'rotate-180' : ''
                 }`}
               />
             </button>
             {expandedSection === section.id && (
-              <div className="px-6 pb-6 pt-2 text-gray-600">
+              <div className="px-6 pb-6 pt-2 text-gray-600/90 animate-fadeIn">
                 {section.content}
               </div>
             )}
