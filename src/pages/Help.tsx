@@ -179,19 +179,23 @@ export const Help = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center py-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 -m-2 text-gray-400 hover:text-gray-500 absolute left-6 top-6"
-          aria-label="Go back"
-        >
-          <ArrowLeftIcon className="h-5 w-5" />
-        </button>
-        <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3">
-          How to Use TouchBase
-        </h1>
-        <p className="text-gray-600 mt-4">
-          Learn how to manage your relationships effectively with our comprehensive guide
-        </p>
+        <div className="flex items-center justify-center w-full mb-8 relative">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 -m-2 text-gray-400 hover:text-gray-500 absolute left-0 top-7"
+            aria-label="Go back"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3">
+              How to Use TouchBase
+            </h1>
+            <p className="text-gray-600">
+              Learn how to manage your relationships effectively with our comprehensive guide
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">
