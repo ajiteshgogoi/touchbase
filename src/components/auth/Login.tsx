@@ -101,7 +101,7 @@ export const Login = () => {
 
       <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/80 backdrop-blur-sm border border-gray-100/50">
         <p className="text-[15px] text-gray-600/90 leading-relaxed">
-          TouchBase is your personal tool for nurturing real-world relationships. Unlike social networks, we focus on helping you strengthen your existing meaningful connections offline.
+          TouchBase is your personal tool for nurturing real-world relationships. Unlike social networks, we focus on helping you strengthen your existing meaningful connections.
         </p>
       </div>
 
@@ -185,18 +185,13 @@ export const Login = () => {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600 bg-white/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-colors duration-200">
+      <button
+        onClick={() => setIsInstallModalOpen(true)}
+        className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600 bg-white/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-colors duration-200"
+      >
         <img src="/icon.svg" alt="heart" className="w-5 h-5 text-primary-500" />
-        <span>
-          Install TouchBase on your phone for the best experience.{' '}
-          <button
-            onClick={() => setIsInstallModalOpen(true)}
-            className="text-primary-500 hover:text-primary-600 font-medium"
-          >
-            Learn how
-          </button>
-        </span>
-      </div>
+        <span>Get TouchBase on your device</span>
+      </button>
       </main>
 
       <InstallModal
