@@ -44,7 +44,6 @@ export const UsersSocialProof = () => {
           {stats.recentUsers.map((user: UserMetadata, index: number) => {
             // Generate default background color if no picture
             const defaultColor = defaultColors[index % defaultColors.length];
-            const initials = user.name?.charAt(0) || '?';
             
             return (
               <div
