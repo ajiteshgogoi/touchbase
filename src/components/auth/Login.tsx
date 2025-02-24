@@ -54,12 +54,12 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-8 px-4 py-12">
-      <div className="text-center space-y-4 max-w-xl">
-        <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-10 px-4 py-16">
+      <div className="text-center space-y-5 max-w-xl">
+        <h2 className="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em]">
           Welcome to TouchBase
         </h2>
-        <p className="text-xl sm:text-2xl text-gray-600/90 font-medium">
+        <p className="text-xl sm:text-2xl text-gray-600/90 font-[450] tracking-[-0.01em]">
           Stay connected with the people who matter most
         </p>
       </div>
@@ -98,19 +98,19 @@ export const Login = () => {
         </div>
       </div>
 
-      <div className="bg-white/70 backdrop-blur-xl px-12 py-8 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-all duration-300">
+      <div className="bg-white/70 backdrop-blur-xl px-10 py-10 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-colors duration-200">
         {error && (
-          <div className="mb-8 p-4 text-sm text-red-700 bg-red-50 rounded-xl" role="alert">
+          <div className="mb-8 p-4 text-[15px] text-red-700 bg-red-50 rounded-xl" role="alert">
             {error}
           </div>
         )}
-        <div className="flex flex-col items-center gap-8 w-full">
+        <div className="flex flex-col items-center gap-10 w-full">
           <UsersSocialProof />
           
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full h-[56px] flex items-center justify-center px-8 rounded-xl text-base font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-full h-[52px] flex items-center justify-center px-8 rounded-xl text-base font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-md hover:shadow-lg active:scale-[0.99] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isLoading ? (
               <svg
@@ -161,7 +161,7 @@ export const Login = () => {
           )}
         </div>
 
-        <p className="text-sm text-gray-500/90 text-center mt-8 leading-[1.4] tracking-[-0.01em]">
+        <p className="text-[14px] text-gray-500/90 text-center mt-10 leading-[1.5] tracking-[-0.01em]">
           By continuing, you agree to our{' '}
           <a href="/terms" className="text-primary-500 hover:text-primary-600 font-medium">
             Terms of Service
@@ -173,7 +173,7 @@ export const Login = () => {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left text-sm text-gray-600 bg-white/60 backdrop-blur-sm px-6 py-3 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-all duration-300">
+      <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600 bg-white/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-colors duration-200">
         <img src="/icon.svg" alt="heart" className="w-5 h-5 text-primary-500" />
         <span>
           Install TouchBase on your phone for the best experience.{' '}
