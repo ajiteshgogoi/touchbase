@@ -104,7 +104,7 @@ export const Login = () => {
             {error}
           </div>
         )}
-        <div className="flex flex-col items-center gap-10 w-full">
+        <div className="flex flex-col items-center gap-7 w-full">
           <UsersSocialProof />
           
           <button
