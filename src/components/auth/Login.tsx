@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { InstallModal } from './InstallModal';
+import { UsersSocialProof } from './UsersSocialProof';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../stores/useStore';
 import type { User } from '@supabase/supabase-js';
@@ -104,6 +105,8 @@ export const Login = () => {
           </div>
         )}
         <div className="flex flex-col items-center gap-6 w-full">
+          <UsersSocialProof />
+          
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}

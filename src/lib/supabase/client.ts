@@ -35,6 +35,24 @@ export const getCurrentUser = async () => {
   }
 };
 
+export const getRecentUsers = async () => {
+  try {
+    const { data, error } = await supabase.functions.invoke('get-user-stats', {
+      method: 'GET'
+    });
+
+    if (error) throw error;
+
+    return {
+      recentUsers: data.recentUsers || [],
+      totalCount: data.totalCount || 0
+    };
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    return { recentUsers: [], totalCount: 0 };
+  }
+};
+
 export const signInWithGoogle = async () => {
   try {
     const { error } = await supabase.auth.signInWithOAuth({
