@@ -5,7 +5,8 @@ import {
   LightBulbIcon,
   ChartBarIcon,
   ArrowLeftIcon,
-  DevicePhoneMobileIcon
+  DevicePhoneMobileIcon,
+  CalendarIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -89,6 +90,33 @@ export const Help = () => {
                 </ol>
                 <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
                   <strong>Pro Tip:</strong> Regular logging helps TouchBase provide better reminders and insights about your relationships.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Reminders */}
+        <div className="bg-white rounded-xl shadow-soft p-6">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary-50 rounded-lg">
+                <CalendarIcon className="h-6 w-6 text-primary-500" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Quick Reminders</h2>
+            </div>
+            <div className="w-full">
+              <div className="mt-2 text-gray-600 space-y-2">
+                <p>Create 1-time reminders for non-recurring events:</p>
+                <ol className="list-decimal list-inside space-y-1 ml-4">
+                  <li>Go to Reminders page and click 'Add Quick Reminder'</li>
+                  <li>Pick the contact for whom you want to set a quick reminder</li>
+                  <li>Enter the reminder description</li>
+                  <li>Set the due date</li>
+                  <li>Optionally mark it as important to show in Important Events timeline</li>
+                </ol>
+                <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
+                  <strong>Pro Tip:</strong> Quick reminders are perfect for one-time events. Mark them as important to highlight key events in your timeline without affecting regular contact schedules.
                 </p>
               </div>
             </div>

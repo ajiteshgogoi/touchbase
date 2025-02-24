@@ -153,9 +153,14 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
           >
             <div className="inline-block w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
               <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                <Dialog.Title as="h3" className="text-lg font-medium">
-                  Add Quick Reminder
-                </Dialog.Title>
+                <div>
+                  <Dialog.Title as="h3" className="text-lg font-medium">
+                    Add Quick Reminder
+                  </Dialog.Title>
+                  <p className="text-sm text-gray-500 mt-1">
+                    1-time reminders for non-recurring events
+                  </p>
+                </div>
                 <button
                   onClick={onClose}
                   className="p-2 -m-2 text-gray-400 hover:text-gray-500"
