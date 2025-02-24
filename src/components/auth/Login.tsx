@@ -99,6 +99,13 @@ export const Login = () => {
         </div>
       </div>
 
+      <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/80 backdrop-blur-sm border border-gray-100/50">
+        <p className="text-[15px] text-gray-600/90 leading-relaxed">
+          <span className="font-medium text-gray-700">Note: </span>
+          TouchBase is not a social network. It's your personal tool for nurturing real-world relationships. There is no way to interact with other users inside the app.
+        </p>
+      </div>
+
       <div className="bg-white/70 backdrop-blur-xl px-10 pt-6 pb-10 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-colors duration-200">
         {error && (
           <div className="mb-8 p-4 text-[15px] text-red-700 bg-red-50 rounded-xl" role="alert">
