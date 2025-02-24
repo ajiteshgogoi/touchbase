@@ -100,11 +100,11 @@ export const Login = () => {
 
       <div className="bg-white/70 backdrop-blur-xl px-12 py-8 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-all duration-300">
         {error && (
-          <div className="mb-6 p-4 text-sm text-red-700 bg-red-50 rounded-xl" role="alert">
+          <div className="mb-8 p-4 text-sm text-red-700 bg-red-50 rounded-xl" role="alert">
             {error}
           </div>
         )}
-        <div className="flex flex-col items-center gap-6 w-full">
+        <div className="flex flex-col items-center gap-8 w-full">
           <UsersSocialProof />
           
           <button
@@ -161,7 +161,7 @@ export const Login = () => {
           )}
         </div>
 
-        <p className="text-sm text-gray-500 text-center mt-6 leading-relaxed">
+        <p className="text-sm text-gray-500/90 text-center mt-8 leading-[1.4] tracking-[-0.01em]">
           By continuing, you agree to our{' '}
           <a href="/terms" className="text-primary-500 hover:text-primary-600 font-medium">
             Terms of Service

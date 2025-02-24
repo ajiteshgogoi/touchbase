@@ -18,79 +18,84 @@ const defaultColors = [
 export const UsersSocialProof = () => {
   const { data: stats, isLoading } = useUserStats();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center w-full py-4 min-h-[160px]">
-        <div className="animate-pulse flex -space-x-3 md:-space-x-4 justify-center relative left-[6px] md:left-[8px]">
-          {[...Array(5)].map((_, i: number) => (
-            <div
-              key={i}
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white bg-gray-100/80 shadow-[0_0_10px_rgba(0,0,0,0.05)]"
-              style={{ transform: `translateX(${i * -6}px)` }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!stats || stats.totalCount === 0) {
-    return null;
-  }
+  // Early return if no data and not loading
+  if (!stats && !isLoading) return null;
+  
+  // Early return if no users
+  if (!isLoading && stats?.totalCount === 0) return null;
 
   return (
-    <div className="w-full py-4">
-      <div className="flex flex-col items-center justify-center gap-6 px-4 min-h-[160px]">
-        <div className="flex -space-x-3 md:-space-x-4 flex-shrink-0 justify-center relative left-[6px] md:left-[8px]">
-          {stats.recentUsers.slice(0, 5).map((user: UserMetadata, index: number) => {
-            const defaultColor = defaultColors[index % defaultColors.length];
-            
-            return (
+    <div className="w-full py-2">
+      <div className="flex flex-col items-center justify-center space-y-4 px-4 h-[140px]">
+        {/* Avatars Section */}
+        <div className="flex -space-x-3 md:-space-x-4 justify-center relative left-[6px] md:left-[8px]">
+          {isLoading ? (
+            // Loading state avatars
+            [...Array(7)].map((_, i: number) => (
               <div
-                key={index}
-                className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white shadow-[0_0_10px_rgba(0,0,0,0.05)] overflow-hidden"
-                style={{ transform: `translateX(${index * -6}px)`, zIndex: stats.recentUsers.length - index }}
-              >
-                {(() => {
-                  const defaultBg = (
-                    <div
-                      aria-hidden="true"
-                      className="w-full h-full"
-                      style={{ backgroundColor: defaultColor }}
-                    />
-                  );
-
-                  if (!user.picture) return defaultBg;
-
-                  return (
-                    <>
-                      <img
-                        src={user.picture}
-                        alt=""
+                key={i}
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white bg-gray-100/80 shadow-[0_0_10px_rgba(0,0,0,0.05)] animate-pulse"
+                style={{ transform: `translateX(${i * -6}px)`, zIndex: 5 - i }}
+              />
+            ))
+          ) : stats?.recentUsers?.length ? (
+            // Actual users avatars
+            stats.recentUsers.slice(0, 7).map((user: UserMetadata, index: number) => {
+              const defaultColor = defaultColors[index % defaultColors.length];
+              
+              return (
+                <div
+                  key={index}
+                  className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white shadow-[0_0_10px_rgba(0,0,0,0.05)] overflow-hidden"
+                  style={{ transform: `translateX(${index * -6}px)`, zIndex: 5 - index }}
+                >
+                  {(() => {
+                    const defaultBg = (
+                      <div
                         aria-hidden="true"
-                        className="w-full h-full object-cover opacity-0"
-                        onLoad={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          // Show image only after it loads successfully
-                          img.classList.remove('opacity-0');
-                        }}
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          // Keep image hidden on error
-                          img.remove();
-                        }}
+                        className="w-full h-full"
+                        style={{ backgroundColor: defaultColor }}
                       />
-                      {defaultBg /* Show colored background by default */}
-                    </>
-                  );
-                })()}
-              </div>
-            );
-          })}
+                    );
+
+                    if (!user.picture) return defaultBg;
+
+                    return (
+                      <>
+                        <img
+                          src={user.picture}
+                          alt=""
+                          aria-hidden="true"
+                          className="w-full h-full object-cover opacity-0"
+                          onLoad={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.classList.remove('opacity-0');
+                          }}
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.remove();
+                          }}
+                        />
+                        {defaultBg /* Show colored background by default */}
+                      </>
+                    );
+                  })()}
+                </div>
+              );
+            })
+          ) : null}
         </div>
-        <p className="text-[15px] leading-[1.4] tracking-[-0.01em] text-gray-700 text-center font-[450] whitespace-normal break-words max-w-[280px]">
-          Join <span className="font-semibold text-primary-600 tracking-[-0.02em]">{stats.totalCount.toLocaleString()}</span> others improving their relationships
-        </p>
+
+        {/* Stats Text - Same height reserved for loading and loaded states */}
+        <div className={`h-[42px] w-full flex items-center justify-center ${isLoading ? 'animate-pulse bg-gray-100/80 rounded-lg' : ''}`}>
+          {!isLoading && stats && (
+            <p className="text-[15px] leading-none text-gray-700 font-[450] text-center px-4">
+              Join{' '}
+              <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()}</span>
+              {' '}others improving their relationships
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

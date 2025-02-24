@@ -25,7 +25,7 @@ serve(async (req) => {
 
     // Get users ordered by most recent first
     const { data: { users }, error: usersError } = await supabaseClient.auth.admin.listUsers({
-      perPage: 5,
+      perPage: 7,
       page: 1,
       sortBy: {
         column: 'created_at',
