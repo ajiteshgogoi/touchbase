@@ -98,7 +98,7 @@ export const Login = () => {
         </div>
       </div>
 
-      <div className="bg-white/70 backdrop-blur-xl px-10 pt-8 pb-10 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-colors duration-200">
+      <div className="bg-white/70 backdrop-blur-xl px-10 pt-6 pb-10 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-colors duration-200">
         {error && (
           <div className="mb-8 p-4 text-[15px] text-red-700 bg-red-50 rounded-xl" role="alert">
             {error}
