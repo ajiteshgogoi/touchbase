@@ -5,33 +5,31 @@ const ProfileMenu = lazy(() => import('./ProfileMenu').then(mod => ({ default: m
 
 export const Navbar = () => {
   return (
-    <nav className="bg-white/80 backdrop-blur-sm shadow-soft sticky top-0 z-50">
+    <nav className="bg-white/60 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100/50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
+        <div className="flex justify-between h-14">
+          <div className="flex-1 flex items-center justify-between">
             <Link
               to="/"
-              className="flex items-center text-2xl font-extrabold group"
+              className="inline-flex items-baseline text-2xl font-semibold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200"
             >
-              <div className="flex items-center">
-                <img
-                  src="/icon.svg"
-                  alt="Blue heart icon"
-                  className="h-8 w-8 mr-0.5 group-hover:brightness-90 transition-all"
-                />
-                <span className="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all">
-                  TouchBase
-                </span>
-              </div>
+              <img
+                src="/icon.svg"
+                alt="Blue heart icon"
+                className="h-7 w-7 mr-1.5 group-hover:scale-105 transition-transform duration-200 translate-y-[5px]"
+              />
+              <span className="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
+                TouchBase
+              </span>
             </Link>
-          </div>
-
-          <div className="flex items-center">
-            <Suspense fallback={
-              <div className="h-9 w-9 rounded-full bg-gray-100 animate-pulse"></div>
-            }>
-              <ProfileMenu />
-            </Suspense>
+            
+            <div className="flex items-center">
+              <Suspense fallback={
+                <div className="h-8 w-8 rounded-full bg-gray-100/70 animate-pulse"></div>
+              }>
+                <ProfileMenu />
+              </Suspense>
+            </div>
           </div>
         </div>
       </div>
