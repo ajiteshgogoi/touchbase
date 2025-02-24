@@ -91,7 +91,21 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
     }
 
     setIsSubmitting(true);
+
     try {
+      // Check for existing reminders on the same day
+      const reminders = await contactsService.getReminders(selectedContact);
+      const selectedDate = dayjs(date).startOf('day');
+      const existingReminder = reminders.find(reminder =>
+        dayjs(reminder.due_date).startOf('day').isSame(selectedDate)
+      );
+
+      if (existingReminder) {
+        setError('A reminder already exists for this contact on the selected date');
+        setIsSubmitting(false);
+        return;
+      }
+
       await contactsService.addQuickReminder({
         contact_id: selectedContact,
         name: name.trim(),
@@ -229,36 +243,35 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                       required
                     />
                   </div>
-
-                  {error && (
-                    <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-                      {error}
-                    </div>
-                  )}
                 </div>
 
-                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 p-6 bg-gray-50 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center">
-                        <CalendarIcon className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                        <span>Adding...</span>
-                      </div>
-                    ) : (
-                      'Add Reminder'
-                    )}
-                  </button>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-6 bg-gray-50 border-t border-gray-100">
+                  <div className="order-last sm:order-first text-sm text-red-600 min-h-[20px]">
+                    {error}
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center">
+                          <CalendarIcon className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                          <span>Adding...</span>
+                        </div>
+                      ) : (
+                        'Add Reminder'
+                      )}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
