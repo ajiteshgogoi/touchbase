@@ -55,7 +55,7 @@ export const Login = () => {
 
   return (
     <div>
-      <main role="main" className="min-h-[80vh] flex flex-col items-center justify-center space-y-10 px-4 py-16">
+      <main role="main" className="min-h-[80vh] flex flex-col items-center justify-center space-y-8 px-4 py-16">
       <div className="text-center space-y-5 max-w-xl">
         <h2 className="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em]">
           Welcome to TouchBase
