@@ -198,7 +198,7 @@ export const Contacts = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+              className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
               aria-label="Go back"
             >
               <ArrowLeftIcon className="h-5 w-5" />
@@ -230,7 +230,7 @@ export const Contacts = () => {
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-soft">
+      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
         <div className="p-6 border-b border-gray-100">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -283,8 +283,14 @@ export const Contacts = () => {
             </div>
           )}
           {isLoading ? (
-            <div className="p-12 text-center text-gray-500">
-              <div className="animate-pulse">Loading contacts...</div>
+            <div className="p-12 text-center">
+              <div className="flex flex-col items-center justify-center gap-3 text-primary-500/90">
+                <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="text-base font-medium text-gray-600">Loading contacts...</span>
+              </div>
             </div>
           ) : filteredContacts?.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
@@ -296,13 +302,13 @@ export const Contacts = () => {
               <div
                 key={contact.id}
                 id={contact.id}
-                className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow scroll-mt-6"
+                className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow duration-200 scroll-mt-6"
               >
                 <div className="flex flex-col gap-4 divide-y divide-gray-100">
                   <div className="min-w-0 pb-3">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
-                        <h3 className="text-lg font-semibold text-primary-500">
+                        <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">
                           {contact.name}
                         </h3>
                         {/* Inline status indicator */}
@@ -435,7 +441,7 @@ export const Contacts = () => {
                       </div>
                     </div>
                     <div className="pt-3">
-                      <div className="flex items-center justify-start gap-2 w-full">
+                      <div className="flex items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-4 py-3 rounded-lg">
                         <button
                           onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
                           className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
