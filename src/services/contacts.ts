@@ -145,7 +145,10 @@ export const contactsService = {
    * Create a new important event for a contact
    * Enforces the maximum limit of 5 events per contact
    */
-  async addImportantEvent(event: Omit<ImportantEvent, 'id' | 'created_at' | 'updated_at'>): Promise<ImportantEvent> {
+  async addImportantEvent(
+    event: Omit<ImportantEvent, 'id' | 'created_at' | 'updated_at'>,
+    skipRegularReminder = false
+  ): Promise<ImportantEvent> {
     // Check if contact already has 5 events
     const existingEvents = await this.getImportantEvents(event.contact_id);
     if (existingEvents.length >= 5) {
@@ -166,7 +169,7 @@ export const contactsService = {
     if (error) throw error;
 
     // Recalculate next due date since an important event might be sooner
-    await this.recalculateNextContactDue(event.contact_id);
+    await this.recalculateNextContactDue(event.contact_id, skipRegularReminder);
 
     // Invalidate important events cache so the UI updates
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
@@ -222,7 +225,7 @@ export const contactsService = {
   /**
    * Calculate the next due date considering both regular frequency and important events
    */
-  async recalculateNextContactDue(contactId: string): Promise<void> {
+  async recalculateNextContactDue(contactId: string, skipRegularReminder = false): Promise<void> {
     const contact = await this.getContact(contactId);
     if (!contact) throw new Error('Contact not found');
 
@@ -293,18 +296,20 @@ export const contactsService = {
 
     if (deleteError) throw deleteError;
 
-    // Create new reminder
-    const { error: reminderError } = await supabase
-      .from('reminders')
-      .insert({
-        contact_id: contactId,
-        user_id: contact.user_id,
-        type: contact.preferred_contact_method || 'message',
-        due_date: nextDueDate.toISOString(),
-        completed: false
-      });
+    // Only create new regular reminder if not skipped
+    if (!skipRegularReminder) {
+      const { error: reminderError } = await supabase
+        .from('reminders')
+        .insert({
+          contact_id: contactId,
+          user_id: contact.user_id,
+          type: contact.preferred_contact_method || 'message',
+          due_date: nextDueDate.toISOString(),
+          completed: false
+        });
 
-    if (reminderError) throw reminderError;
+      if (reminderError) throw reminderError;
+    }
 
     // Invalidate reminders cache
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
@@ -583,6 +588,7 @@ export const contactsService = {
     if (error) throw error;
 
     // If marked as important, create an important event entry
+    // Pass skipRegularReminder=true to prevent creating a regular reminder during recalculation
     if (reminder.is_important) {
       await this.addImportantEvent({
         contact_id: reminder.contact_id,
@@ -590,7 +596,7 @@ export const contactsService = {
         type: 'custom',
         name: reminder.name,
         date: reminder.due_date
-      });
+      }, true); // Pass skipRegularReminder flag
     }
 
     // Invalidate reminders cache
