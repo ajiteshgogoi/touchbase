@@ -20,12 +20,12 @@ export const UsersSocialProof = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center w-full py-4">
-        <div className="animate-pulse flex -space-x-3">
-          {[...Array(3)].map((_, i: number) => (
+      <div className="flex items-center justify-center w-full py-4 min-h-[160px]">
+        <div className="animate-pulse flex -space-x-3 md:-space-x-4 justify-center relative left-[6px] md:left-[8px]">
+          {[...Array(5)].map((_, i: number) => (
             <div
               key={i}
-              className="w-10 h-10 rounded-full border-2 border-white/90 bg-gray-200 shadow-sm"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white bg-gray-100/80 shadow-[0_0_10px_rgba(0,0,0,0.05)]"
               style={{ transform: `translateX(${i * -6}px)` }}
             />
           ))}
@@ -40,16 +40,16 @@ export const UsersSocialProof = () => {
 
   return (
     <div className="w-full py-4">
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 px-4">
-        <div className="flex -space-x-3 flex-shrink-0">
+      <div className="flex flex-col items-center justify-center gap-6 px-4 min-h-[160px]">
+        <div className="flex -space-x-3 md:-space-x-4 flex-shrink-0 justify-center relative left-[6px] md:left-[8px]">
           {stats.recentUsers.slice(0, 5).map((user: UserMetadata, index: number) => {
             const defaultColor = defaultColors[index % defaultColors.length];
             
             return (
               <div
                 key={index}
-                className="relative w-10 h-10 rounded-full border-2 border-white/90 shadow-sm overflow-hidden transform transition-transform hover:scale-105 hover:z-10"
-                style={{ transform: `translateX(${index * -6}px)` }}
+                className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white shadow-[0_0_10px_rgba(0,0,0,0.05)] overflow-hidden"
+                style={{ transform: `translateX(${index * -6}px)`, zIndex: stats.recentUsers.length - index }}
               >
                 {(() => {
                   const defaultBg = (
@@ -88,8 +88,8 @@ export const UsersSocialProof = () => {
             );
           })}
         </div>
-        <p className="text-sm text-gray-600 text-center sm:text-left whitespace-normal break-words max-w-[180px] sm:max-w-[240px]">
-          Join <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()}</span> others improving their relationships
+        <p className="text-[15px] leading-[1.4] tracking-[-0.01em] text-gray-700 text-center font-[450] whitespace-normal break-words max-w-[280px]">
+          Join <span className="font-semibold text-primary-600 tracking-[-0.02em]">{stats.totalCount.toLocaleString()}</span> others improving their relationships
         </p>
       </div>
     </div>
