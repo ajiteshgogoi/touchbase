@@ -286,14 +286,9 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                       disabled={isSubmitting}
                       className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 disabled:opacity-50"
                     >
-                      {isSubmitting ? (
-                        <div className="flex items-center justify-center">
-                          <CalendarIcon className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                          <span>Adding...</span>
-                        </div>
-                      ) : (
-                        'Add Reminder'
-                      )}
+                      <span className="min-w-[95px] inline-block text-center">
+                        {isSubmitting ? 'Adding...' : 'Add Reminder'}
+                      </span>
                     </button>
                   </div>
                 </div>
