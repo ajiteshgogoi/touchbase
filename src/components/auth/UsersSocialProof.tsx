@@ -87,9 +87,9 @@ export const UsersSocialProof = () => {
         </div>
 
         {/* Stats Text - Same height reserved for loading and loaded states */}
-        <div className={`h-[42px] w-full flex items-center justify-center ${isLoading ? 'animate-pulse bg-gray-100/80 rounded-lg' : ''}`}>
+        <div className={`h-[48px] w-full flex items-center justify-center ${isLoading ? 'animate-pulse bg-gray-100/80 rounded-lg' : ''}`}>
           {!isLoading && stats && (
-            <p className="text-[15px] leading-none text-gray-700 font-[450] text-center px-4">
+            <p className="text-[15px] leading-relaxed text-gray-700 font-[450] text-center px-4">
               Join{' '}
               <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()}</span>
               {' '}others improving their relationships...
