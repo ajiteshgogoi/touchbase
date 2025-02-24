@@ -100,9 +100,14 @@ export const Login = () => {
       </div>
 
       <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/80 backdrop-blur-sm border border-gray-100/50">
-        <p className="text-[15px] text-gray-600/90 leading-relaxed">
-        TouchBase is your private space for nurturing real-world relationships. We're not a social network.
-        </p>
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          <p className="text-base text-gray-600/90 leading-relaxed text-center">
+            TouchBase is your private space for nurturing real-world relationships. We're not a social network.
+          </p>
+        </div>
       </div>
 
       <div className="bg-white/70 backdrop-blur-xl px-10 pt-6 pb-10 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-colors duration-200">
