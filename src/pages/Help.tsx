@@ -39,8 +39,8 @@ export const Help = () => {
           <li>Use the relationship closeness slider to indicate how close you are</li>
           <li>Add important recurring events (birthdays, anniversaries, etc.)</li>
           <li>Add personal notes to help maintain the relationship</li>
-          <div className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-            <strong>Pro Tip:</strong> You can add up to 5 important events per contact, including one birthday and one anniversary. Custom events give you flexibility to track any recurring date that matters to your relationship.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+            <strong className="text-primary-700">Pro Tip:</strong> You can add up to 5 important events per contact, including one birthday and one anniversary. Custom events give you flexibility to track any recurring date that matters to your relationship.
           </div>
         </ol>
       )
@@ -59,8 +59,8 @@ export const Help = () => {
             <li>Add optional notes about the interaction</li>
             <li>Rate how the interaction went</li>
           </ol>
-          <div className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-            <strong>Pro Tip:</strong> Regular logging helps TouchBase provide better reminders and insights about your relationships.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+            <strong className="text-primary-700">Pro Tip:</strong> Regular logging helps TouchBase provide better reminders and insights about your relationships.
           </div>
         </>
       )
@@ -79,8 +79,8 @@ export const Help = () => {
             <li>Set the due date</li>
             <li>Optionally mark it as important to show in Important Events timeline</li>
           </ol>
-          <div className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-            <strong>Pro Tip:</strong> Quick reminders are perfect for one-time events. Mark them as important to highlight key events in your timeline without affecting regular contact schedules.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+            <strong className="text-primary-700">Pro Tip:</strong> Quick reminders are perfect for one-time events. Mark them as important to highlight key events in your timeline without affecting regular contact schedules.
           </div>
         </>
       )
@@ -99,8 +99,8 @@ export const Help = () => {
             <li>Identify relationships that need attention</li>
             <li>Get AI-powered insights about your interactions with each contact</li>
           </ol>
-          <div className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-            <strong>Pro Tip:</strong> Analytics are generated on demand and saved for you to revisit anytime. The insights help you understand your relationship patterns and make meaningful improvements.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+            <strong className="text-primary-700">Pro Tip:</strong> Analytics are generated on demand and saved for you to revisit anytime. The insights help you understand your relationship patterns and make meaningful improvements.
           </div>
         </>
       )
@@ -119,8 +119,8 @@ export const Help = () => {
             <li>Allow notification permissions when prompted</li>
             <li>Set your timezone for accurate reminder timing</li>
           </ol>
-          <div className="mt-4 text-sm bg-yellow-50 p-3 rounded-lg">
-            <strong>Important:</strong> Enabling notifications is crucial for receiving timely reminders about your interactions. Without notifications, you might miss important updates about when to reconnect with your contacts.
+          <div className="mt-4 text-[15px] leading-relaxed bg-yellow-50/90 backdrop-blur-sm p-4 rounded-xl border border-yellow-100/50 shadow-sm text-gray-600">
+            <strong className="text-amber-600">Important:</strong> Enabling notifications is crucial for receiving timely reminders about your interactions. Without notifications, you might miss important updates about when to reconnect with your contacts.
           </div>
         </>
       )
@@ -148,8 +148,8 @@ export const Help = () => {
               <li>Select <span className="text-primary-500">Install app</span> or <span className="text-primary-500">Add to home screen</span></li>
             </ol>
           </div>
-          <div className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-            <strong>Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+            <strong className="text-primary-700">Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen.
           </div>
         </div>
       )
@@ -168,8 +168,8 @@ export const Help = () => {
             <li>Check your dashboard regularly to see who you need to connect with</li>
             <li>Add personal context in your notes to make future interactions meaningful</li>
           </ul>
-          <div className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-            <strong>Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+            <strong className="text-primary-700">Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
           </div>
         </>
       )
