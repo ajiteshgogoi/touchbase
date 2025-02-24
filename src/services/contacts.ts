@@ -272,11 +272,13 @@ export const contactsService = {
 
     if (updateError) throw updateError;
 
-    // Delete existing reminder
+    // Delete existing regular reminder (without name field)
+    // This preserves quick reminders which have a name field
     const { error: deleteError } = await supabase
       .from('reminders')
       .delete()
-      .eq('contact_id', contactId);
+      .eq('contact_id', contactId)
+      .is('name', null);  // Only delete reminders without a name (regular reminders)
 
     if (deleteError) throw deleteError;
 
@@ -448,11 +450,13 @@ export const contactsService = {
   },
 
   async addReminder(reminder: Omit<Reminder, 'id' | 'created_at'>): Promise<Reminder> {
-    // Delete any existing reminders for this contact
+    // Delete any existing regular reminders for this contact
+    // Quick reminders with a name field are preserved
     const { error: deleteError } = await supabase
       .from('reminders')
       .delete()
-      .eq('contact_id', reminder.contact_id);
+      .eq('contact_id', reminder.contact_id)
+      .is('name', null);  // Only delete reminders without a name (regular reminders)
     
     if (deleteError) throw deleteError;
 
@@ -489,15 +493,15 @@ export const contactsService = {
    * quick reminders are simply marked as completed and then deleted
    */
   async completeQuickReminder(id: string): Promise<void> {
-    // First verify this is a quick reminder (has a name field)
-    const { data: reminder, error: fetchError } = await supabase
+    // Get reminder details and verify it's a quick reminder
+    const { data: reminderData, error: fetchError } = await supabase
       .from('reminders')
-      .select('name')
+      .select('id, name, contact_id')
       .eq('id', id)
       .single();
 
     if (fetchError) throw fetchError;
-    if (!reminder?.name) {
+    if (!reminderData?.name) {
       throw new Error('Cannot complete a regular reminder directly. Log an interaction instead.');
     }
 
@@ -508,6 +512,18 @@ export const contactsService = {
       .eq('id', id);
 
     if (deleteError) throw deleteError;
+
+    // Update contact's last_contacted date
+    const now = new Date().toISOString();
+    const { error: updateError } = await supabase
+      .from('contacts')
+      .update({ last_contacted: now })
+      .eq('id', reminderData.contact_id);
+
+    if (updateError) throw updateError;
+
+    // Recalculate next contact due date considering the new last_contacted date
+    await this.recalculateNextContactDue(reminderData.contact_id);
 
     // Invalidate reminders cache
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
@@ -563,11 +579,12 @@ export const contactsService = {
       baseDate
     );
 
-    // Delete existing reminders since we're creating a new one
+    // Delete existing regular reminder (preserve quick reminders)
     const { error: deleteError } = await supabase
       .from('reminders')
       .delete()
-      .eq('contact_id', contactId);
+      .eq('contact_id', contactId)
+      .is('name', null);  // Only delete reminders without a name (regular reminders)
     
     if (deleteError) throw deleteError;
 
