@@ -165,6 +165,16 @@ export async function runDailyCheckV2() {
                 .from('reminders')
                 .delete()
                 .eq('id', oldReminder.id);
+
+              // Clean up important event if it was a quick reminder
+              if (oldReminder.name) {
+                await supabaseClient
+                  .from('important_events')
+                  .delete()
+                  .eq('contact_id', contact.id)
+                  .eq('type', 'custom')
+                  .eq('name', oldReminder.name);
+              }
             }
           }
         }
