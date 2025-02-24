@@ -573,6 +573,17 @@ export const contactsService = {
     
     if (error) throw error;
 
+    // If marked as important, create an important event entry
+    if (reminder.is_important) {
+      await this.addImportantEvent({
+        contact_id: reminder.contact_id,
+        user_id: contact.user_id,
+        type: 'custom',
+        name: reminder.name,
+        date: reminder.due_date
+      });
+    }
+
     // Invalidate reminders cache
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     

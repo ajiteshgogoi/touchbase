@@ -55,6 +55,7 @@ export interface QuickReminderInput {
   name: string;
   due_date: string;
   type: 'call' | 'message' | 'social';
+  is_important?: boolean;
 }
 
 export interface UserPreferences {

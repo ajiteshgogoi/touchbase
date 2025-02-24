@@ -15,6 +15,7 @@ interface QuickReminderModalProps {
 const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
   const [name, setName] = useState('');
   const [date, setDate] = useState(dayjs().add(1, 'day').format('YYYY-MM-DD'));
+  const [isImportant, setIsImportant] = useState(false);
 
   useLayoutEffect(() => {
     if (isOpen) {
@@ -111,6 +112,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
         name: name.trim(),
         due_date: formatEventToUTC(date), // Convert to UTC with standardized time
         type: 'message', // Default to message type for quick reminders
+        is_important: isImportant
       });
       
       // Invalidate reminders query to refresh the list
@@ -242,6 +244,23 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                       className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
                       required
                     />
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    <div className="space-y-1">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={isImportant}
+                          onChange={(e) => setIsImportant(e.target.checked)}
+                          className="rounded border-gray-300 text-primary-500 focus:ring-primary-400"
+                        />
+                        <span className="text-sm text-gray-700">This event is important</span>
+                      </label>
+                      <p className="text-xs text-gray-500 ml-6">
+                        Checking this box will add the reminder to your important events timeline
+                      </p>
+                    </div>
                   </div>
                 </div>
 
