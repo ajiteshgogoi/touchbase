@@ -36,7 +36,7 @@ export const Privacy = () => {
             We collect only the information necessary to provide our relationship management service:
           </p>
           <ul className="list-disc ml-6 mt-2 text-gray-700">
-            <li>Account information (name, email address)</li>
+            <li>Account information (name, email address, google profile picture)</li>
             <li>Contact details you add to manage your relationships</li>
             <li>Interaction history and notes you create</li>
             <li>Contact frequency preferences and relationship levels</li>
