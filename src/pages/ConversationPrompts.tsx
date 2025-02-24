@@ -87,7 +87,7 @@ const ConversationPrompts: React.FC = () => {
         <div className="flex items-center justify-center w-full mb-8 relative">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -m-2 text-gray-400 hover:text-gray-500 absolute left-0"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -105,21 +105,21 @@ const ConversationPrompts: React.FC = () => {
 
         <div className="w-full mb-8">
           <div className="relative">
-            <div className="bg-gradient-to-br from-white to-primary-50/30 rounded-xl shadow-soft border border-primary-100/50 p-6 w-full min-h-[200px] flex items-center justify-center transition-shadow duration-200">
+            <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100/50 p-8 w-full min-h-[200px] flex items-center justify-center transition-all duration-300 hover:bg-white/70">
               <div className="relative z-10 w-full sm:w-[32rem] flex items-center justify-center px-4">
                 {loading && !questionReceived ? (
                   <div className="flex items-center justify-center max-w-xl mx-auto">
-                    <p className="text-sky-600 text-center animate-pulse text-sm sm:text-base">
+                    <p className="text-primary-600/90 text-center text-base sm:text-lg font-[450] tracking-[-0.01em] transition-opacity duration-200">
                       Generating question...
                     </p>
                   </div>
                 ) : error ? (
                   <div className="max-w-xl mx-auto w-full text-center">
-                    <p className="text-red-500 text-sm sm:text-base text-center">{error}</p>
+                    <p className="text-red-500 text-base sm:text-lg font-[450] text-center tracking-[-0.01em]">{error}</p>
                   </div>
                 ) : (
                   <div className="max-w-xl mx-auto w-full">
-                    <p className={`text-base sm:text-lg font-medium text-primary-700 text-center transition-opacity duration-200 leading-relaxed ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+                    <p className={`text-lg sm:text-xl font-[500] text-gray-800/90 text-center transition-all duration-300 leading-[1.4] tracking-[-0.01em] ${isAnimating ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'}`}>
                       {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
                     </p>
                   </div>
@@ -147,7 +147,7 @@ const ConversationPrompts: React.FC = () => {
         <div className="flex flex-col items-center">
           <button
             onClick={generateQuestion}
-            className="w-full flex items-center justify-center px-8 py-4 rounded-lg text-base font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto flex items-center justify-center px-8 py-4 rounded-xl text-base font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-md hover:shadow-lg active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             disabled={loading}
           >
             Generate a Question
@@ -163,21 +163,21 @@ const ConversationPrompts: React.FC = () => {
               These conversation prompts are designed to spark meaningful discussions and help you:
             </p>
             <ul className="space-y-3 mb-6">
-              <li className="flex items-start text-gray-700">
-                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                <span>Deepen your relationships with friends and family</span>
+              <li className="flex items-start text-gray-700/90 hover:text-gray-800 transition-colors duration-200">
+                <span className="inline-block w-1.5 h-1.5 bg-primary-500/80 rounded-full mt-[0.6rem] mr-3 shrink-0"></span>
+                <span className="text-[15px] leading-relaxed tracking-[-0.01em]">Deepen your relationships with friends and family</span>
               </li>
-              <li className="flex items-start text-gray-700">
-                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                <span>Learn new things about the people in your life</span>
+              <li className="flex items-start text-gray-700/90 hover:text-gray-800 transition-colors duration-200">
+                <span className="inline-block w-1.5 h-1.5 bg-primary-500/80 rounded-full mt-[0.6rem] mr-3 shrink-0"></span>
+                <span className="text-[15px] leading-relaxed tracking-[-0.01em]">Learn new things about the people in your life</span>
               </li>
-              <li className="flex items-start text-gray-700">
-                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                <span>Have more engaging and memorable conversations</span>
+              <li className="flex items-start text-gray-700/90 hover:text-gray-800 transition-colors duration-200">
+                <span className="inline-block w-1.5 h-1.5 bg-primary-500/80 rounded-full mt-[0.6rem] mr-3 shrink-0"></span>
+                <span className="text-[15px] leading-relaxed tracking-[-0.01em]">Have more engaging and memorable conversations</span>
               </li>
-              <li className="flex items-start text-gray-700">
-                <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                <span>Share stories and experiences that matter</span>
+              <li className="flex items-start text-gray-700/90 hover:text-gray-800 transition-colors duration-200">
+                <span className="inline-block w-1.5 h-1.5 bg-primary-500/80 rounded-full mt-[0.6rem] mr-3 shrink-0"></span>
+                <span className="text-[15px] leading-relaxed tracking-[-0.01em]">Share stories and experiences that matter</span>
               </li>
             </ul>
             <div className="space-y-3 text-gray-600">
@@ -187,8 +187,8 @@ const ConversationPrompts: React.FC = () => {
               <p>
                 Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
               </p>
-              <p className="mt-4 text-sm bg-primary-50 p-3 rounded-lg">
-                <strong>Note:</strong> Conversation prompts are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
+              <p className="mt-6 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+                <strong className="text-primary-700">Note:</strong> Conversation prompts are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
               </p>
             </div>
           </div>
