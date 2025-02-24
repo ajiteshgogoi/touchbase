@@ -382,8 +382,8 @@ const [quickReminder, setQuickReminder] = useState<{
                                 {contact?.name || 'Unknown'}
                               </Link>
                               <div className="flex flex-wrap items-center gap-2">
-                                {/* Show important events badges */}
-                                {events.length > 0 && events.map((event, idx) => (
+                                {/* Show important events badges, but skip if this is a quick reminder */}
+                                {!reminder.name && events.length > 0 && events.map((event, idx) => (
                                   <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
                                     event.type === 'birthday' ? 'bg-pink-50 text-pink-500' :
                                     event.type === 'anniversary' ? 'bg-rose-50 text-rose-500' :
