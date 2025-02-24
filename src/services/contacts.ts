@@ -226,14 +226,25 @@ export const contactsService = {
     const contact = await this.getContact(contactId);
     if (!contact) throw new Error('Contact not found');
 
+    // Get user's timezone preference
+    const { data: userPref } = await supabase
+      .from('user_preferences')
+      .select('timezone')
+      .eq('user_id', contact.user_id)
+      .single();
+
+    // Use UTC if no timezone preference is set
+    const timezone = userPref?.timezone || 'UTC';
+
     const importantEvents = await this.getImportantEvents(contactId);
 
-    // Calculate regular next due date
+    // Calculate regular next due date with user's timezone
     const regularDueDate = calculateNextContactDate(
       contact.relationship_level as RelationshipLevel,
       contact.contact_frequency as ContactFrequency | null,
       contact.missed_interactions,
-      contact.last_contacted ? new Date(contact.last_contacted) : null
+      contact.last_contacted ? new Date(contact.last_contacted) : null,
+      timezone  // Pass the user's timezone
     );
 
     // Find next important event date considering yearly recurrence
@@ -496,7 +507,7 @@ export const contactsService = {
     // Get reminder details and verify it's a quick reminder
     const { data: reminderData, error: fetchError } = await supabase
       .from('reminders')
-      .select('id, name, contact_id')
+      .select('id, name, contact_id, user_id')
       .eq('id', id)
       .single();
 
@@ -504,6 +515,18 @@ export const contactsService = {
     if (!reminderData?.name) {
       throw new Error('Cannot complete a regular reminder directly. Log an interaction instead.');
     }
+
+    // Get user's timezone preference
+    const { data: userPref, error: prefError } = await supabase
+      .from('user_preferences')
+      .select('timezone')
+      .eq('user_id', reminderData.user_id)
+      .single();
+
+    if (prefError) throw prefError;
+
+    // Use UTC if no timezone preference is set
+    const timezone = userPref?.timezone || 'UTC';
 
     // Delete the quick reminder
     const { error: deleteError } = await supabase
@@ -513,8 +536,8 @@ export const contactsService = {
 
     if (deleteError) throw deleteError;
 
-    // Update contact's last_contacted date
-    const now = new Date().toISOString();
+    // Get current time in user's timezone and convert to ISO string
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone })).toISOString();
     const { error: updateError } = await supabase
       .from('contacts')
       .update({ last_contacted: now })
@@ -522,7 +545,7 @@ export const contactsService = {
 
     if (updateError) throw updateError;
 
-    // Recalculate next contact due date considering the new last_contacted date
+    // Recalculate next contact due date (it will get timezone from user preferences)
     await this.recalculateNextContactDue(reminderData.contact_id);
 
     // Invalidate reminders cache
