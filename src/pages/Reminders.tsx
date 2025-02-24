@@ -207,38 +207,43 @@ const [quickReminder, setQuickReminder] = useState<{
                               >
                                 {contact?.name || 'Unknown'}
                               </Link>
-                              {/* Show important events badges */}
-                              {events.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-2 -ml-2">
-                                  {events.map((event, idx) => (
-                                    <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
-                                      event.type === 'birthday' ? 'bg-pink-50 text-pink-500' :
-                                      event.type === 'anniversary' ? 'bg-rose-50 text-rose-500' :
-                                      'bg-purple-50 text-purple-500'
-                                    }`}>
-                                      {getEventIcon(event.type)}
-                                      <span className="text-xs font-medium">
-                                        {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            {reminder.name && (
-                              <div className="flex flex-wrap gap-4 text-sm">
-                                <span>
-                                  <span className="text-gray-700 font-medium">Quick Reminder:</span>{' '}
-                                  <span className="text-gray-600">{reminder.name}</span>
-                                </span>
+                              <div className="flex flex-wrap items-center gap-2 -ml-2">
+                                {/* Show important events badges */}
+                                {events.length > 0 && events.map((event, idx) => (
+                                  <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+                                    event.type === 'birthday' ? 'bg-pink-50 text-pink-500' :
+                                    event.type === 'anniversary' ? 'bg-rose-50 text-rose-500' :
+                                    'bg-purple-50 text-purple-500'
+                                  }`}>
+                                    {getEventIcon(event.type)}
+                                    <span className="text-xs font-medium">
+                                      {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
+                                    </span>
+                                  </div>
+                                ))}
+                                {/* Show quick reminder tag */}
+                                {reminder.name && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary-50 text-primary-500">
+                                    <CalendarIcon className="h-4 w-4" />
+                                    <span className="text-xs font-medium">Quick Reminder</span>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </div>
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span>
                                 <span className="text-gray-700 font-medium">Contact due:</span>{' '}
                                 <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
                               </span>
                             </div>
+                            {reminder.name && (
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                <span>
+                                  <span className="text-gray-700 font-medium">Description:</span>{' '}
+                                  <span className="text-gray-600">{reminder.name}</span>
+                                </span>
+                              </div>
+                            )}
                             {/* Only show suggestions for non-quick reminders */}
                             {!reminder.name && (
                               <div className="flex flex-wrap gap-4 text-sm">
@@ -292,35 +297,37 @@ const [quickReminder, setQuickReminder] = useState<{
                               Complete
                             </button>
                           ) : (
-                            <button
-                              onClick={() => setQuickInteraction({
-                                isOpen: true,
-                                contactId: reminder.contact_id,
-                                contactName: contact?.name || 'Unknown',
-                                type: reminder.type
-                              })}
-                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                              title="Log an interaction"
-                            >
-                              Log Interaction
-                            </button>
-                          )}
-                          {(isPremium || isOnTrial) ? (
-                            <Link
-                              to={`/contacts/${reminder.contact_id}/interactions`}
-                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
-                              title="View interaction history"
-                            >
-                              View History
-                            </Link>
-                          ) : (
-                            <Link
-                              to={`/contacts/${reminder.contact_id}/interactions`}
-                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
-                              title="Upgrade to view interaction history"
-                            >
-                              View History
-                            </Link>
+                            <>
+                              <button
+                                onClick={() => setQuickInteraction({
+                                  isOpen: true,
+                                  contactId: reminder.contact_id,
+                                  contactName: contact?.name || 'Unknown',
+                                  type: reminder.type
+                                })}
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                                title="Log an interaction"
+                              >
+                                Log Interaction
+                              </button>
+                              {(isPremium || isOnTrial) ? (
+                                <Link
+                                  to={`/contacts/${reminder.contact_id}/interactions`}
+                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                                  title="View interaction history"
+                                >
+                                  View History
+                                </Link>
+                              ) : (
+                                <Link
+                                  to={`/contacts/${reminder.contact_id}/interactions`}
+                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                                  title="Upgrade to view interaction history"
+                                >
+                                  View History
+                                </Link>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -370,38 +377,43 @@ const [quickReminder, setQuickReminder] = useState<{
                               >
                                 {contact?.name || 'Unknown'}
                               </Link>
-                              {/* Show important events badges */}
-                              {events.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-2 -ml-2">
-                                  {events.map((event, idx) => (
-                                    <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
-                                      event.type === 'birthday' ? 'bg-pink-50 text-pink-500' :
-                                      event.type === 'anniversary' ? 'bg-rose-50 text-rose-500' :
-                                      'bg-purple-50 text-purple-500'
-                                    }`}>
-                                      {getEventIcon(event.type)}
-                                      <span className="text-xs font-medium">
-                                        {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            {reminder.name && (
-                              <div className="flex flex-wrap gap-4 text-sm">
-                                <span>
-                                  <span className="text-gray-700 font-medium">Quick Reminder:</span>{' '}
-                                  <span className="text-gray-600">{reminder.name}</span>
-                                </span>
+                              <div className="flex flex-wrap items-center gap-2 -ml-2">
+                                {/* Show important events badges */}
+                                {events.length > 0 && events.map((event, idx) => (
+                                  <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+                                    event.type === 'birthday' ? 'bg-pink-50 text-pink-500' :
+                                    event.type === 'anniversary' ? 'bg-rose-50 text-rose-500' :
+                                    'bg-purple-50 text-purple-500'
+                                  }`}>
+                                    {getEventIcon(event.type)}
+                                    <span className="text-xs font-medium">
+                                      {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
+                                    </span>
+                                  </div>
+                                ))}
+                                {/* Show quick reminder tag */}
+                                {reminder.name && (
+                                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary-50 text-primary-500">
+                                    <CalendarIcon className="h-4 w-4" />
+                                    <span className="text-xs font-medium">Quick Reminder</span>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </div>
                             <div className="flex flex-wrap gap-4 text-sm">
                               <span>
                                 <span className="text-gray-700 font-medium">Contact due:</span>{' '}
                                 <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
                               </span>
                             </div>
+                            {reminder.name && (
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                <span>
+                                  <span className="text-gray-700 font-medium">Description:</span>{' '}
+                                  <span className="text-gray-600">{reminder.name}</span>
+                                </span>
+                              </div>
+                            )}
                             {/* Only show suggestions for non-quick reminders */}
                             {!reminder.name && (
                               <div className="flex flex-wrap gap-4 text-sm">
@@ -455,35 +467,37 @@ const [quickReminder, setQuickReminder] = useState<{
                               Complete
                             </button>
                           ) : (
-                            <button
-                              onClick={() => setQuickInteraction({
-                                isOpen: true,
-                                contactId: reminder.contact_id,
-                                contactName: contact?.name || 'Unknown',
-                                type: reminder.type
-                              })}
-                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
-                              title="Log an interaction"
-                            >
-                              Log Interaction
-                            </button>
-                          )}
-                          {(isPremium || isOnTrial) ? (
-                            <Link
-                              to={`/contacts/${reminder.contact_id}/interactions`}
-                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
-                              title="View interaction history"
-                            >
-                              View History
-                            </Link>
-                          ) : (
-                            <Link
-                              to={`/contacts/${reminder.contact_id}/interactions`}
-                              className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
-                              title="Upgrade to view interaction history"
-                            >
-                              View History
-                            </Link>
+                            <>
+                              <button
+                                onClick={() => setQuickInteraction({
+                                  isOpen: true,
+                                  contactId: reminder.contact_id,
+                                  contactName: contact?.name || 'Unknown',
+                                  type: reminder.type
+                                })}
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                                title="Log an interaction"
+                              >
+                                Log Interaction
+                              </button>
+                              {(isPremium || isOnTrial) ? (
+                                <Link
+                                  to={`/contacts/${reminder.contact_id}/interactions`}
+                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                                  title="View interaction history"
+                                >
+                                  View History
+                                </Link>
+                              ) : (
+                                <Link
+                                  to={`/contacts/${reminder.contact_id}/interactions`}
+                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                                  title="Upgrade to view interaction history"
+                                >
+                                  View History
+                                </Link>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
