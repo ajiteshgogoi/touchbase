@@ -112,8 +112,9 @@ export const contactsService = {
     // After contact is created, calculate next due date considering important events
     await this.recalculateNextContactDue(data.id);
     
-    // Invalidate reminders cache after creating a new reminder
+    // Invalidate reminders and contacts cache after creating a new contact
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     
     // Return updated contact with proper next_contact_due
     const updatedContact = await this.getContact(data.id);
@@ -339,9 +340,14 @@ export const contactsService = {
       // Get the final state after recalculation
       const updatedContact = await this.getContact(id);
       if (!updatedContact) throw new Error('Failed to retrieve updated contact');
+      // Invalidate both caches after update
+      getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+      getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
       return updatedContact;
     }
 
+    // Invalidate contacts cache for non-recalculation updates
+    getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     return data;
   },
 
