@@ -126,7 +126,7 @@ export const RecentContacts = () => {
             Your most recently added connections
           </p>
         </div>
-        <div className="bg-white rounded-xl shadow-soft">
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
           <div className="p-4 space-y-4">
             {(contacts || [])
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -138,7 +138,7 @@ export const RecentContacts = () => {
                   <div className="min-w-0 pb-3">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
-                        <h3 className="text-lg font-semibold text-primary-500">{contact.name}</h3>
+                        <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
                         {/* Inline status indicator */}
                         <div className="flex items-center text-sm text-gray-500">
                           <div className={`w-2 h-2 rounded-full mr-2 ${
@@ -269,7 +269,7 @@ export const RecentContacts = () => {
                     </div>
                   </div>
                   <div className="pt-3">
-                    <div className="flex items-center justify-start gap-2 w-full">
+                    <div className="flex items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-4 py-3 rounded-lg">
                       <button
                         onClick={() => setQuickInteraction({
                           isOpen: true,
