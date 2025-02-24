@@ -29,24 +29,6 @@ export default {
       },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'lg': '0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.01)',
-      },
-      keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0) scale(1)' },
-          '50%': { transform: 'translateY(-20px) scale(1.05)' },
-        },
-        'float-delayed': {
-          '0%, 100%': { transform: 'translateY(0) scale(1.05)' },
-          '50%': { transform: 'translateY(-20px) scale(1)' },
-        }
-      },
-      animation: {
-        'float': 'float 8s ease-in-out infinite',
-        'float-delayed': 'float-delayed 8s ease-in-out infinite 4s',
-      },
-      backdropBlur: {
-        'xs': '2px',
       }
     },
   },
