@@ -15,9 +15,9 @@ const IconFallback = () => <div className="w-5 h-5 bg-gray-200 rounded animate-p
 
 // Pre-compute styles outside of render
 const menuStyles = {
-  base: "group flex w-full items-center rounded-md px-2 py-2 text-sm",
-  active: "bg-primary-50 text-primary-600",
-  inactive: "text-gray-700"
+  base: "group flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-[450]",
+  active: "bg-primary-50/70 text-primary-600",
+  inactive: "text-gray-700 hover:bg-gray-50/80"
 };
 
 // Menu item component to handle active state
@@ -112,26 +112,26 @@ export const ProfileMenu = () => {
           </Suspense>
           <span>Premium</span>
         </div>
-        <Menu.Button className="flex items-center gap-1 px-1 rounded-lg text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200" aria-label="Profile menu">
+        <Menu.Button className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-gray-600 hover:bg-gray-50/70 hover:text-primary-600 active:bg-gray-100/80 transition-all duration-200" aria-label="Profile menu">
           <Suspense fallback={<IconFallback />}>
             <UserCircleIcon className="h-6 w-6" />
           </Suspense>
           <Suspense fallback={<IconFallback />}>
-            <ChevronDownIcon className="h-4 w-4" />
+            <ChevronDownIcon className="h-4 w-4 opacity-60 group-hover:opacity-80" />
           </Suspense>
         </Menu.Button>
       </div>
 
       <Transition
         as={Fragment}
-        enter="transition ease-out duration-100"
-        enterFrom="opacity-0 scale-95"
-        enterTo="opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="opacity-100 scale-100"
-        leaveTo="opacity-0 scale-95"
+        enter="transition ease-out duration-150"
+        enterFrom="opacity-0 scale-95 translate-y-1"
+        enterTo="opacity-100 scale-100 translate-y-0"
+        leave="transition ease-in duration-100"
+        leaveFrom="opacity-100 scale-100 translate-y-0"
+        leaveTo="opacity-0 scale-95 translate-y-1"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100 z-50">
+        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/90 backdrop-blur-lg shadow-lg ring-1 ring-black/5 focus:outline-none divide-y divide-gray-100/80 z-50">
           <div className="px-1 py-1">
             <MenuItem to="/conversation-prompts">
               <Suspense fallback={<IconFallback />}>
