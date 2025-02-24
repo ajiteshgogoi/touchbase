@@ -199,15 +199,15 @@ const [quickReminder, setQuickReminder] = useState<{
                     >
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
-                          <div className="space-y-2.5">
-                            <div className="space-y-2 text-sm">
+                          <div className="space-y-4">
+                            <div className="space-y-2">
                               <Link
                                 to={`/contacts#${reminder.contact_id}`}
                                 className="text-lg font-semibold text-primary-500 block hover:text-primary-600"
                               >
                                 {contact?.name || 'Unknown'}
                               </Link>
-                              <div className="flex flex-wrap items-center gap-2 -ml-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 {/* Show important events badges */}
                                 {events.length > 0 && events.map((event, idx) => (
                                   <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
@@ -230,51 +230,55 @@ const [quickReminder, setQuickReminder] = useState<{
                                 )}
                               </div>
                             </div>
-                            <div className="flex flex-wrap gap-4 text-sm">
-                              <span>
-                                <span className="text-gray-700 font-medium">Contact due:</span>{' '}
-                                <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
-                              </span>
+                            <div className="bg-gray-50 rounded-lg overflow-hidden">
+                              <div className="px-3 py-2 bg-gray-100">
+                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Due</span>
+                              </div>
+                              <div className="px-3 py-2 text-sm text-gray-700">
+                                {contactsService.formatDueDate(reminder.due_date)}
+                              </div>
                             </div>
                             {reminder.name && (
-                              <div className="flex flex-wrap gap-4 text-sm">
-                                <span>
-                                  <span className="text-gray-700 font-medium">Description:</span>{' '}
-                                  <span className="text-gray-600">{reminder.name}</span>
-                                </span>
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Quick Reminder</span>
+                                </div>
+                                <div className="px-3 py-2 text-sm text-gray-700">
+                                  {reminder.name}
+                                </div>
                               </div>
                             )}
                             {/* Only show suggestions for non-quick reminders */}
                             {!reminder.name && (
-                              <div className="flex flex-wrap gap-4 text-sm">
-                                <span>
-                                  <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                                  <span className="text-gray-600 whitespace-pre-line">
-                                    {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                                      <div className="p-4 bg-gray-50 rounded-lg">
-                                        <span className="text-sm text-gray-600">
-                                          ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span className="group inline-flex items-start gap-1">
-                                        <span className="flex-1">
-                                          {contact?.ai_last_suggestion || 'No suggestions available'}
-                                        </span>
-                                        <button
-                                          onClick={() => handleReportContent(
-                                            reminder.contact_id,
-                                            contact?.ai_last_suggestion || ''
-                                          )}
-                                          className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
-                                          title="Report inappropriate suggestion"
-                                        >
-                                          <FlagIcon className="h-4 w-4" />
-                                        </button>
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
+                                </div>
+                                <div className="px-3 py-2">
+                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm text-gray-600">
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
                                       </span>
-                                    )}
-                                  </span>
-                                </span>
+                                    </div>
+                                  ) : (
+                                    <div className="group flex items-start gap-2">
+                                      <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                                        {contact?.ai_last_suggestion || 'No suggestions available'}
+                                      </span>
+                                      <button
+                                        onClick={() => handleReportContent(
+                                          reminder.contact_id,
+                                          contact?.ai_last_suggestion || ''
+                                        )}
+                                        className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                                        title="Report inappropriate suggestion"
+                                      >
+                                        <FlagIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -369,15 +373,15 @@ const [quickReminder, setQuickReminder] = useState<{
                     >
                       <div className="flex flex-col gap-4">
                         <div className="min-w-0">
-                          <div className="space-y-2.5">
-                            <div className="space-y-2 text-sm">
+                          <div className="space-y-4">
+                            <div className="space-y-2">
                               <Link
                                 to={`/contacts#${reminder.contact_id}`}
                                 className="text-lg font-semibold text-primary-500 block hover:text-primary-600"
                               >
                                 {contact?.name || 'Unknown'}
                               </Link>
-                              <div className="flex flex-wrap items-center gap-2 -ml-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 {/* Show important events badges */}
                                 {events.length > 0 && events.map((event, idx) => (
                                   <div key={idx} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
@@ -400,51 +404,55 @@ const [quickReminder, setQuickReminder] = useState<{
                                 )}
                               </div>
                             </div>
-                            <div className="flex flex-wrap gap-4 text-sm">
-                              <span>
-                                <span className="text-gray-700 font-medium">Contact due:</span>{' '}
-                                <span className="text-gray-600">{contactsService.formatDueDate(reminder.due_date)}</span>
-                              </span>
+                            <div className="bg-gray-50 rounded-lg overflow-hidden">
+                              <div className="px-3 py-2 bg-gray-100">
+                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Due</span>
+                              </div>
+                              <div className="px-3 py-2 text-sm text-gray-700">
+                                {contactsService.formatDueDate(reminder.due_date)}
+                              </div>
                             </div>
                             {reminder.name && (
-                              <div className="flex flex-wrap gap-4 text-sm">
-                                <span>
-                                  <span className="text-gray-700 font-medium">Description:</span>{' '}
-                                  <span className="text-gray-600">{reminder.name}</span>
-                                </span>
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Description</span>
+                                </div>
+                                <div className="px-3 py-2 text-sm text-gray-700">
+                                  {reminder.name}
+                                </div>
                               </div>
                             )}
                             {/* Only show suggestions for non-quick reminders */}
                             {!reminder.name && (
-                              <div className="flex flex-wrap gap-4 text-sm">
-                                <span>
-                                  <span className="text-gray-700 font-medium">Suggestions:</span>{' '}
-                                  <span className="text-gray-600 whitespace-pre-line">
-                                    {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                                      <div className="p-4 bg-gray-50 rounded-lg">
-                                        <span className="text-sm text-gray-600">
-                                          ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span className="group inline-flex items-start gap-1">
-                                        <span className="flex-1">
-                                          {contact?.ai_last_suggestion || 'No suggestions available'}
-                                        </span>
-                                        <button
-                                          onClick={() => handleReportContent(
-                                            reminder.contact_id,
-                                            contact?.ai_last_suggestion || ''
-                                          )}
-                                          className="flex-shrink-0 p-1 mt-0.5 text-gray-300 hover:text-red-400 transition-colors"
-                                          title="Report inappropriate suggestion"
-                                        >
-                                          <FlagIcon className="h-4 w-4" />
-                                        </button>
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
+                                </div>
+                                <div className="px-3 py-2">
+                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm text-gray-600">
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
                                       </span>
-                                    )}
-                                  </span>
-                                </span>
+                                    </div>
+                                  ) : (
+                                    <div className="group flex items-start gap-2">
+                                      <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                                        {contact?.ai_last_suggestion || 'No suggestions available'}
+                                      </span>
+                                      <button
+                                        onClick={() => handleReportContent(
+                                          reminder.contact_id,
+                                          contact?.ai_last_suggestion || ''
+                                        )}
+                                        className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                                        title="Report inappropriate suggestion"
+                                      >
+                                        <FlagIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
