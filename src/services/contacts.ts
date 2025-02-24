@@ -286,18 +286,19 @@ export const contactsService = {
 
     if (updateError) throw updateError;
 
-    // Delete existing regular reminder (without name field)
-    // This preserves quick reminders which have a name field
-    const { error: deleteError } = await supabase
-      .from('reminders')
-      .delete()
-      .eq('contact_id', contactId)
-      .is('name', null);  // Only delete reminders without a name (regular reminders)
-
-    if (deleteError) throw deleteError;
-
-    // Only create new regular reminder if not skipped
+    // Only modify regular reminders if we're not in quick reminder flow
     if (!skipRegularReminder) {
+      // Delete existing regular reminder (without name field)
+      // This preserves quick reminders which have a name field
+      const { error: deleteError } = await supabase
+        .from('reminders')
+        .delete()
+        .eq('contact_id', contactId)
+        .is('name', null);  // Only delete reminders without a name (regular reminders)
+
+      if (deleteError) throw deleteError;
+
+      // Create new regular reminder
       const { error: reminderError } = await supabase
         .from('reminders')
         .insert({
