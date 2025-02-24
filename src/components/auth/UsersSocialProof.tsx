@@ -28,14 +28,14 @@ export const UsersSocialProof = () => {
     <div className="w-full py-2">
       <div className="flex flex-col items-center justify-center space-y-4 px-4 h-[140px]">
         {/* Avatars Section */}
-        <div className="flex -space-x-3 md:-space-x-4 justify-center relative left-[6px] md:left-[8px]">
+        <div className="flex -space-x-3 md:-space-x-4 justify-center relative">
           {isLoading ? (
             // Loading state avatars
             [...Array(7)].map((_, i: number) => (
               <div
                 key={i}
-                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white bg-gray-100/80 shadow-[0_0_10px_rgba(0,0,0,0.05)] animate-pulse"
-                style={{ transform: `translateX(${i * -6}px)`, zIndex: 5 - i }}
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white bg-gray-100/80 shadow-[0_0_10px_rgba(0,0,0,0.05)] animate-pulse translate-x-0"
+                style={{ marginLeft: i === 0 ? '0' : '-12px', zIndex: 5 - i }}
               />
             ))
           ) : stats?.recentUsers?.length ? (
@@ -46,8 +46,8 @@ export const UsersSocialProof = () => {
               return (
                 <div
                   key={index}
-                  className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white shadow-[0_0_10px_rgba(0,0,0,0.05)] overflow-hidden"
-                  style={{ transform: `translateX(${index * -6}px)`, zIndex: 5 - index }}
+                  className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white shadow-[0_0_10px_rgba(0,0,0,0.05)] overflow-hidden translate-x-0"
+                  style={{ marginLeft: index === 0 ? '0' : '-12px', zIndex: 5 - index }}
                 >
                   {(() => {
                     const defaultBg = (
