@@ -380,7 +380,7 @@ export const Contacts = () => {
                       <div className="mb-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="flex flex-col px-3 py-2 bg-gray-50 rounded-lg">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Last Contact</span>
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Last Contacted</span>
                             <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
                           </div>
                           <div className="flex flex-col px-3 py-2 bg-gray-50 rounded-lg">
