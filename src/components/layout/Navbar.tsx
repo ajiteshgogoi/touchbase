@@ -16,7 +16,7 @@ export const Navbar = () => {
               <img
                 src="/icon.svg"
                 alt="Blue heart icon"
-                className="h-7 w-7 mr-0.5 group-hover:scale-105 transition-transform duration-200 translate-y-[5px]"
+                className="h-7 w-7 mr-0.5 group-hover:scale-105 group-hover:brightness-90 transition-all duration-200 translate-y-[5px]"
               />
               <span className="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
                 TouchBase
