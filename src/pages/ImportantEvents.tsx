@@ -132,7 +132,7 @@ export const ImportantEventsPage = () => {
                         <div className="min-w-0 flex-1 space-y-1">
                           <Link
                             to={`/contacts#${event.contact_id}`}
-                            className="block text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] hover:text-primary-600 transition-colors"
+                            className="block text-base font-semibold text-primary-500 tracking-[-0.01em] hover:text-primary-600 transition-colors"
                           >
                             {contactName}
                           </Link>
