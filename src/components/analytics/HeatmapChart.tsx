@@ -27,17 +27,22 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
   const maxCount = useMemo(() => Math.max(...data.map(d => d.count)), [data]);
   
   const getColor = useMemo(() => (count: number) => {
-    if (count === 0) return 'bg-gray-100';
+    if (count === 0) return 'bg-gray-100/90 hover:bg-gray-200/90';
     const intensity = Math.min(0.9, (count / maxCount) * 0.9);
-    return `bg-primary-${Math.round(intensity * 500)}`;
+    const baseColor = 'bg-primary';
+    const opacity = '/90';
+    const hoverClass = intensity > 0.5 
+      ? ` hover:bg-primary-${Math.round((intensity + 0.1) * 500)}${opacity}`
+      : ` hover:bg-primary-${Math.round((intensity + 0.2) * 500)}${opacity}`;
+    return `${baseColor}-${Math.round(intensity * 500)}${opacity}${hoverClass}`;
   }, [maxCount]);
 
   return (
     <div className="overflow-x-auto pb-4">
       <div className="min-w-[600px]">
-        <div className="flex justify-between mb-2">
+        <div className="flex justify-between mb-3">
           {months.map(({ month }) => (
-            <div key={month} className="text-xs text-gray-500">
+            <div key={month} className="text-[13px] font-[450] text-gray-600/90">
               {dayjs(month).format('MMM')}
             </div>
           ))}
@@ -46,8 +51,8 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
           {data.map(({ date, count }) => (
             <div
               key={date}
-              className={`w-3 h-3 rounded-sm ${getColor(count)}`}
-              title={`${date}: ${count} interactions`}
+              className={`w-3.5 h-3.5 rounded-lg transition-colors duration-200 cursor-default ${getColor(count)}`}
+              title={`${dayjs(date).format('MMM D, YYYY')}: ${count} interaction${count !== 1 ? 's' : ''}`}
             />
           ))}
         </div>
