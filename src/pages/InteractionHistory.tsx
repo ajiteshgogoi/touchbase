@@ -116,16 +116,24 @@ export const InteractionHistory = () => {
 
   if (isLoadingContact || isLoadingInteractions) {
     return (
-      <div className="p-12 text-center text-gray-500">
-        <div className="animate-pulse">Loading...</div>
+      <div className="p-12 text-center">
+        <div className="flex flex-col items-center justify-center gap-3 text-primary-500/90">
+          <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-base font-medium text-gray-600">Loading interactions...</span>
+        </div>
       </div>
     );
   }
 
   if (!contact) {
     return (
-      <div className="p-12 text-center text-gray-500">
-        Contact not found
+      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="p-12 text-center">
+          <p className="text-[15px] text-gray-600/90">Contact not found</p>
+        </div>
       </div>
     );
   }
@@ -136,31 +144,35 @@ export const InteractionHistory = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
             Interaction History
           </h1>
         </div>
 
-        <div className="flex flex-col items-center justify-center p-8 text-center">
-          <SparklesIcon className="w-16 h-16 text-primary-500 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Upgrade to access interaction history
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-lg">
-            View complete interaction history for each contact to track your relationship progress.
-          </p>
-          <Link
-            to="/settings"
-            className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            Upgrade Now
-            <ChevronRightIcon className="w-4 h-4 ml-1" />
-          </Link>
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+          <div className="flex flex-col items-center justify-center p-8 text-center">
+            <div className="p-3 bg-primary-50/90 rounded-xl mb-4">
+              <SparklesIcon className="w-12 h-12 text-primary-500/90" />
+            </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent mb-2">
+              Upgrade to Access Interaction History
+            </h2>
+            <p className="text-[15px] text-gray-600/90 mb-6 max-w-lg">
+              View complete interaction history for each contact to track your relationship progress.
+            </p>
+            <Link
+              to="/settings"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+            >
+              Upgrade Now
+              <ChevronRightIcon className="w-5 h-5 ml-1.5" />
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -178,11 +190,11 @@ export const InteractionHistory = () => {
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
               Interaction History
             </h1>
-            <p className="mt-1 text-sm text-gray-600">
-              Manage your interactions with <span className="text-primary-500">{contact.name}</span>
+            <p className="mt-1.5 text-[15px] text-gray-600/90">
+              Manage your interactions with <span className="text-primary-500 font-[500]">{contact.name}</span>
             </p>
           </div>
         </div>
@@ -200,14 +212,14 @@ export const InteractionHistory = () => {
               created_at: new Date().toISOString()
             }
           })}
-          className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all"
+          className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
         >
           Log New Interaction
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-soft">
-        <div className="p-4 border-b border-gray-100">
+      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-2 w-full">
             <div className="flex-1">
               <select
@@ -238,7 +250,7 @@ export const InteractionHistory = () => {
             </div>
           ) : (
             sortedInteractions.map((interaction) => (
-              <div key={interaction.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
+              <div key={interaction.id} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
