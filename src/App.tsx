@@ -204,26 +204,33 @@ function App() {
         .single();
 
       if (prefs) {
-        // Only update timezone if changed
+        // Check actual notification permission state
+        const hasPermission = await notificationService.checkPermission();
+        
+        // Update timezone if changed
+        const updates: { timezone?: string; notification_enabled?: boolean } = {};
         if (prefs.timezone !== currentTimezone) {
-          await supabase
-            .from('user_preferences')
-            .update({
-              timezone: currentTimezone
-            })
-            .eq('id', prefs.id);
+          updates.timezone = currentTimezone;
         }
 
-        // Only handle notifications if user has explicitly enabled them
-        if (prefs.notification_enabled) {
-          const hasPermission = await notificationService.checkPermission();
-          if (hasPermission) {
-            try {
-              await notificationService.resubscribeIfNeeded(userId);
-            } catch (error) {
-              console.log('Error checking subscription:', error);
-            }
+        // If notifications are enabled in db but denied at app level, update db
+        if (prefs.notification_enabled && !hasPermission) {
+          updates.notification_enabled = false;
+        } else if (prefs.notification_enabled && hasPermission) {
+          // If notifications are enabled and permitted, ensure subscription
+          try {
+            await notificationService.resubscribeIfNeeded(userId);
+          } catch (error) {
+            console.log('Error checking subscription:', error);
           }
+        }
+
+        // Apply updates if any
+        if (Object.keys(updates).length > 0) {
+          await supabase
+            .from('user_preferences')
+            .update(updates)
+            .eq('id', prefs.id);
         }
       } else {
         // Create initial preferences with notifications disabled by default
