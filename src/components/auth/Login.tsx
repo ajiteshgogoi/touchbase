@@ -105,7 +105,7 @@ export const Login = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
           <p className="text-base text-gray-600/90 leading-relaxed text-center">
-            TouchBase is your private space for nurturing real-world relationships. We're not a social network.
+            TouchBase is your private space for nurturing real-world relationships. It is not a social network.
           </p>
         </div>
       </div>
