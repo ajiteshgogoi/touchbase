@@ -197,8 +197,8 @@ const [quickReminder, setQuickReminder] = useState<{
                         }` : ''
                       }`}
                     >
-                      <div className="flex flex-col gap-4">
-                        <div className="min-w-0 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50">
+                      <div className="flex flex-col divide-y divide-gray-100">
+                        <div className="min-w-0 pb-4">
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <Link
@@ -283,7 +283,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
+                        <div className="flex flex-wrap items-center justify-start gap-2 w-full px-3 sm:px-4 py-3">
                           {reminder.name ? (
                             <button
                               onClick={async () => {
@@ -371,8 +371,8 @@ const [quickReminder, setQuickReminder] = useState<{
                         }` : ''
                       }`}
                     >
-                      <div className="flex flex-col gap-4">
-                        <div className="min-w-0 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50">
+                      <div className="flex flex-col divide-y divide-gray-100">
+                        <div className="min-w-0 pb-4">
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <Link
@@ -457,7 +457,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
+                        <div className="flex flex-wrap items-center justify-start gap-2 w-full px-3 sm:px-4 py-3">
                           {reminder.name ? (
                             <button
                               onClick={async () => {
