@@ -153,9 +153,67 @@ async function recordNotificationAttempt(
   }
 }
 
+// Helper function to send notification to a single device
+async function sendSingleNotification(
+  userId: string,
+  device: { fcmToken: string; deviceId: string },
+  title: string,
+  body: string,
+  url: string,
+  accessToken: string
+): Promise<void> {
+  try {
+    const response = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID.replace(':', '%3A')}/messages:send`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: {
+            token: device.fcmToken,
+            notification: { title, body },
+            webpush: {
+              notification: {
+                title,
+                body,
+                icon: '/icon-192.png',
+                badge: '/icon-192.png',
+                requireInteraction: true,
+                tag: 'touchbase-notification',
+                renotify: true,
+                actions: [{ action: 'view', title: 'View' }]
+              },
+              fcm_options: { link: url }
+            }
+          }
+        })
+      }
+    );
+
+    const responseData = await response.json();
+    if (!response.ok) {
+      throw new Error(`FCM API error: ${responseData.error?.message || JSON.stringify(responseData)}`);
+    }
+
+    console.log('FCM notification sent successfully to device:', { userId, deviceId: device.deviceId });
+  } catch (error) {
+    if (error.message.includes('registration-token-not-registered')) {
+      console.log('Invalid FCM token, removing device subscription:', { userId, deviceId: device.deviceId });
+      await supabase
+        .from('push_subscriptions')
+        .delete()
+        .match({ user_id: userId, device_id: device.deviceId });
+    }
+    throw error;
+  }
+}
+
 async function sendFcmNotification(
   userId: string,
-  fcmToken: string,
+  devices: { fcmToken: string; deviceId: string }[],
   title: string,
   body: string,
   url: string,
@@ -163,7 +221,7 @@ async function sendFcmNotification(
   batchId: string,
   isTest: boolean = false
 ): Promise<void> {
-  console.log('Preparing FCM notification:', { userId, windowType, title });
+  console.log('Preparing FCM notifications:', { userId, windowType, title, deviceCount: devices.length });
 
   // Get user's timezone preference first
   const { data: userPref } = await supabase
@@ -232,101 +290,76 @@ async function sendFcmNotification(
 
   try {
     const accessToken = await getFcmAccessToken();
-
-    const response = await fetch(
-      `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID.replace(':', '%3A')}/messages:send`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: {
-            token: fcmToken,
-            notification: { title, body },
-            webpush: {
-              notification: {
-                title,
-                body,
-                icon: '/icon-192.png',
-                badge: '/icon-192.png',
-                requireInteraction: true,
-                tag: 'touchbase-notification',
-                renotify: true,
-                actions: [{ action: 'view', title: 'View' }]
-              },
-              fcm_options: { link: url }
-            }
-          }
-        })
-      }
+    
+    // Send to all devices
+    const results = await Promise.allSettled(
+      devices.map(device => sendSingleNotification(userId, device, title, body, url, accessToken))
     );
 
-    const responseData = await response.json();
-    if (!response.ok) {
-      console.error('FCM API error:', {
-        status: response.status,
-        responseData,
-        url: `https://fcm.googleapis.com/fcm/v1/projects/${FIREBASE_PROJECT_ID}/messages:send`,
-        projectId: FIREBASE_PROJECT_ID
-      });
-      throw new Error(`FCM API error: ${responseData.error?.message || JSON.stringify(responseData)}`);
-    }
+    // Check results
+    const successCount = results.filter(r => r.status === 'fulfilled').length;
+    const failureCount = results.filter(r => r.status === 'rejected').length;
 
-    console.log('FCM notification sent successfully:', { userId });
-    await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId, prevAttempt);
+    console.log('Notification results:', {
+      userId,
+      totalDevices: devices.length,
+      successCount,
+      failureCount
+    });
+
+    // Record final status - success if any device succeeded
+    if (successCount > 0) {
+      await recordNotificationAttempt(userId, windowType, 'success', undefined, batchId, prevAttempt);
+    } else {
+      // All devices failed
+      const errors = results
+        .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+        .map(r => r.reason.message)
+        .join('; ');
+      
+      await recordNotificationAttempt(userId, windowType, 'error', errors, batchId, prevAttempt);
+      throw new Error('Failed to send notifications to all devices');
+    }
 
   } catch (error) {
-    if (error.message.includes('registration-token-not-registered')) {
-      console.log('Invalid FCM token, removing subscription:', { userId });
-      await Promise.all([
-        recordNotificationAttempt(userId, windowType, 'invalid_token', error.message, batchId, prevAttempt),
-        supabase
-          .from('push_subscriptions')
-          .delete()
-          .eq('user_id', userId)
-      ]);
-      throw new Error('FCM token invalid - resubscription required');
-    }
-
-    console.error('Error sending FCM notification:', {
+    console.error('Error sending FCM notifications:', {
       userId,
       error: error.message
     });
-    await recordNotificationAttempt(userId, windowType, 'error', error.message, batchId, prevAttempt);
     throw error;
   }
 }
 
-async function getUserData(userId: string): Promise<{ username: string; fcmToken: string }> {
+async function getUserData(userId: string): Promise<{ username: string; devices: { fcmToken: string; deviceId: string }[] }> {
   console.log('Fetching user data:', { userId });
 
-  const [userData, subscription] = await Promise.all([
+  const [userData, subscriptions] = await Promise.all([
     supabase.auth.admin.getUserById(userId),
     supabase
       .from('push_subscriptions')
-      .select('fcm_token')
+      .select('fcm_token, device_id')
       .eq('user_id', userId)
-      .maybeSingle()
   ]);
 
   const username = userData.data?.user?.user_metadata?.name || 'Friend';
 
-  if (!subscription?.data?.fcm_token) {
-    console.error('No FCM token found:', { userId });
-    throw new Error(`No FCM token found for user: ${userId}`);
+  if (!subscriptions?.data?.length) {
+    console.error('No FCM tokens found:', { userId });
+    throw new Error(`No FCM tokens found for user: ${userId}`);
   }
 
   console.log('User data retrieved:', {
     userId,
     hasUsername: !!username,
-    hasToken: true
+    deviceCount: subscriptions.data.length
   });
 
   return {
     username,
-    fcmToken: subscription.data.fcm_token
+    devices: subscriptions.data.map(sub => ({
+      fcmToken: sub.fcm_token,
+      deviceId: sub.device_id
+    }))
   };
 }
 
@@ -460,10 +493,10 @@ serve(async (req) => {
         );
       }
 
-      const { username, fcmToken } = await getUserData(userId);
+      const { username, devices } = await getUserData(userId);
       await sendFcmNotification(
         userId,
-        fcmToken,
+        devices,
         'Test Notification',
         message || 'This is a test notification',
         '/reminders',
@@ -521,7 +554,7 @@ serve(async (req) => {
       }
 
       // Get user data and due reminders count in parallel
-      const [{ username, fcmToken }, dueCount] = await Promise.all([
+      const [{ username, devices }, dueCount] = await Promise.all([
         getUserData(userId),
         getDueRemindersCount(userId)
       ]);
@@ -532,7 +565,7 @@ serve(async (req) => {
 
       await sendFcmNotification(
         userId,
-        fcmToken,
+        devices,
         title,
         body,
         '/reminders',
