@@ -26,7 +26,7 @@ export const ContactPreferences = ({
             onChange={(e) => onChange({
               preferred_contact_method: e.target.value as ContactFormProps['formData']['preferred_contact_method']
             })}
-            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
           >
             <option value="">No preference</option>
             <option value="call">Call</option>
@@ -46,7 +46,7 @@ export const ContactPreferences = ({
             onChange={(e) => onChange({
               contact_frequency: e.target.value as ContactFormProps['formData']['contact_frequency']
             })}
-            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
           >
             <option value="">Choose frequency</option>
             <option value="daily">Daily</option>
@@ -82,7 +82,7 @@ export const ContactPreferences = ({
                 });
               }
             }}
-            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
           />
         </div>
 
