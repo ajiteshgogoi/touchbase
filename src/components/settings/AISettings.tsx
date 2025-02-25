@@ -13,7 +13,7 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
   const canUseAIFeatures = isPremium || isTrialActive;
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6">
+    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-primary-500">
           AI Features

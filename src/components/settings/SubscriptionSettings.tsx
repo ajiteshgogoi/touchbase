@@ -110,7 +110,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
 
   return (
     <>
-      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6">
+      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200 p-6">
         <h2 className="text-xl font-semibold text-primary-500 mb-6">
           Subscription Plan
         </h2>
@@ -120,8 +120,8 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
               key={plan.id}
               className={`relative bg-white/60 backdrop-blur-xl rounded-xl p-6 transition-all ${
                 selectedPlan === plan.id
-                  ? 'border-2 border-primary-400 shadow-soft'
-                  : 'border border-gray-100/50 hover:border-primary-200 shadow-sm hover:shadow-soft'
+                  ? 'border-2 border-primary-400 shadow-sm hover:shadow-md'
+                  : 'border border-gray-100/50 hover:border-primary-200 shadow-sm hover:shadow-md'
               }`}
             >
               {plan.id === 'premium' && (
@@ -158,7 +158,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
                   <button
                     onClick={handleNewSubscription}
                     disabled={isSubscribing}
-                    className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Subscribe Now
                   </button>
@@ -181,7 +181,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
                     {subscription?.status === 'active' ? (
                       <button
                         onClick={handleCancelSubscription}
-                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-700 border border-gray-200/80 hover:bg-gray-50/80 shadow-soft hover:shadow-lg transition-all duration-200"
+                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-700 border border-gray-200/80 hover:bg-gray-50/80 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200"
                       >
                         Cancel Subscription
                       </button>
@@ -189,7 +189,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
                       <button
                         onClick={handleResumeSubscription}
                         disabled={isSubscribing}
-                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Resume Subscription
                       </button>

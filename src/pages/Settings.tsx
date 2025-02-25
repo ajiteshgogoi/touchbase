@@ -309,7 +309,7 @@ export const Settings = () => {
         </Suspense>
 
         {/* Feedback Section */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6">
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200 p-6">
           <h2 className="text-xl font-semibold text-primary-500 mb-6">
             Help Us Improve
           </h2>
@@ -327,7 +327,7 @@ export const Settings = () => {
         </div>
 
         {/* Account Deletion */}
-        <div className="bg-white/40 backdrop-blur-xl rounded-xl border border-gray-100/30 shadow-sm p-6">
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200 p-6">
           <h2 className="text-xl font-semibold text-gray-600/90 mb-6">
             Delete Account
           </h2>
@@ -349,7 +349,7 @@ export const Settings = () => {
                   toast.error('Failed to delete account');
                 }
               }}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600/90 bg-red-50/80 hover:bg-red-100/80 border border-red-100/50 shadow-sm hover:shadow-md transition-all duration-200"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200"
             >
               Delete Account
             </button>
