@@ -24,6 +24,7 @@ Disallow: /reminders
 Disallow: /help
 Disallow: /auth/
 Disallow: /conversationprompts
+Disallow: /importantevents
 Disallow: /*.json$
 
 # Crawl delay to prevent overwhelming the server
