@@ -15,7 +15,7 @@ export const Terms = () => {
         <div className="flex items-start sm:items-center justify-center w-full mb-8 relative">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0 sm:top-7 top-2"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0 top-7 sm:top-7"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -32,6 +32,7 @@ export const Terms = () => {
       </div>
 
       <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft divide-y divide-gray-100/50">
+        {/* Rest of the content remains the same */}
         <section className="p-6">
           <h2 className="text-xl font-[600] text-gray-900/90 mb-4">1. Introduction</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90">
