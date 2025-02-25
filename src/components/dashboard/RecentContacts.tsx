@@ -126,204 +126,225 @@ export const RecentContacts = () => {
             Your most recently added connections
           </p>
         </div>
-        <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-gray-100/50 shadow-soft">
-          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-            {(contacts || [])
-              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .slice(0, isPremium || isOnTrial ? Infinity : 15)
-              .slice(0, 3)
-              .map((contact: Contact) => (
-              <div key={contact.id} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200">
-                <div className="flex flex-col gap-3 sm:gap-4 divide-y divide-gray-100">
-                  <div className="min-w-0 pb-3 sm:pb-4">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
-                        {/* Inline status indicator */}
-                        <div className="flex items-center text-sm text-gray-500">
-                          <div className={`w-2 h-2 rounded-full mr-2 ${
-                            contact.relationship_level === 1 ? 'bg-red-400' :
-                            contact.relationship_level === 2 ? 'bg-orange-400' :
-                            contact.relationship_level === 3 ? 'bg-yellow-400' :
-                            contact.relationship_level === 4 ? 'bg-lime-400' :
-                            'bg-green-400'
-                          }`}></div>
-                          {contact.contact_frequency && (
-                            <span>{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)} contact</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Link
-                          to={`/contacts/${contact.id}/edit`}
-                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                          title="Edit contact"
-                        >
-                          <PencilSquareIcon className="h-4 w-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteContact(contact.id)}
-                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete contact"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4">
-                      {/* Contact details section */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
-                        {contact.phone && (
-                          <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                            <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
-                            <span className="truncate leading-5 font-[450]">{contact.phone}</span>
-                          </div>
-                        )}
-                        {contact.social_media_handle && (
-                          <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                            <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
-                            <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Events section */}
-                      {(eventsMap[contact.id] || []).length > 0 && (
-                        <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
-                          <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
-                          </div>
-                          <div className="px-3 py-2">
-                            <div className="flex flex-wrap gap-3 text-sm">
-                              {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
-                                <span key={idx} className="inline-flex items-center">
-                                  {event.type === 'birthday' ? (
-                                    <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
-                                  ) : event.type === 'anniversary' ? (
-                                    <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
-                                  ) : (
-                                    <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
-                                  )}
-                                  <span className="text-gray-700 font-medium">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
-                                  <span className="text-gray-600">{formatEventDate(event.date)}</span>
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Contact status section */}
-                      <div className="mb-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="bg-gray-50 rounded-lg overflow-hidden">
-                            <div className="px-3 py-2 bg-gray-100">
-                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted</span>
-                            </div>
-                            <div className="px-3 py-2">
-                              <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg overflow-hidden">
-                            <div className="px-3 py-2 bg-gray-100">
-                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Contact Due</span>
-                            </div>
-                            <div className="px-3 py-2">
-                              <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* AI Suggestions section */}
-                      {contact.ai_last_suggestion && (
-                        <div className="bg-gray-50 rounded-lg overflow-hidden">
-                          <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
-                          </div>
-                          <div className="px-3 py-2">
-                            {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-600">
-                                  ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                </span>
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+          {!contacts?.length ? (
+            <>
+              <div className="p-12 text-center">
+                <p className="text-[15px] text-gray-600/90">No contacts added yet</p>
+              </div>
+              <div className="p-6 border-t border-gray-100">
+                <Link
+                  to="/contacts"
+                  className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+                >
+                  View all contacts
+                  <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                {(contacts || [])
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .slice(0, isPremium || isOnTrial ? Infinity : 15)
+                  .slice(0, 3)
+                  .map((contact: Contact) => (
+                    <div key={contact.id} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200">
+                      <div className="flex flex-col gap-3 sm:gap-4 divide-y divide-gray-100">
+                        <div className="min-w-0 pb-3 sm:pb-4">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
+                              {/* Inline status indicator */}
+                              <div className="flex items-center text-sm text-gray-500">
+                                <div className={`w-2 h-2 rounded-full mr-2 ${
+                                  contact.relationship_level === 1 ? 'bg-red-400' :
+                                  contact.relationship_level === 2 ? 'bg-orange-400' :
+                                  contact.relationship_level === 3 ? 'bg-yellow-400' :
+                                  contact.relationship_level === 4 ? 'bg-lime-400' :
+                                  'bg-green-400'
+                                }`}></div>
+                                {contact.contact_frequency && (
+                                  <span>{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)} contact</span>
+                                )}
                               </div>
-                            ) : (
-                              <div className="group flex items-start gap-2">
-                                <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
-                                  {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
-                                </span>
-                                <button
-                                  onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
-                                  className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
-                                  title="Report inappropriate suggestion"
-                                >
-                                  <FlagIcon className="h-4 w-4" />
-                                </button>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Link
+                                to={`/contacts/${contact.id}/edit`}
+                                className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                                title="Edit contact"
+                              >
+                                <PencilSquareIcon className="h-4 w-4" />
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteContact(contact.id)}
+                                className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete contact"
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mt-4">
+                            {/* Contact details section */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
+                              {contact.phone && (
+                                <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                                  <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
+                                  <span className="truncate leading-5 font-[450]">{contact.phone}</span>
+                                </div>
+                              )}
+                              {contact.social_media_handle && (
+                                <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                                  <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
+                                  <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Events section */}
+                            {(eventsMap[contact.id] || []).length > 0 && (
+                              <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
+                                </div>
+                                <div className="px-3 py-2">
+                                  <div className="flex flex-wrap gap-3 text-sm">
+                                    {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
+                                      <span key={idx} className="inline-flex items-center">
+                                        {event.type === 'birthday' ? (
+                                          <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                                        ) : event.type === 'anniversary' ? (
+                                          <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
+                                        ) : (
+                                          <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
+                                        )}
+                                        <span className="text-gray-700 font-medium">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
+                                        <span className="text-gray-600">{formatEventDate(event.date)}</span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Contact status section */}
+                            <div className="mb-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                  <div className="px-3 py-2 bg-gray-100">
+                                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted</span>
+                                  </div>
+                                  <div className="px-3 py-2">
+                                    <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                                  </div>
+                                </div>
+                                <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                  <div className="px-3 py-2 bg-gray-100">
+                                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Contact Due</span>
+                                  </div>
+                                  <div className="px-3 py-2">
+                                    <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* AI Suggestions section */}
+                            {contact.ai_last_suggestion && (
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
+                                </div>
+                                <div className="px-3 py-2">
+                                  {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm text-gray-600">
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="group flex items-start gap-2">
+                                      <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                                        {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                      </span>
+                                      <button
+                                        onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
+                                        className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                                        title="Report inappropriate suggestion"
+                                      >
+                                        <FlagIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
                         </div>
-                      )}
+                        <div className="pt-3">
+                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg">
+                            <button
+                              onClick={() => setQuickInteraction({
+                                isOpen: true,
+                                contactId: contact.id,
+                                contactName: contact.name,
+                                type: 'call'
+                              })}
+                              className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                              title="Log an interaction"
+                            >
+                              Log Interaction
+                            </button>
+                            {(isPremium || isOnTrial) ? (
+                              <Link
+                                to={`/contacts/${contact.id}/interactions`}
+                                className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                title="View interaction history"
+                              >
+                                View History
+                              </Link>
+                            ) : (
+                              <Link
+                                to={`/contacts/${contact.id}/interactions`}
+                                className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                                title="Upgrade to view interaction history"
+                              >
+                                View History
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="pt-3">
-                    <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg">
-                      <button
-                        onClick={() => setQuickInteraction({
-                          isOpen: true,
-                          contactId: contact.id,
-                          contactName: contact.name,
-                          type: 'call'
-                        })}
-                        className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                        title="Log an interaction"
-                      >
-                        Log Interaction
-                      </button>
-                      {(isPremium || isOnTrial) ? (
-                        <Link
-                          to={`/contacts/${contact.id}/interactions`}
-                          className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                          title="View interaction history"
-                        >
-                          View History
-                        </Link>
-                      ) : (
-                        <Link
-                          to={`/contacts/${contact.id}/interactions`}
-                          className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                          title="Upgrade to view interaction history"
-                        >
-                          View History
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  ))}
               </div>
-            ))}
-          </div>
-          <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100/70">
-            <Link
-              to="/contacts"
-              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-[500] transition-colors"
-            >
-              View all contacts
-              <svg
-                className="w-5 h-5 ml-1"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </Link>
-          </div>
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100/70">
+                <Link
+                  to="/contacts"
+                  className="inline-flex items-center text-primary-500 hover:text-primary-600 font-[500] transition-colors"
+                >
+                  View all contacts
+                  <svg
+                    className="w-5 h-5 ml-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </div>
       {quickInteraction && (
