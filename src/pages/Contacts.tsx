@@ -204,8 +204,8 @@ export const Contacts = () => {
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
-              <p className="mt-1 text-sm text-gray-600">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Contacts</h1>
+              <p className="mt-1.5 text-[15px] text-gray-600/90">
                 Manage your relationships and stay connected
               </p>
             </div>

@@ -121,21 +121,21 @@ export const RecentContacts = () => {
     <>
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Recent Contacts</h2>
-          <p className="mt-1 text-sm text-gray-600">
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Recent Contacts</h2>
+          <p className="mt-1.5 text-[15px] text-gray-600/90">
             Your most recently added connections
           </p>
         </div>
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
-          <div className="p-4 space-y-4">
+        <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-gray-100/50 shadow-soft">
+          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
             {(contacts || [])
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .slice(0, isPremium || isOnTrial ? Infinity : 15)
               .slice(0, 3)
               .map((contact: Contact) => (
-              <div key={contact.id} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-                <div className="flex flex-col gap-4 divide-y divide-gray-100">
-                  <div className="min-w-0 pb-3">
+              <div key={contact.id} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200">
+                <div className="flex flex-col gap-3 sm:gap-4 divide-y divide-gray-100">
+                  <div className="min-w-0 pb-3 sm:pb-4">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
@@ -173,17 +173,17 @@ export const RecentContacts = () => {
 
                     <div className="mt-4">
                       {/* Contact details section */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
                         {contact.phone && (
-                          <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-                            <PhoneIcon className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />
-                            <span className="truncate leading-5">{contact.phone}</span>
+                          <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                            <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
+                            <span className="truncate leading-5 font-[450]">{contact.phone}</span>
                           </div>
                         )}
                         {contact.social_media_handle && (
-                          <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-                            <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500 flex-shrink-0" />
-                            <span className="truncate leading-5">{contact.social_media_handle}</span>
+                          <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                            <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
+                            <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
                           </div>
                         )}
                       </div>
@@ -269,7 +269,7 @@ export const RecentContacts = () => {
                     </div>
                   </div>
                   <div className="pt-3">
-                    <div className="flex items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-4 py-3 rounded-lg">
+                    <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg">
                       <button
                         onClick={() => setQuickInteraction({
                           isOpen: true,
@@ -277,7 +277,7 @@ export const RecentContacts = () => {
                           contactName: contact.name,
                           type: 'call'
                         })}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                        className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                         title="Log an interaction"
                       >
                         Log Interaction
@@ -285,7 +285,7 @@ export const RecentContacts = () => {
                       {(isPremium || isOnTrial) ? (
                         <Link
                           to={`/contacts/${contact.id}/interactions`}
-                          className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                          className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                           title="View interaction history"
                         >
                           View History
@@ -293,7 +293,7 @@ export const RecentContacts = () => {
                       ) : (
                         <Link
                           to={`/contacts/${contact.id}/interactions`}
-                          className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                          className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                           title="Upgrade to view interaction history"
                         >
                           View History
@@ -305,14 +305,22 @@ export const RecentContacts = () => {
               </div>
             ))}
           </div>
-          <div className="p-6 border-t border-gray-100">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100/70">
             <Link
               to="/contacts"
-              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-[500] transition-colors group"
             >
               View all contacts
-              <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              <svg
+                className="w-5 h-5 ml-1 transform transition-transform duration-200 group-hover:translate-x-0.5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             </Link>
           </div>
