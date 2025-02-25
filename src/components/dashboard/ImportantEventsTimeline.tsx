@@ -74,6 +74,17 @@ export const ImportantEventsTimeline = () => {
           <div className="p-12 text-center">
             <p className="text-[15px] text-gray-600/90">No upcoming important events</p>
           </div>
+          <div className="p-6 border-t border-gray-100">
+            <Link
+              to="/important-events"
+              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+            >
+              View all events
+              <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
     );
