@@ -198,7 +198,7 @@ const [quickReminder, setQuickReminder] = useState<{
                       }`}
                     >
                       <div className="flex flex-col gap-4">
-                        <div className="min-w-0">
+                        <div className="min-w-0 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50">
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <Link
@@ -283,7 +283,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center justify-start gap-2 w-full">
+                        <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
                           {reminder.name ? (
                             <button
                               onClick={async () => {
@@ -309,7 +309,7 @@ const [quickReminder, setQuickReminder] = useState<{
                                   contactName: contact?.name || 'Unknown',
                                   type: reminder.type
                                 })}
-                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                                className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                 title="Log an interaction"
                               >
                                 Log Interaction
@@ -317,7 +317,7 @@ const [quickReminder, setQuickReminder] = useState<{
                               {(isPremium || isOnTrial) ? (
                                 <Link
                                   to={`/contacts/${reminder.contact_id}/interactions`}
-                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                                  className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                   title="View interaction history"
                                 >
                                   View History
@@ -325,7 +325,7 @@ const [quickReminder, setQuickReminder] = useState<{
                               ) : (
                                 <Link
                                   to={`/contacts/${reminder.contact_id}/interactions`}
-                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                                  className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                   title="Upgrade to view interaction history"
                                 >
                                   View History
@@ -372,7 +372,7 @@ const [quickReminder, setQuickReminder] = useState<{
                       }`}
                     >
                       <div className="flex flex-col gap-4">
-                        <div className="min-w-0">
+                        <div className="min-w-0 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50">
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <Link
@@ -457,7 +457,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center justify-start gap-2 w-full">
+                        <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
                           {reminder.name ? (
                             <button
                               onClick={async () => {
@@ -469,7 +469,7 @@ const [quickReminder, setQuickReminder] = useState<{
                                   }
                                 }
                               }}
-                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                              className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                               title="Complete quick reminder"
                             >
                               Complete
@@ -483,7 +483,7 @@ const [quickReminder, setQuickReminder] = useState<{
                                   contactName: contact?.name || 'Unknown',
                                   type: reminder.type
                                 })}
-                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                                className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                 title="Log an interaction"
                               >
                                 Log Interaction
