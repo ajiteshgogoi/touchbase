@@ -241,7 +241,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             {reminder.name && (
                               <div className="bg-gray-50 rounded-lg overflow-hidden">
                                 <div className="px-3 py-2 bg-gray-100">
-                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Quick Reminder</span>
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Description</span>
                                 </div>
                                 <div className="px-3 py-2 text-sm text-gray-700">
                                   {reminder.name}
