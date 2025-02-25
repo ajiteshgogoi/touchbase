@@ -178,7 +178,7 @@ export const ImportantEvents = ({
               <select
                 id="event-type"
                 required
-                className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
+                className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400"
                 value={selectedEventType}
                 onChange={(e) => setSelectedEventType(e.target.value as 'birthday' | 'anniversary' | 'custom')}
               >
@@ -202,7 +202,7 @@ export const ImportantEvents = ({
                 required
                 defaultValue={dayjs().format('YYYY-MM-DD')}
                 key={showNewEventForm ? 'new' : 'edit'} // Force re-render on form toggle
-                className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
+                className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400"
               />
               <p className="mt-1 text-xs text-gray-500">
                 Events will recur yearly on this date
@@ -221,7 +221,7 @@ export const ImportantEvents = ({
                 className={`block w-full rounded-lg border-gray-200 shadow-sm ${
                   selectedEventType !== 'custom'
                   ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                  : 'focus:border-primary-400 focus:ring-primary-400'
+                  : 'focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400'
                 }`}
                 placeholder="Enter event name"
                 maxLength={50}
