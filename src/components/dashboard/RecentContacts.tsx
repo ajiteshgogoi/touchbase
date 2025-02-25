@@ -121,8 +121,8 @@ export const RecentContacts = () => {
     <>
       <div className="space-y-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Recent Contacts</h2>
-          <p className="mt-1.5 text-[15px] text-gray-600/90">
+          <h2 className="text-xl font-bold text-gray-900">Recent Contacts</h2>
+          <p className="mt-1 text-sm text-gray-600">
             Your most recently added connections
           </p>
         </div>
