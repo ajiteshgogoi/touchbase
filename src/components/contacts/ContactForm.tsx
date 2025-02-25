@@ -249,10 +249,10 @@ export const ContactForm = () => {
           </button>
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-              {isEditMode ? 'Edit Contact' : 'New Contact'}
+              {isEditMode ? 'Edit Contact' : 'Add Contact'}
             </h1>
             <p className="mt-1.5 text-[15px] text-gray-600/90">
-              {isEditMode ? 'Update contact information' : 'Add a new contact to your network'}
+              {isEditMode ? 'Update contact information' : 'Add a new contact to your connections'}
             </p>
           </div>
         </div>
@@ -293,7 +293,7 @@ export const ContactForm = () => {
 
         {/* Action Buttons and Error Messages */}
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-3">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-3">
             <button
               type="button"
               onClick={() => navigate(-1)}
