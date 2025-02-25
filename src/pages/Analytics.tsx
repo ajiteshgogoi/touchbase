@@ -96,8 +96,8 @@ export const Analytics = () => {
               Upgrade to Access Analytics
             </h2>
             <p className="text-[15px] text-gray-600/90 mb-6 max-w-lg">
-              Get deep insights into your relationships, including interaction patterns,
-              contact trends and AI-powered relationship analysis.
+            Discover the story behind your relationships. See who you've been missing, 
+            and get thoughtful suggestions to nurture the bonds that matter most
             </p>
             <Link
               to="/settings"
@@ -129,7 +129,7 @@ export const Analytics = () => {
                 Relationship Analytics (beta)
               </h1>
               <p className="mt-1.5 text-[15px] text-gray-600/90">
-                Deep insights into your connections and interaction patterns
+                Deeper understanding of your connections and interaction patterns
               </p>
             </div>
           </div>
