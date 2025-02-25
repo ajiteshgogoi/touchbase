@@ -11,12 +11,12 @@ export const Navbar = () => {
           <div className="flex-1 flex items-center justify-between">
             <Link
               to="/"
-              className="inline-flex items-baseline text-2xl font-semibold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200"
+              className="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200"
             >
               <img
                 src="/icon.svg"
                 alt="Blue heart icon"
-                className="h-7 w-7 mr-1.5 group-hover:scale-105 transition-transform duration-200 translate-y-[5px]"
+                className="h-7 w-7 mr-0.5 group-hover:scale-105 transition-transform duration-200 translate-y-[5px]"
               />
               <span className="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
                 TouchBase
