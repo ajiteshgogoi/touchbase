@@ -17,8 +17,10 @@ export const PersonalNotes = ({
   isOnTrial,
 }: PersonalNotesProps) => {
   return (
-    <div className="bg-white rounded-xl shadow-soft p-6">
-      <h2 className="text-lg font-semibold text-gray-800 mb-6">Personal Notes</h2>
+    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6 hover:bg-white/70 hover:shadow-md transition-all duration-200">
+      <div className="flex items-center gap-2 mb-6">
+        <h2 className="text-xl font-[600] text-gray-900/90">Personal Notes</h2>
+      </div>
       <div>
         {/* Premium/Trial Feature Info */}
         {(isPremium || isOnTrial) ? (

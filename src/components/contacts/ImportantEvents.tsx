@@ -109,11 +109,13 @@ export const ImportantEvents = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-soft p-6">
+    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6 hover:bg-white/70 hover:shadow-md transition-all duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-800">Important Events</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-[600] text-gray-900/90">Important Events</h2>
+          </div>
+          <p className="mt-1.5 text-[15px] text-gray-600/90">
             Add yearly recurring events (birthday, anniversary, etc.)
           </p>
         </div>
@@ -121,7 +123,7 @@ export const ImportantEvents = ({
           <button
             type="button"
             onClick={() => setShowNewEventForm(true)}
-            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+            className="inline-flex items-center justify-center text-center px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] shadow-soft hover:shadow-md transition-all duration-200"
           >
             <PlusIcon className="h-4 w-4 mr-1.5" />
             Add Event
@@ -251,14 +253,14 @@ export const ImportantEvents = ({
                 setEventNameLength(0);
                 onError({ important_events: [] });
               }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] transition-all duration-200 shadow-soft hover:shadow-md"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleAddEvent}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               Save Event
             </button>

@@ -238,17 +238,24 @@ export const ContactForm = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 -m-2 text-gray-400 hover:text-gray-500"
-          aria-label="Go back"
-        >
-          <ArrowLeftIcon className="h-5 w-5" />
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Contact Details
-        </h1>
+      <div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+            aria-label="Go back"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+              {isEditMode ? 'Edit Contact' : 'New Contact'}
+            </h1>
+            <p className="mt-1.5 text-[15px] text-gray-600/90">
+              {isEditMode ? 'Update contact information' : 'Add a new contact to your network'}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Form */}
@@ -286,20 +293,20 @@ export const ContactForm = () => {
 
         {/* Action Buttons and Error Messages */}
         <div className="space-y-4">
-          <div className="flex justify-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-3">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-6 py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] transition-all duration-200 shadow-soft hover:shadow-md"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="min-w-[140px] px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium shadow-soft hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               disabled={isValidating || createMutation.isPending || updateMutation.isPending}
             >
-              <div className="w-[100px] flex justify-center">
+              <div className="flex justify-center min-w-[100px]">
                 {isValidating || createMutation.isPending || updateMutation.isPending ? (
                   <>
                     <svg
