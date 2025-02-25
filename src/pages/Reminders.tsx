@@ -129,14 +129,14 @@ const [quickReminder, setQuickReminder] = useState<{
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => navigate(-1)}
-                  className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                  className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
                   aria-label="Go back"
                 >
                   <ArrowLeftIcon className="h-5 w-5" />
                 </button>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Reminders</h1>
-                  <p className="mt-1 text-sm text-gray-600">
+                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Reminders</h1>
+                  <p className="mt-1.5 text-[15px] text-gray-600/90">
                     Track your upcoming reminders
                   </p>
                 </div>
@@ -145,7 +145,7 @@ const [quickReminder, setQuickReminder] = useState<{
             {contacts && contacts.length > 0 && (
               <button
                 onClick={() => setQuickReminder({ isOpen: true })}
-                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
               >
                 <CalendarIcon className="h-5 w-5 mr-2" />
                 Add Quick Reminder
@@ -171,10 +171,10 @@ const [quickReminder, setQuickReminder] = useState<{
           {/* Due Today Column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 bg-yellow-50 rounded-lg">
-                <CalendarIcon className="h-5 w-5 text-yellow-500" />
+              <div className="p-2.5 bg-yellow-50/90 rounded-xl">
+                <CalendarIcon className="h-5 w-5 text-yellow-500/90" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900">Interactions Due Today</h2>
+              <h2 className="text-xl font-[600] text-gray-900/90">Interactions Due Today</h2>
             </div>
             <div className="space-y-4">
               {dueTodayReminders.length === 0 ? (
@@ -187,13 +187,13 @@ const [quickReminder, setQuickReminder] = useState<{
                   return (
                     <div
                       key={reminder.id}
-                      className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
-                        reminder.name ? 'border-l-4 border-primary-500 ' : ''
+                      className={`bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200 ${
+                        reminder.name ? 'border-l-4 border-primary-500' : ''
                       }${
-                        events.length > 0 ? `ring-2 ${
-                          events[0]?.type === 'birthday' ? 'ring-pink-300' :
-                          events[0]?.type === 'anniversary' ? 'ring-rose-300' :
-                          'ring-purple-300'
+                        events.length > 0 ? ` ring-2 ${
+                          events[0]?.type === 'birthday' ? 'ring-pink-300/90' :
+                          events[0]?.type === 'anniversary' ? 'ring-rose-300/90' :
+                          'ring-purple-300/90'
                         }` : ''
                       }`}
                     >
@@ -203,7 +203,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             <div className="space-y-2">
                               <Link
                                 to={`/contacts#${reminder.contact_id}`}
-                                className="text-lg font-semibold text-primary-500 block hover:text-primary-600"
+                                className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
                               >
                                 {contact?.name || 'Unknown'}
                               </Link>
@@ -295,7 +295,7 @@ const [quickReminder, setQuickReminder] = useState<{
                                   }
                                 }
                               }}
-                              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                              className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                               title="Complete quick reminder"
                             >
                               Complete
@@ -345,10 +345,10 @@ const [quickReminder, setQuickReminder] = useState<{
           {/* Upcoming Column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 bg-primary-50 rounded-lg">
-                <CalendarIcon className="h-5 w-5 text-primary-500" />
+              <div className="p-2.5 bg-primary-50/90 rounded-xl">
+                <CalendarIcon className="h-5 w-5 text-primary-500/90" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900">Upcoming Reminders</h2>
+              <h2 className="text-xl font-[600] text-gray-900/90">Upcoming Reminders</h2>
             </div>
             <div className="space-y-4">
               {upcomingReminders.length === 0 ? (
@@ -377,7 +377,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             <div className="space-y-2">
                               <Link
                                 to={`/contacts#${reminder.contact_id}`}
-                                className="text-lg font-semibold text-primary-500 block hover:text-primary-600"
+                                className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
                               >
                                 {contact?.name || 'Unknown'}
                               </Link>
@@ -491,7 +491,7 @@ const [quickReminder, setQuickReminder] = useState<{
                               {(isPremium || isOnTrial) ? (
                                 <Link
                                   to={`/contacts/${reminder.contact_id}/interactions`}
-                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                                  className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                   title="View interaction history"
                                 >
                                   View History
@@ -499,7 +499,7 @@ const [quickReminder, setQuickReminder] = useState<{
                               ) : (
                                 <Link
                                   to={`/contacts/${reminder.contact_id}/interactions`}
-                                  className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                                  className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                                   title="Upgrade to view interaction history"
                                 >
                                   View History
