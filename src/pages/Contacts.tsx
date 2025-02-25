@@ -245,7 +245,7 @@ export const Contacts = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2 w-full">
+            <div className="flex items-center gap-2 sm:w-auto">
               <div className="flex-1">
                 <select
                   value={sortField}
