@@ -15,9 +15,9 @@ const IconFallback = () => <div className="w-5 h-5 bg-gray-200 rounded animate-p
 
 // Pre-compute styles outside of render
 const menuStyles = {
-  base: "group flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-[450]",
-  active: "bg-primary-50/70 text-primary-600",
-  inactive: "text-gray-700 hover:bg-gray-50/80"
+  base: "group flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-[450] transform-gpu",
+  active: "bg-gray-100 text-primary-600",
+  inactive: "text-gray-700 hover:text-primary-600"
 };
 
 // Menu item component to handle active state
@@ -131,7 +131,7 @@ export const ProfileMenu = () => {
         leaveFrom="opacity-100 scale-100 translate-y-0"
         leaveTo="opacity-0 scale-95 translate-y-1"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/90 backdrop-blur-lg shadow-lg ring-1 ring-black/5 focus:outline-none divide-y divide-gray-100/80 z-50">
+        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/95 backdrop-blur-lg shadow-lg ring-1 ring-black/5 focus:outline-none divide-y divide-gray-100 z-50 will-change-transform">
           <div className="px-1 py-1">
             <MenuItem to="/conversation-prompts">
               <Suspense fallback={<IconFallback />}>
