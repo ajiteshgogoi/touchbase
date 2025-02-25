@@ -206,16 +206,27 @@ class NotificationService {
 
       console.log('Successfully obtained FCM token');
 
-      // Store token in Supabase
+      // Get device info
+      const deviceId = localStorage.getItem('device_id') || `${Math.random().toString(36).substring(2)}-${Date.now()}`;
+      localStorage.setItem('device_id', deviceId);
+  
+      const deviceName = navigator.userAgent;
+      const deviceType = /Android/i.test(navigator.userAgent) ? 'android' :
+                        /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'web';
+  
+      // Store token in Supabase with device info
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
           user_id: userId,
           fcm_token: currentToken,
+          device_id: deviceId,
+          device_name: deviceName,
+          device_type: deviceType,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'user_id'
+          onConflict: 'user_id,device_id'
         });
 
       if (error) {
@@ -232,17 +243,22 @@ class NotificationService {
 
   async resubscribeIfNeeded(userId: string): Promise<void> {
     try {
-      // Verify with the server
+      // Get current device ID
+      const deviceId = localStorage.getItem('device_id');
+      
+      // Verify with the server for this specific device
       console.log('Verifying FCM token with server...');
-      // First check if we even have a subscription
       const { data: existingSubscription } = await supabase
         .from('push_subscriptions')
         .select('fcm_token')
-        .eq('user_id', userId)
+        .match({
+          user_id: userId,
+          device_id: deviceId
+        })
         .maybeSingle();
 
-      if (!existingSubscription?.fcm_token) {
-        console.log('No existing subscription found, creating new one...');
+      if (!existingSubscription?.fcm_token || !deviceId) {
+        console.log('No existing subscription found for this device, creating new one...');
         await this.subscribeToPushNotifications(userId, true);
         return;
       }
@@ -290,18 +306,31 @@ class NotificationService {
       // 1. Clean up Firebase messaging instance
       await cleanupMessaging();
 
-      // 2. Remove FCM token from Supabase
-      console.log('Removing FCM token from Supabase...');
+      // 2. Get current device ID
+      const deviceId = localStorage.getItem('device_id');
+      if (!deviceId) {
+        console.warn('No device ID found for unsubscription');
+        return;
+      }
+
+      // 3. Remove only current device's FCM token from Supabase
+      console.log('Removing FCM token for current device from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
         .delete()
-        .eq('user_id', userId);
+        .match({
+          user_id: userId,
+          device_id: deviceId
+        });
 
       if (error) {
         throw error;
       }
 
-      console.log('Successfully unsubscribed from push notifications');
+      // 4. Clear device ID from local storage
+      localStorage.removeItem('device_id');
+
+      console.log('Successfully unsubscribed current device from push notifications');
     } catch (error) {
       console.error('Failed to unsubscribe from push notifications:', error);
       throw error;

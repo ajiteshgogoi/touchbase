@@ -90,10 +90,14 @@ create table public.user_preferences (
 
 create table public.push_subscriptions (
     id uuid primary key default uuid_generate_v4(),
-    user_id uuid references auth.users not null unique,
+    user_id uuid references auth.users not null,
     fcm_token text not null,
+    device_id text not null,
+    device_name text,
+    device_type text check (device_type in ('web', 'android', 'ios')) default 'web',
     created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now()
+    updated_at timestamp with time zone default now(),
+    constraint unique_user_device unique (user_id, device_id)
 );
 
 create table public.subscriptions (
@@ -191,7 +195,9 @@ create index contact_processing_logs_contact_id_idx on public.contact_processing
 create index contact_processing_logs_batch_id_idx on public.contact_processing_logs(batch_id);
 create index contact_processing_logs_retry_count_idx on public.contact_processing_logs(retry_count);
 create index contact_processing_logs_status_idx on public.contact_processing_logs(status);
-create index push_subscriptions_user_id_idx on public.push_subscriptions(user_id);
+-- Indexes for push_subscriptions with device support
+create index push_subscriptions_user_lookup_idx on public.push_subscriptions(user_id);
+create index push_subscriptions_device_lookup_idx on public.push_subscriptions(device_id);
 create index notification_history_user_time_idx on public.notification_history(user_id, sent_at);
 create index contact_analytics_user_id_idx on public.contact_analytics(user_id);
 create index contact_analytics_generated_at_idx on public.contact_analytics(generated_at);
