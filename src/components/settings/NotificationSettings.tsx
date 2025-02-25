@@ -67,10 +67,10 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
           <p className="text-sm text-gray-600/90 mt-1">
             Set your timezone for timely reminders
           </p>
-          <div className="mt-2 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 overflow-hidden">
+          <div className="mt-2 bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 overflow-hidden transition-colors hover:bg-white/50 [&_*:focus:not(:focus-visible)]:ring-0 [&_*]:focus:outline-none">
             <input
               type="text"
-              className="block w-full border-0 border-b border-gray-200 py-2.5 px-3 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary-500 sm:text-sm"
+              className="block w-full border-0 border-b border-gray-200 py-2.5 px-3 text-gray-900 placeholder:text-gray-500 outline-none focus-visible:ring-1 focus-visible:ring-primary-400/20 focus-visible:border-primary-400/20 transition-all sm:text-sm"
               placeholder="Search timezone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -78,7 +78,7 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
             />
             <select
               id="timezone-select"
-              className="block w-full border-0 py-2.5 px-3 text-gray-900 focus:ring-2 focus:ring-inset focus:ring-primary-500 sm:text-sm"
+              className="block w-full border-0 py-2.5 px-3 text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-primary-400/15 focus-visible:border-primary-400/15 transition-all sm:text-sm appearance-none bg-transparent"
               value={settings.timezone}
               onChange={(e) => onUpdate({
                 timezone: e.target.value
