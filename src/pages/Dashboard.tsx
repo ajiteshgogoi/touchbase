@@ -62,7 +62,7 @@ export const Dashboard = () => {
           {!isPremium && (
             <Link
               to="/settings"
-              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-soft hover:shadow-lg transition-all"
+              className="flex-1 inline-flex items-center justify-center w-full sm:w-auto text-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <span className="inline-flex items-center justify-center">
                 ✨ Upgrade to Premium
@@ -71,11 +71,11 @@ export const Dashboard = () => {
           )}
           <Link
             to="/analytics"
-            className={`flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm hover:shadow ${
+            className={`flex-1 inline-flex items-center justify-center w-full sm:w-auto text-center px-5 py-3 rounded-xl text-[15px] font-[500] shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 ${
               isPremium || isOnTrial
                 ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
                 : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
-            } transition-all`}
+            }`}
           >
             <span className="inline-flex items-center justify-center">
               <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
@@ -86,7 +86,7 @@ export const Dashboard = () => {
             <Link
               to="/contacts/new"
               state={{ from: '/' }}
-              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all"
+              className="flex-1 inline-flex items-center justify-center w-full sm:w-auto text-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <span className="inline-flex items-center justify-center">
                 <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
@@ -96,7 +96,7 @@ export const Dashboard = () => {
           ) : (
             <Link
               to="/settings"
-              className="flex-1 inline-flex items-center justify-center text-center px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg transition-all"
+              className="flex-1 inline-flex items-center justify-center w-full sm:w-auto text-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <span className="inline-flex items-center justify-center">
                 Upgrade to add more contacts
