@@ -157,7 +157,7 @@ export const ImportantEvents = ({
               <button
                 type="button"
                 onClick={() => handleRemoveEvent(index)}
-                className="p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                 title="Remove event"
               >
                 <XMarkIcon className="h-5 w-5" />
