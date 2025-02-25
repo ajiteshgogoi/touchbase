@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { platform } from '../utils/platform';
 
 import { useStore } from '../stores/useStore';
 import { supabase } from '../lib/supabase/client';
@@ -120,12 +121,41 @@ export const Settings = () => {
 
   useEffect(() => {
     if (preferences) {
-      setNotificationSettings({
-        notification_enabled: preferences.notification_enabled,
-        theme: preferences.theme,
-        timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ai_suggestions_enabled: preferences.ai_suggestions_enabled
-      });
+      const checkAndUpdateNotifications = async () => {
+        // On Android TWA, check if notification permission is denied at app level
+        if (platform.isAndroid()) {
+          try {
+            const permission = await notificationService.checkPermission();
+            // If permission is denied but enabled in preferences, update to match actual state
+            if (!permission && preferences.notification_enabled) {
+              setNotificationSettings({
+                notification_enabled: false,
+                theme: preferences.theme,
+                timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+                ai_suggestions_enabled: preferences.ai_suggestions_enabled
+              });
+              // Update database to match actual state
+              updatePreferencesMutation.mutate({
+                ...preferences,
+                notification_enabled: false
+              });
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking notification permission:', error);
+          }
+        }
+        
+        // Default case - use preferences as is
+        setNotificationSettings({
+          notification_enabled: preferences.notification_enabled,
+          theme: preferences.theme,
+          timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+          ai_suggestions_enabled: preferences.ai_suggestions_enabled
+        });
+      };
+      
+      checkAndUpdateNotifications();
     }
   }, [preferences]);
 
