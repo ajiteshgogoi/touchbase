@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useLayoutEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -35,23 +35,45 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: Props) => {
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
+  useLayoutEffect(() => {
+    if (isOpen) {
+      // Calculate scrollbar width
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+      
+      // Add modal-open class to body
+      document.body.classList.add('modal-open');
+    } else {
+      // Remove modal-open class and reset scrollbar width
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.setProperty('--scrollbar-width', '0px');
+    }
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+    return () => {
+      // Cleanup
+      document.body.classList.remove('modal-open');
+      document.documentElement.style.setProperty('--scrollbar-width', '0px');
+    };
+  }, [isOpen]);
+
+  return (
+    <Transition show={isOpen} as={Fragment}>
+      <Dialog as="div" className="fixed inset-0 z-[100]" onClose={onClose}>
+        <div className="min-h-full">
+          {/* Backdrop */}
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-10">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -61,50 +83,52 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title as="div" className="flex justify-between items-start mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">
+              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
+                  <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
                     Select Payment Method
-                  </h3>
+                  </Dialog.Title>
                   <button
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-500"
+                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 transition-colors"
                     disabled={isProcessing}
                     aria-label="Close"
                   >
                     <XMarkIcon className="h-5 w-5" />
                   </button>
-                </Dialog.Title>
+                </div>
 
-                {isProcessing ? (
-                  <div className="flex flex-col items-center justify-center h-40">
-                    <LoadingSpinner />
-                    <p className="mt-4 text-primary-500">Processing payment...</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {PAYMENT_METHODS.map((method) => (
-                      <button
-                        key={method.id}
-                        onClick={() => !method.disabled && onSelect(method.id)}
-                        disabled={method.disabled}
-                        className={`w-full p-4 text-left border rounded-lg transition-colors flex items-start gap-4 ${
-                          method.disabled 
-                            ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                            : 'hover:border-primary-500 hover:bg-primary-50'
-                        }`}
-                      >
-                        <span className="text-2xl">{method.icon}</span>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{method.name}</h4>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {method.disabled ? method.disabledReason : method.description}
-                          </p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="flex-1 overflow-y-auto p-6">
+                  {isProcessing ? (
+                    <div className="flex flex-col items-center justify-center h-40">
+                      <LoadingSpinner />
+                      <p className="mt-4 text-primary-500">Processing payment...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {PAYMENT_METHODS.map((method) => (
+                        <button
+                          key={method.id}
+                          onClick={() => !method.disabled && onSelect(method.id)}
+                          disabled={method.disabled}
+                          className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 ${
+                            method.disabled 
+                              ? 'border-gray-200/75 bg-gray-50/90 cursor-not-allowed opacity-60'
+                              : 'border-gray-200/75 hover:border-primary-400 hover:bg-primary-50/90 hover:shadow-sm'
+                          }`}
+                        >
+                          <span className="text-2xl">{method.icon}</span>
+                          <div>
+                            <h4 className="font-medium text-gray-900">{method.name}</h4>
+                            <p className="text-sm text-gray-600/90 mt-1">
+                              {method.disabled ? method.disabledReason : method.description}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </Dialog.Panel>
             </Transition.Child>
           </div>
