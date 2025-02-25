@@ -309,7 +309,7 @@ export const Settings = () => {
         </Suspense>
 
         {/* Feedback Section */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200 p-6">
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
           <h2 className="text-xl font-semibold text-primary-500 mb-6">
             Help Us Improve
           </h2>
@@ -327,7 +327,7 @@ export const Settings = () => {
         </div>
 
         {/* Account Deletion */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-200 p-6">
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
           <h2 className="text-xl font-semibold text-gray-600/90 mb-6">
             Delete Account
           </h2>
