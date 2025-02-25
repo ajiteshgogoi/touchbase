@@ -128,8 +128,8 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
 
   return (
     <Transition show={isOpen} as={Fragment}>
-      <Dialog as="div" className="fixed inset-0 z-[100] overflow-hidden" onClose={onClose}>
-        <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:p-0">
+      <Dialog as="div" className="fixed inset-0 z-[100]" onClose={onClose}>
+        <div className="min-h-full">
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -142,159 +142,163 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
             <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
           </Transition.Child>
 
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            enterTo="opacity-100 translate-y-0 sm:scale-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-          >
-            <div className="inline-block w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
-              <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                <div>
-                  <Dialog.Title as="h3" className="text-lg font-medium">
-                    Add Quick Reminder
-                  </Dialog.Title>
-                  <p className="text-sm text-gray-500 mt-1">
-                    1-time reminders for non-recurring events
-                  </p>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 -m-2 text-gray-400 hover:text-gray-500"
-                  aria-label="Close"
-                >
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="max-h-[calc(100vh-16rem)] overflow-y-auto p-6 space-y-4">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Contact *
-                    </label>
-                    <div className="space-y-2">
-                      <div className="relative">
-                        <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input
-                          type="text"
-                          placeholder="Search contacts..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="block w-full rounded-lg border-gray-200 pl-10 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-                        />
-                      </div>
-                      <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200">
-                        {filteredContacts?.length === 0 ? (
-                          <div className="p-3 text-sm text-gray-500">No contacts found</div>
-                        ) : (
-                          filteredContacts?.map((contact) => (
-                            <button
-                              key={contact.id}
-                              type="button"
-                              onClick={() => setSelectedContact(contact.id)}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                                selectedContact === contact.id ? 'bg-primary-50 text-primary-600' : 'text-gray-900'
-                              }`}
-                            >
-                              {contact.name}
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                    <div className="mt-2 text-sm text-gray-600 h-5">
-                      <span className={selectedContactName ? 'opacity-100' : 'opacity-0'}>
-                        Selected: {selectedContactName || 'None'}
-                      </span>
-                    </div>
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-10">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
+                  <div>
+                    <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
+                      Add Quick Reminder
+                    </Dialog.Title>
+                    <p className="text-sm text-gray-500/90 mt-1">
+                      1-time reminders for non-recurring events
+                    </p>
                   </div>
+                  <button
+                    onClick={onClose}
+                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                    aria-label="Close"
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                  </button>
+                </div>
 
-                  <div className="space-y-2">
-                    <label htmlFor="reminder-name" className="block text-sm font-medium text-gray-700">
-                      Reminder Description *
-                    </label>
-                    <div>
-                      <textarea
-                        id="reminder-name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        maxLength={150}
-                        rows={3}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-primary-400 focus:ring-primary-400"
-                        placeholder="Enter what the reminder is about..."
-                        required
-                      />
-                      <div className="mt-2 flex justify-end">
-                        <span className="text-sm text-gray-500">
-                          {name.length}/150 characters
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700/90">
+                        Contact *
+                      </label>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search contacts..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="block w-full rounded-xl border border-gray-200 pl-10 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                          />
+                        </div>
+                        <div className="max-h-40 overflow-y-auto rounded-xl ring-1 ring-gray-200/75">
+                          {filteredContacts?.length === 0 ? (
+                            <div className="p-3 text-sm text-gray-500">No contacts found</div>
+                          ) : (
+                            filteredContacts?.map((contact) => (
+                              <button
+                                key={contact.id}
+                                type="button"
+                                onClick={() => setSelectedContact(contact.id)}
+                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 transition-colors duration-200 ${
+                                  selectedContact === contact.id ? 'bg-primary-50/90 text-primary-600' : 'text-gray-900'
+                                }`}
+                              >
+                                {contact.name}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600 h-5">
+                        <span className={selectedContactName ? 'opacity-100' : 'opacity-0'}>
+                          Selected: {selectedContactName || 'None'}
                         </span>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <label htmlFor="reminder-date" className="block text-sm font-medium text-gray-700">
-                      Due Date *
-                    </label>
-                    <input
-                      type="date"
-                      id="reminder-date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      min={dayjs().add(1, 'day').format('YYYY-MM-DD')}
-                      className="block w-full rounded-lg border-gray-200 shadow-sm focus:border-primary-400 focus:ring-primary-400"
-                      required
-                    />
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    <div className="space-y-1">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={isImportant}
-                          onChange={(e) => setIsImportant(e.target.checked)}
-                          className="rounded border-gray-300 text-primary-500 focus:ring-primary-400"
-                        />
-                        <span className="text-sm text-gray-700">This event is important</span>
+                    <div className="space-y-2">
+                      <label htmlFor="reminder-name" className="block text-sm font-medium text-gray-700/90">
+                        Reminder Description *
                       </label>
-                      <p className="text-xs text-gray-500 ml-6">
-                        Checking this box will add the reminder to your important events timeline
-                      </p>
+                      <div>
+                        <textarea
+                          id="reminder-name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          maxLength={150}
+                          rows={3}
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                          placeholder="Enter what the reminder is about..."
+                          required
+                        />
+                        <div className="mt-2 flex justify-end">
+                          <span className="text-sm text-gray-500">
+                            {name.length}/150 characters
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="reminder-date" className="block text-sm font-medium text-gray-700/90">
+                        Due Date *
+                      </label>
+                      <input
+                        type="date"
+                        id="reminder-date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        min={dayjs().add(1, 'day').format('YYYY-MM-DD')}
+                        className="block w-full rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                        required
+                      />
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <div className="space-y-1">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={isImportant}
+                            onChange={(e) => setIsImportant(e.target.checked)}
+                            className="rounded border-gray-300 text-primary-500 focus:ring-primary-400"
+                          />
+                          <span className="text-sm text-gray-700">This event is important</span>
+                        </label>
+                        <p className="text-xs text-gray-500 ml-6">
+                          Checking this box will add the reminder to your important events timeline
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-6 bg-gray-50 border-t border-gray-100">
-                  <div className="order-last sm:order-first text-sm text-red-600 min-h-[20px]">
-                    {error}
+                  <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
+                    {error && (
+                      <div className="flex-1 text-sm text-red-600">
+                        {error}
+                      </div>
+                    )}
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 transition-all duration-200 shadow-sm"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 disabled:opacity-50 transition-all duration-200 shadow-sm"
+                      >
+                        <span className="min-w-[95px] inline-block text-center">
+                          {isSubmitting ? 'Adding...' : 'Add Reminder'}
+                        </span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 disabled:opacity-50"
-                    >
-                      <span className="min-w-[95px] inline-block text-center">
-                        {isSubmitting ? 'Adding...' : 'Add Reminder'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </Transition.Child>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
         </div>
       </Dialog>
     </Transition>
