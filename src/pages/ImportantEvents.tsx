@@ -107,9 +107,9 @@ export const ImportantEventsPage = () => {
             <p className="text-[15px] text-gray-600/90">No upcoming important events</p>
           </div>
         ) : (
-          <div className="p-4 sm:p-6 space-y-4">
+          <div className="p-4 space-y-6">
             {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
-              <div key={month} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-4 sm:p-5 hover:shadow-md transition-all duration-200 mb-6 last:mb-0">
+              <div key={month} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-4 hover:shadow-md transition-all duration-200">
                 <div className="px-3 py-2 bg-gray-100 rounded-lg mb-4">
                   <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">{month}</span>
                 </div>
@@ -120,7 +120,7 @@ export const ImportantEventsPage = () => {
                     return (
                       <div
                         key={event.id}
-                        className="flex items-center gap-4 p-3 bg-gray-50/90 rounded-lg hover:bg-gray-100/90 transition-all duration-200"
+                        className="flex items-center gap-4 px-3 py-2.5 bg-gray-50/90 rounded-lg hover:bg-gray-100/90 transition-all duration-200"
                       >
                         <div
                           className="text-2xl"

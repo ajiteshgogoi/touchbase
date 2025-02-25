@@ -70,9 +70,9 @@ export const ImportantEventsTimeline = () => {
             Upcoming events for your contacts
           </p>
         </div>
-        <div className="bg-white rounded-xl shadow-soft">
-          <div className="p-4">
-            <p className="text-sm text-gray-500">No upcoming important events</p>
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+          <div className="p-12 text-center">
+            <p className="text-[15px] text-gray-600/90">No upcoming important events</p>
           </div>
         </div>
       </div>
@@ -87,33 +87,35 @@ export const ImportantEventsTimeline = () => {
           Upcoming events for your contacts
         </p>
       </div>
-      <div className="bg-white rounded-xl shadow-soft">
-        <div className="p-4 space-y-4">
+      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="p-4 space-y-6">
           {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
-            <div key={month} className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow">
-              <h3 className="text-sm font-medium text-gray-700 mb-4">{month}</h3>
+            <div key={month} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-4 hover:shadow-md transition-all duration-200">
+              <div className="px-3 py-2 bg-gray-100 rounded-lg mb-4">
+                <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">{month}</span>
+              </div>
               <div className="space-y-4">
                 {monthEvents.map((event) => {
                   const contactName = getContactName(event.contact_id);
                   return (
                     <div
                       key={event.id}
-                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-4 px-3 py-2.5 bg-gray-50/90 rounded-lg hover:bg-gray-100/90 transition-all duration-200"
                     >
                       <div className="text-2xl" role="img" aria-label={event.type}>
                         {getEventEmoji(event.type)}
                       </div>
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 space-y-1">
                         <Link
                           to={`/contacts#${event.contact_id}`}
-                          className="text-sm font-medium text-primary-500 hover:text-primary-600"
+                          className="block text-base font-semibold text-primary-500 tracking-[-0.01em] hover:text-primary-600 transition-colors"
                         >
                           {contactName}
                         </Link>
                         <p className="text-sm text-gray-500">
-                          {getEventTypeDisplay(event.type, event.name)}
+                          {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-[13px] text-gray-500/90 font-[450]">
                           {formatEventDate(event.date)}
                         </p>
                       </div>
