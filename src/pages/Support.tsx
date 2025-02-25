@@ -10,61 +10,72 @@ export const Support = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex items-center gap-4 mb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 -m-2 text-gray-400 hover:text-gray-500"
-          aria-label="Go back"
-        >
-          <ArrowLeftIcon className="h-5 w-5" />
-        </button>
-        <h1 className="text-3xl font-bold">Support</h1>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="text-center py-8">
+        <div className="flex items-center justify-center w-full mb-8 relative">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0 top-7"
+            aria-label="Go back"
+          >
+            <ArrowLeftIcon className="h-5 w-5" />
+          </button>
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3">
+              Support
+            </h1>
+            <p className="text-gray-600">
+              We're here to help you with any questions
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-6">
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Company Address</h3>
-              <p className="text-gray-700">
-                TouchBase Technologies<br />
-                24, Lane 2, Basisthapur<br />
-                Guwahati, Assam<br />
-                781028<br />
-                India
-              </p>
-            </div>
+      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft divide-y divide-gray-100/50">
+        <section className="p-6">
+          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">Contact Information</h2>
+          <div className="space-y-6">
+            <div className="bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 p-5 space-y-4">
+              <div>
+                <h3 className="text-lg font-[600] text-gray-900/90 mb-2">Company Address</h3>
+                <p className="text-[15px] leading-relaxed text-gray-600/90">
+                  TouchBase Technologies<br />
+                  24, Lane 2, Basisthapur<br />
+                  Guwahati, Assam<br />
+                  781028<br />
+                  India
+                </p>
+              </div>
 
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Phone</h3>
-              <p className="text-gray-700">
-                <a href="tel:[+91-9395877156]" className="text-primary-500 hover:text-primary-600 font-medium">+91-9395877156</a>
-              </p>
-            </div>
+              <div>
+                <h3 className="text-lg font-[600] text-gray-900/90 mb-2">Phone</h3>
+                <p className="text-[15px] leading-relaxed">
+                  <a href="tel:[+91-9395877156]" className="text-primary-500 hover:text-primary-600 font-[500]">+91-9395877156</a>
+                </p>
+              </div>
 
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Email</h3>
-              <p className="text-gray-700">
-                <a href="mailto:help@touchbase.site" className="text-primary-500 hover:text-primary-600 font-medium">help@touchbase.site</a>
-              </p>
+              <div>
+                <h3 className="text-lg font-[600] text-gray-900/90 mb-2">Email</h3>
+                <p className="text-[15px] leading-relaxed">
+                  <a href="mailto:help@touchbase.site" className="text-primary-500 hover:text-primary-600 font-[500]">help@touchbase.site</a>
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Support Hours</h2>
-          <p className="text-gray-700">
+        <section className="p-6">
+          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">Support Hours</h2>
+          <p className="text-[15px] leading-relaxed text-gray-600/90">
             Our support team is available Monday through Friday, 9:00 AM to 6:00 PM IST (Indian Standard Time).
             We aim to respond to all inquiries within 48 hours.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Additional Resources</h2>
-          <p className="text-gray-700">
-            Check out our <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 font-medium">blog</a> for tips and updates.
+        <section className="p-6">
+          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">Additional Resources</h2>
+          <p className="text-[15px] leading-relaxed text-gray-600/90">
+            Check out our <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 font-[500]">blog</a> for tips and updates.
           </p>
         </section>
       </div>
