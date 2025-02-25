@@ -30,8 +30,8 @@ export const BasicInformation = ({
             onChange={(e) => onChange({ name: e.target.value })}
             className={`mt-1 block w-full rounded-lg px-4 py-2.5 shadow-sm transition-colors ${
               errors.name
-                ? 'border-red-300 focus:border-red-400 focus:ring-red-400 hover:border-red-400'
-                : 'border-gray-200 focus:border-primary-400 focus:ring-primary-400 hover:border-gray-300'
+                ? 'border-red-300 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 hover:border-red-400'
+                : 'border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300'
             }`}
             placeholder="Enter name"
           />
@@ -61,7 +61,7 @@ export const BasicInformation = ({
                   onError({ phone: '' });
                 }
               }}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
               placeholder="Enter phone number"
             />
             {errors.phone && (
@@ -89,7 +89,7 @@ export const BasicInformation = ({
                   onError({ social_media_handle: '' });
                 }
               }}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:border-primary-400 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
               placeholder="@username"
             />
             {errors.social_media_handle && (
