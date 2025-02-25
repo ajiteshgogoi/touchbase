@@ -302,26 +302,26 @@ export const Contacts = () => {
               <div
                 key={contact.id}
                 id={contact.id}
-                className="bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow duration-200 scroll-mt-6"
+                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200 scroll-mt-6"
               >
                 <div className="flex flex-col gap-4 divide-y divide-gray-100">
                   <div className="min-w-0 pb-3">
                     <div className="flex justify-between items-start">
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">
                           {contact.name}
                         </h3>
                         {/* Inline status indicator */}
-                        <div className="flex items-center text-sm text-gray-500">
-                          <div className={`w-2 h-2 rounded-full mr-2 ${
-                            contact.relationship_level === 1 ? 'bg-red-400' :
-                            contact.relationship_level === 2 ? 'bg-orange-400' :
-                            contact.relationship_level === 3 ? 'bg-yellow-400' :
-                            contact.relationship_level === 4 ? 'bg-lime-400' :
-                            'bg-green-400'
+                        <div className="flex items-center text-[13px] sm:text-sm text-gray-500/90">
+                          <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${
+                            contact.relationship_level === 1 ? 'bg-red-400/90' :
+                            contact.relationship_level === 2 ? 'bg-orange-400/90' :
+                            contact.relationship_level === 3 ? 'bg-yellow-400/90' :
+                            contact.relationship_level === 4 ? 'bg-lime-400/90' :
+                            'bg-green-400/90'
                           }`}></div>
                           {contact.contact_frequency && (
-                            <span>{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)} contact</span>
+                            <span className="font-[450]">{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)} contact</span>
                           )}
                         </div>
                       </div>
@@ -345,17 +345,17 @@ export const Contacts = () => {
                     </div>
                     <div className="mt-4">
                       {/* Contact details section */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
                         {contact.phone && (
-                          <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-                            <PhoneIcon className="h-4 w-4 mr-2 text-green-500 flex-shrink-0" />
-                            <span className="truncate leading-5">{contact.phone}</span>
+                          <div className="flex items-center px-3 py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 hover:bg-white/70 transition-colors duration-200">
+                            <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
+                            <span className="truncate leading-5 font-[450]">{contact.phone}</span>
                           </div>
                         )}
                         {contact.social_media_handle && (
-                          <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-                            <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500 flex-shrink-0" />
-                            <span className="truncate leading-5">{contact.social_media_handle}</span>
+                          <div className="flex items-center px-3 py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 hover:bg-white/70 transition-colors duration-200">
+                            <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
+                            <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
                           </div>
                         )}
                       </div>
@@ -364,10 +364,10 @@ export const Contacts = () => {
                       {(eventsMap[contact.id] || []).length > 0 && (
                         <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
                           <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
+                            <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Important Dates</span>
                           </div>
                           <div className="px-3 py-2">
-                            <div className="flex flex-wrap gap-3 text-sm">
+                            <div className="flex flex-wrap gap-2.5 text-sm">
                               {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
                                 <span key={idx} className="inline-flex items-center">
                                   {event.type === 'birthday' ? (
@@ -388,21 +388,21 @@ export const Contacts = () => {
                       
                       {/* Contact status section */}
                       <div className="mb-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
                             <div className="px-3 py-2 bg-gray-100">
-                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted</span>
+                              <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Last Contacted</span>
                             </div>
                             <div className="px-3 py-2">
-                              <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                              <span className="text-[13px] sm:text-sm font-[450] text-gray-700/90">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
                             <div className="px-3 py-2 bg-gray-100">
-                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Contact Due</span>
+                              <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Next Contact Due</span>
                             </div>
                             <div className="px-3 py-2">
-                              <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                              <span className="text-[13px] sm:text-sm font-[450] text-gray-700/90">{contactsService.formatDueDate(contact.next_contact_due)}</span>
                             </div>
                           </div>
                         </div>
@@ -412,18 +412,18 @@ export const Contacts = () => {
                       {contact.ai_last_suggestion && (
                         <div className="bg-gray-50 rounded-lg overflow-hidden">
                           <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
+                            <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Suggestions</span>
                           </div>
                           <div className="px-3 py-2">
                             {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
                               <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-600">
-                                  ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                <span className="text-[13px] sm:text-sm text-gray-600/90">
+                                  ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 font-[500]">Upgrade to Premium</Link> to get AI-powered suggestions!
                                 </span>
                               </div>
                             ) : (
                               <div className="group flex items-start gap-2">
-                                <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                                <span className="flex-1 text-[13px] sm:text-sm text-gray-700/90 whitespace-pre-line font-[450] leading-relaxed">
                                   {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
                                 </span>
                                 <button
@@ -441,10 +441,10 @@ export const Contacts = () => {
                       </div>
                     </div>
                     <div className="pt-3">
-                      <div className="flex items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-4 py-3 rounded-lg">
+                      <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
                         <button
                           onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg shadow-sm hover:shadow transition-all"
+                          className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                           title="Log an interaction"
                         >
                           Log Interaction
@@ -452,7 +452,7 @@ export const Contacts = () => {
                         {(isPremium || isOnTrial) ? (
                           <Link
                             to={`/contacts/${contact.id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg shadow-sm hover:shadow transition-all"
+                            className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                             title="View interaction history"
                           >
                             View History
@@ -460,7 +460,7 @@ export const Contacts = () => {
                         ) : (
                           <Link
                             to={`/contacts/${contact.id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shadow-sm hover:shadow transition-all"
+                            className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                             title="Upgrade to view interaction history"
                           >
                             View History
