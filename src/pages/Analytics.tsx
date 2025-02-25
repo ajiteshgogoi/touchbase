@@ -21,7 +21,7 @@ import { ProgressMetric } from '../components/analytics/ProgressMetric';
 
 export const Analytics = () => {
   const navigate = useNavigate();
-  const { isPremium, isOnTrial } = useStore();
+  const { isPremium, isOnTrial, isLoading } = useStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -31,6 +31,7 @@ export const Analytics = () => {
   const { data: analytics, refetch: refetchAnalytics } = useQuery({
     queryKey: ['analytics'],
     queryFn: analyticsService.getLastAnalytics,
+    enabled: !isLoading, // Only run query after initialization
   });
 
   const handleGenerateAnalytics = useCallback(async () => {
@@ -50,6 +51,25 @@ export const Analytics = () => {
     if (!analytics) return true;
     return dayjs().isAfter(dayjs(analytics.nextGenerationAllowed));
   }, [analytics]);
+
+  const renderContactTopics = useCallback(() => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {analytics?.contactTopics.map(contact => (
+        <div key={contact.contactId} className="space-y-2">
+          <h4 className="font-[600] text-gray-900">{contact.contactName}</h4>
+          {contact.aiAnalysis ? (
+            <div className="text-[15px] text-gray-600/90 whitespace-pre-line">
+              {contact.aiAnalysis}
+            </div>
+          ) : (
+            <div className="text-[15px] text-gray-600/90">
+              Common topics: {contact.topics.join(', ')}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  ), [analytics?.contactTopics]);
 
   if (!isPremium && !isOnTrial) {
     return (
@@ -91,25 +111,6 @@ export const Analytics = () => {
       </div>
     );
   }
-
-  const renderContactTopics = useCallback(() => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {analytics?.contactTopics.map(contact => (
-        <div key={contact.contactId} className="space-y-2">
-          <h4 className="font-[600] text-gray-900">{contact.contactName}</h4>
-          {contact.aiAnalysis ? (
-            <div className="text-[15px] text-gray-600/90 whitespace-pre-line">
-              {contact.aiAnalysis}
-            </div>
-          ) : (
-            <div className="text-[15px] text-gray-600/90">
-              Common topics: {contact.topics.join(', ')}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  ), [analytics?.contactTopics]);
 
   return (
     <div className="space-y-8">
