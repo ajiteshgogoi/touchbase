@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import QuickReminderModal from '../components/reminders/QuickReminderModal';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -121,7 +121,7 @@ const [quickReminder, setQuickReminder] = useState<{
   };
 
   return (
-    <>
+   <React.Fragment>
       <div className="space-y-8">
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -283,7 +283,7 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center justify-start gap-2 w-full px-3 sm:px-4 py-3">
+                        <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
                           {reminder.name ? (
                             <button
                               onClick={async () => {
@@ -457,8 +457,9 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center justify-start gap-2 w-full px-3 sm:px-4 py-3">
-                          {reminder.name ? (
+                        <div className="pt-3">
+                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
+                            {reminder.name ? (
                             <button
                               onClick={async () => {
                                 if (confirm('Mark this quick reminder as complete?')) {
@@ -510,6 +511,7 @@ const [quickReminder, setQuickReminder] = useState<{
                         </div>
                       </div>
                     </div>
+                  </div>
                   );
                 })
               )}
@@ -540,7 +542,7 @@ const [quickReminder, setQuickReminder] = useState<{
           />
         </Suspense>
       )}
-    </>
+    </React.Fragment>
   );
 };
 
