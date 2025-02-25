@@ -241,7 +241,7 @@ export const Contacts = () => {
                   placeholder="Search contacts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors"
                 />
               </div>
             </div>
@@ -250,7 +250,7 @@ export const Contacts = () => {
                 <select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value as SortField)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:border-primary-400 focus:ring-primary-400 transition-colors appearance-none bg-white text-sm"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors appearance-none bg-white text-sm"
                   aria-label="Sort contacts by"
                 >
                   <option value="name">Sort by Name</option>
@@ -260,7 +260,7 @@ export const Contacts = () => {
               </div>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="flex-shrink-0 p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                className="flex-shrink-0 p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors"
                 aria-label={sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'}
               >
                 <ChevronUpDownIcon className="h-5 w-5 text-gray-500" />
