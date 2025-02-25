@@ -308,11 +308,11 @@ export const RecentContacts = () => {
           <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100/70">
             <Link
               to="/contacts"
-              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-[500] transition-colors group"
+              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-[500] transition-colors"
             >
               View all contacts
               <svg
-                className="w-5 h-5 ml-1 transform transition-transform duration-200 group-hover:translate-x-0.5"
+                className="w-5 h-5 ml-1"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
