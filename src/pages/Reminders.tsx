@@ -197,7 +197,7 @@ const [quickReminder, setQuickReminder] = useState<{
                         }` : ''
                       }`}
                     >
-                      <div className="flex flex-col gap-4 divide-y divide-gray-100">
+                      <div className="flex flex-col gap-4">
                         <div className="min-w-0 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50">
                           <div className="space-y-4">
                             <div className="space-y-2">
@@ -371,7 +371,7 @@ const [quickReminder, setQuickReminder] = useState<{
                         }` : ''
                       }`}
                     >
-                      <div className="flex flex-col gap-4 divide-y divide-gray-100">
+                      <div className="flex flex-col gap-4">
                         <div className="min-w-0 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50">
                           <div className="space-y-4">
                             <div className="space-y-2">
