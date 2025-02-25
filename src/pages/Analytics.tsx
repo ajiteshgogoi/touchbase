@@ -101,7 +101,7 @@ export const Analytics = () => {
             </p>
             <Link
               to="/settings"
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 min-w-[140px]"
             >
               Upgrade Now
               <ChevronRightIcon className="w-5 h-5 ml-1.5" />
@@ -137,7 +137,7 @@ export const Analytics = () => {
         <button
           onClick={handleGenerateAnalytics}
           disabled={!canGenerate || isGenerating}
-          className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 ${
+          className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 min-w-[225px] ${
             canGenerate && !isGenerating
               ? 'bg-primary-500 hover:bg-primary-600'
               : 'bg-gray-400 cursor-not-allowed'
