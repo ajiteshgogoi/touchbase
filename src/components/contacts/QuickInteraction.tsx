@@ -196,8 +196,8 @@ const QuickInteraction = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
-                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100">
+              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
                   <Dialog.Title className="text-lg font-medium">
                     Log Interaction for <span className="text-primary-500">{contactName}</span>
                   </Dialog.Title>
@@ -220,10 +220,10 @@ const QuickInteraction = ({
                         <button
                           key={t}
                           onClick={() => setType(t)}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg capitalize ${
+                          className={`px-4 py-2 text-sm font-medium rounded-xl capitalize transition-all duration-200 ${
                             type === t
-                              ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
-                              : 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100'
+                              ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
+                              : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
                           }`}
                         >
                           {t}
@@ -242,10 +242,10 @@ const QuickInteraction = ({
                           key={label}
                           onClick={() => setSelectedDate(value)}
                           type="button"
-                          className={`px-4 py-2 text-sm font-medium rounded-lg ${
+                          className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                             selectedDate.format('YYYY-MM-DD HH:mm') === value.format('YYYY-MM-DD HH:mm')
-                              ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
-                              : 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100'
+                              ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
+                              : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
                           }`}
                         >
                           {label}
@@ -259,13 +259,13 @@ const QuickInteraction = ({
                       Notes
                     </label>
                     {(isPremium || isOnTrial) ? (
-                      <div className="mb-4 p-4 bg-primary-50 rounded-lg">
-                        <p className="text-sm text-gray-600">
+                      <div className="mb-4 px-4 py-3 bg-primary-50/50 rounded-xl ring-1 ring-primary-100/50">
+                        <p className="text-sm text-gray-600/90">
                           Add details about this interaction that can help maintain the relationship.
                         </p>
                       </div>
                     ) : (
-                      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="mb-4 px-4 py-3 bg-gray-50/80 rounded-xl ring-1 ring-gray-100/50">
                         <p className="text-sm text-gray-600">
                           Add details about this interaction.
                           <span className="block mt-2">
@@ -280,7 +280,7 @@ const QuickInteraction = ({
                         onChange={(e) => setNotes(e.target.value.slice(0, 500))}
                         placeholder="Add any notes about the interaction..."
                         maxLength={500}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-primary-400 focus:ring-primary-400"
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
                         rows={3}
                       />
                       <div className="mt-2 flex justify-end">
@@ -300,10 +300,10 @@ const QuickInteraction = ({
                         <button
                           key={s}
                           onClick={() => setSentiment(s)}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg capitalize ${
+                          className={`px-4 py-2 text-sm font-medium rounded-xl capitalize transition-all duration-200 ${
                             sentiment === s
-                              ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
-                              : 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100'
+                              ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
+                              : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
                           }`}
                         >
                           {s}
@@ -313,17 +313,17 @@ const QuickInteraction = ({
                   </div>
                 </div>
 
-                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
+                   <button
+                     onClick={onClose}
+                     className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 transition-all duration-200 shadow-sm"
+                   >
+                     Cancel
+                   </button>
+                   <button
+                     onClick={handleSubmit}
+                     disabled={isSubmitting}
+                     className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 disabled:opacity-50 transition-all duration-200 shadow-sm"
                   >
                     <span className="min-w-[52px] inline-block text-center">
                       {isSubmitting ? 'Saving...' : 'Save'}
