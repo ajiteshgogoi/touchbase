@@ -51,10 +51,10 @@ export const Dashboard = () => {
       )}
       <div className="flex flex-col sm:flex-row sm:justify-between">
         <div className="mb-4 sm:mb-0">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user?.user_metadata?.name || 'Friend'}!
+          <h1 className="text-2xl font-[650] text-gray-900 tracking-[-0.01em]">
+            Welcome back, <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400">{user?.user_metadata?.name || 'Friend'}</span>!
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-2 text-[15px] leading-relaxed text-gray-600/90 font-[450]">
             Here's what's happening with your relationships
           </p>
         </div>
