@@ -31,8 +31,8 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-soft p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">
+    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6">
+      <h2 className="text-xl font-semibold text-primary-500 mb-6">
         Notification Preferences
       </h2>
       <div className="space-y-6">
@@ -41,7 +41,7 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
             <label htmlFor="notifications-toggle" className="text-gray-900 font-medium">
               Notifications
             </label>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600/90 mt-1">
               Get notified about your daily interactions
             </p>
           </div>
@@ -64,32 +64,34 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
           <label htmlFor="timezone-select" className="text-gray-900 font-medium">
             Timezone
           </label>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600/90 mt-1">
             Set your timezone for timely reminders
           </p>
-          <input
-            type="text"
-            className="mt-2 block w-full rounded-t-md border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
-            placeholder="Search timezone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Search through timezone list"
-          />
-          <select
-            id="timezone-select"
-            className="block w-full rounded-b-md border-t-0 border border-gray-300 py-2 px-3 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
-            value={settings.timezone}
-            onChange={(e) => onUpdate({
-              timezone: e.target.value
-            })}
-            size={5}
-          >
-            {filteredTimezones.map((zone: string) => (
-              <option key={zone} value={zone}>
-                {zone.replace(/_/g, ' ')}
-              </option>
-            ))}
-          </select>
+          <div className="mt-2 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 overflow-hidden">
+            <input
+              type="text"
+              className="block w-full border-0 border-b border-gray-200 py-2.5 px-3 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary-500 sm:text-sm"
+              placeholder="Search timezone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search through timezone list"
+            />
+            <select
+              id="timezone-select"
+              className="block w-full border-0 py-2.5 px-3 text-gray-900 focus:ring-2 focus:ring-inset focus:ring-primary-500 sm:text-sm"
+              value={settings.timezone}
+              onChange={(e) => onUpdate({
+                timezone: e.target.value
+              })}
+              size={5}
+            >
+              {filteredTimezones.map((zone: string) => (
+                <option key={zone} value={zone}>
+                  {zone.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     </div>

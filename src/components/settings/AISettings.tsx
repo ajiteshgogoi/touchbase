@@ -13,13 +13,13 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
   const canUseAIFeatures = isPremium || isTrialActive;
 
   return (
-    <div className="bg-white rounded-xl shadow-soft p-6">
+    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-primary-500">
           AI Features
         </h2>
         {!canUseAIFeatures && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-600">
             Premium Only
           </span>
         )}
@@ -30,7 +30,7 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
             <label htmlFor="ai-suggestions" className={`font-medium ${canUseAIFeatures ? 'text-gray-900' : 'text-gray-400'}`}>
               Advanced AI Suggestions
             </label>
-            <p className={`text-sm mt-1 ${canUseAIFeatures ? 'text-gray-600' : 'text-gray-400'}`}>
+            <p className={`text-sm mt-1 ${canUseAIFeatures ? 'text-gray-600/90' : 'text-gray-400'}`}>
               Get AI-powered suggestions for future interactions
             </p>
           </div>

@@ -266,14 +266,14 @@ export const Settings = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent leading-tight pb-1">Settings</h1>
+            <p className="mt-1 text-[15px] text-gray-600/90">
               Manage your account preferences and subscription
             </p>
           </div>
@@ -309,17 +309,17 @@ export const Settings = () => {
         </Suspense>
 
         {/* Feedback Section */}
-        <div className="bg-white rounded-xl shadow-soft p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6">
+          <h2 className="text-xl font-semibold text-primary-500 mb-6">
             Help Us Improve
           </h2>
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600/90">
               We value your feedback to make TouchBase better. Share your thoughts and suggestions with us.
             </p>
             <button
               onClick={() => setIsFeedbackModalOpen(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-500 rounded-lg hover:bg-primary-600"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200"
             >
               Send Feedback
             </button>
@@ -327,12 +327,12 @@ export const Settings = () => {
         </div>
 
         {/* Account Deletion */}
-        <div className="bg-white rounded-xl shadow-soft p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+        <div className="bg-white/40 backdrop-blur-xl rounded-xl border border-gray-100/30 shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-gray-600/90 mb-6">
             Delete Account
           </h2>
           <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-gray-500/90">
               Warning: This action cannot be undone. All your data will be permanently deleted.
             </p>
             <button
@@ -349,7 +349,7 @@ export const Settings = () => {
                   toast.error('Failed to delete account');
                 }
               }}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600/90 bg-red-50/80 hover:bg-red-100/80 border border-red-100/50 shadow-sm hover:shadow-md transition-all duration-200"
             >
               Delete Account
             </button>
