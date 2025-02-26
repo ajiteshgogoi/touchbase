@@ -5,8 +5,6 @@ import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/fire
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
   private readonly firebaseSWURL: string;
-  private lastCheckTime: number = 0;
-  private readonly CHECK_COOLDOWN = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
     this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
@@ -241,12 +239,9 @@ class NotificationService {
             forceResubscribe = true;
             refreshCount = 0;
           }
-          // Check rate limits
-          else if (
-            existingDevice.refresh_count >= 1000 ||
-            (new Date().getTime() - new Date(existingDevice.last_refresh).getTime()) < 3600000
-          ) {
-            throw new Error('Rate limit exceeded for token refresh. Please try again later.');
+          // Check refresh count limit
+          else if (existingDevice.refresh_count >= 1000) {
+            throw new Error('Maximum refresh limit (1000) reached for this device. Please unregister and register again.');
           }
           else {
             refreshCount = existingDevice.refresh_count + 1;
@@ -309,14 +304,6 @@ class NotificationService {
 
   async resubscribeIfNeeded(userId: string): Promise<void> {
     try {
-      // Check cooldown period
-      const now = Date.now();
-      if (now - this.lastCheckTime < this.CHECK_COOLDOWN) {
-        console.log('Skipping notification check - within cooldown period');
-        return;
-      }
-      this.lastCheckTime = now;
-
       // Get current device ID
       const deviceId = localStorage.getItem('device_id');
       
