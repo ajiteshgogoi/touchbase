@@ -108,8 +108,30 @@ alter table public.push_subscriptions
 add constraint check_refresh_rate
 check (
     refresh_count <= 1000 -- Max 1000 refreshes
-    and (extract(epoch from (now() - last_refresh)) >= 3600) -- Min 1 hour between refreshes
+    and (
+        last_refresh <= now() -- Ensure last_refresh is not in future
+        and (
+            last_refresh = now() -- Skip time check for new records
+            or
+            extract(epoch from (now() - last_refresh)) >= 3600 -- 1 hour minimum between refreshes
+        )
+    )
 );
+
+-- Add cleanup function for expired tokens
+create or replace function cleanup_expired_tokens()
+returns trigger as $$
+begin
+    delete from public.push_subscriptions
+    where expires_at < now();
+    return null;
+end;
+$$ language plpgsql;
+
+-- Add cleanup trigger
+create trigger cleanup_expired_tokens_trigger
+after insert or update on public.push_subscriptions
+for each statement execute function cleanup_expired_tokens();
 
 -- Add device limit trigger
 create or replace function check_device_limit()
