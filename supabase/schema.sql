@@ -107,15 +107,8 @@ create table public.push_subscriptions (
 alter table public.push_subscriptions
 add constraint check_refresh_rate
 check (
-    refresh_count <= 1000 -- Max 1000 refreshes
-    and (
-        last_refresh <= now() -- Ensure last_refresh is not in future
-        and (
-            last_refresh = now() -- Skip time check for new records
-            or
-            extract(epoch from (now() - last_refresh)) >= 3600 -- 1 hour minimum between refreshes
-        )
-    )
+    refresh_count <= 1000 -- Max 1000 refreshes per token
+    and last_refresh <= now() -- Ensure last_refresh is not in future
 );
 
 -- Add cleanup function for expired tokens
