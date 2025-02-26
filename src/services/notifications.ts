@@ -214,7 +214,37 @@ class NotificationService {
       const deviceType = /Android/i.test(navigator.userAgent) ? 'android' :
                         /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'web';
   
-      // Store token in Supabase with device info
+      let refreshCount = 0;
+      let currentExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+
+      // Get current device info for rate limiting
+      if (!forceResubscribe) {
+        const { data: existingDevice } = await supabase
+          .from('push_subscriptions')
+          .select('refresh_count, last_refresh, expires_at')
+          .match({ user_id: userId, device_id: deviceId })
+          .maybeSingle();
+
+        // Check rate limits and expiry
+        if (existingDevice) {
+          if (new Date(existingDevice.expires_at) < new Date()) {
+            console.log('Token expired, forcing resubscription');
+            forceResubscribe = true;
+            refreshCount = 0; // Reset count for expired tokens
+          } else if (
+            existingDevice.refresh_count >= 1000 ||
+            (new Date().getTime() - new Date(existingDevice.last_refresh).getTime()) < 3600000
+          ) {
+            throw new Error('Rate limit exceeded for token refresh. Please try again later.');
+          } else {
+            refreshCount = existingDevice.refresh_count + 1;
+            // Maintain existing expiry if not expired
+            currentExpiryDate = new Date(existingDevice.expires_at);
+          }
+        }
+      }
+
+      const now = new Date();
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -223,8 +253,11 @@ class NotificationService {
           device_id: deviceId,
           device_name: deviceName,
           device_type: deviceType,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          expires_at: currentExpiryDate.toISOString(),
+          last_refresh: now.toISOString(),
+          refresh_count: refreshCount,
+          created_at: now.toISOString(),
+          updated_at: now.toISOString()
         }, {
           onConflict: 'user_id,device_id'
         });

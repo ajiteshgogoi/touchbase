@@ -97,8 +97,34 @@ create table public.push_subscriptions (
     device_type text check (device_type in ('web', 'android', 'ios')) default 'web',
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now(),
+    expires_at timestamp with time zone not null default (now() + interval '30 days'),
+    last_refresh timestamp with time zone default now(),
+    refresh_count integer default 0,
     constraint unique_user_device unique (user_id, device_id)
 );
+
+-- Add check constraint for refresh rate limiting
+alter table public.push_subscriptions
+add constraint check_refresh_rate
+check (
+    refresh_count <= 1000 -- Max 1000 refreshes
+    and (extract(epoch from (now() - last_refresh)) >= 3600) -- Min 1 hour between refreshes
+);
+
+-- Add device limit trigger
+create or replace function check_device_limit()
+returns trigger as $$
+begin
+    if (select count(*) from public.push_subscriptions where user_id = NEW.user_id) >= 10 then
+        raise exception 'Maximum number of devices (10) reached for user';
+    end if;
+    return NEW;
+end;
+$$ language plpgsql;
+
+create trigger enforce_device_limit
+before insert on public.push_subscriptions
+for each row execute function check_device_limit();
 
 create table public.subscriptions (
     id uuid primary key default uuid_generate_v4(),
