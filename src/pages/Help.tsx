@@ -179,11 +179,11 @@ export const Help = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center py-8">
+      <div className="flex flex-col items-center w-full">
         <div className="flex items-center justify-center w-full mb-8 relative">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0 top-7"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
