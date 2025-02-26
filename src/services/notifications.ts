@@ -5,6 +5,8 @@ import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/fire
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
   private readonly firebaseSWURL: string;
+  private lastCheckTime: number = 0;
+  private readonly CHECK_COOLDOWN = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
     this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
@@ -307,6 +309,14 @@ class NotificationService {
 
   async resubscribeIfNeeded(userId: string): Promise<void> {
     try {
+      // Check cooldown period
+      const now = Date.now();
+      if (now - this.lastCheckTime < this.CHECK_COOLDOWN) {
+        console.log('Skipping notification check - within cooldown period');
+        return;
+      }
+      this.lastCheckTime = now;
+
       // Get current device ID
       const deviceId = localStorage.getItem('device_id');
       
