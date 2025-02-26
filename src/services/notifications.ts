@@ -244,7 +244,6 @@ class NotificationService {
         }
       }
 
-      const now = new Date();
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -254,10 +253,7 @@ class NotificationService {
           device_name: deviceName,
           device_type: deviceType,
           expires_at: currentExpiryDate.toISOString(),
-          last_refresh: now.toISOString(),
-          refresh_count: refreshCount,
-          created_at: now.toISOString(),
-          updated_at: now.toISOString()
+          refresh_count: refreshCount
         }, {
           onConflict: 'user_id,device_id'
         });
