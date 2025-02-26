@@ -11,6 +11,8 @@ const ChevronDownIcon = lazy(() => import('@heroicons/react/24/outline/ChevronDo
 const SparklesIcon = lazy(() => import('@heroicons/react/24/outline/SparklesIcon').then(mod => ({ default: mod.default })));
 const ChatBubbleIcon = lazy(() => import('@heroicons/react/24/outline/ChatBubbleOvalLeftEllipsisIcon').then(mod => ({ default: mod.default })));
 const ChartBarIcon = lazy(() => import('@heroicons/react/24/outline/ChartBarIcon').then(mod => ({ default: mod.default })));
+const QuestionMarkCircleIcon = lazy(() => import('@heroicons/react/24/outline/QuestionMarkCircleIcon').then(mod => ({ default: mod.default })));
+const Cog6ToothIcon = lazy(() => import('@heroicons/react/24/outline/Cog6ToothIcon').then(mod => ({ default: mod.default })));
 
 const IconFallback = () => <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />;
 
@@ -147,9 +149,15 @@ export const ProfileMenu = () => {
               Detailed Analytics
             </MenuItem>
             <MenuItem to="/help">
+              <Suspense fallback={<IconFallback />}>
+                <QuestionMarkCircleIcon className="h-5 w-5 mr-2 text-primary-500" />
+              </Suspense>
               How to Use
             </MenuItem>
             <MenuItem to="/settings">
+              <Suspense fallback={<IconFallback />}>
+                <Cog6ToothIcon className="h-5 w-5 mr-2 text-primary-500" />
+              </Suspense>
               Settings
             </MenuItem>
           </div>
