@@ -7,7 +7,8 @@ import {
   ArrowLeftIcon,
   DevicePhoneMobileIcon,
   CalendarIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -188,7 +189,8 @@ export const Help = () => {
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3">
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+              <QuestionMarkCircleIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
               How to Use TouchBase
             </h1>
             <p className="text-gray-600">
