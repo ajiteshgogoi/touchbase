@@ -227,18 +227,27 @@ class NotificationService {
 
         // Check rate limits and expiry
         if (existingDevice) {
-          if (new Date(existingDevice.expires_at) < new Date()) {
+          // Check for future timestamps (invalid state)
+          if (new Date(existingDevice.last_refresh) > new Date()) {
+            console.log('Invalid timestamp detected, resetting token...');
+            forceResubscribe = true;
+            refreshCount = 0;
+          }
+          // Check expiry
+          else if (new Date(existingDevice.expires_at) < new Date()) {
             console.log('Token expired, forcing resubscription');
             forceResubscribe = true;
-            refreshCount = 0; // Reset count for expired tokens
-          } else if (
+            refreshCount = 0;
+          }
+          // Check rate limits
+          else if (
             existingDevice.refresh_count >= 1000 ||
             (new Date().getTime() - new Date(existingDevice.last_refresh).getTime()) < 3600000
           ) {
             throw new Error('Rate limit exceeded for token refresh. Please try again later.');
-          } else {
+          }
+          else {
             refreshCount = existingDevice.refresh_count + 1;
-            // Maintain existing expiry if not expired
             currentExpiryDate = new Date(existingDevice.expires_at);
           }
         }
@@ -263,8 +272,30 @@ class NotificationService {
         });
 
       if (error) {
+        // Handle specific constraint violations
+        if (error.message?.includes('check_refresh_rate')) {
+          throw new Error('Rate limit exceeded or invalid timestamp detected');
+        } else if (error.message?.includes('check_device_limit')) {
+          throw new Error('Maximum number of devices (10) reached. Please unregister an existing device first.');
+        }
+        
         console.error('Failed to store FCM token in Supabase:', error);
         throw error;
+      }
+
+      // Verify token was stored (might be cleaned up by trigger)
+      const { data: storedToken } = await supabase
+        .from('push_subscriptions')
+        .select('fcm_token')
+        .match({ user_id: userId, device_id: deviceId })
+        .maybeSingle();
+
+      if (!storedToken?.fcm_token) {
+        console.log('Token might have been cleaned up, retrying subscription...');
+        if (!forceResubscribe) {
+          return this.subscribeToPushNotifications(userId, true);
+        }
+        throw new Error('Failed to store FCM token - possible cleanup or constraint violation');
       }
 
       console.log('Successfully completed FCM token registration process');
