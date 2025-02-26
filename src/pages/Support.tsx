@@ -24,7 +24,7 @@ export const Support = () => {
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
               <span>Support</span>
             </h1>
-            <p className="text-gray-600">
+            <p className="mt-1.5 text-[15px] text-gray-600/90">
               We're here to help you with any questions
             </p>
           </div>

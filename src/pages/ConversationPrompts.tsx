@@ -97,7 +97,7 @@ const ConversationPrompts: React.FC = () => {
               <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
               Conversation Prompts
             </h1>
-            <p className="text-gray-600">
+            <p className="mt-1.5 text-[15px] text-gray-600/90">
               Meaningful prompts for heartfelt conversations.
             </p>
           </div>

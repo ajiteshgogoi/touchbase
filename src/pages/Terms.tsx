@@ -25,7 +25,7 @@ export const Terms = () => {
               <span>Terms of</span>
               <span className="sm:ml-2">Service</span>
             </h1>
-            <p className="text-gray-600">
+            <p className="mt-1.5 text-[15px] text-gray-600/90">
               Please read these terms carefully before using TouchBase
             </p>
           </div>

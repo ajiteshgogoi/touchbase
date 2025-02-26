@@ -25,7 +25,7 @@ export const Privacy = () => {
               <span>Privacy</span>
               <span className="sm:ml-2">Policy</span>
             </h1>
-            <p className="text-gray-600">
+            <p className="mt-1.5 text-[15px] text-gray-600/90">
               How we protect and handle your data
             </p>
           </div>
