@@ -11,18 +11,18 @@ export const Support = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="text-center py-8">
+      <div className="flex flex-col items-center w-full">
         <div className="flex items-center justify-center w-full mb-8 relative">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0 top-7"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3">
-              Support
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+              <span>Support</span>
             </h1>
             <p className="text-gray-600">
               We're here to help you with any questions
