@@ -59,7 +59,7 @@ export const Dashboard = () => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-          {!isPremium && (
+          {!isPremium && !isOnTrial && (
             <Link
               to="/settings"
               className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
