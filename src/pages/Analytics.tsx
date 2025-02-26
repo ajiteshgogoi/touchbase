@@ -97,7 +97,7 @@ export const Analytics = () => {
             </h2>
             <p className="text-[15px] text-gray-600/90 mb-6 max-w-lg">
             Discover the story behind your relationships. See who you've been missing, 
-            and get thoughtful suggestions to nurture the bonds that matter most
+            and get thoughtful suggestions to nurture the bonds that matter most.
             </p>
             <Link
               to="/settings"
