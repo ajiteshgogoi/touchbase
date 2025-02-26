@@ -44,7 +44,7 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      {isOnTrial && trialDaysRemaining !== null && (
+      {!isPremium && isOnTrial && trialDaysRemaining !== null && (
         <Suspense fallback={<LoadingFallback />}>
           <TrialBanner daysRemaining={trialDaysRemaining} />
         </Suspense>
