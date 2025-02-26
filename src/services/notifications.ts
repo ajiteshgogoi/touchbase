@@ -227,14 +227,8 @@ class NotificationService {
 
         // Check rate limits and expiry
         if (existingDevice) {
-          // Check for future timestamps (invalid state)
-          if (new Date(existingDevice.last_refresh) > new Date()) {
-            console.log('Invalid timestamp detected, resetting token...');
-            forceResubscribe = true;
-            refreshCount = 0;
-          }
-          // Check expiry
-          else if (new Date(existingDevice.expires_at) < new Date()) {
+          // Check expiry first
+          if (new Date(existingDevice.expires_at) < new Date()) {
             console.log('Token expired, forcing resubscription');
             forceResubscribe = true;
             refreshCount = 0;
@@ -269,16 +263,20 @@ class NotificationService {
         });
 
       if (error) {
-        // Handle specific constraint violations
-        if (error.message?.includes('check_refresh_rate')) {
-          throw new Error('Rate limit exceeded or invalid timestamp detected');
-        } else if (error.message?.includes('check_device_limit')) {
-          throw new Error('Maximum number of devices (10) reached. Please unregister an existing device first.');
-        }
-        
-        console.error('Failed to store FCM token in Supabase:', error);
-        throw error;
-      }
+       if (error.message?.includes('check_refresh_rate')) {
+         // Check response details to determine exact cause
+         if (error.details?.includes('refresh_count')) {
+           throw new Error('Maximum refresh limit (1000) reached for this device. Please unregister and register again.');
+         } else {
+           throw new Error('Invalid timestamp detected. Please try again.');
+         }
+       } else if (error.message?.includes('check_device_limit')) {
+         throw new Error('Maximum number of devices (10) reached. Please unregister an existing device first.');
+       }
+       
+       console.error('Failed to store FCM token in Supabase:', error);
+       throw error;
+     }
 
       // Verify token was stored (might be cleaned up by trigger)
       const { data: storedToken } = await supabase
