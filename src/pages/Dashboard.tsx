@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
-import { 
-  UserPlusIcon,
-  ChartBarIcon
+import {
+  UserPlusIcon
 } from '@heroicons/react/24/outline/esm/index.js';
 import type { Contact } from '../lib/supabase/types';
 
@@ -69,17 +68,6 @@ export const Dashboard = () => {
               </span>
             </Link>
           )}
-          <Link
-            to="/analytics"
-            className={`inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 ${
-              isPremium || isOnTrial
-                ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
-                : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
-            }`}
-          >
-            <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-            Get Detailed Analytics
-          </Link>
           {canAddMore ? (
             <Link
               to="/contacts/new"

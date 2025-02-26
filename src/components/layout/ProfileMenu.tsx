@@ -10,6 +10,7 @@ const UserCircleIcon = lazy(() => import('@heroicons/react/24/outline/UserCircle
 const ChevronDownIcon = lazy(() => import('@heroicons/react/24/outline/ChevronDownIcon').then(mod => ({ default: mod.default })));
 const SparklesIcon = lazy(() => import('@heroicons/react/24/outline/SparklesIcon').then(mod => ({ default: mod.default })));
 const ChatBubbleIcon = lazy(() => import('@heroicons/react/24/outline/ChatBubbleOvalLeftEllipsisIcon').then(mod => ({ default: mod.default })));
+const ChartBarIcon = lazy(() => import('@heroicons/react/24/outline/ChartBarIcon').then(mod => ({ default: mod.default })));
 
 const IconFallback = () => <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />;
 
@@ -138,6 +139,12 @@ export const ProfileMenu = () => {
                 <ChatBubbleIcon className="h-5 w-5 mr-2 text-primary-500" />
               </Suspense>
               Conversation Prompts
+            </MenuItem>
+            <MenuItem to="/analytics">
+              <Suspense fallback={<IconFallback />}>
+                <ChartBarIcon className="h-5 w-5 mr-2 text-primary-500" />
+              </Suspense>
+              Detailed Analytics
             </MenuItem>
             <MenuItem to="/help">
               How to Use
