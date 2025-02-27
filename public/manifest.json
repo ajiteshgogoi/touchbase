@@ -57,7 +57,7 @@
   "related_applications": [
     {
       "platform": "play",
-      "id": "com.touchbase.app",
+      "id": "app.touchbase.site.twa",
       "url": "https://play.google.com/store/apps/details?id=com.touchbase.app"
     }
   ],
@@ -73,11 +73,53 @@
   },
   "screenshots": [
     {
-      "src": "/screenshots/contacts.png",
+      "src": "/assets/1.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Login page"
+    },
+    {
+      "src": "/assets/2.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Dashboard with key metrics"
+    },
+    {
+      "src": "/assets/3.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Reminders with personalised suggestions"
+    },
+    {
+      "src": "/assets/4.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "1-tap interaction logging"
+    },
+    {
+      "src": "/assets/5.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Conversation prompt generator"
+    },
+    {
+      "src": "/assets/6.png",
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "wide",
-      "label": "Contacts list view"
+      "label": "Dashboard with key metrics"
+    },
+    {
+      "src": "/assets/7.png",
+      "sizes": "2048x1536",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Login page"
     }
   ]
 }
