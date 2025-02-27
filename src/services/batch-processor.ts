@@ -382,7 +382,7 @@ export class BatchProcessor {
             (a, b) =>
               new Date(b.date).getTime() - new Date(a.date).getTime()
           )
-          .slice(0, 5)
+          .slice(0, 2)
           .map(
             i =>
               `- ${new Date(i.date).toLocaleDateString()}: ${i.type} (${
