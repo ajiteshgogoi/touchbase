@@ -148,7 +148,7 @@ android {
 
         resValue "string", "fallbackType", twaManifest.fallbackType
 
-        resValue "bool", "enableSiteSettingsShortcut", twaManifest.enableSiteSettingsShortcut
+        resValue "string", "enableSiteSettingsShortcut", twaManifest.enableSiteSettingsShortcut.toString()
         resValue "string", "orientation", twaManifest.orientation
     }
     signingConfigs {
