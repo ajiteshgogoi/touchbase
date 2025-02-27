@@ -65,6 +65,7 @@
 
         <activity android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
             android:alwaysRetainTaskState="true"
+            android:launchMode="singleTask"
             android:label="@string/launcherName"
             android:exported="true">
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
@@ -133,7 +134,7 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https"
                     android:host="@string/hostName"
-                
+                    android:pathPattern=".*"
                 />
             </intent-filter>
 
