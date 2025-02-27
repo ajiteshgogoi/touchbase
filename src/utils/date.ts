@@ -6,7 +6,7 @@ import timezone from 'dayjs/plugin/timezone.js';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export type ContactFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
+export type ContactFrequency = 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
 export type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
 
 // Format date with timezone
@@ -57,7 +57,7 @@ export function calculateNextContactDate(
 
   // Frequency intervals in days
   const frequencyMap: Record<NonNullable<ContactFrequency>, number> = {
-    daily: 1,
+    every_three_days: 3,
     weekly: 7,
     fortnightly: 14,
     monthly: 30,

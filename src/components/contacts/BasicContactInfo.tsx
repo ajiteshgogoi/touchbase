@@ -52,7 +52,7 @@ export const BasicContactInfo = ({
             className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
           >
             <option value="">Choose frequency</option>
-            <option value="daily">Daily</option>
+            <option value="every_three_days">Every 3 days</option>
             <option value="weekly">Weekly</option>
             <option value="fortnightly">Every 2 weeks</option>
             <option value="monthly">Monthly</option>
