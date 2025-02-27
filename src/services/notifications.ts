@@ -255,7 +255,7 @@ class NotificationService {
           expires_at: currentExpiryDate.toISOString(),
           refresh_count: refreshCount
         }, {
-          onConflict: 'user_id,device_id'
+          onConflict: 'unique_user_device'
         });
 
       if (error) {
