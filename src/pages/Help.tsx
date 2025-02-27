@@ -35,7 +35,7 @@ export const Help = () => {
         <ol className="list-decimal list-inside space-y-2 ml-4">
           <li>Click the 'Add Contact' button on the dashboard</li>
           <li>Fill in their name (required)</li>
-          <li>Choose how often you'd like to keep in touch</li>
+          <li>Choose how often you'd like to keep in touch (required)</li>
           <li>Click 'Add detailed information' to access additional fields:</li>
           <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-600">
             <li>Contact methods (phone, social media)</li>
@@ -171,8 +171,20 @@ export const Help = () => {
             <li>Check your dashboard regularly to see who you need to connect with</li>
             <li>Add personal context in your notes to make future interactions meaningful</li>
           </ul>
-          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
+          <div className="mt-4 space-y-4">
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
+              <strong className="text-gray-700">Contact Health:</strong> Each contact card shows a colored indicator representing the relationship health:
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-green-400/90 mr-2"></div>Healthy (No missed interactions)</div>
+                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-lime-400/90 mr-2"></div>Good (1 missed interaction)</div>
+                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-yellow-400/90 mr-2"></div>Fair (2 missed interactions)</div>
+                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-orange-400/90 mr-2"></div>Poor (3 missed interactions)</div>
+                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-red-400/90 mr-2"></div>Critical (4+ missed interactions)</div>
+              </div>
+            </div>
+            <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+              <strong className="text-primary-700">Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
+            </div>
           </div>
         </>
       )
