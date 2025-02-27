@@ -59,30 +59,6 @@ export const BasicContactInfo = ({
             <option value="quarterly">Every 3 months</option>
           </select>
         </div>
-
-        {/* Relationship Level */}
-        <div>
-          <label htmlFor="relationship_level" className="block text-sm font-medium text-gray-700">
-            How close are you with this person?
-          </label>
-          <input
-            type="range"
-            id="relationship_level"
-            min="1"
-            max="5"
-            value={formData.relationship_level}
-            onChange={(e) => onChange({ relationship_level: parseInt(e.target.value) })}
-            className="mt-3 block w-full cursor-pointer
-              [&::-webkit-slider-runnable-track]:bg-gradient-to-r [&::-webkit-slider-runnable-track]:from-red-400 [&::-webkit-slider-runnable-track]:to-green-400 [&::-webkit-slider-runnable-track]:rounded-xl [&::-webkit-slider-runnable-track]:h-1.5
-              [&::-moz-range-track]:bg-gradient-to-r [&::-moz-range-track]:from-red-400 [&::-moz-range-track]:to-green-400 [&::-moz-range-track]:rounded-xl [&::-moz-range-track]:h-1.5
-              [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:mt-[-5px] [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-200 [&::-webkit-slider-thumb]:hover:border-primary-300
-              [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-200 [&::-moz-range-thumb]:hover:border-primary-300 [&::-moz-range-thumb]:-mt-[0.5px]"
-          />
-          <div className="mt-2 flex justify-between text-sm text-gray-600">
-            <span>Acquaintance</span>
-            <span>Very Close</span>
-          </div>
-        </div>
       </div>
     </div>
   );

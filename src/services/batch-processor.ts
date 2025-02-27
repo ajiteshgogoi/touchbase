@@ -362,7 +362,7 @@ export class BatchProcessor {
       `- Preferred contact frequency: ${
         contact.contact_frequency || 'Not specified'
       }`,
-      `- Relationship level: ${contact.relationship_level}/5`,
+      `- Missed interactions: ${contact.missed_interactions}`,
       `- Notes: ${contact.notes || 'None'}`,
       '',
       // Add tomorrow's events section if any are happening

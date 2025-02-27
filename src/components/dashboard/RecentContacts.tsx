@@ -161,12 +161,12 @@ export const RecentContacts = () => {
                               {/* Inline status indicator */}
                               <div className="flex items-center text-sm text-gray-500">
                                 <div className={`w-2 h-2 rounded-full mr-2 ${
-                                  contact.relationship_level === 1 ? 'bg-red-400' :
-                                  contact.relationship_level === 2 ? 'bg-orange-400' :
-                                  contact.relationship_level === 3 ? 'bg-yellow-400' :
-                                  contact.relationship_level === 4 ? 'bg-lime-400' :
+                                  contact.missed_interactions > 3 ? 'bg-red-400' :
+                                  contact.missed_interactions > 2 ? 'bg-orange-400' :
+                                  contact.missed_interactions > 1 ? 'bg-yellow-400' :
+                                  contact.missed_interactions > 0 ? 'bg-lime-400' :
                                   'bg-green-400'
-                                }`}></div>
+                                }`} title={`${contact.missed_interactions} missed interactions`}></div>
                                 {contact.contact_frequency && (
                                   <span>
                                     {contact.contact_frequency === 'every_three_days'

@@ -191,7 +191,7 @@ export const initialFormData = {
   social_media_handle: '',
   preferred_contact_method: null,
   notes: '',
-  relationship_level: 3,
+  relationship_level: 1, // Default minimum value since we're deprecating this field
   contact_frequency: null,
   user_id: '',
   last_contacted: formatLocalDateTime(new Date()),

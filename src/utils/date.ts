@@ -7,7 +7,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export type ContactFrequency = 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
-export type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
 
 // Format date with timezone
 export function formatDateWithTimezone(
@@ -33,27 +32,20 @@ export function getCurrentTimeInTimezone(timezone: string = 'UTC'): Date {
   return new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
 }
 
-// Calculate next contact date based on unified formula
+// Calculate next contact date based on frequency and missed interactions
 export function calculateNextContactDate(
-  level: RelationshipLevel,
   frequency: ContactFrequency,
   missedInteractions: number = 0,
   baseDate?: Date | null,
   timezone: string = 'UTC'
 ): Date {
   // Use provided base date or current date in user's timezone
-  const referenceDate = baseDate ? 
-    normalizeToUserTimezone(baseDate, timezone) : 
+  const referenceDate = baseDate ?
+    normalizeToUserTimezone(baseDate, timezone) :
     normalizeToUserTimezone(getCurrentTimeInTimezone(timezone));
 
-  // Base intervals in days
-  const baseIntervals: Record<RelationshipLevel, number> = {
-    1: 90,  // Acquaintance: ~3 months
-    2: 60,  // Casual friend: ~2 months
-    3: 30,  // Friend: ~1 month
-    4: 14,  // Close friend: ~2 weeks
-    5: 7    // Very close: ~1 week
-  };
+  // Default interval if no frequency specified
+  const defaultInterval = 30; // Monthly default
 
   // Frequency intervals in days
   const frequencyMap: Record<NonNullable<ContactFrequency>, number> = {
@@ -64,14 +56,8 @@ export function calculateNextContactDate(
     quarterly: 90
   };
 
-  // Get base interval from relationship level
-  let days = baseIntervals[level];
-
-  // Adjust based on specified frequency if provided
-  if (frequency) {
-    // Use the more frequent of the two options
-    days = Math.min(days, frequencyMap[frequency]);
-  }
+  // Get interval based on frequency or use default
+  let days = frequency ? frequencyMap[frequency] : defaultInterval;
 
   // Unified formula for missed interactions
   if (missedInteractions > 0) {

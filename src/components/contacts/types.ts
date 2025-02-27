@@ -25,8 +25,6 @@ export interface ContactFormData {
   preferred_contact_method: 'call' | 'message' | 'social' | null;
   /** Personal notes about the contact */
   notes: string;
-  /** Relationship closeness level (1-5) */
-  relationship_level: number;
   /** How often to maintain contact */
   contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   /** User ID who owns this contact */

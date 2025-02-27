@@ -4,7 +4,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Contact, Interaction, Reminder, ImportantEvent, QuickReminderInput } from '../lib/supabase/types';
 import { paymentService } from './payment';
 import { getQueryClient } from '../utils/queryClient';
-import { calculateNextContactDate, RelationshipLevel, ContactFrequency} from '../utils/date';
+import { calculateNextContactDate, ContactFrequency } from '../utils/date';
 
 // Extend dayjs with the relativeTime plugin
 dayjs.extend(relativeTime);
@@ -258,8 +258,7 @@ export const contactsService = {
 
     // Calculate regular next due date with user's timezone
     const regularDueDate = calculateNextContactDate(
-      contact.relationship_level as RelationshipLevel,
-      contact.contact_frequency as ContactFrequency | null,
+      contact.contact_frequency as ContactFrequency,
       contact.missed_interactions,
       contact.last_contacted ? new Date(contact.last_contacted) : null,
       timezone  // Pass the user's timezone
@@ -643,8 +642,7 @@ export const contactsService = {
     // For missed interactions, use last_contacted as base date if available
     const baseDate = contact.last_contacted ? new Date(contact.last_contacted) : null;
     const nextContactDue = calculateNextContactDate(
-      contact.relationship_level as RelationshipLevel,
-      contact.contact_frequency as ContactFrequency | null,
+      contact.contact_frequency as ContactFrequency,
       newMissedCount,
       baseDate
     );

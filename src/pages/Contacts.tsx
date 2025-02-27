@@ -28,7 +28,7 @@ const QuickInteraction = lazy(() => import('../components/contacts/QuickInteract
 
 dayjs.extend(relativeTime);
 
-type SortField = 'name' | 'last_contacted' | 'relationship_level';
+type SortField = 'name' | 'last_contacted' | 'missed_interactions';
 type SortOrder = 'asc' | 'desc';
 
 export const Contacts = () => {
@@ -255,7 +255,7 @@ export const Contacts = () => {
                 >
                   <option value="name">Sort by Name</option>
                   <option value="last_contacted">Sort by Last Contacted</option>
-                  <option value="relationship_level">Sort by Relationship Closeness</option>
+                  <option value="missed_interactions">Sort by Missed Interactions</option>
                 </select>
               </div>
               <button
@@ -314,12 +314,12 @@ export const Contacts = () => {
                         {/* Inline status indicator */}
                         <div className="flex items-center text-[13px] sm:text-sm text-gray-500/90">
                           <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${
-                            contact.relationship_level === 1 ? 'bg-red-400/90' :
-                            contact.relationship_level === 2 ? 'bg-orange-400/90' :
-                            contact.relationship_level === 3 ? 'bg-yellow-400/90' :
-                            contact.relationship_level === 4 ? 'bg-lime-400/90' :
+                            contact.missed_interactions > 3 ? 'bg-red-400/90' :
+                            contact.missed_interactions > 2 ? 'bg-orange-400/90' :
+                            contact.missed_interactions > 1 ? 'bg-yellow-400/90' :
+                            contact.missed_interactions > 0 ? 'bg-lime-400/90' :
                             'bg-green-400/90'
-                          }`}></div>
+                          }`} title={`${contact.missed_interactions} missed interactions`}></div>
                           {contact.contact_frequency && (
                             <span className="font-[450]">
                               {contact.contact_frequency === 'every_three_days'
