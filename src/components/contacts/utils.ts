@@ -191,7 +191,7 @@ export const initialFormData = {
   social_media_handle: '',
   preferred_contact_method: null,
   notes: '',
-  contact_frequency: 'monthly' as const, // Default contact frequency
+  contact_frequency: '' as any, // No default contact frequency
   user_id: '',
   last_contacted: formatLocalDateTime(new Date()),
   next_contact_due: null,
