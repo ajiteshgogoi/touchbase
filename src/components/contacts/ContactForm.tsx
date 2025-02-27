@@ -3,30 +3,28 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { supabase } from '../../lib/supabase/client';
-
-// Enable UTC plugin for consistent date handling
-dayjs.extend(utc);
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { supabase } from '../../lib/supabase/client';
 import { contactsService } from '../../services/contacts';
 import { contactValidationService } from '../../services/contact-validation';
 import { useStore } from '../../stores/useStore';
-import { BasicInformation } from './BasicInformation';
-import { ContactPreferences } from './ContactPreferences';
-import { PersonalNotes } from './PersonalNotes';
-import { ImportantEvents } from './ImportantEvents';
-import { ContactFormData, FormErrors, ImportantEventFormData } from './types';
-import { initialFormData, initialErrors, formatEventForInput, formatEventToUTC } from './utils';
+import { BasicContactInfo } from './BasicContactInfo';
+import { AdvancedContactInfo } from './AdvancedContactInfo';
+import { ContactFormData, FormErrors } from './types';
+import { initialFormData, initialErrors, formatEventToUTC } from './utils';
+
+dayjs.extend(utc);
 
 /**
  * ContactForm component for creating and editing contacts
- * Manages form state and validation across child components
+ * Shows basic info by default with option to show advanced fields
  */
 export const ContactForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isPremium, isOnTrial } = useStore();
+  const [showAdvanced, setShowAdvanced] = useState(Boolean(id)); // Show advanced fields by default in edit mode
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
@@ -35,14 +33,14 @@ export const ContactForm = () => {
   const [isValidating, setIsValidating] = useState(false);
   const isEditMode = Boolean(id);
 
-  // Fetch contact and events data together in edit mode
+  // Fetch contact and events data in edit mode
   const { data: contactData, isLoading: isLoadingContact } = useQuery({
     queryKey: ['contact-with-events', id],
     queryFn: () => contactsService.getContactWithEvents(id!),
     enabled: isEditMode,
   });
 
-  // Update form data when contact and events are loaded together
+  // Update form data when contact and events are loaded
   useEffect(() => {
     if (contactData?.contact) {
       const contact = contactData.contact;
@@ -62,9 +60,9 @@ export const ContactForm = () => {
         missed_interactions: contact.missed_interactions,
         important_events: contactData.events.map(event => ({
           id: event.id,
-          type: event.type as ImportantEventFormData['type'],
+          type: event.type as any,
           name: event.name,
-          date: formatEventForInput(event.date)
+          date: event.date
         }))
       });
     }
@@ -84,84 +82,6 @@ export const ContactForm = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  // Mutations for creating and updating contacts
-  const createMutation = useMutation({
-    mutationFn: async (data: ContactFormData) => {
-      // Extract important_events from data and create contact without it
-      const { important_events, ...contactData } = data;
-      // First create the contact
-      const contact = await contactsService.createContact(contactData);
-      // Create any important events without triggering recalculation
-      if (formData.important_events.length > 0) {
-        await Promise.all(formData.important_events.map(event =>
-          supabase
-            .from('important_events')
-            .insert({
-              contact_id: contact.id,
-              user_id: contact.user_id,
-              type: event.type,
-              name: event.name,
-              date: formatEventToUTC(event.date) // Convert to UTC for storage
-            })
-        ));
-
-        // Recalculate next contact due once after all events are added
-        await contactsService.recalculateNextContactDue(contact.id);
-      }
-      
-      return contact;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
-      navigate(-1);
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ContactFormData> }) => {
-      // Extract important_events from updates
-      const { important_events, ...contactUpdates } = updates;
-      // First update the contact
-      const contact = await contactsService.updateContact(id, contactUpdates);
-      
-      // Then handle important events - we'll replace all events with new ones
-      const currentEvents = await contactsService.getImportantEvents(id);
-      
-      // Delete all existing events (this also deletes associated reminders)
-      await Promise.all(currentEvents.map(event =>
-        contactsService.deleteImportantEvent(event.id, id)
-      ));
-      
-      // Create new events without recalculating next contact due for each one
-      if (formData.important_events.length > 0) {
-        await Promise.all(formData.important_events.map(event =>
-          // Use supabase directly to avoid triggering recalculation
-          supabase
-            .from('important_events')
-            .insert({
-              contact_id: id,
-              user_id: contact.user_id,
-              type: event.type,
-              name: event.name,
-              date: formatEventToUTC(event.date)
-            })
-        ));
-      }
-
-      // Recalculate next contact due once after all events are added
-      await contactsService.recalculateNextContactDue(id);
-      
-      return contact;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contacts'] });
-      queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
-      queryClient.invalidateQueries({ queryKey: ['important-events'] }); // Keep this for other components that may use it
-      navigate(-1);
-    },
-  });
 
   // Form validation
   const validateForm = async () => {
@@ -192,6 +112,74 @@ export const ContactForm = () => {
       return false;
     }
   };
+
+  // Mutations for creating and updating contacts
+  const createMutation = useMutation({
+    mutationFn: async (data: ContactFormData) => {
+      const { important_events, ...contactData } = data;
+      const contact = await contactsService.createContact(contactData);
+      
+      if (formData.important_events.length > 0) {
+        await Promise.all(formData.important_events.map(event =>
+          supabase
+            .from('important_events')
+            .insert({
+              contact_id: contact.id,
+              user_id: contact.user_id,
+              type: event.type,
+              name: event.name,
+              date: formatEventToUTC(event.date)
+            })
+        ));
+
+        await contactsService.recalculateNextContactDue(contact.id);
+      }
+      
+      return contact;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
+      navigate(-1);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ContactFormData> }) => {
+      const { important_events, ...contactUpdates } = updates;
+      const contact = await contactsService.updateContact(id, contactUpdates);
+      
+      const currentEvents = await contactsService.getImportantEvents(id);
+      
+      await Promise.all(currentEvents.map(event =>
+        contactsService.deleteImportantEvent(event.id, id)
+      ));
+      
+      if (formData.important_events.length > 0) {
+        await Promise.all(formData.important_events.map(event =>
+          supabase
+            .from('important_events')
+            .insert({
+              contact_id: id,
+              user_id: contact.user_id,
+              type: event.type,
+              name: event.name,
+              date: formatEventToUTC(event.date)
+            })
+        ));
+      }
+
+      await contactsService.recalculateNextContactDue(id);
+      
+      return contact;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
+      queryClient.invalidateQueries({ queryKey: ['important-events'] });
+      navigate(-1);
+    },
+  });
 
   // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -260,36 +248,42 @@ export const ContactForm = () => {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-8">
-        <BasicInformation
+        <BasicContactInfo
           formData={formData}
           errors={errors}
           onChange={handleFormDataChange}
           onError={handleErrorChange}
         />
 
-        <ContactPreferences
-          formData={formData}
-          errors={errors}
-          onChange={handleFormDataChange}
-          onError={handleErrorChange}
-        />
+        <div className="flex items-start gap-3 px-1">
+          <div className="flex h-6 items-center">
+            <input
+              id="showAdvanced"
+              type="checkbox"
+              checked={showAdvanced}
+              onChange={(e) => setShowAdvanced(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="showAdvanced" className="text-sm font-medium text-gray-700 hover:cursor-pointer">
+              Add detailed information
+            </label>
+            <p className="text-xs text-gray-500">Optional details to help you remember more about your relationship</p>
+          </div>
+        </div>
 
-        <ImportantEvents
-          formData={formData}
-          errors={errors}
-          onChange={handleFormDataChange}
-          onError={handleErrorChange}
-          isEditMode={isEditMode}
-        />
-
-        <PersonalNotes
-          formData={formData}
-          errors={errors}
-          onChange={handleFormDataChange}
-          onError={handleErrorChange}
-          isPremium={isPremium}
-          isOnTrial={isOnTrial}
-        />
+        {showAdvanced && (
+          <AdvancedContactInfo
+            formData={formData}
+            errors={errors}
+            onChange={handleFormDataChange}
+            onError={handleErrorChange}
+            isPremium={isPremium}
+            isOnTrial={isOnTrial}
+            isEditMode={isEditMode}
+          />
+        )}
 
         {/* Action Buttons and Error Messages */}
         <div className="space-y-4">
