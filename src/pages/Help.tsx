@@ -35,13 +35,16 @@ export const Help = () => {
         <ol className="list-decimal list-inside space-y-2 ml-4">
           <li>Click the 'Add Contact' button on the dashboard</li>
           <li>Fill in their name (required)</li>
-          <li>Add their phone number and/or social media handle (optional)</li>
-          <li>Set your preferred contact method and frequency</li>
-          <li>Use the relationship closeness slider to indicate how close you are</li>
-          <li>Add important recurring events (birthdays, anniversaries, etc.)</li>
-          <li>Add personal notes to help maintain the relationship</li>
+          <li>Choose how often you'd like to keep in touch</li>
+          <li>Use the relationship closeness slider to indicate connection strength</li>
+          <li>Click 'Add detailed information' to access additional fields:</li>
+          <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-600">
+            <li>Contact methods (phone, social media)</li>
+            <li>Important events (birthdays, anniversaries)</li>
+            <li>Personal notes and preferences</li>
+          </ul>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> You can add up to 5 important events per contact, including one birthday and one anniversary. Custom events give you flexibility to track any recurring date that matters to your relationship.
+            <strong className="text-primary-700">Pro Tip:</strong> Start with essential details and add more information if you desire. You can add up to 5 important events per contact, including one birthday and one anniversary.
           </div>
         </ol>
       )
