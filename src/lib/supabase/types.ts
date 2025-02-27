@@ -8,7 +8,7 @@ export interface Contact {
   next_contact_due: string | null;
   preferred_contact_method: 'call' | 'message' | 'social' | null;
   notes: string | null;
-  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
+  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
   missed_interactions: number;
