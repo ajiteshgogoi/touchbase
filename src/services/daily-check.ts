@@ -119,7 +119,6 @@ export async function runDailyCheckV2() {
         // Only process if no interaction today
         if (!hasInteractionToday) {
           const nextContactDue = calculateNextContactDate(
-            contact.relationship_level as 1 | 2 | 3 | 4 | 5,
             contact.contact_frequency,
             (contact.missed_interactions || 0) + 1,
             null,
@@ -191,7 +190,6 @@ export async function runDailyCheckV2() {
         last_contacted,
         next_contact_due,
         preferred_contact_method,
-        relationship_level,
         contact_frequency,
         social_media_handle,
         notes,
