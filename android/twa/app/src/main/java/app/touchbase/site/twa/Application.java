@@ -10,8 +10,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.google.androidbrowserhelper.trusted.LauncherActivity;
 import android.content.Context;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 public class Application extends android.app.Application {
     public static final int NOTIFICATION_PERMISSION_CODE = 123;
@@ -19,8 +17,6 @@ public class Application extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        FirebaseApp.initializeApp(this);
-        FirebaseMessaging.getInstance().setAutoInitEnabled(true);
         createNotificationChannel();
     }
 
