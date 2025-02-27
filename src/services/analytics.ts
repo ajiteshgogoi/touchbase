@@ -300,7 +300,7 @@ export const analyticsService = {
 
       const daysSinceLastContact = dayjs().diff(dayjs(lastInteraction), 'day');
       const frequencyDays = {
-        daily: 2,
+        every_three_days: 6,  // 2x the frequency period like other values
         weekly: 14,
         fortnightly: 30,
         monthly: 45,
