@@ -168,7 +168,11 @@ export const RecentContacts = () => {
                                   'bg-green-400'
                                 }`}></div>
                                 {contact.contact_frequency && (
-                                  <span>{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)} contact</span>
+                                  <span>
+                                    {contact.contact_frequency === 'every_three_days'
+                                      ? 'Bi-weekly contact'
+                                      : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'}
+                                  </span>
                                 )}
                               </div>
                             </div>

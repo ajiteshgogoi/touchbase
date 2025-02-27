@@ -321,7 +321,11 @@ export const Contacts = () => {
                             'bg-green-400/90'
                           }`}></div>
                           {contact.contact_frequency && (
-                            <span className="font-[450]">{contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1)} contact</span>
+                            <span className="font-[450]">
+                              {contact.contact_frequency === 'every_three_days'
+                                ? 'Bi-weekly contact'
+                                : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'}
+                            </span>
                           )}
                         </div>
                       </div>
