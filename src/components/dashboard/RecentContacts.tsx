@@ -288,7 +288,7 @@ export const RecentContacts = () => {
                           </div>
                         </div>
                         <div className="pt-3">
-                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-gray-50/80 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg">
+                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
                             <button
                               onClick={() => setQuickInteraction({
                                 isOpen: true,
