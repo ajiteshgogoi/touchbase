@@ -36,7 +36,6 @@ export const Help = () => {
           <li>Click the 'Add Contact' button on the dashboard</li>
           <li>Fill in their name (required)</li>
           <li>Choose how often you'd like to keep in touch</li>
-          <li>Use the relationship closeness slider to indicate connection strength</li>
           <li>Click 'Add detailed information' to access additional fields:</li>
           <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-600">
             <li>Contact methods (phone, social media)</li>
