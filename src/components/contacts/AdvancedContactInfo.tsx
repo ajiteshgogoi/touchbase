@@ -372,7 +372,7 @@ export const AdvancedContactInfo = ({
                 <span className="block mt-2">
                   ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">
                     Upgrade to Premium
-                  </Link> to get AI-powered suggestions based on your notes!
+                  </Link> to get personalised suggestions based on your notes!
                 </span>
               </p>
             </div>
