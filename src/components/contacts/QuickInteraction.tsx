@@ -256,7 +256,7 @@ const QuickInteraction = ({
 
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      Notes
+                      Notes (optional)
                     </label>
                     {(isPremium || isOnTrial) ? (
                       <div className="mb-4 px-4 py-3 bg-primary-50/50 rounded-xl ring-1 ring-primary-100/50">

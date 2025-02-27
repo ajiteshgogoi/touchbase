@@ -58,9 +58,6 @@ export const BasicContactInfo = ({
             <option value="monthly">Monthly</option>
             <option value="quarterly">Every 3 months</option>
           </select>
-          <p className="mt-1 text-sm text-gray-500">
-            We'll remind you to reach out based on this frequency
-          </p>
         </div>
 
         {/* Relationship Level */}
@@ -84,9 +81,6 @@ export const BasicContactInfo = ({
           <div className="mt-2 flex justify-between text-sm text-gray-600">
             <span>Acquaintance</span>
             <span>Very Close</span>
-          </div>
-          <div className="mt-1 text-sm text-gray-500">
-            This helps us suggest appropriate contact intervals
           </div>
         </div>
       </div>
