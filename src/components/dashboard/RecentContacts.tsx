@@ -218,19 +218,19 @@ export const RecentContacts = () => {
                                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
                                 </div>
                                 <div className="px-3 py-2">
-                                  <div className="flex flex-wrap gap-3 text-sm">
-                                    {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
-                                      <span key={idx} className="inline-flex items-center">
-                                        {event.type === 'birthday' ? (
-                                          <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
-                                        ) : event.type === 'anniversary' ? (
-                                          <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
-                                        ) : (
-                                          <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
-                                        )}
-                                        <span className="text-gray-700 font-medium">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
-                                        <span className="text-gray-600">{formatEventDate(event.date)}</span>
-                                      </span>
+                                  <div className="flex flex-wrap gap-3 text-sm min-w-0">
+                                   {sortEventsByType(eventsMap[contact.id] || []).map((event: ImportantEvent, idx: number) => (
+                                     <span key={idx} className="inline-flex items-center flex-wrap">
+                                       {event.type === 'birthday' ? (
+                                         <CakeIcon className="h-4 w-4 mr-1.5 text-pink-500 flex-shrink-0" />
+                                       ) : event.type === 'anniversary' ? (
+                                         <HeartIcon className="h-4 w-4 mr-1.5 text-rose-500 flex-shrink-0" />
+                                       ) : (
+                                         <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
+                                       )}
+                                       <span className="text-gray-700 font-medium break-words">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
+                                       <span className="text-gray-600 break-words">{formatEventDate(event.date)}</span>
+                                     </span>
                                     ))}
                                   </div>
                                 </div>
