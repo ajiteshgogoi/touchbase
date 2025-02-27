@@ -173,7 +173,7 @@ export const Help = () => {
           </ul>
           <div className="mt-4 space-y-4">
             <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
-              <strong className="text-gray-700">Contact Health:</strong> Each contact card shows a colored indicator representing the relationship health:
+              <strong className="text-gray-700">Contact Health:</strong> Each contact card shows a coloured indicator representing the relationship health:
               <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-green-400/90 mr-2"></div>Healthy (No missed interactions)</div>
                 <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-lime-400/90 mr-2"></div>Good (1 missed interaction)</div>
