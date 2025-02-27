@@ -266,16 +266,18 @@ const [quickReminder, setQuickReminder] = useState<{
                                       <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
                                         {contact?.ai_last_suggestion || 'No suggestions available'}
                                       </span>
-                                      <button
-                                        onClick={() => handleReportContent(
-                                          reminder.contact_id,
-                                          contact?.ai_last_suggestion || ''
-                                        )}
-                                        className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
-                                        title="Report inappropriate suggestion"
-                                      >
-                                        <FlagIcon className="h-4 w-4" />
-                                      </button>
+                                      {contact?.ai_last_suggestion && (
+                                        <button
+                                          onClick={() => handleReportContent(
+                                            reminder.contact_id,
+                                            contact.ai_last_suggestion!
+                                          )}
+                                          className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                                          title="Report inappropriate suggestion"
+                                        >
+                                          <FlagIcon className="h-4 w-4" />
+                                        </button>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -442,16 +444,18 @@ const [quickReminder, setQuickReminder] = useState<{
                                       <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
                                         {contact?.ai_last_suggestion || 'No suggestions available'}
                                       </span>
-                                      <button
-                                        onClick={() => handleReportContent(
-                                          reminder.contact_id,
-                                          contact?.ai_last_suggestion || ''
-                                        )}
-                                        className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
-                                        title="Report inappropriate suggestion"
-                                      >
-                                        <FlagIcon className="h-4 w-4" />
-                                      </button>
+                                      {contact?.ai_last_suggestion && (
+                                        <button
+                                          onClick={() => handleReportContent(
+                                            reminder.contact_id,
+                                            contact.ai_last_suggestion!
+                                          )}
+                                          className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                                          title="Report inappropriate suggestion"
+                                        >
+                                          <FlagIcon className="h-4 w-4" />
+                                        </button>
+                                      )}
                                     </div>
                                   )}
                                 </div>
