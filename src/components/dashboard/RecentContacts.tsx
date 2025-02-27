@@ -260,35 +260,41 @@ export const RecentContacts = () => {
                             </div>
 
                             {/* AI Suggestions section */}
-                            {contact.ai_last_suggestion && (
-                              <div className="bg-gray-50 rounded-lg overflow-hidden">
-                                <div className="px-3 py-2 bg-gray-100">
-                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
-                                </div>
-                                <div className="px-3 py-2">
-                                  {contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm text-gray-600">
-                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div className="group flex items-start gap-2">
-                                      <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
-                                        {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
-                                      </span>
+                            <div className="bg-gray-50 rounded-lg overflow-hidden">
+                              <div className="px-3 py-2 bg-gray-100">
+                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
+                              </div>
+                              <div className="px-3 py-2">
+                                {!contact.ai_last_suggestion ? (
+                                  <div className="flex items-start gap-2">
+                                    <span className="flex-1 text-sm text-gray-700 font-[450]">
+                                      No suggestions available
+                                    </span>
+                                  </div>
+                                ) : contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-600">
+                                      ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="group flex items-start gap-2">
+                                    <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                                      {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                                    </span>
+                                    {contact.ai_last_suggestion && (
                                       <button
-                                        onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion || '')}
+                                        onClick={() => handleReportContent(contact.id, contact.ai_last_suggestion!)}
                                         className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
                                         title="Report inappropriate suggestion"
                                       >
                                         <FlagIcon className="h-4 w-4" />
                                       </button>
-                                    </div>
-                                  )}
-                                </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            </div>
                           </div>
                         </div>
                         <div className="pt-3">
