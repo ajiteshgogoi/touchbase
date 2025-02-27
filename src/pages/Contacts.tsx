@@ -424,10 +424,10 @@ export const Contacts = () => {
                                 No suggestions available
                               </span>
                             </div>
-                          ) : contact.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                          ) : contact.ai_last_suggestion === 'Upgrade to Premium to get personalised suggestions!' ? (
                             <div className="flex items-center gap-2">
                               <span className="text-[13px] sm:text-sm text-gray-600/90">
-                                ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 font-[500]">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 font-[500]">Upgrade to Premium</Link> to get personalised suggestions!
                               </span>
                             </div>
                           ) : (
