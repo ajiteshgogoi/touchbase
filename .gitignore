@@ -99,6 +99,7 @@ android/twa/app/intermediates/
 android/twa/**/*.hprof
 android/twa/output.json
 android/twa/output-metadata.json
+android/twa/app/google-services.json
 
 # Additional Android/Gradle files
 /app/
