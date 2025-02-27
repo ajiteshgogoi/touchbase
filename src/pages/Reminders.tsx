@@ -201,12 +201,31 @@ const [quickReminder, setQuickReminder] = useState<{
                         <div className="min-w-0 pb-4">
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <Link
-                                to={`/contacts#${reminder.contact_id}`}
-                                className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
-                              >
-                                {contact?.name || 'Unknown'}
-                              </Link>
+                              <div className="space-y-1.5">
+                                <Link
+                                  to={`/contacts#${reminder.contact_id}`}
+                                  className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
+                                >
+                                  {contact?.name || 'Unknown'}
+                                </Link>
+                                {/* Inline status indicator */}
+                                <div className="flex items-center text-[13px] sm:text-sm text-gray-500/90">
+                                  <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${
+                                    (contact?.missed_interactions || 0) > 3 ? 'bg-red-400/90' :
+                                    (contact?.missed_interactions || 0) > 2 ? 'bg-orange-400/90' :
+                                    (contact?.missed_interactions || 0) > 1 ? 'bg-yellow-400/90' :
+                                    (contact?.missed_interactions || 0) > 0 ? 'bg-lime-400/90' :
+                                    'bg-green-400/90'
+                                  }`} title={`${contact?.missed_interactions || 0} missed interactions`}></div>
+                                  {contact?.contact_frequency && (
+                                    <span className="font-[450]">
+                                      {contact.contact_frequency === 'every_three_days'
+                                        ? 'Bi-weekly contact'
+                                        : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                               <div className="flex flex-wrap items-center gap-2">
                                 {/* Show important events badges */}
                                 {events.length > 0 && events.map((event, idx) => (
@@ -379,12 +398,31 @@ const [quickReminder, setQuickReminder] = useState<{
                         <div className="min-w-0 pb-4">
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <Link
-                                to={`/contacts#${reminder.contact_id}`}
-                                className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
-                              >
-                                {contact?.name || 'Unknown'}
-                              </Link>
+                              <div className="space-y-1.5">
+                                <Link
+                                  to={`/contacts#${reminder.contact_id}`}
+                                  className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
+                                >
+                                  {contact?.name || 'Unknown'}
+                                </Link>
+                                {/* Inline status indicator */}
+                                <div className="flex items-center text-[13px] sm:text-sm text-gray-500/90">
+                                  <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${
+                                    (contact?.missed_interactions || 0) > 3 ? 'bg-red-400/90' :
+                                    (contact?.missed_interactions || 0) > 2 ? 'bg-orange-400/90' :
+                                    (contact?.missed_interactions || 0) > 1 ? 'bg-yellow-400/90' :
+                                    (contact?.missed_interactions || 0) > 0 ? 'bg-lime-400/90' :
+                                    'bg-green-400/90'
+                                  }`} title={`${contact?.missed_interactions || 0} missed interactions`}></div>
+                                  {contact?.contact_frequency && (
+                                    <span className="font-[450]">
+                                      {contact.contact_frequency === 'every_three_days'
+                                        ? 'Bi-weekly contact'
+                                        : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                               <div className="flex flex-wrap items-center gap-2">
                                 {/* Show important events badges, but skip if this is a quick reminder */}
                                 {!reminder.name && events.length > 0 && events.map((event, idx) => (
