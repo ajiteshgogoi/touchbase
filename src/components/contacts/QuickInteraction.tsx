@@ -255,62 +255,62 @@ const QuickInteraction = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Notes (optional)
-                    </label>
-                    {(isPremium || isOnTrial) ? (
-                      <div className="mb-4 px-4 py-3 bg-primary-50/50 rounded-xl ring-1 ring-primary-100/50">
-                        <p className="text-sm text-gray-600/90">
-                          Add details about this interaction that can help maintain the relationship.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mb-4 px-4 py-3 bg-gray-50/80 rounded-xl ring-1 ring-gray-100/50">
-                        <p className="text-sm text-gray-600">
-                          Add details about this interaction.
-                          <span className="block mt-2">
-                            ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions based on your notes!
-                          </span>
-                        </p>
-                      </div>
-                    )}
-                    <div>
-                      <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value.slice(0, 500))}
-                        placeholder="Add any notes about the interaction..."
-                        maxLength={500}
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
-                        rows={3}
-                      />
-                      <div className="mt-2 flex justify-end">
-                        <span className="text-sm text-gray-500">
-                          {notes.length}/500 characters
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                   <label className="block text-sm font-medium text-gray-700">
+                     How did it go?
+                   </label>
+                   <div className="flex gap-2">
+                     {(['positive', 'neutral', 'negative'] as const).map((s) => (
+                       <button
+                         key={s}
+                         onClick={() => setSentiment(s)}
+                         className={`px-4 py-2 text-sm font-medium rounded-xl capitalize transition-all duration-200 ${
+                           sentiment === s
+                             ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
+                             : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
+                         }`}
+                       >
+                         {s}
+                       </button>
+                     ))}
+                   </div>
+                 </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      How did it go?
-                    </label>
-                    <div className="flex gap-2">
-                      {(['positive', 'neutral', 'negative'] as const).map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => setSentiment(s)}
-                          className={`px-4 py-2 text-sm font-medium rounded-xl capitalize transition-all duration-200 ${
-                            sentiment === s
-                              ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
-                              : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
-                          }`}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                 <div className="space-y-2">
+                   <label className="block text-sm font-medium text-gray-700">
+                     Notes (optional)
+                   </label>
+                   {(isPremium || isOnTrial) ? (
+                     <div className="mb-4 px-4 py-3 bg-primary-50/50 rounded-xl ring-1 ring-primary-100/50">
+                       <p className="text-sm text-gray-600/90">
+                         Add details about this interaction that can help maintain the relationship.
+                       </p>
+                     </div>
+                   ) : (
+                     <div className="mb-4 px-4 py-3 bg-gray-50/80 rounded-xl ring-1 ring-gray-100/50">
+                       <p className="text-sm text-gray-600">
+                         Add details about this interaction.
+                         <span className="block mt-2">
+                           ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions based on your notes!
+                         </span>
+                       </p>
+                     </div>
+                   )}
+                   <div>
+                     <textarea
+                       value={notes}
+                       onChange={(e) => setNotes(e.target.value.slice(0, 500))}
+                       placeholder="Add any notes about the interaction..."
+                       maxLength={500}
+                       className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                       rows={3}
+                     />
+                     <div className="mt-2 flex justify-end">
+                       <span className="text-sm text-gray-500">
+                         {notes.length}/500 characters
+                       </span>
+                     </div>
+                   </div>
+                 </div>
                 </div>
 
                 <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
