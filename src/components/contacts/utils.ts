@@ -208,7 +208,8 @@ export const initialErrors = {
   name: '',
   phone: '',
   social_media_handle: '',
-  important_events: [] // Array of error messages for each event
+  important_events: [], // Array of error messages for each event
+  frequency: '' // Error message for contact frequency
 };
 
 /**
