@@ -26,7 +26,7 @@ export interface ContactFormData {
   /** Personal notes about the contact */
   notes: string;
   /** How often to maintain contact */
-  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
+  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
   /** User ID who owns this contact */
   user_id: string;
   /** Last time contact was made (ISO format) */
