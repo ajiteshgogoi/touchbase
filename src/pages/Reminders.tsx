@@ -255,10 +255,10 @@ const [quickReminder, setQuickReminder] = useState<{
                                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
                                 </div>
                                 <div className="px-3 py-2">
-                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get personalised suggestions!' ? (
                                     <div className="flex items-center gap-2">
                                       <span className="text-sm text-gray-600">
-                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get personalised suggestions!
                                       </span>
                                     </div>
                                   ) : (
@@ -433,10 +433,10 @@ const [quickReminder, setQuickReminder] = useState<{
                                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
                                 </div>
                                 <div className="px-3 py-2">
-                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get advanced AI suggestions!' ? (
+                                  {contact?.ai_last_suggestion === 'Upgrade to premium to get personalised suggestions!' ? (
                                     <div className="flex items-center gap-2">
                                       <span className="text-sm text-gray-600">
-                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get AI-powered suggestions!
+                                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get personalised suggestions!
                                       </span>
                                     </div>
                                   ) : (

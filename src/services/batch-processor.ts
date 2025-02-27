@@ -267,7 +267,7 @@ export class BatchProcessor {
           contactId: contact.id
         };
       } else if (!hasAccess) {
-        suggestions = '✨ Upgrade to Premium to get personalised suggestions!';
+        suggestions = 'Upgrade to Premium to get personalised suggestions!';
       } else {
         suggestions = await this.getLLMSuggestions(contact);
       }
