@@ -230,6 +230,14 @@ export const ContactForm = () => {
   // Event handlers for child components
   const handleFormDataChange = (updates: Partial<ContactFormData>) => {
     setFormData(current => ({ ...current, ...updates }));
+    
+    // Clear relevant error when field is updated
+    if ('name' in updates && typeof updates.name === 'string' && updates.name.trim()) {
+      setErrors(current => ({ ...current, name: '' }));
+    }
+    if ('contact_frequency' in updates && typeof updates.contact_frequency === 'string' && updates.contact_frequency) {
+      setErrors(current => ({ ...current, frequency: '' }));
+    }
   };
 
   const handleErrorChange = (updates: Partial<FormErrors>) => {

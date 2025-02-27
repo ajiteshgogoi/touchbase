@@ -58,6 +58,9 @@ export const BasicContactInfo = ({
             <option value="monthly">Monthly</option>
             <option value="quarterly">Every 3 months</option>
           </select>
+          {errors.frequency && (
+            <p className="mt-1 text-sm text-red-600">{errors.frequency}</p>
+          )}
         </div>
       </div>
     </div>
