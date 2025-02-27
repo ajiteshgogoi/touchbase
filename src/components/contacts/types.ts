@@ -28,7 +28,7 @@ export interface ContactFormData {
   /** Relationship closeness level (1-5) */
   relationship_level: number;
   /** How often to maintain contact */
-  contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
+  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   /** User ID who owns this contact */
   user_id: string;
   /** Last time contact was made (ISO format) */

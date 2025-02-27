@@ -14,7 +14,7 @@ interface Contact {
   notes: string | null;
   relationship_level: 1 | 2 | 3 | 4 | 5;
   social_media_handle: string | null;
-  contact_frequency: 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
+  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;
   ai_last_suggestion: string | null;
   ai_last_suggestion_date: string | null;
   missed_interactions: number;
