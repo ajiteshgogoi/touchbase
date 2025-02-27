@@ -50,7 +50,6 @@ export const ContactForm = () => {
         social_media_handle: contact.social_media_handle || '',
         preferred_contact_method: contact.preferred_contact_method,
         notes: contact.notes || '',
-        relationship_level: contact.relationship_level,
         contact_frequency: contact.contact_frequency,
         user_id: contact.user_id,
         last_contacted: contact.last_contacted,
