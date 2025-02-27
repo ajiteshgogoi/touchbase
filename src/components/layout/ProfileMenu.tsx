@@ -134,7 +134,7 @@ export const ProfileMenu = () => {
         leaveFrom="opacity-100 scale-100 translate-y-0"
         leaveTo="opacity-0 scale-95 translate-y-1"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/99 backdrop-blur-lg shadow-lg ring-1 ring-black/5 focus:outline-none divide-y divide-gray-100 z-50 will-change-transform">
+        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/100 backdrop-blur-lg shadow-lg ring-1 ring-black/5 focus:outline-none divide-y divide-gray-100 z-50 will-change-transform">
           <div className="px-1 py-1">
             <MenuItem to="/conversation-prompts">
               <Suspense fallback={<IconFallback />}>
