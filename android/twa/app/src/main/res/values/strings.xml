@@ -5,6 +5,10 @@
   <string name="shortcut_name_0">Add New Contact</string>
   <string name="shortcut_short_name_1">Contacts</string>
   <string name="shortcut_name_1">View Contacts</string>
+  <string name="shortcut_short_name_2">Reminders</string>
+  <string name="shortcut_name_2">View Reminders</string>
+  <string name="shortcut_short_name_3">Prompts</string>
+  <string name="shortcut_name_3">Conversation Prompts</string>
 
   <!--
     This variable below expresses the relationship between the app and the site,
