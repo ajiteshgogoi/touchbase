@@ -41,7 +41,7 @@ export const BasicContactInfo = ({
         {/* Contact Frequency */}
         <div>
           <label htmlFor="contact_frequency" className="block text-sm font-medium text-gray-700">
-            How often would you like to keep in touch?
+            How often would you like to keep in touch? *
           </label>
           <select
             id="contact_frequency"

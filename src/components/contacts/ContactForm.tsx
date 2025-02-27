@@ -89,6 +89,8 @@ export const ContactForm = () => {
       return false;
     }
 
+    let isValid = true;
+
     try {
       const { hasDuplicate, duplicates } = await contactValidationService.checkDuplicateName({
         name: formData.name.trim(),
@@ -101,11 +103,23 @@ export const ContactForm = () => {
           ...prev,
           name: contactValidationService.formatDuplicateMessage(duplicates)
         }));
-        return false;
+        isValid = false;
+      } else {
+        setErrors(prev => ({ ...prev, name: '' }));
       }
 
-      setErrors(prev => ({ ...prev, name: '' }));
-      return true;
+      // Validate contact frequency
+      if (!formData.contact_frequency) {
+        setErrors(prev => ({
+          ...prev,
+          frequency: 'Please select how often you want to keep in touch'
+        }));
+        isValid = false;
+      } else {
+        setErrors(prev => ({ ...prev, frequency: '' }));
+      }
+
+      return isValid;
     } catch (error) {
       console.error('Validation error:', error);
       return false;
@@ -330,9 +344,10 @@ export const ContactForm = () => {
             </button>
           </div>
           {/* Error Messages Section */}
-          {errors.name && (
-            <div className="px-4 py-2 bg-red-50 rounded-lg">
-              <p className="text-sm text-red-600 text-center">{errors.name}</p>
+          {(errors.name || errors.frequency) && (
+            <div className="px-4 py-2 bg-red-50 rounded-lg space-y-1">
+              {errors.name && <p className="text-sm text-red-600 text-center">{errors.name}</p>}
+              {errors.frequency && <p className="text-sm text-red-600 text-center">{errors.frequency}</p>}
             </div>
           )}
         </div>
