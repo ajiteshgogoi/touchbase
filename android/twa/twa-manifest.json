@@ -26,26 +26,22 @@
     {
       "name": "Add Contact",
       "shortName": "Add Contact",
-      "url": "https://touchbase.site/contacts/new",
-      "chosenIconUrl": "https://touchbase.site/icon-192.png"
+      "url": "https://touchbase.site/contacts/new"
     },
     {
       "name": "View Contacts",
       "shortName": "Contacts",
-      "url": "https://touchbase.site/contacts",
-      "chosenIconUrl": "https://touchbase.site/icon-192.png"
+      "url": "https://touchbase.site/contacts"
     },
     {
       "name": "View Reminders",
       "shortName": "Reminders",
-      "url": "https://touchbase.site/reminders",
-      "chosenIconUrl": "https://touchbase.site/icon-192.png"
+      "url": "https://touchbase.site/reminders"
     },
     {
       "name": "Conversation Prompts",
       "shortName": "Prompts",
-      "url": "https://touchbase.site/conversation-prompts",
-      "chosenIconUrl": "https://touchbase.site/icon-192.png"
+      "url": "https://touchbase.site/conversation-prompts"
     }
   ],
   "generatorApp": "bubblewrap-cli",
@@ -62,7 +58,7 @@
   "alphaDependencies": {
     "enabled": true
   },
-  "enableSiteSettingsShortcut": true,
+  "enableSiteSettingsShortcut": false,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "fullScopeUrl": "https://touchbase.site/",
