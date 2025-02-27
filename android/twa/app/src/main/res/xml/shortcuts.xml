@@ -1,22 +1,22 @@
 <shortcuts xmlns:android='http://schemas.android.com/apk/res/android'>
     <shortcut android:shortcutId='shortcut0' android:enabled='true' android:icon='@drawable/shortcut_0' android:shortcutShortLabel='@string/shortcut_short_name_0' android:shortcutLongLabel='@string/shortcut_name_0'>
-        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='app.touchbase.site.twa.LauncherActivity' android:data='https://touchbase.site/contacts/new' />
-        <categories android:name='android.intent.category.DEFAULT' />
-        <categories android:name='android.intent.category.BROWSABLE' />
+        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='com.google.androidbrowserhelper.trusted.LauncherActivity' android:data='https://touchbase.site/contacts/new' />
+        <category android:name='android.intent.category.DEFAULT' />
+        <category android:name='android.intent.category.BROWSABLE' />
     </shortcut>
     <shortcut android:shortcutId='shortcut1' android:enabled='true' android:icon='@drawable/shortcut_1' android:shortcutShortLabel='@string/shortcut_short_name_1' android:shortcutLongLabel='@string/shortcut_name_1'>
-        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='app.touchbase.site.twa.LauncherActivity' android:data='https://touchbase.site/contacts' />
-        <categories android:name='android.intent.category.DEFAULT' />
-        <categories android:name='android.intent.category.BROWSABLE' />
+        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='com.google.androidbrowserhelper.trusted.LauncherActivity' android:data='https://touchbase.site/contacts' />
+        <category android:name='android.intent.category.DEFAULT' />
+        <category android:name='android.intent.category.BROWSABLE' />
     </shortcut>
     <shortcut android:shortcutId='shortcut2' android:enabled='true' android:icon='@drawable/shortcut_2' android:shortcutShortLabel='@string/shortcut_short_name_2' android:shortcutLongLabel='@string/shortcut_name_2'>
-        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='app.touchbase.site.twa.LauncherActivity' android:data='https://touchbase.site/reminders' />
-        <categories android:name='android.intent.category.DEFAULT' />
-        <categories android:name='android.intent.category.BROWSABLE' />
+        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='com.google.androidbrowserhelper.trusted.LauncherActivity' android:data='https://touchbase.site/reminders' />
+        <category android:name='android.intent.category.DEFAULT' />
+        <category android:name='android.intent.category.BROWSABLE' />
     </shortcut>
     <shortcut android:shortcutId='shortcut3' android:enabled='true' android:icon='@drawable/shortcut_3' android:shortcutShortLabel='@string/shortcut_short_name_3' android:shortcutLongLabel='@string/shortcut_name_3'>
-        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='app.touchbase.site.twa.LauncherActivity' android:data='https://touchbase.site/conversation-prompts' />
-        <categories android:name='android.intent.category.DEFAULT' />
-        <categories android:name='android.intent.category.BROWSABLE' />
+        <intent android:action='android.intent.action.VIEW' android:targetPackage='app.touchbase.site.twa' android:targetClass='com.google.androidbrowserhelper.trusted.LauncherActivity' android:data='https://touchbase.site/conversation-prompts' />
+        <category android:name='android.intent.category.DEFAULT' />
+        <category android:name='android.intent.category.BROWSABLE' />
     </shortcut>
 </shortcuts>

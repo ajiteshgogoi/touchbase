@@ -210,10 +210,10 @@ task generateShorcutsFile {
                     'intent'(
                             'android:action': 'android.intent.action.VIEW',
                             'android:targetPackage': twaManifest.applicationId,
-                            'android:targetClass': twaManifest.applicationId + '.LauncherActivity',
+                            'android:targetClass': 'com.google.androidbrowserhelper.trusted.LauncherActivity',
                             'android:data': s.url)
-                    'categories'('android:name': 'android.intent.category.DEFAULT')
-                    'categories'('android:name': 'android.intent.category.BROWSABLE')
+                    'category'('android:name': 'android.intent.category.DEFAULT')
+                    'category'('android:name': 'android.intent.category.BROWSABLE')
                 }
             }
         }
