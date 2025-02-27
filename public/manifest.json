@@ -61,16 +61,6 @@
       "url": "https://play.google.com/store/apps/details?id=app.touchbase.site.twa"
     }
   ],
-  "share_target": {
-    "action": "/share-target",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  },
   "screenshots": [
     {
       "src": "/assets/1.png",
