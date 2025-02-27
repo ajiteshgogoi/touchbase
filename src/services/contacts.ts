@@ -126,9 +126,10 @@ export const contactsService = {
     // After contact is created, calculate next due date considering important events
     await this.recalculateNextContactDue(data.id);
     
-    // Invalidate reminders and contacts cache after creating a new contact
+    // Invalidate all related caches after creating a new contact
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     
     // Return updated contact with proper next_contact_due
     const updatedContact = await this.getContact(data.id);
@@ -352,14 +353,17 @@ export const contactsService = {
       // Get the final state after recalculation
       const updatedContact = await this.getContact(id);
       if (!updatedContact) throw new Error('Failed to retrieve updated contact');
-      // Invalidate both caches after update
+      // Invalidate all caches after update that required recalculation
       getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
       getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+      getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
       return updatedContact;
     }
 
-    // Invalidate contacts cache for non-recalculation updates
+    // Invalidate all related caches for non-recalculation updates
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
+    getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     return data;
   },
 
@@ -389,6 +393,11 @@ export const contactsService = {
       .eq('id', id);
     
     if (contactError) throw contactError;
+
+    // Invalidate all related caches after deletion
+    getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
+    getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
   },
 
   async getInteractions(contactId: string): Promise<Interaction[]> {
