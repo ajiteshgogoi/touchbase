@@ -148,7 +148,7 @@ export const analyticsService = {
         `- Name: ${contact.name}`,
         `- Last contacted: ${timeSinceLastContact ? timeSinceLastContact + " days ago" : "Never"}`,
         `- Preferred method: ${contact.preferred_contact_method || "Not specified"}`,
-        `- Relationship level: ${contact.relationship_level}/5`,
+        `- Missed interactions: ${contact.missed_interactions}`,
         "",
         "Recent Activity (chronological):",
         `${interactions
