@@ -39,7 +39,12 @@ def twaManifest = [
     // - short_name: Shorter string used if |name| is too long.
     // - url: Absolute path of the URL to launch the app with (e.g '/create').
     // - icon: Name of the resource in the drawable folder to use as an icon.
-    shortcuts: [[name:'Add Contact', short_name:'Add Contact', url:'https://touchbase.site/contacts/new', icon:'shortcut_0'],[name:'View Contacts', short_name:'Contacts', url:'https://touchbase.site/contacts', icon:'shortcut_1']],
+    shortcuts: [
+        [name:'Add Contact', short_name:'Add Contact', url:'https://touchbase.site/contacts/new', icon:'shortcut_0'],
+        [name:'View Contacts', short_name:'Contacts', url:'https://touchbase.site/contacts', icon:'shortcut_1'],
+        [name:'View Reminders', short_name:'Reminders', url:'https://touchbase.site/reminders', icon:'shortcut_2'],
+        [name:'Conversation Prompts', short_name:'Prompts', url:'https://touchbase.site/conversation-prompts', icon:'shortcut_3']
+    ],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
     splashScreenFadeOutDuration: 300,
     generatorApp: 'bubblewrap-cli', // Application that generated the Android Project
@@ -203,11 +208,12 @@ task generateShorcutsFile {
                         'android:shortcutShortLabel': '@string/shortcut_short_name_' + i,
                         'android:shortcutLongLabel': '@string/shortcut_name_' + i) {
                     'intent'(
-                            'android:action': 'android.intent.action.MAIN',
+                            'android:action': 'android.intent.action.VIEW',
                             'android:targetPackage': twaManifest.applicationId,
                             'android:targetClass': twaManifest.applicationId + '.LauncherActivity',
                             'android:data': s.url)
-                    'categories'('android:name': 'android.intent.category.LAUNCHER')
+                    'categories'('android:name': 'android.intent.category.DEFAULT')
+                    'categories'('android:name': 'android.intent.category.BROWSABLE')
                 }
             }
         }
