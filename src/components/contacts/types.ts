@@ -55,6 +55,8 @@ export interface FormErrors {
   social_media_handle: string;
   /** Important events validation error messages */
   important_events: string[];
+  /** Contact frequency validation error message */
+  frequency: string;
 }
 
 /**
