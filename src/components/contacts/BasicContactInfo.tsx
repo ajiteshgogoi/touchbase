@@ -54,7 +54,7 @@ export const BasicContactInfo = ({
             <option value="">Choose frequency</option>
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
-            <option value="fortnightly">Every two weeks</option>
+            <option value="fortnightly">Every 2 weeks</option>
             <option value="monthly">Monthly</option>
             <option value="quarterly">Every 3 months</option>
           </select>
