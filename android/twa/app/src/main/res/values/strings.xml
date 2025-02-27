@@ -15,7 +15,15 @@
      limitations under the License.
 -->
 <resources>
-  
+  <!-- Shortcut Labels -->
+  <string name="add_contact_short">Add Contact</string>
+  <string name="add_contact_long">Add New Contact</string>
+  <string name="view_contacts_short">Contacts</string>
+  <string name="view_contacts_long">View Contacts</string>
+  <string name="view_reminders_short">Reminders</string>
+  <string name="view_reminders_long">View Reminders</string>
+  <string name="prompts_short">Prompts</string>
+  <string name="prompts_long">Conversation Prompts</string>
 
   <!--
     This variable below expresses the relationship between the app and the site,
