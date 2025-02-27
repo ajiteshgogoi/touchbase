@@ -346,8 +346,7 @@ export const contactsService = {
     if (error) throw error;
 
     // Recalculate next due date if necessary fields were updated
-    if (updates.last_contacted ||
-        updates.relationship_level ||
+    if (updates.last_contacted ||        
         updates.contact_frequency) {
       await this.recalculateNextContactDue(id);
       // Get the final state after recalculation

@@ -15,7 +15,6 @@ create table public.contacts (
     next_contact_due timestamp with time zone,
     preferred_contact_method text check (preferred_contact_method in ('call', 'message', 'social', null)),
     notes text,
-    relationship_level integer check (relationship_level between 1 and 5),
     contact_frequency text check (contact_frequency in ('every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly', null)),
     ai_last_suggestion text,
     ai_last_suggestion_date timestamp with time zone,
