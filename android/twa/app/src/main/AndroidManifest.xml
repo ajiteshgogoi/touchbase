@@ -133,9 +133,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https"
+                    android:host="@string/hostName" />
+                <data android:scheme="https"
                     android:host="@string/hostName"
-                    android:pathPattern=".*"
-                />
+                    android:pathPattern="/contacts/new" />
+                <data android:scheme="https"
+                    android:host="@string/hostName"
+                    android:pathPattern="/contacts" />
+                <data android:scheme="https"
+                    android:host="@string/hostName"
+                    android:pathPattern="/reminders" />
+                <data android:scheme="https"
+                    android:host="@string/hostName"
+                    android:pathPattern="/conversation-prompts" />
             </intent-filter>
 
             
