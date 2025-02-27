@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidPhoneNumber, isValidSocialHandle, isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC, formatLocalDateTime, sortEventsByType } from './utils';
+import { isValidPhoneNumber, isValidSocialHandle, isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC, sortEventsByType } from './utils';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -183,33 +183,6 @@ export const AdvancedContactInfo = ({
             </select>
           </div>
 
-          {/* Last Contacted */}
-          <div>
-            <label htmlFor="last_contacted" className="block text-sm font-medium text-gray-700">
-              Last Contacted
-            </label>
-            <input
-              type="datetime-local"
-              id="last_contacted"
-              max={formatLocalDateTime(new Date())}
-              value={formData.last_contacted || ''}
-              onChange={(e) => {
-                const selectedDate = e.target.value ? new Date(e.target.value) : null;
-                const now = new Date();
-                
-                if (selectedDate && selectedDate > now) {
-                  onChange({
-                    last_contacted: formatLocalDateTime(now)
-                  });
-                } else {
-                  onChange({
-                    last_contacted: selectedDate ? formatLocalDateTime(selectedDate) : null
-                  });
-                }
-              }}
-              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-            />
-          </div>
         </div>
       </div>
 

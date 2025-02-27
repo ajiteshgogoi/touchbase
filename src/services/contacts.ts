@@ -96,12 +96,26 @@ export const contactsService = {
   async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
     await this.checkContactLimit();
     
+    // Get user's timezone preference
+    const { data: userPref } = await supabase
+      .from('user_preferences')
+      .select('timezone')
+      .eq('user_id', contact.user_id)
+      .single();
+
+    // Use UTC if no timezone preference is set
+    const timezone = userPref?.timezone || 'UTC';
+    
+    // Get current time in user's timezone
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+
     // First create the contact to get its ID
     const { data, error } = await supabase
       .from('contacts')
       .insert({
         ...contact,
-        next_contact_due: new Date().toISOString(), // Temporary date, will be recalculated
+        next_contact_due: now.toISOString(), // Temporary date, will be recalculated
+        last_contacted: now.toISOString(), // Set initial last_contacted in user's timezone
         missed_interactions: 0
       })
       .select()
