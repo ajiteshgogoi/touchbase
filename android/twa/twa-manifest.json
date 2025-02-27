@@ -26,38 +26,22 @@
     {
       "name": "Add Contact",
       "shortName": "Add Contact",
-      "url": "https://touchbase.site/contacts/new",
-      "icons": [{
-        "src": "/drawable/shortcut_0",
-        "sizes": "1x1"
-      }]
+      "url": "https://touchbase.site/contacts/new"
     },
     {
       "name": "View Contacts",
       "shortName": "Contacts",
-      "url": "https://touchbase.site/contacts",
-      "icons": [{
-        "src": "/drawable/shortcut_1",
-        "sizes": "1x1"
-      }]
+      "url": "https://touchbase.site/contacts"
     },
     {
       "name": "View Reminders",
       "shortName": "Reminders",
-      "url": "https://touchbase.site/reminders",
-      "icons": [{
-        "src": "/drawable/shortcut_2",
-        "sizes": "1x1"
-      }]
+      "url": "https://touchbase.site/reminders"
     },
     {
       "name": "Conversation Prompts",
       "shortName": "Prompts",
-      "url": "https://touchbase.site/conversation-prompts",
-      "icons": [{
-        "src": "/drawable/shortcut_3",
-        "sizes": "1x1"
-      }]
+      "url": "https://touchbase.site/conversation-prompts"
     }
   ],
   "generatorApp": "bubblewrap-cli",
