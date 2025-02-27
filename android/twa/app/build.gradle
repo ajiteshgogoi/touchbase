@@ -62,8 +62,8 @@ android {
         applicationId "app.touchbase.site.twa"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 15  // Increment this number for each new release
-        versionName "1.8.5" // Version name for users to see
+        versionCode 16  // Increment this number for each new release
+        versionName "1.8.6" // Version name for users to see
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
