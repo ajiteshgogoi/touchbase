@@ -29,4 +29,9 @@
       }
   }]
 </string>
+
+  <!-- FCM Configuration -->
+  <string name="default_notification_channel_id">touchbase_notifications</string>
+  <string name="default_notification_channel_name">Notifications</string>
+  <string name="default_notification_channel_description">TouchBase notifications for contacts and reminders</string>
 </resources>

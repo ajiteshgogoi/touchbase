@@ -1,43 +1,52 @@
-/*
- * Copyright 2020 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package app.touchbase.site.twa;
 
 import android.Manifest;
-import android.os.Build;
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.pm.PackageManager;
-import androidx.core.content.ContextCompat;
+import android.os.Build;
 import androidx.core.app.ActivityCompat;
-import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import com.google.androidbrowserhelper.trusted.LauncherActivity;
+import android.content.Context;
 
 public class Application extends android.app.Application {
-    public static final int NOTIFICATION_PERMISSION_CODE = 100;
+    public static final int NOTIFICATION_PERMISSION_CODE = 123;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        createNotificationChannel();
     }
 
-    public static void requestNotificationPermission(@NonNull Activity activity) {
+    public static void requestNotificationPermission(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(activity,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
                         NOTIFICATION_PERMISSION_CODE);
+            }
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = getString(R.string.default_notification_channel_id);
+            String channelName = getString(R.string.default_notification_channel_name);
+            String channelDesc = getString(R.string.default_notification_channel_description);
+            
+            NotificationChannel channel = new NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription(channelDesc);
+            
+            NotificationManager notificationManager = 
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
             }
         }
     }
