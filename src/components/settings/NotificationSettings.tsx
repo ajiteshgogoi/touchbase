@@ -70,18 +70,23 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
                 setIsProcessingDevice(true);
                 try {
                   // First update preferences
-                  onUpdate({
+                  await onUpdate({
                     notification_enabled: e.target.checked
                   });
                   
-                  // Then handle device registration
-                  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for preferences to update
+                  // Wait for preferences update to complete
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  
                   if (e.target.checked) {
+                    // When enabling, register device first then refresh list
                     await notificationService.subscribeToPushNotifications(userId);
+                    setShouldRefreshDevices(true);
                   } else {
+                    // When disabling, refresh list first then unsubscribe
+                    setShouldRefreshDevices(true);
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     await notificationService.unsubscribeFromPushNotifications(userId);
                   }
-                  setShouldRefreshDevices(true);
                 } catch (error) {
                   console.error('Failed to update device registration:', error);
                 } finally {
