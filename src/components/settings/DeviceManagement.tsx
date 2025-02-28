@@ -31,7 +31,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   const queryClient = useQueryClient();
 
   // Fetch registered devices
-  const { data: devices, isLoading } = useQuery({
+  const { data: devices, isLoading, refetch } = useQuery({
     queryKey: ['devices', userId],
     queryFn: async () => {
       const { data, error } = await supabase
