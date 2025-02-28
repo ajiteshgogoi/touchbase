@@ -12,6 +12,20 @@ interface DeviceInfo {
   updated_at: string;
 }
 
+interface ParsedDeviceInfo {
+  registrationOrigin: string;
+  isPWA: boolean;
+  isTWA: boolean;
+  isBrowser: boolean;
+  isDev: boolean;
+  deviceInfo: {
+    resolution?: string;
+    platform: string;
+    specs: string;
+    deviceModel: string;
+  } | null;
+}
+
 export const DeviceManagement = ({ userId }: { userId: string }) => {
   const [isUnregisteringAll, setIsUnregisteringAll] = useState(false);
   const queryClient = useQueryClient();
@@ -76,38 +90,76 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     }
   });
 
-  const formatDeviceInfo = (type: 'web' | 'android' | 'ios', name: string) => {
-    // Extract environment and app type from device name
+  const parseDeviceName = (name: string): ParsedDeviceInfo => {
+    const originMatch = name.match(/\[(.*?)\]/);
+    const fingerprintMatch = name.match(/\{(.*?)\}/);
+    
+    const registrationOrigin = originMatch?.[1] || window.location.origin;
+    const deviceFingerprint = fingerprintMatch?.[1] || '';
+    
     const isPWA = name.includes('(PWA)');
     const isTWA = name.includes('(TWA)');
     const isBrowser = name.includes('(Browser)');
-    const isDev = window.location.origin.includes('localhost') ||
-                 window.location.origin.includes('.local') ||
-                 window.location.hostname === '127.0.0.1';
+    
+    // Parse device fingerprint components (only extract what we use)
+    const [platform, width, height, , cores, memory, , , ...brandInfo] =
+      (deviceFingerprint ? deviceFingerprint.split('|') : []);
+    
+    const formattedDeviceInfo = deviceFingerprint ? {
+      resolution: width && height ? `${width}x${height}` : undefined,
+      platform: platform || 'Unknown',
+      specs: [
+        cores && `${cores} cores`,
+        memory && `${memory}GB RAM`
+      ].filter(Boolean).join(', '),
+      deviceModel: brandInfo.join(' ').replace(/[()]/g, '')
+    } : null;
 
-    // Format the main type
+    const isDev = Boolean(
+      registrationOrigin.includes('localhost') ||
+      registrationOrigin.includes('.local') ||
+      registrationOrigin === '127.0.0.1'
+    );
+
+    return {
+      registrationOrigin,
+      isPWA,
+      isTWA,
+      isBrowser,
+      isDev,
+      deviceInfo: formattedDeviceInfo
+    };
+  };
+
+  const formatDeviceInfo = (type: 'web' | 'android' | 'ios', name: string): string => {
+    const info = parseDeviceName(name);
+    
+    // Format simple device type
     let mainType = '';
     switch (type) {
       case 'android':
-        mainType = 'Android';
-        if (isTWA) mainType += ' (TWA)';
-        if (isPWA) mainType += ' (PWA)';
-        if (isBrowser) mainType += ' (Browser)';
+        mainType = info.isTWA ? 'Android TWA' :
+                  info.isPWA ? 'Android PWA' :
+                  'Android Browser';
         break;
       case 'ios':
-        mainType = 'iOS';
-        if (isPWA) mainType += ' (PWA)';
-        if (isBrowser) mainType += ' (Browser)';
+        mainType = info.isPWA ? 'iOS PWA' : 'iOS Browser';
         break;
       case 'web':
-        mainType = isPWA ? 'Desktop PWA' : 'Desktop Browser';
+        mainType = info.isPWA ? 'Desktop PWA' : 'Desktop Browser';
         break;
       default:
         mainType = type;
     }
 
+    // Add platform info if available and different from type
+    if (info.deviceInfo?.platform &&
+        !mainType.toLowerCase().includes(info.deviceInfo.platform.toLowerCase())) {
+      mainType += ` (${info.deviceInfo.platform})`;
+    }
+
     // Add environment indicator
-    return isDev ? `${mainType} (Dev)` : mainType;
+    return info.isDev ? `${mainType} (Dev)` : mainType;
   };
 
   const formatLastUsed = (date: string) => {

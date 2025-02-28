@@ -206,14 +206,59 @@ class NotificationService {
 
       console.log('Successfully obtained FCM token');
 
-      // Get device info
-      const envPrefix = window.location.origin;
-      const deviceId = localStorage.getItem('device_id') || `${envPrefix}-${Math.random().toString(36).substring(2)}-${Date.now()}`;
-      localStorage.setItem('device_id', deviceId);
-  
-      // Get device info using improved platform detection
+      // Get platform info first
       const { platform } = await import('../utils/platform');
-      const deviceName = `${navigator.userAgent} ${platform.isPWA() ? '(PWA)' : platform.isTWA() ? '(TWA)' : '(Browser)'}`;
+      
+      // Generate device-specific fingerprint
+      const getDeviceFingerprint = () => {
+        const screen = window.screen;
+        const nav = navigator as any;
+        const platform = nav.platform || nav.userAgentData?.platform || 'unknown';
+        
+        const components = [
+          platform,
+          screen.width,
+          screen.height,
+          screen.colorDepth,
+          nav.hardwareConcurrency,
+          nav.deviceMemory,
+          nav.language,
+          // Mobile-specific info
+          nav.userAgentData?.mobile ? 'mobile' : 'desktop',
+          // Brand/model info from userAgentData if available
+          ...(nav.userAgentData?.brands || []).map((b: any) => b.brand),
+          // Android-specific device info
+          nav.userAgent.match(/\(.*?\)/)?.[0] || ''
+        ].filter(Boolean);
+
+        return components.join('|');
+      };
+
+      // Get installation type and device fingerprint
+      const isPWA = platform.isPWA();
+      const isTWA = platform.isTWA();
+      const installType = isTWA ? 'twa' : isPWA ? 'pwa' : 'browser';
+      const deviceFingerprint = getDeviceFingerprint();
+      const registrationOrigin = window.location.origin;
+
+      // Generate or validate device ID
+      let deviceId = localStorage.getItem('device_id');
+      const currentDeviceKey = `${registrationOrigin}-${installType}-${deviceFingerprint}`;
+      
+      // Clear device ID if installation type or device changed
+      if (deviceId && !deviceId.includes(currentDeviceKey)) {
+        deviceId = null;
+        localStorage.removeItem('device_id');
+      }
+      
+      // Generate new device ID if needed
+      if (!deviceId) {
+        deviceId = `${currentDeviceKey}-${Math.random().toString(36).substring(2)}-${Date.now()}`;
+        localStorage.setItem('device_id', deviceId);
+      }
+
+      // Store device info with registration origin and detailed device info
+      const deviceName = `${navigator.userAgent} (${isTWA ? 'TWA' : isPWA ? 'PWA' : 'Browser'}) [${window.location.origin}] {${deviceFingerprint}}`;
       const deviceType = platform.getDeviceType();
   
       let refreshCount = 0;
