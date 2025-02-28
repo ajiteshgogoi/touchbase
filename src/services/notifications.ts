@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
 import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
-import { platform } from '../utils/platform';
 
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
@@ -213,8 +212,9 @@ class NotificationService {
       localStorage.setItem('device_id', deviceId);
   
       const deviceName = navigator.userAgent;
-      const deviceType = platform.getDeviceType();
-      
+      const deviceType = /Android/i.test(navigator.userAgent) ? 'android' :
+                        /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'web';
+  
       let refreshCount = 0;
       let currentExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
