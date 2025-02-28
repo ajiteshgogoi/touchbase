@@ -2,8 +2,6 @@ import { useState } from 'react';
 import type { NotificationSettings as NotificationSettingsType } from '../../types';
 import { TIMEZONE_LIST } from '../../constants/timezones';
 import { DeviceManagement } from './DeviceManagement';
-import { notificationService } from '../../services/notifications';
-import toast from 'react-hot-toast';
 
 interface Props {
   settings: NotificationSettingsType;
@@ -55,22 +53,9 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               type="checkbox"
               className="sr-only peer"
               checked={settings.notification_enabled}
-              onChange={async (e) => {
-                const enabled = e.target.checked;
-                if (enabled) {
-                  try {
-                    // Ensure we have a fresh registration for the current device
-                    await notificationService.subscribeToPushNotifications(userId, true);
-                  } catch (error) {
-                    console.error('Failed to register device:', error);
-                    toast.error('Failed to enable notifications. Please try again.');
-                    return;
-                  }
-                }
-                onUpdate({
-                  notification_enabled: enabled
-                });
-              }}
+              onChange={(e) => onUpdate({
+                notification_enabled: e.target.checked
+              })}
             />
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
           </label>
