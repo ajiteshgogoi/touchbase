@@ -91,8 +91,8 @@ export const UsersSocialProof = () => {
           {!isLoading && stats && (
             <p className="text-[14px] leading-relaxed text-gray-600/90 font-[450] text-center px-5 tracking-[-0.01em]">
               Join{' '}
-              <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()} TouchBasers</span>
-              {' '}improving their relationships...
+              <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()}</span>
+              {' '}others improving their relationships...
             </p>
           )}
         </div>
