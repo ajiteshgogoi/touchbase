@@ -154,6 +154,10 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   <p className="text-sm font-medium text-gray-900">
                     {formatDeviceType(device.device_type)}
                   </p>
+                  <p className="text-xs text-gray-700/90">
+                    {device.device_name.includes('(twa)') ? 'Play Store App' :
+                     device.device_name.includes('(pwa)') ? 'Installed App' : 'Browser'}
+                  </p>
                   <p className="text-xs text-gray-600/90">
                     Last used: {formatLastUsed(device.updated_at)}
                   </p>
