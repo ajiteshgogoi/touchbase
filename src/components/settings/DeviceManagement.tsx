@@ -108,22 +108,24 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   }
 
   return (
-    <div className="flex flex-col space-y-4 mt-6">
-      <div>
-        <div className="flex items-center justify-between mb-4">
+    <div className="border-t border-gray-100/50 pt-6 mt-6">
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <label className="text-gray-900 font-medium">
-              Registered Devices
-            </label>
-            <p className="text-sm text-gray-600/90 mt-1">
-              Manage your notification-enabled devices
-            </p>
+            <div className="flex flex-col">
+              <label className="text-gray-900 font-medium">
+                Registered Devices
+              </label>
+              <p className="text-sm text-gray-600/90 mt-1">
+                Manage your notification-enabled devices
+              </p>
+            </div>
           </div>
           {devices && devices.length > 0 && (
             <button
               onClick={() => unregisterAllDevicesMutation.mutate()}
               disabled={isUnregisteringAll}
-              className="px-4 py-2 text-sm font-medium text-primary-500 bg-primary-50/50 rounded-lg hover:bg-primary-50 transition-all duration-200 disabled:opacity-50"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
               {isUnregisteringAll ? (
                 <div className="flex items-center gap-2">
@@ -138,15 +140,15 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         </div>
 
         {(!devices || devices.length === 0) ? (
-          <div className="bg-white/40 backdrop-blur-sm rounded-lg border border-gray-100/30 p-4">
+          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 pl-6 py-4 transition-colors hover:bg-white/50">
             <p className="text-gray-600/90 text-sm">No devices registered for notifications.</p>
           </div>
         ) : (
-          <div className="bg-white/40 backdrop-blur-sm rounded-lg border border-gray-100/30 overflow-hidden divide-y divide-gray-100/50">
+          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 overflow-hidden divide-y divide-gray-100/50">
             {devices.map((device) => (
               <div
                 key={device.device_id}
-                className="p-4 flex items-center justify-between hover:bg-white/50 transition-colors duration-200"
+                className="py-4 pl-6 flex items-center justify-between hover:bg-white/50 transition-colors duration-200"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-900">
@@ -159,7 +161,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                 <button
                   onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
                   disabled={unregisterDeviceMutation.isPending}
-                  className="px-3 py-1.5 text-xs font-medium text-primary-500 bg-primary-50/50 rounded-lg hover:bg-primary-50 transition-all duration-200 disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
                 >
                   {unregisterDeviceMutation.isPending ? (
                     <div className="flex items-center gap-2">

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import type { NotificationSettings as NotificationSettingsType } from '../../types';
 import { TIMEZONE_LIST } from '../../constants/timezones';
+import { DeviceManagement } from './DeviceManagement';
 
 interface Props {
   settings: NotificationSettingsType;
   onUpdate: (settings: Partial<NotificationSettingsType>) => void;
+  userId: string;
 }
 
-export const NotificationSettings = ({ settings, onUpdate }: Props) => {
+export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Get user's timezone and ensure it's in the list
@@ -93,6 +95,13 @@ export const NotificationSettings = ({ settings, onUpdate }: Props) => {
             </select>
           </div>
         </div>
+
+       {/* Device Management */}
+       {settings.notification_enabled && (
+         <div>
+           <DeviceManagement userId={userId} />
+         </div>
+       )}
       </div>
     </div>
   );

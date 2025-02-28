@@ -14,7 +14,6 @@ import type { Subscription } from '../types/subscription';
 
 // Lazy load components
 const NotificationSettings = lazy(() => import('../components/settings/NotificationSettings').then(m => ({ default: m.NotificationSettings })));
-const DeviceManagement = lazy(() => import('../components/settings/DeviceManagement').then(m => ({ default: m.DeviceManagement })));
 const SubscriptionSettings = lazy(() => import('../components/settings/SubscriptionSettings').then(m => ({ default: m.SubscriptionSettings })));
 const AISettings = lazy(() => import('../components/settings/AISettings').then(m => ({ default: m.AISettings })));
 const FeedbackModal = lazy(() => import('../components/shared/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
@@ -322,12 +321,8 @@ export const Settings = () => {
           <NotificationSettings
             settings={notificationSettings}
             onUpdate={handleNotificationChange}
+            userId={user.id}
           />
-          {notificationSettings.notification_enabled && (
-            <div className="mt-6">
-              <DeviceManagement userId={user.id} />
-            </div>
-          )}
         </Suspense>
 
         {/* AI Settings */}
