@@ -134,34 +134,19 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   const formatDeviceInfo = (type: 'web' | 'android' | 'ios', name: string): string => {
     const info = parseDeviceName(name);
     
-    // Get browser brand from device name
-    const getBrowserBrand = (name: string): string => {
-      const brands = ['Chrome', 'Firefox', 'Safari', 'Edge', 'Opera'];
-      for (const brand of brands) {
-        if (name.toLowerCase().includes(brand.toLowerCase())) {
-          return brand;
-        }
-      }
-      return 'Browser';
-    };
-
-    const browserBrand = getBrowserBrand(name);
-    
-    // Format simple device type with browser brand
+    // Format simple device type
     let mainType = '';
     switch (type) {
       case 'android':
         mainType = info.isTWA ? 'Android TWA' :
                   info.isPWA ? 'Android PWA' :
-                  `Android ${browserBrand}`;
+                  'Android Browser';
         break;
       case 'ios':
-        mainType = info.isPWA ? 'iOS PWA' :
-                  `iOS ${browserBrand}`;
+        mainType = info.isPWA ? 'iOS PWA' : 'iOS Browser';
         break;
       case 'web':
-        mainType = info.isPWA ? 'Desktop PWA' :
-                  `Desktop ${browserBrand}`;
+        mainType = info.isPWA ? 'Desktop PWA' : 'Desktop Browser';
         break;
       default:
         mainType = type;
