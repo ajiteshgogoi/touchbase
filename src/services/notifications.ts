@@ -355,38 +355,43 @@ class NotificationService {
     }
   }
 
-  async unsubscribeFromPushNotifications(userId: string): Promise<void> {
+  async unsubscribeFromPushNotifications(userId: string, specificDeviceId?: string): Promise<void> {
     try {
       console.log('Unsubscribing from push notifications...');
       
-      // 1. Clean up Firebase messaging instance
-      await cleanupMessaging();
-
-      // 2. Get current device ID
-      const deviceId = localStorage.getItem('device_id');
-      if (!deviceId) {
+      // 1. Clean up Firebase messaging instance if unsubscribing current device
+      const currentDeviceId = localStorage.getItem('device_id');
+      const targetDeviceId = specificDeviceId || currentDeviceId;
+      
+      if (!targetDeviceId) {
         console.warn('No device ID found for unsubscription');
         return;
       }
 
-      // 3. Remove only current device's FCM token from Supabase
-      console.log('Removing FCM token for current device from Supabase...');
+      if (targetDeviceId === currentDeviceId) {
+        await cleanupMessaging();
+      }
+
+      // 2. Remove specific device's FCM token from Supabase
+      console.log('Removing FCM token for device from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
         .delete()
         .match({
           user_id: userId,
-          device_id: deviceId
+          device_id: targetDeviceId
         });
 
       if (error) {
         throw error;
       }
 
-      // 4. Clear device ID from local storage
-      localStorage.removeItem('device_id');
+      // 3. Clear device ID from local storage if it's the current device
+      if (targetDeviceId === currentDeviceId) {
+        localStorage.removeItem('device_id');
+      }
 
-      console.log('Successfully unsubscribed current device from push notifications');
+      console.log('Successfully unsubscribed device from push notifications');
     } catch (error) {
       console.error('Failed to unsubscribe from push notifications:', error);
       throw error;
@@ -408,6 +413,18 @@ class NotificationService {
 
     const permission = await Notification.requestPermission();
     return permission === 'granted';
+  }
+
+  async cleanupAllDevices(): Promise<void> {
+    try {
+      // Clean up Firebase messaging instance for current device
+      await cleanupMessaging();
+      // Clear device ID from local storage
+      localStorage.removeItem('device_id');
+    } catch (error) {
+      console.error('Failed to cleanup all devices:', error);
+      throw error;
+    }
   }
 
   async sendTestNotification(userId: string, message?: string): Promise<void> {
