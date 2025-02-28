@@ -207,30 +207,13 @@ class NotificationService {
 
       console.log('Successfully obtained FCM token');
 
-      // Get device info with detailed context
-      const deviceType = platform.getDeviceType(); // 'android', 'ios', or 'web'
-      const installMode = platform.isTWA() ? 'TWA' : platform.isPWA() ? 'PWA' : 'Browser';
-      const browserInfo = platform.getBrowserIdentifier(); // e.g., "Chrome98", "Firefox97"
-      const deviceModel = platform.getDeviceModel(); // e.g., "Pixel 6", "iPhone 13"
-      
-      // Create installation-specific storage key
-      const storageKey = `device_id_${installMode.toLowerCase()}_${browserInfo}`;
-      const storedDeviceId = localStorage.getItem(storageKey);
-      
-      // Create unique device ID that includes all context
-      const deviceId = storedDeviceId || [
-        deviceType,
-        installMode.toLowerCase(),
-        browserInfo,
-        deviceModel.replace(/[^a-zA-Z0-9]/g, ''), // Sanitize device model
-        Math.random().toString(36).substring(2),
-        Date.now()
-      ].join('-');
-      
-      localStorage.setItem(storageKey, deviceId);
+      // Get device info
+      const envPrefix = window.location.origin;
+      const deviceId = localStorage.getItem('device_id') || `${envPrefix}-${Math.random().toString(36).substring(2)}-${Date.now()}`;
+      localStorage.setItem('device_id', deviceId);
   
-      // Create detailed device name
-      const deviceName = `${deviceModel} (${deviceType.toUpperCase()} - ${installMode} - ${browserInfo})`;
+      const deviceName = navigator.userAgent;
+      const deviceType = platform.getDeviceType();
       
       let refreshCount = 0;
       let currentExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
@@ -376,9 +359,8 @@ class NotificationService {
     try {
       console.log('Unsubscribing from push notifications...');
       
-      // Get current device info
-      const installMode = platform.isTWA() ? 'twa' : platform.isPWA() ? 'pwa' : 'browser';
-      const currentDeviceId = localStorage.getItem(`device_id_${installMode}`);
+      // 1. Clean up Firebase messaging instance if unsubscribing current device
+      const currentDeviceId = localStorage.getItem('device_id');
       const targetDeviceId = specificDeviceId || currentDeviceId;
       
       if (!targetDeviceId) {
@@ -390,7 +372,7 @@ class NotificationService {
         await cleanupMessaging();
       }
 
-      // Remove device's FCM token from Supabase
+      // 2. Remove specific device's FCM token from Supabase
       console.log('Removing FCM token for device from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
@@ -404,10 +386,9 @@ class NotificationService {
         throw error;
       }
 
-      // Clear device ID from local storage if it's the current device
+      // 3. Clear device ID from local storage if it's the current device
       if (targetDeviceId === currentDeviceId) {
-        // Remove the installation-specific device ID
-        localStorage.removeItem(`device_id_${installMode}`);
+        localStorage.removeItem('device_id');
       }
 
       console.log('Successfully unsubscribed device from push notifications');
@@ -438,22 +419,8 @@ class NotificationService {
     try {
       // Clean up Firebase messaging instance for current device
       await cleanupMessaging();
-      
-      // Clean up all device IDs from localStorage
-      const deviceIdKeys = Object.keys(localStorage).filter(key =>
-        key.startsWith('device_id_')
-      );
-      
-      console.log(`Found ${deviceIdKeys.length} device IDs to clean up`);
-      
-      for (const key of deviceIdKeys) {
-        localStorage.removeItem(key);
-      }
-      
-      // For backwards compatibility, remove old device_id if it exists
+      // Clear device ID from local storage
       localStorage.removeItem('device_id');
-      
-      console.log('Successfully cleaned up all device IDs');
     } catch (error) {
       console.error('Failed to cleanup all devices:', error);
       throw error;

@@ -1,51 +1,24 @@
-export type DeviceType = 'web' | 'android' | 'ios';
+export type DeviceType = 'web' | 'android' | 'ios' | 'twa' | 'pwa';
 
-interface BrowserInfo {
-  name: string;
-  version: string;
+// Platform detection utilities used for payment and app functionality
+declare global {
+  interface Window {
+    chrome?: {
+      app?: {
+        window?: unknown;
+      };
+    };
+    google?: {
+      payments: {
+        subscriptions: {
+          subscribe(sku: string): Promise<{ purchaseToken: string }>;
+          acknowledge(token: string): Promise<void>;
+          cancel(token: string): Promise<void>;
+        };
+      };
+    };
+  }
 }
-
-const getBrowserInfo = (): BrowserInfo => {
-  const ua = navigator.userAgent;
-  let browserName = "Unknown";
-  let browserVersion = "";
-
-  // Chrome
-  if (/Chrome/.test(ua) && !/Chromium|Edge|OPR|Samsung/.test(ua)) {
-    browserName = "Chrome";
-    browserVersion = ua.match(/Chrome\/(\d+)/)?.[1] || "";
-  }
-  // Firefox
-  else if (/Firefox/.test(ua) && !/Seamonkey/.test(ua)) {
-    browserName = "Firefox";
-    browserVersion = ua.match(/Firefox\/(\d+)/)?.[1] || "";
-  }
-  // Safari
-  else if (/Safari/.test(ua) && !/Chrome|Chromium|Edge|OPR|Samsung/.test(ua)) {
-    browserName = "Safari";
-    browserVersion = ua.match(/Version\/(\d+)/)?.[1] || "";
-  }
-  // Edge
-  else if (/Edge|Edg/.test(ua)) {
-    browserName = "Edge";
-    browserVersion = ua.match(/(?:Edge|Edg)\/(\d+)/)?.[1] || "";
-  }
-  // Samsung Internet
-  else if (/Samsung/.test(ua)) {
-    browserName = "Samsung";
-    browserVersion = ua.match(/SamsungBrowser\/(\d+)/)?.[1] || "";
-  }
-  // Opera
-  else if (/OPR/.test(ua)) {
-    browserName = "Opera";
-    browserVersion = ua.match(/OPR\/(\d+)/)?.[1] || "";
-  }
-
-  return {
-    name: browserName,
-    version: browserVersion
-  };
-};
 
 export const platform = {
   isAndroid(): boolean {
@@ -57,84 +30,31 @@ export const platform = {
   },
 
   isPWA(): boolean {
-    return window.matchMedia('(display-mode: standalone)').matches &&
-           !document.referrer.startsWith('android-app://') &&
-           !navigator.userAgent.includes('wv') &&
-           'serviceWorker' in navigator;
+    return window.matchMedia('(display-mode: standalone)').matches;
   },
 
   isTWA(): boolean {
-    return this.isAndroid() && 
-           window.matchMedia('(display-mode: standalone)').matches &&
-           (document.referrer.startsWith('android-app://') ||
-            navigator.userAgent.includes('wv'));
-  },
-
-  getBrowserIdentifier(): string {
-    const { name, version } = getBrowserInfo();
-    return `${name}${version}`;
-  },
-
-  getDeviceModel(): string {
-    const ua = navigator.userAgent;
-    let model = "Unknown";
-    
-    if (this.isAndroid()) {
-      // Try to extract Android device model
-      const match = ua.match(/\(Linux;.+?;(.+?)\)/i);
-      if (match?.[1]) {
-        model = match[1].split(';').pop()?.trim() || "Android Device";
-      }
-    } else if (this.isIOS()) {
-      // Try to extract iOS device model
-      const match = ua.match(/\(([^;]+);.+?OS/);
-      if (match?.[1]) {
-        model = match[1].trim();
-      }
-    }
-    
-    return model;
+    return this.isAndroid() && this.isPWA();
   },
 
   getDeviceType(): DeviceType {
-    // Return device type that aligns with database schema:
-    // Check mobile platforms first
+    // Check if running as TWA (Android + Standalone mode)
+    if (this.isTWA()) {
+      return 'twa';
+    }
+    // Check if running as PWA
+    if (this.isPWA()) {
+      return 'pwa';
+    }
+    // Check mobile platforms
     if (this.isAndroid()) {
       return 'android';
     }
     if (this.isIOS()) {
       return 'ios';
     }
-    // For TWA/PWA, still report as 'android' or 'web' to match schema
-    if (this.isTWA()) {
-      return 'android';
-    }
-    if (this.isPWA()) {
-      return this.isAndroid() ? 'android' : 'web';
-    }
     // Default to web
     return 'web';
-  },
-
-  getDisplayName(): string {
-    if (this.isTWA()) {
-      return 'Android App';
-    }
-    if (this.isPWA()) {
-      return this.isAndroid() ? 'Android App' : 'Mobile App';
-    }
-
-    const deviceType = this.getDeviceType();
-    switch (deviceType) {
-      case 'android':
-        return 'Android';
-      case 'ios':
-        return 'iOS';
-      case 'web':
-        return 'Desktop';
-      default:
-        return deviceType;
-    }
   },
 
   formatDeviceType(type: DeviceType): string {
@@ -143,6 +63,10 @@ export const platform = {
         return 'Android';
       case 'ios':
         return 'iOS';
+      case 'twa':
+        return 'Android App';
+      case 'pwa':
+        return 'Mobile App';
       case 'web':
         return 'Desktop';
       default:
@@ -152,20 +76,24 @@ export const platform = {
 
   async isGooglePlayBillingAvailable(): Promise<boolean> {
     try {
+      // Check if we're on Android first
       if (!this.isAndroid()) {
         console.log('Not on Android, Google Play Billing not available');
         return false;
       }
 
+      // In TWA, Google Play Billing is exposed through PaymentRequest API
+      // Check if PaymentRequest API is available
       if (typeof PaymentRequest === 'undefined') {
         console.log('PaymentRequest API not available');
         return false;
       }
 
+      // Check if Google Play billing method is supported
       const request = new PaymentRequest(
         [{
           supportedMethods: 'https://play.google.com/billing',
-          data: { test: 'test' }
+          data: { test: 'test' } // Minimal data to test support
         }],
         { total: { label: 'Test', amount: { currency: 'USD', value: '0' } } }
       );
@@ -177,6 +105,7 @@ export const platform = {
       return canMakePayment;
     } catch (error) {
       console.error('Error checking Google Play Billing availability:', error);
+      // Log more details about the error if it's an Error object
       if (error instanceof Error) {
         console.log('Error details:', {
           message: error.message,
