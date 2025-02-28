@@ -1,3 +1,5 @@
+export type DeviceType = 'web' | 'android' | 'ios' | 'twa' | 'pwa';
+
 // Platform detection utilities used for payment and app functionality
 declare global {
   interface Window {
@@ -21,6 +23,55 @@ declare global {
 export const platform = {
   isAndroid(): boolean {
     return /Android/i.test(navigator.userAgent);
+  },
+
+  isIOS(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  },
+
+  isPWA(): boolean {
+    return window.matchMedia('(display-mode: standalone)').matches;
+  },
+
+  isTWA(): boolean {
+    return this.isAndroid() && this.isPWA();
+  },
+
+  getDeviceType(): DeviceType {
+    // Check if running as TWA (Android + Standalone mode)
+    if (this.isTWA()) {
+      return 'twa';
+    }
+    // Check if running as PWA
+    if (this.isPWA()) {
+      return 'pwa';
+    }
+    // Check mobile platforms
+    if (this.isAndroid()) {
+      return 'android';
+    }
+    if (this.isIOS()) {
+      return 'ios';
+    }
+    // Default to web
+    return 'web';
+  },
+
+  formatDeviceType(type: DeviceType): string {
+    switch (type) {
+      case 'android':
+        return 'Android';
+      case 'ios':
+        return 'iOS';
+      case 'twa':
+        return 'Android App';
+      case 'pwa':
+        return 'Mobile App';
+      case 'web':
+        return 'Desktop';
+      default:
+        return type;
+    }
   },
 
   async isGooglePlayBillingAvailable(): Promise<boolean> {
@@ -64,13 +115,5 @@ export const platform = {
       }
       return false;
     }
-  },
-
-  isIOS(): boolean {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent);
-  },
-
-  isWeb(): boolean {
-    return !this.isAndroid();
   }
 };

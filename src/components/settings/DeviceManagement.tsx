@@ -3,12 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase/client';
 import { notificationService } from '../../services/notifications';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { platform, DeviceType } from '../../utils/platform';
 import toast from 'react-hot-toast';
 
 interface DeviceInfo {
   device_id: string;
   device_name: string;
-  device_type: 'web' | 'android' | 'ios';
+  device_type: DeviceType;
   updated_at: string;
 }
 
@@ -76,19 +77,6 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     }
   });
 
-  const formatDeviceType = (type: 'web' | 'android' | 'ios') => {
-    switch (type) {
-      case 'android':
-        return 'Android';
-      case 'ios':
-        return 'iOS';
-      case 'web':
-        return 'Desktop';
-      default:
-        return type;
-    }
-  };
-
   const formatLastUsed = (date: string) => {
     return new Date(date).toLocaleDateString(undefined, {
       year: 'numeric',
@@ -152,7 +140,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
               >
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-900">
-                    {formatDeviceType(device.device_type)}
+                    {platform.formatDeviceType(device.device_type)}
                   </p>
                   <p className="text-xs text-gray-600/90">
                     Last used: {formatLastUsed(device.updated_at)}
