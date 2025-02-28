@@ -71,6 +71,21 @@ export const platform = {
   },
 
   isWeb(): boolean {
-    return !this.isAndroid();
+    return !this.isAndroid() && !this.isIOS();
+  },
+
+  isPWA(): boolean {
+    // Check if app is running in standalone mode (PWA) or fullscreen
+    if ('standalone' in navigator && (navigator as any).standalone === true) {
+      return true; // iOS PWA
+    }
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.matchMedia('(display-mode: fullscreen)').matches;
+  },
+
+  isTWA(): boolean {
+    // TWA is Android-only and uses Google Play billing
+    return this.isAndroid() && typeof PaymentRequest !== 'undefined' &&
+           navigator.userAgent.includes('wv'); // WebView
   }
 };

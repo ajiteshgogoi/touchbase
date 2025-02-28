@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
 import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
+import { platform } from '../utils/platform';
 
 class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
@@ -206,14 +207,24 @@ class NotificationService {
 
       console.log('Successfully obtained FCM token');
 
-      // Get device info
-      const envPrefix = window.location.origin;
-      const deviceId = localStorage.getItem('device_id') || `${envPrefix}-${Math.random().toString(36).substring(2)}-${Date.now()}`;
+      // Get device info using platform utils
+      const getInstallationType = () => {
+        if (platform.isTWA()) return 'twa';
+        if (platform.isPWA()) return 'pwa';
+        return 'browser';
+      };
+
+      // Generate stable device ID based on installation type and device fingerprint
+      const installType = getInstallationType();
+      const deviceFingerprint = `${navigator.userAgent.replace(/[^a-zA-Z0-9]/g, '')}-${screen.width}x${screen.height}`;
+      const storedDeviceId = localStorage.getItem('device_id');
+      const deviceId = storedDeviceId || `${installType}-${deviceFingerprint}-${Math.random().toString(36).substring(2)}`;
       localStorage.setItem('device_id', deviceId);
   
-      const deviceName = navigator.userAgent;
-      const deviceType = /Android/i.test(navigator.userAgent) ? 'android' :
-                        /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'web';
+      const deviceName = `${navigator.userAgent} (${installType})`;
+      // Keep device_type within schema constraints while detecting TWA/PWA
+      const deviceType = platform.isAndroid() ? 'android' :
+                        platform.isIOS() ? 'ios' : 'web';
   
       let refreshCount = 0;
       let currentExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
