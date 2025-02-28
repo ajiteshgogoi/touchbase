@@ -4,6 +4,7 @@ import { TIMEZONE_LIST } from '../../constants/timezones';
 import { DeviceManagement } from './DeviceManagement';
 import { notificationService } from '../../services/notifications';
 import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Props {
   settings: NotificationSettingsType;
@@ -13,6 +14,7 @@ interface Props {
 
 export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const queryClient = useQueryClient();
 
   // Get user's timezone and ensure it's in the list
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -57,19 +59,26 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               checked={settings.notification_enabled}
               onChange={async (e) => {
                 const enabled = e.target.checked;
-                if (enabled) {
-                  try {
+                try {
+                  if (enabled) {
                     // Ensure we have a fresh registration for the current device
                     await notificationService.subscribeToPushNotifications(userId, true);
-                  } catch (error) {
-                    console.error('Failed to register device:', error);
-                    toast.error('Failed to enable notifications. Please try again.');
-                    return;
+                  } else {
+                    // Unsubscribe if notifications are disabled
+                    await notificationService.unsubscribeFromPushNotifications(userId);
                   }
+                  // Invalidate the devices query to refresh the list
+                  queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+                  onUpdate({
+                    notification_enabled: enabled
+                  });
+                } catch (error) {
+                  console.error('Failed to update notification settings:', error);
+                  toast.error(enabled ?
+                    'Failed to enable notifications. Please try again.' :
+                    'Failed to disable notifications. Please try again.'
+                  );
                 }
-                onUpdate({
-                  notification_enabled: enabled
-                });
               }}
             />
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>

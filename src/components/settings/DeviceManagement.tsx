@@ -81,8 +81,8 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         throw new Error('Failed to verify device unregistration');
       }
     },
-    onSuccess: async () => {
-      await refetch(); // Force immediate refetch
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
       toast.success('Device unregistered successfully');
     },
     onError: (error: Error) => {
@@ -135,8 +135,8 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         setIsUnregisteringAll(false);
       }
     },
-    onSuccess: async () => {
-      await refetch(); // Force immediate refetch
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
       toast.success('All devices unregistered successfully');
     },
     onError: (error: Error) => {
