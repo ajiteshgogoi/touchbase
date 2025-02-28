@@ -194,13 +194,15 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                         const deviceInfo = platform.parseDeviceId(device.device_id);
                         return (
                           <>
-                            <span className="font-medium">{deviceInfo.installType}</span>
-                            {' • '}
-                            <span>{deviceInfo.brand}</span>
-                            {deviceInfo.browser && (
+                            {deviceInfo.deviceType === 'Web' ? (
                               <>
+                                <span className="font-medium">{deviceInfo.browser}</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="font-medium">{deviceInfo.installType}</span>
                                 {' • '}
-                                <span>{deviceInfo.browser}</span>
+                                <span>{deviceInfo.brand}</span>
                               </>
                             )}
                           </>
