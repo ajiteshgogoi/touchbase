@@ -59,30 +59,19 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               checked={settings.notification_enabled}
               onChange={async (e) => {
                 const enabled = e.target.checked;
-                console.log(`Notification toggle: ${enabled ? 'enabling' : 'disabling'}`);
                 try {
                   if (enabled) {
-                    console.log('Subscribing to push notifications...');
+                    // Ensure we have a fresh registration for the current device
                     await notificationService.subscribeToPushNotifications(userId, true);
                   } else {
-                    console.log('Unsubscribing from push notifications...');
+                    // Unsubscribe if notifications are disabled
                     await notificationService.unsubscribeFromPushNotifications(userId);
                   }
-
-                  console.log('Updating notification settings...');
-                  await onUpdate({
+                  // Invalidate the devices query to refresh the list
+                  queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+                  onUpdate({
                     notification_enabled: enabled
                   });
-                  
-                  // Add a small delay to ensure the database operation is complete
-                  await new Promise(resolve => setTimeout(resolve, 500));
-                  
-                  console.log('Invalidating devices query...');
-                  await queryClient.invalidateQueries({
-                    queryKey: ['devices', userId],
-                    exact: true
-                  });
-                  console.log('Devices query invalidated');
                 } catch (error) {
                   console.error('Failed to update notification settings:', error);
                   toast.error(enabled ?
