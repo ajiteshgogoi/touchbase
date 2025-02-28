@@ -26,7 +26,7 @@ export const UsersSocialProof = () => {
 
   return (
     <div className="w-full py-2">
-      <div className="flex flex-col items-center justify-center space-y-5 px-4 h-[150px]">
+      <div className="flex flex-col items-center justify-center space-y-5 px-4 h-[160px]">
         {/* Avatars Section */}
         <div className="flex -space-x-3 md:-space-x-4 justify-center relative">
           {isLoading ? (
