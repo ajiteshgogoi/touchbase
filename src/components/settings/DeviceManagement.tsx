@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient, QueryObserver } from '@tanstack/
 import { supabase } from '../../lib/supabase/client';
 import { notificationService } from '../../services/notifications';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { platform } from '../../utils/platform';
 import toast from 'react-hot-toast';
 
 interface DeviceInfo {
@@ -188,6 +189,28 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                     {formatDeviceType(device.device_type)}
                   </p>
                   <p className="text-xs text-gray-600/90">
+                    {(() => {
+                      try {
+                        const deviceInfo = platform.parseDeviceId(device.device_id);
+                        return (
+                          <>
+                            <span className="font-medium">{deviceInfo.installType}</span>
+                            {' • '}
+                            <span>{deviceInfo.brand}</span>
+                            {deviceInfo.browser && (
+                              <>
+                                {' • '}
+                                <span>{deviceInfo.browser}</span>
+                              </>
+                            )}
+                          </>
+                        );
+                      } catch {
+                        return 'Unknown Device';
+                      }
+                    })()}
+                  </p>
+                  <p className="text-xs text-gray-500">
                     Last used: {formatLastUsed(device.updated_at)}
                   </p>
                 </div>

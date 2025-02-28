@@ -135,5 +135,50 @@ export const platform = {
     const random = Math.random().toString(36).substring(2, 8);
     
     return `${prefix}-${deviceType}-${brand}${browser}-${random}`;
+  },
+
+  parseDeviceId(deviceId: string): {
+    installType: 'TWA' | 'PWA' | 'Browser';
+    deviceType: string;
+    brand: string;
+    browser?: string;
+  } {
+    try {
+      const parts = deviceId.split('-');
+      
+      // Handle legacy or malformed device IDs
+      if (parts.length < 3) {
+        return {
+          installType: 'Browser',
+          deviceType: 'Web',
+          brand: 'Unknown'
+        };
+      }
+
+      const rawInstallType = parts[0].toUpperCase();
+      const installType = (rawInstallType === 'TWA' || rawInstallType === 'PWA')
+        ? rawInstallType as 'TWA' | 'PWA'
+        : 'Browser';
+      
+      const capitalizeFirst = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+      
+      const deviceType = capitalizeFirst(parts[1] || 'web');
+      const brand = capitalizeFirst(parts[2] || 'unknown');
+      const browser = parts[3] ? capitalizeFirst(parts[3] ?? '') : undefined;
+
+      return {
+        installType,
+        deviceType,
+        brand,
+        browser
+      };
+    } catch (error) {
+      // Fallback for any parsing errors
+      return {
+        installType: 'Browser',
+        deviceType: 'Web',
+        brand: 'Unknown'
+      };
+    }
   }
 };
