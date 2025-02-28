@@ -50,7 +50,10 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       console.log('Device successfully removed from database');
     },
     onSuccess: () => {
+      // Invalidate both devices and preferences queries
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+      queryClient.invalidateQueries({ queryKey: ['preferences', userId] });
+      
       toast.success('Device unregistered successfully');
     },
     onError: (error: Error) => {
@@ -83,7 +86,13 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+      // Invalidate both devices and preferences queries
+      queryClient.invalidateQueries({
+        queryKey: ['devices', userId]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['preferences', userId]
+      });
       toast.success('All devices unregistered successfully');
     },
     onError: (error: Error) => {
