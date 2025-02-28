@@ -211,16 +211,23 @@ class NotificationService {
       
       // Generate device-specific fingerprint
       const getDeviceFingerprint = () => {
+        const screen = window.screen;
         const nav = navigator as any;
         const platform = nav.platform || nav.userAgentData?.platform || 'unknown';
         
         const components = [
           platform,
+          screen.width,
+          screen.height,
+          screen.colorDepth,
+          nav.hardwareConcurrency,
+          nav.deviceMemory,
+          nav.language,
           // Mobile-specific info
           nav.userAgentData?.mobile ? 'mobile' : 'desktop',
-          // Brand/model info from userAgentData
+          // Brand/model info from userAgentData if available
           ...(nav.userAgentData?.brands || []).map((b: any) => b.brand),
-          // Android-specific device info (for device model)
+          // Android-specific device info
           nav.userAgent.match(/\(.*?\)/)?.[0] || ''
         ].filter(Boolean);
 
