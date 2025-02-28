@@ -126,6 +126,15 @@ export const platform = {
     };
   },
 
+  getStorageNamespace(): string {
+    return this.isTWA() ? 'twa' : this.isPWA() ? 'pwa' : 'browser';
+  },
+
+  getDeviceStorageKey(key: string): string {
+    const namespace = this.getStorageNamespace();
+    return `${namespace}_${key}`;
+  },
+
   generateDeviceId(): string {
     const info = this.getDeviceInfo();
     const prefix = info.isTWA ? 'twa' : info.isPWA ? 'pwa' : 'browser';
@@ -134,7 +143,10 @@ export const platform = {
     const browser = info.isTWA ? '' : `-${info.browserInfo.toLowerCase()}`;
     const random = Math.random().toString(36).substring(2, 8);
     
-    return `${prefix}-${deviceType}-${brand}${browser}-${random}`;
+    // Store in namespaced storage
+    const deviceId = `${prefix}-${deviceType}-${brand}${browser}-${random}`;
+    localStorage.setItem(this.getDeviceStorageKey('device_id'), deviceId);
+    return deviceId;
   },
 
   parseDeviceId(deviceId: string): {

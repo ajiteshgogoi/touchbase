@@ -191,6 +191,25 @@ class NotificationService {
         }
       }
 
+      // Clear any existing FCM tokens from other installation types
+      const currentDeviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+      if (currentDeviceId) {
+        const { data: existingTokens } = await supabase
+          .from('push_subscriptions')
+          .select('device_id')
+          .eq('user_id', userId)
+          .neq('device_id', currentDeviceId);
+
+        if (existingTokens) {
+          for (const token of existingTokens) {
+            if (token.device_id.startsWith(platform.getStorageNamespace())) {
+              console.log(`Cleaning up old token for same installation type: ${token.device_id}`);
+              await this.unsubscribeFromPushNotifications(userId, token.device_id);
+            }
+          }
+        }
+      }
+
       // Get FCM token using existing VAPID key
       console.log('Getting FCM token...');
       const currentToken = await getToken(messaging, {
@@ -209,8 +228,14 @@ class NotificationService {
 
       // Get device info using platform utilities
       const deviceInfo = platform.getDeviceInfo();
-      const deviceId = localStorage.getItem('device_id') || platform.generateDeviceId();
-      localStorage.setItem('device_id', deviceId);
+      const storageKey = platform.getDeviceStorageKey('device_id');
+      let deviceId = localStorage.getItem(storageKey) || platform.generateDeviceId();
+      
+      // Always ensure device ID matches current installation type
+      if (!deviceId.startsWith(platform.getStorageNamespace())) {
+        console.log('Device ID type mismatch, generating new ID...');
+        deviceId = platform.generateDeviceId();
+      }
 
       const deviceName = `${deviceInfo.deviceBrand} ${deviceInfo.isTWA ? 'TWA' : deviceInfo.isPWA ? 'PWA' : deviceInfo.browserInfo}`;
       const deviceType = deviceInfo.deviceType;
@@ -360,7 +385,8 @@ class NotificationService {
       console.log('Unsubscribing from push notifications...');
       
       // 1. Clean up Firebase messaging instance if unsubscribing current device
-      const currentDeviceId = localStorage.getItem('device_id');
+      const storageKey = platform.getDeviceStorageKey('device_id');
+      const currentDeviceId = localStorage.getItem(storageKey);
       const targetDeviceId = specificDeviceId || currentDeviceId;
       
       if (!targetDeviceId) {
@@ -419,8 +445,28 @@ class NotificationService {
     try {
       // Clean up Firebase messaging instance for current device
       await cleanupMessaging();
-      // Clear device ID from local storage
-      localStorage.removeItem('device_id');
+      
+      // Clear all device-specific storage keys
+      const storageKey = platform.getDeviceStorageKey('device_id');
+      localStorage.removeItem(storageKey);
+
+      // Remove all references to this installation type's devices
+      const { data: devices } = await supabase
+        .from('push_subscriptions')
+        .select('device_id')
+        .eq('user_id', (await supabase.auth.getSession()).data.session?.user.id);
+
+      if (devices) {
+        const currentNamespace = platform.getStorageNamespace();
+        for (const device of devices) {
+          if (device.device_id.startsWith(currentNamespace)) {
+            await this.unsubscribeFromPushNotifications(
+              (await supabase.auth.getSession()).data.session?.user.id!,
+              device.device_id
+            );
+          }
+        }
+      }
     } catch (error) {
       console.error('Failed to cleanup all devices:', error);
       throw error;
