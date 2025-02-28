@@ -13,12 +13,7 @@ interface DeviceInfo {
   updated_at: string;
 }
 
-interface DeviceManagementProps {
-  userId: string;
-  isDeviceProcessing: boolean;
-}
-
-export const DeviceManagement = ({ userId, isDeviceProcessing }: DeviceManagementProps) => {
+export const DeviceManagement = ({ userId }: { userId: string }) => {
   const [isUnregisteringAll, setIsUnregisteringAll] = useState(false);
   const queryClient = useQueryClient();
 
@@ -92,7 +87,7 @@ export const DeviceManagement = ({ userId, isDeviceProcessing }: DeviceManagemen
     });
   };
 
-  if (isLoading || isDeviceProcessing) {
+  if (isLoading) {
     return (
       <div className="flex justify-center p-4">
         <LoadingSpinner />

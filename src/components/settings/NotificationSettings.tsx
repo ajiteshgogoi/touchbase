@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useQueryClient, useIsMutating } from '@tanstack/react-query';
+import { useState } from 'react';
 import type { NotificationSettings as NotificationSettingsType } from '../../types';
 import { TIMEZONE_LIST } from '../../constants/timezones';
 import { DeviceManagement } from './DeviceManagement';
-import { notificationService } from '../../services/notifications';
 
 interface Props {
   settings: NotificationSettingsType;
@@ -13,17 +11,6 @@ interface Props {
 
 export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isProcessingDevice, setIsProcessingDevice] = useState(false);
-  const queryClient = useQueryClient();
-  const isMutating = useIsMutating({ mutationKey: ['preferences'] });
-  const [shouldRefreshDevices, setShouldRefreshDevices] = useState(false);
-
-  useEffect(() => {
-    if (shouldRefreshDevices && !isMutating && !isProcessingDevice) {
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
-      setShouldRefreshDevices(false);
-    }
-  }, [isMutating, isProcessingDevice, shouldRefreshDevices, queryClient, userId]);
 
   // Get user's timezone and ensure it's in the list
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -66,28 +53,9 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               type="checkbox"
               className="sr-only peer"
               checked={settings.notification_enabled}
-              onChange={async (e) => {
-                setIsProcessingDevice(true);
-                try {
-                  // First update preferences
-                  onUpdate({
-                    notification_enabled: e.target.checked
-                  });
-                  
-                  // Then handle device registration
-                  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for preferences to update
-                  if (e.target.checked) {
-                    await notificationService.subscribeToPushNotifications(userId);
-                  } else {
-                    await notificationService.unsubscribeFromPushNotifications(userId);
-                  }
-                  setShouldRefreshDevices(true);
-                } catch (error) {
-                  console.error('Failed to update device registration:', error);
-                } finally {
-                  setIsProcessingDevice(false);
-                }
-              }}
+              onChange={(e) => onUpdate({
+                notification_enabled: e.target.checked
+              })}
             />
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
           </label>
@@ -130,10 +98,7 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
 
        {/* Device Management */}
        <div>
-         <DeviceManagement
-           userId={userId}
-           isDeviceProcessing={isProcessingDevice}
-         />
+         <DeviceManagement userId={userId} />
        </div>
       </div>
     </div>
