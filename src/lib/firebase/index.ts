@@ -8,6 +8,12 @@ export let messaging = getMessaging(app);
 
 // Function to cleanup Firebase messaging instance
 export const cleanupMessaging = async () => {
+  const deviceId = localStorage.getItem('device_id');
+  if (!deviceId) {
+    console.warn('No device ID found during cleanup');
+    return;
+  }
+
   // Clean up FCM instance from window
   // @ts-ignore
   if (window.firebase?.messaging) {
@@ -19,11 +25,25 @@ export const cleanupMessaging = async () => {
   const registration = await navigator.serviceWorker.ready;
   const messageChannel = new MessageChannel();
   if (registration.active) {
-    registration.active.postMessage({ type: 'CLEAR_FCM_LISTENERS' }, [messageChannel.port2]);
+    registration.active.postMessage({
+      type: 'CLEAR_FCM_LISTENERS',
+      deviceId: deviceId // Pass deviceId to service worker for device-specific cleanup
+    }, [messageChannel.port2]);
   }
   
   // Re-initialize messaging instance
   messaging = getMessaging(app);
+
+  // Remove all service workers except Firebase messaging worker
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  for (const reg of registrations) {
+    if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
+      continue;
+    }
+    await reg.unregister();
+  }
+
+  console.log('Cleaned up messaging for device:', deviceId);
 };
 
 // Extended notification options type that includes all web notification properties

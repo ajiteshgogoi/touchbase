@@ -1,4 +1,13 @@
 // Platform detection utilities used for payment and app functionality
+// Also includes device identification for notifications
+
+export type DeviceInfo = {
+  deviceType: 'android' | 'ios' | 'web';
+  deviceBrand: string;
+  browserInfo: string;
+  isTWA: boolean;
+  isPWA: boolean;
+};
 declare global {
   interface Window {
     chrome?: {
@@ -72,5 +81,59 @@ export const platform = {
 
   isWeb(): boolean {
     return !this.isAndroid();
+  },
+
+  // Check if running in TWA (Trusted Web Activity)
+  isTWA(): boolean {
+    return this.isAndroid() && window.matchMedia('(display-mode: standalone)').matches;
+  },
+
+  // Check if running as PWA
+  isPWA(): boolean {
+    return window.matchMedia('(display-mode: standalone)').matches && !this.isTWA();
+  },
+
+  getBrowserInfo(): string {
+    const ua = navigator.userAgent;
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Safari')) return 'Safari';
+    if (ua.includes('Edge')) return 'Edge';
+    if (ua.includes('Opera')) return 'Opera';
+    return 'Unknown';
+  },
+
+  getDeviceBrand(): string {
+    const ua = navigator.userAgent;
+    if (this.isAndroid()) {
+      const matches = ua.match(/(Samsung|Google|OnePlus|Huawei|Xiaomi|OPPO|vivo|LG|Sony|Motorola|Nokia|ASUS|ZTE|HTC)/i);
+      return matches?.[1] ?? 'Android';
+    }
+    if (this.isIOS()) {
+      return 'Apple';
+    }
+    return 'Desktop';
+  },
+
+  getDeviceInfo(): DeviceInfo {
+    const deviceType = this.isAndroid() ? 'android' : this.isIOS() ? 'ios' : 'web';
+    return {
+      deviceType,
+      deviceBrand: this.getDeviceBrand(),
+      browserInfo: this.getBrowserInfo(),
+      isTWA: this.isTWA(),
+      isPWA: this.isPWA()
+    };
+  },
+
+  generateDeviceId(): string {
+    const info = this.getDeviceInfo();
+    const prefix = info.isTWA ? 'twa' : info.isPWA ? 'pwa' : 'browser';
+    const deviceType = info.deviceType;
+    const brand = info.deviceBrand.toLowerCase();
+    const browser = info.isTWA ? '' : `-${info.browserInfo.toLowerCase()}`;
+    const random = Math.random().toString(36).substring(2, 8);
+    
+    return `${prefix}-${deviceType}-${brand}${browser}-${random}`;
   }
 };

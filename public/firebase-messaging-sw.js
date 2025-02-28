@@ -26,12 +26,31 @@ self.addEventListener('message', (event) => {
     debug('Skip waiting message received');
     self.skipWaiting();
   } else if (event.data?.type === 'CLEAR_FCM_LISTENERS') {
-    debug('Clearing FCM listeners');
+    const deviceId = event.data.deviceId;
+    debug('Clearing FCM listeners for device:', deviceId);
+
+    // Store the device ID being cleaned up
+    self.CLEANED_DEVICE_ID = deviceId;
+
     // Remove all message event listeners
     self.removeEventListener('push', () => {});
     self.removeEventListener('pushsubscriptionchange', () => {});
+
     // Reset Firebase messaging state by removing the property
     delete firebase.messaging;
+
+    // Clear any stored subscriptions for this device
+    self.registration.pushManager.getSubscription().then(subscription => {
+      if (subscription) {
+        debug('Unsubscribing push subscription for device:', deviceId);
+        subscription.unsubscribe();
+      }
+    });
+
+    // Notify the client that cleanup is complete
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({ success: true, deviceId });
+    }
   }
 });
 
@@ -59,13 +78,20 @@ messaging.onBackgroundMessage(async (payload) => {
     const notificationData = payload.notification || payload.data || {};
     debug('Extracted notification data:', notificationData);
 
+    // Get stored device ID from the cleanup process or fallback
+    const deviceId = self.CLEANED_DEVICE_ID || 'unknown-device';
+    
     const notificationTitle = notificationData.title || 'New Message';
     const notificationOptions = {
       body: notificationData.body,
       icon: self.location.origin + '/icon-192.png',
       badge: self.location.origin + '/icon-192.png',
-      data: payload.data || {},
-      tag: 'touchbase-notification',
+      data: {
+        ...(payload.data || {}),
+        deviceId: deviceId,
+        timestamp: new Date().toISOString()
+      },
+      tag: `touchbase-notification-${deviceId}`, // Make tag device-specific
       renotify: true,
       requireInteraction: true,
       actions: [
