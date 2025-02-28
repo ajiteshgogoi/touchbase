@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient, QueryObserver } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase/client';
 import { notificationService } from '../../services/notifications';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
@@ -35,7 +35,18 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   // Mutation for unregistering a single device
   const unregisterDeviceMutation = useMutation({
     mutationFn: async (deviceId: string) => {
+      console.log(`Starting unregistration process for device: ${deviceId}`);
       await notificationService.unsubscribeFromPushNotifications(userId, deviceId);
+      
+      // Database cleanup
+      console.log('Removing device from database...');
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .delete()
+        .match({ user_id: userId, device_id: deviceId });
+        
+      if (error) throw error;
+      console.log('Device successfully removed from database');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
@@ -50,18 +61,22 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   // Mutation for unregistering all devices
   const unregisterAllDevicesMutation = useMutation({
     mutationFn: async () => {
+      console.log('Starting unregistration process for all devices...');
       setIsUnregisteringAll(true);
       try {
         // First cleanup current device's Firebase instance
+        console.log('Cleaning up current device Firebase instance...');
         await notificationService.cleanupAllDevices();
         
         // Then delete all device registrations from the database
+        console.log('Removing all devices from database...');
         const { error } = await supabase
           .from('push_subscriptions')
           .delete()
           .eq('user_id', userId);
         
         if (error) throw error;
+        console.log('Successfully removed all devices from database');
       } finally {
         setIsUnregisteringAll(false);
       }
@@ -75,6 +90,24 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       toast.error('Failed to unregister all devices');
     }
   });
+
+  // Add refetch on notification settings change
+  useEffect(() => {
+    const observer = new QueryObserver(queryClient, {
+      queryKey: ['preferences', userId],
+      enabled: !!userId,
+      refetchInterval: 1000
+    });
+
+    const unsubscribe = observer.subscribe(() => {
+      // Invalidate devices query when preferences change
+      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [userId, queryClient]);
 
   const formatDeviceType = (type: 'web' | 'android' | 'ios') => {
     switch (type) {

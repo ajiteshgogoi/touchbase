@@ -279,7 +279,9 @@ export const Settings = () => {
   const handleNotificationChange = async (newSettings: Partial<NotificationSettings>) => {
     const updated = { ...notificationSettings, ...newSettings };
     setNotificationSettings(updated); // Optimistically update UI
-    updatePreferencesMutation.mutate(updated);
+    await updatePreferencesMutation.mutateAsync(updated);
+    // After successful mutation, invalidate devices query
+    queryClient.invalidateQueries({ queryKey: ['devices'] });
   };
 
   if (!user) {
