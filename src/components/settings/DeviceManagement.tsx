@@ -31,7 +31,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   const queryClient = useQueryClient();
 
   // Fetch registered devices
-  const { data: devices, isLoading } = useQuery({
+  const { data: devices, isLoading, refetch } = useQuery({
     queryKey: ['devices', userId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -43,16 +43,46 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       if (error) throw error;
       return data as DeviceInfo[];
     },
-    enabled: !!userId
+    enabled: !!userId,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Mutation for unregistering a single device
   const unregisterDeviceMutation = useMutation({
     mutationFn: async (deviceId: string) => {
+      // First unsubscribe from push notifications which will clean up Firebase
       await notificationService.unsubscribeFromPushNotifications(userId, deviceId);
+      
+      // Then verify the database update is complete by checking the subscription is gone
+      const maxRetries = 3;
+      let isDeleted = false;
+      
+      for (let i = 0; i < maxRetries; i++) {
+        const { data } = await supabase
+          .from('push_subscriptions')
+          .select('device_id')
+          .match({ user_id: userId, device_id: deviceId })
+          .maybeSingle();
+          
+        if (!data) {
+          isDeleted = true;
+          break;
+        }
+        
+        // Wait a bit before retrying
+        if (i < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      if (!isDeleted) {
+        throw new Error('Failed to verify device unregistration');
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+    onSuccess: async () => {
+      await refetch(); // Force immediate refetch
       toast.success('Device unregistered successfully');
     },
     onError: (error: Error) => {
@@ -76,12 +106,37 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
           .eq('user_id', userId);
         
         if (error) throw error;
+
+        // Verify all subscriptions are gone
+        const maxRetries = 3;
+        let allDeleted = false;
+
+        for (let i = 0; i < maxRetries; i++) {
+          const { data } = await supabase
+            .from('push_subscriptions')
+            .select('device_id')
+            .eq('user_id', userId);
+
+          if (!data || data.length === 0) {
+            allDeleted = true;
+            break;
+          }
+          
+          // Wait a bit before retrying
+          if (i < maxRetries - 1) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+        
+        if (!allDeleted) {
+          throw new Error('Failed to verify all devices unregistration');
+        }
       } finally {
         setIsUnregisteringAll(false);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+    onSuccess: async () => {
+      await refetch(); // Force immediate refetch
       toast.success('All devices unregistered successfully');
     },
     onError: (error: Error) => {
