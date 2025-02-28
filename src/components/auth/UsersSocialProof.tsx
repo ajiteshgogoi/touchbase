@@ -26,7 +26,7 @@ export const UsersSocialProof = () => {
 
   return (
     <div className="w-full py-2">
-      <div className="flex flex-col items-center justify-center space-y-4 px-4 h-[140px]">
+      <div className="flex flex-col items-center justify-center space-y-5 px-4 h-[150px]">
         {/* Avatars Section */}
         <div className="flex -space-x-3 md:-space-x-4 justify-center relative">
           {isLoading ? (
@@ -87,9 +87,9 @@ export const UsersSocialProof = () => {
         </div>
 
         {/* Stats Text - Same height reserved for loading and loaded states */}
-        <div className={`h-[48px] w-full flex items-center justify-center ${isLoading ? 'animate-pulse bg-gray-100/80 rounded-lg' : ''}`}>
+        <div className={`min-h-[48px] w-full flex items-center justify-center ${isLoading ? 'animate-pulse bg-gray-100/80 rounded-lg' : ''}`}>
           {!isLoading && stats && (
-            <p className="text-[15px] leading-relaxed text-gray-700 font-[450] text-center px-4">
+            <p className="text-[15px] leading-relaxed text-gray-700 font-[450] text-center px-5">
               Join{' '}
               <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()}</span>
               {' '}others improving their relationships...
