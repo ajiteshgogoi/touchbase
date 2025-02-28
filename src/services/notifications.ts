@@ -207,7 +207,8 @@ class NotificationService {
       console.log('Successfully obtained FCM token');
 
       // Get device info
-      const deviceId = localStorage.getItem('device_id') || `${Math.random().toString(36).substring(2)}-${Date.now()}`;
+      const envPrefix = window.location.origin;
+      const deviceId = localStorage.getItem('device_id') || `${envPrefix}-${Math.random().toString(36).substring(2)}-${Date.now()}`;
       localStorage.setItem('device_id', deviceId);
   
       const deviceName = navigator.userAgent;
