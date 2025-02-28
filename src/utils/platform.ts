@@ -155,16 +155,16 @@ export const platform = {
         };
       }
 
-      const rawInstallType = parts[0].toUpperCase();
+      const rawInstallType = (parts[0] ?? '').toUpperCase();
       const installType = (rawInstallType === 'TWA' || rawInstallType === 'PWA')
         ? rawInstallType as 'TWA' | 'PWA'
         : 'Browser';
       
       const capitalizeFirst = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
       
-      const deviceType = capitalizeFirst(parts[1] || 'web');
-      const brand = capitalizeFirst(parts[2] || 'unknown');
-      const browser = parts[3] ? capitalizeFirst(parts[3] ?? '') : undefined;
+      const deviceType = capitalizeFirst(parts[1] ?? 'web');
+      const brand = capitalizeFirst(parts[2] ?? 'unknown');
+      const browser = parts[3] ? capitalizeFirst(parts[3]) : undefined;
 
       return {
         installType,
