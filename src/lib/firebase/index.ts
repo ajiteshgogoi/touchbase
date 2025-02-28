@@ -68,31 +68,22 @@ const showNotification = async (title: string, options: ExtendedNotificationOpti
     console.error('Error showing notification:', error);
   }
 };
-
 // Helper function to update token in database
 const updateTokenInDatabase = async (userId: string, token: string) => {
-  // Get current device ID or create new one
-  const deviceId = localStorage.getItem('device_id') || `${Math.random().toString(36).substring(2)}-${Date.now()}`;
-  localStorage.setItem('device_id', deviceId);
+  const deviceId = localStorage.getItem('device_id');
+  if (!deviceId) {
+    console.warn('No device ID found for background refresh, skipping update');
+    return;
+  }
 
-  // Get device info
-  const deviceName = navigator.userAgent;
-  const deviceType = /Android/i.test(navigator.userAgent) ? 'android' :
-                    /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'web';
-
+  // Only update the FCM token, let the notifications service handle device registration
   const { error } = await supabase
     .from('push_subscriptions')
-    .upsert({
-      user_id: userId,
+    .update({
       fcm_token: token,
-      device_id: deviceId,
-      device_name: deviceName,
-      device_type: deviceType,
-      updated_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-    }, {
-      onConflict: 'user_id,device_id'
-    });
+      updated_at: new Date().toISOString()
+    })
+    .match({ user_id: userId, device_id: deviceId });
 
   if (error) {
     console.error('Error updating FCM token:', error);
