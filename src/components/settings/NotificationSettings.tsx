@@ -2,9 +2,6 @@ import { useState } from 'react';
 import type { NotificationSettings as NotificationSettingsType } from '../../types';
 import { TIMEZONE_LIST } from '../../constants/timezones';
 import { DeviceManagement } from './DeviceManagement';
-import { notificationService } from '../../services/notifications';
-import { supabase } from '../../lib/supabase/client';
-import toast from 'react-hot-toast';
 
 interface Props {
   settings: NotificationSettingsType;
@@ -56,31 +53,9 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               type="checkbox"
               className="sr-only peer"
               checked={settings.notification_enabled}
-              onChange={async (e) => {
-                try {
-                  const checked = e.target.checked;
-                  if (!checked) {
-                    // Clean up when turning off
-                    await notificationService.cleanupAllDevices();
-                  }
-                  await onUpdate({
-                    notification_enabled: checked
-                  });
-                  if (checked) {
-                    // Force new registration when turning on
-                    const session = await supabase.auth.getSession();
-                    if (session.data.session?.user) {
-                      await notificationService.subscribeToPushNotifications(
-                        session.data.session.user.id,
-                        true // force resubscribe
-                      );
-                    }
-                  }
-                } catch (error) {
-                  console.error('Failed to update notification settings:', error);
-                  toast.error('Failed to update notification settings');
-                }
-              }}
+              onChange={(e) => onUpdate({
+                notification_enabled: e.target.checked
+              })}
             />
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
           </label>
