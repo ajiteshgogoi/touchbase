@@ -76,17 +76,38 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     }
   });
 
-  const formatDeviceType = (type: 'web' | 'android' | 'ios') => {
+  const formatDeviceInfo = (type: 'web' | 'android' | 'ios', name: string) => {
+    // Extract environment and app type from device name
+    const isPWA = name.includes('(PWA)');
+    const isTWA = name.includes('(TWA)');
+    const isBrowser = name.includes('(Browser)');
+    const isDev = window.location.origin.includes('localhost') ||
+                 window.location.origin.includes('.local') ||
+                 window.location.hostname === '127.0.0.1';
+
+    // Format the main type
+    let mainType = '';
     switch (type) {
       case 'android':
-        return 'Android';
+        mainType = 'Android';
+        if (isTWA) mainType += ' (TWA)';
+        if (isPWA) mainType += ' (PWA)';
+        if (isBrowser) mainType += ' (Browser)';
+        break;
       case 'ios':
-        return 'iOS';
+        mainType = 'iOS';
+        if (isPWA) mainType += ' (PWA)';
+        if (isBrowser) mainType += ' (Browser)';
+        break;
       case 'web':
-        return 'Desktop';
+        mainType = isPWA ? 'Desktop PWA' : 'Desktop Browser';
+        break;
       default:
-        return type;
+        mainType = type;
     }
+
+    // Add environment indicator
+    return isDev ? `${mainType} (Dev)` : mainType;
   };
 
   const formatLastUsed = (date: string) => {
@@ -152,7 +173,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
               >
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-900">
-                    {formatDeviceType(device.device_type)}
+                    {formatDeviceInfo(device.device_type, device.device_name)}
                   </p>
                   <p className="text-xs text-gray-600/90">
                     Last used: {formatLastUsed(device.updated_at)}

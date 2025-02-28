@@ -211,9 +211,10 @@ class NotificationService {
       const deviceId = localStorage.getItem('device_id') || `${envPrefix}-${Math.random().toString(36).substring(2)}-${Date.now()}`;
       localStorage.setItem('device_id', deviceId);
   
-      const deviceName = navigator.userAgent;
-      const deviceType = /Android/i.test(navigator.userAgent) ? 'android' :
-                        /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'web';
+      // Get device info using improved platform detection
+      const { platform } = await import('../utils/platform');
+      const deviceName = `${navigator.userAgent} ${platform.isPWA() ? '(PWA)' : platform.isTWA() ? '(TWA)' : '(Browser)'}`;
+      const deviceType = platform.getDeviceType();
   
       let refreshCount = 0;
       let currentExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
