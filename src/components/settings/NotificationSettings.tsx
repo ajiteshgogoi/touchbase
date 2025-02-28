@@ -97,11 +97,9 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
         </div>
 
        {/* Device Management */}
-       {settings.notification_enabled && (
-         <div>
-           <DeviceManagement userId={userId} />
-         </div>
-       )}
+       <div>
+         <DeviceManagement userId={userId} />
+       </div>
       </div>
     </div>
   );
