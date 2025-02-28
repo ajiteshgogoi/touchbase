@@ -191,22 +191,44 @@ class NotificationService {
         }
       }
 
-      // Only clean up the exact same device ID if it exists
-      const currentDeviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-      if (currentDeviceId) {
-        const { data: existingToken } = await supabase
-          .from('push_subscriptions')
-          .select('device_id')
-          .match({ user_id: userId, device_id: currentDeviceId })
-          .maybeSingle();
+      // Get device info and determine proper installation type
+      const deviceInfo = platform.getDeviceInfo();
+      const storageKey = platform.getDeviceStorageKey('device_id');
+      const storedDeviceId = localStorage.getItem(storageKey);
+      
+      // Generate or validate device ID
+      let deviceId = storedDeviceId;
+      if (!deviceId?.startsWith(platform.getStorageNamespace())) {
+        deviceId = platform.generateDeviceId();
+      }
 
-        if (existingToken) {
-          console.log(`Cleaning up existing token for current device: ${currentDeviceId}`);
-          await this.unsubscribeFromPushNotifications(userId, currentDeviceId);
+      // Handle device type changes and cleanup if needed
+      if (storedDeviceId) {
+        const { data: existingTokens } = await supabase
+          .from('push_subscriptions')
+          .select('device_id, device_type')
+          .match({ user_id: userId })
+          .filter('device_id', 'ilike', `${platform.getStorageNamespace()}%`);
+
+        const actualDeviceType = deviceInfo.isTWA ? 'android' :
+                               deviceInfo.isPWA && platform.isAndroid() ? 'android' :
+                               deviceInfo.deviceType;
+
+        if (existingTokens?.length) {
+          const deviceTypeChanged = existingTokens.some(token =>
+            token.device_id === storedDeviceId &&
+            token.device_type !== actualDeviceType
+          );
+
+          if (deviceTypeChanged || forceResubscribe) {
+            console.log(`Cleaning up tokens due to ${deviceTypeChanged ? 'device type change' : 'force resubscribe'}`);
+            await this.unsubscribeFromPushNotifications(userId, storedDeviceId);
+            deviceId = platform.generateDeviceId(); // Generate new ID after cleanup
+          }
         }
       }
 
-      // Get FCM token using existing VAPID key
+      // Get FCM token
       console.log('Getting FCM token...');
       const currentToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
@@ -222,27 +244,11 @@ class NotificationService {
 
       console.log('Successfully obtained FCM token');
 
-      // Get device info and determine proper device type
-      const deviceInfo = platform.getDeviceInfo();
-      const storageKey = platform.getDeviceStorageKey('device_id');
-      let deviceId = localStorage.getItem(storageKey) || platform.generateDeviceId();
-
-      // Always ensure device ID matches current installation type
-      if (!deviceId.startsWith(platform.getStorageNamespace())) {
-        console.log('Device ID type mismatch, generating new ID...');
-        deviceId = platform.generateDeviceId();
-      }
-
-      // Set device name and type based on actual platform characteristics
+      // Set device attributes
       const deviceName = `${deviceInfo.deviceBrand} ${deviceInfo.isTWA ? 'TWA' : deviceInfo.isPWA ? 'PWA' : deviceInfo.browserInfo}`;
-      let deviceType = deviceInfo.deviceType;
-
-      // Handle special cases for Android where PWA/TWA should be treated as native
-      if (platform.isAndroid()) {
-        if (deviceInfo.isTWA || deviceInfo.isPWA) {
-          deviceType = 'android';
-        }
-      }
+      const deviceType = deviceInfo.isTWA ? 'android' :
+                        deviceInfo.isPWA && platform.isAndroid() ? 'android' :
+                        deviceInfo.deviceType;
   
       let refreshCount = 0;
       let currentExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
@@ -389,7 +395,7 @@ class NotificationService {
     try {
       console.log('Unsubscribing from push notifications...');
       
-      // 1. Clean up Firebase messaging instance if unsubscribing current device
+      // 1. Get device identifiers
       const storageKey = platform.getDeviceStorageKey('device_id');
       const currentDeviceId = localStorage.getItem(storageKey);
       const targetDeviceId = specificDeviceId || currentDeviceId;
@@ -399,12 +405,27 @@ class NotificationService {
         return;
       }
 
+      // 2. Get all tokens for this device (might have multiple due to type changes)
+      const { data: subscriptions } = await supabase
+        .from('push_subscriptions')
+        .select('device_id, fcm_token, device_type')
+        .match({
+          user_id: userId,
+          device_id: targetDeviceId
+        });
+
+      if (!subscriptions?.length) {
+        console.log('No subscriptions found for this device');
+        return;
+      }
+
+      // 3. Clean up Firebase messaging instance if unsubscribing current device
       if (targetDeviceId === currentDeviceId) {
         await cleanupMessaging();
       }
 
-      // 2. Remove specific device's FCM token from Supabase
-      console.log('Removing FCM token for device from Supabase...');
+      // 4. Remove all tokens for this device
+      console.log('Removing FCM tokens for device from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
         .delete()
@@ -414,12 +435,16 @@ class NotificationService {
         });
 
       if (error) {
+        if (error.message?.includes('no rows deleted')) {
+          console.warn('Tokens were already removed');
+          return;
+        }
         throw error;
       }
 
-      // 3. Clear device ID from local storage if it's the current device
+      // 5. Clean up local storage for current device and ensure we don't keep stale installation type
       if (targetDeviceId === currentDeviceId) {
-        localStorage.removeItem('device_id');
+        localStorage.removeItem(storageKey);
       }
 
       console.log('Successfully unsubscribed device from push notifications');
