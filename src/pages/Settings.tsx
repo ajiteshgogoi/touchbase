@@ -368,7 +368,7 @@ export const Settings = () => {
       </div>
 
       <div className="space-y-6">
-        {!preferencesLoaded ? (
+        {!preferencesLoaded || notificationSettings.ai_suggestions_enabled === undefined ? (
           <div className="space-y-6">
             <SectionLoader />
             <SectionLoader />
