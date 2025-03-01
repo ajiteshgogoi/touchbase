@@ -51,18 +51,29 @@ export class NotificationService {
         } else {
           throw new Error('Cannot enable notifications for inactive device');
         }
-        return;
+      } else {
+        // Update enabled state
+        const { error: updateError } = await supabase
+          .from('push_subscriptions')
+          .update({ enabled })
+          .match({ user_id: userId, device_id: deviceId });
+
+        if (updateError) {
+          throw new Error(`Failed to update device notification state: ${updateError.message}`);
+        }
       }
 
-      // Otherwise just update enabled state
-      const { error: updateError } = await supabase
+      // Always fetch the latest state after update
+      const { data: updatedSubscription, error: verifyError } = await supabase
         .from('push_subscriptions')
-        .update({ enabled })
-        .match({ user_id: userId, device_id: deviceId });
+        .select('enabled')
+        .match({ user_id: userId, device_id: deviceId })
+        .single();
 
-      if (updateError) {
-        throw new Error(`Failed to update device notification state: ${updateError.message}`);
+      if (verifyError || updatedSubscription?.enabled !== enabled) {
+        throw new Error('Failed to verify device notification state update');
       }
+
     } catch (error) {
       console.error('Error toggling device notifications:', error);
       throw error;
