@@ -318,11 +318,9 @@ export class NotificationService {
 
       console.log('Successfully obtained FCM token');
 
-      // Set device attributes
+      // Set device attributes using already validated device info
       const deviceName = `${deviceInfo.deviceBrand} ${deviceInfo.isTWA ? 'TWA' : deviceInfo.isPWA ? 'PWA' : deviceInfo.browserInfo}`;
-      const deviceType = deviceInfo.isTWA ? 'android' :
-                        deviceInfo.isPWA && platform.isAndroid() ? 'android' :
-                        deviceInfo.deviceType;
+      const deviceType = deviceInfo.deviceType; // Use validated device type from platform utility
   
       let refreshCount = 0;
       let currentExpiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
