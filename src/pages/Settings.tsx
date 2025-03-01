@@ -121,41 +121,34 @@ export const Settings = () => {
     refetchOnWindowFocus: false
   });
 
+  // Update notification settings whenever preferences change or are initially loaded
   useEffect(() => {
     if (preferences) {
-      const checkAndUpdateNotifications = async () => {
+      const newSettings = {
+        notification_enabled: preferences.notification_enabled,
+        theme: preferences.theme,
+        timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ai_suggestions_enabled: preferences.ai_suggestions_enabled
+      };
+
+      setNotificationSettings(newSettings);
+      setPreferencesLoaded(true);
+
+      // Check browser permission asynchronously
+      const checkNotificationPermission = async () => {
         try {
-          // Only check browser permission, not device state
           if (Notification.permission === 'denied' && preferences.notification_enabled) {
-            // Only update if browser permission is explicitly denied
-            setNotificationSettings({
-              notification_enabled: false,
-              theme: preferences.theme,
-              timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-              ai_suggestions_enabled: preferences.ai_suggestions_enabled
-            });
-            // Update database to match actual state
             updatePreferencesMutation.mutate({
-              ...preferences,
+              ...newSettings,
               notification_enabled: false
             });
-            return;
           }
         } catch (error) {
           console.error('Error checking notification permission:', error);
         }
-        
-        // Default case - use preferences as is
-        setNotificationSettings({
-          notification_enabled: preferences.notification_enabled,
-          theme: preferences.theme,
-          timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-          ai_suggestions_enabled: preferences.ai_suggestions_enabled
-        });
       };
       
-      checkAndUpdateNotifications();
-      setPreferencesLoaded(true);
+      checkNotificationPermission();
     }
   }, [preferences]);
 
