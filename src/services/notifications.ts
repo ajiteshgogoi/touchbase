@@ -341,38 +341,14 @@ export class NotificationService {
         }
       }
 
-      // Get FCM token with mobile-specific handling
+      // Get FCM token
       console.log('Getting FCM token...');
       let currentToken;
       try {
-        // Add delay for mobile service worker readiness
-        const deviceInfo = platform.getDeviceInfo();
-        if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-          console.log('Mobile device detected, adding initialization delay...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-
-        // Ensure service worker is fully ready
-        await this.registration.active?.postMessage({ type: 'INIT_FCM' });
-        
-        // Multiple attempts for mobile
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (attempts < maxAttempts) {
-          try {
-            currentToken = await getToken(messaging, {
-              vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-              serviceWorkerRegistration: this.registration
-            });
-            break;
-          } catch (tokenError) {
-            attempts++;
-            if (attempts === maxAttempts) throw tokenError;
-            console.log(`FCM token attempt ${attempts} failed, retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
+        currentToken = await getToken(messaging, {
+          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+          serviceWorkerRegistration: this.registration
+        });
       } catch (error) {
         console.error('FCM token error:', error);
         // Let the diagnostic error propagate up
