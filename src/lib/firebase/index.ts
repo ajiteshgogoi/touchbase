@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, onMessage, getToken, Messaging } from "firebase/messaging";
 import { supabase } from "../supabase/client";
 import { firebaseConfig } from "./config";
+import { platform } from "../../utils/platform";
 
 // Initialize Firebase app once
 export const app = initializeApp(firebaseConfig);
@@ -17,7 +18,8 @@ export const getFirebaseMessaging = (): Messaging => {
 
 // Function to cleanup Firebase messaging instance
 export const cleanupMessaging = async () => {
-  const deviceId = localStorage.getItem('device_id');
+  const storageKey = platform.getDeviceStorageKey('device_id');
+  const deviceId = localStorage.getItem(storageKey);
   if (!deviceId) {
     console.warn('No device ID found during cleanup');
     return;
@@ -31,25 +33,33 @@ export const cleanupMessaging = async () => {
   }
 
   // Force clear service worker message listeners
-  const registration = await navigator.serviceWorker.ready;
-  const messageChannel = new MessageChannel();
-  if (registration.active) {
-    registration.active.postMessage({
-      type: 'CLEAR_FCM_LISTENERS',
-      deviceId: deviceId // Pass deviceId to service worker for device-specific cleanup
-    }, [messageChannel.port2]);
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const messageChannel = new MessageChannel();
+    if (registration.active) {
+      registration.active.postMessage({
+        type: 'CLEAR_FCM_LISTENERS',
+        deviceId: deviceId
+      }, [messageChannel.port2]);
+    }
+  } catch (error) {
+    console.warn('Error clearing FCM listeners:', error);
   }
   
   // Reset messaging instance
   messagingInstance = null;
 
   // Remove all service workers except Firebase messaging worker
-  const registrations = await navigator.serviceWorker.getRegistrations();
-  for (const reg of registrations) {
-    if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
-      continue;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) {
+      if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
+        continue;
+      }
+      await reg.unregister();
     }
-    await reg.unregister();
+  } catch (error) {
+    console.warn('Error unregistering service workers:', error);
   }
 
   console.log('Cleaned up messaging for device:', deviceId);
@@ -89,7 +99,7 @@ const showNotification = async (title: string, options: ExtendedNotificationOpti
       badge: '/icon-192.png',
       tag: 'touchbase-notification',
       renotify: true,
-      requireInteraction: true
+      requireInteraction: platform.getDeviceInfo().deviceType === 'web'
     };
     await registration.showNotification(title, notificationOptions as NotificationOptions);
   } catch (error) {
@@ -99,69 +109,93 @@ const showNotification = async (title: string, options: ExtendedNotificationOpti
 
 // Helper function to update token in database
 const updateTokenInDatabase = async (userId: string, token: string) => {
-  const deviceId = localStorage.getItem('device_id');
+  const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
   if (!deviceId) {
     console.warn('No device ID found for background refresh, skipping update');
     return;
   }
 
-  // Only update the FCM token, let the notifications service handle device registration
-  const { error } = await supabase
+  // Get current device subscription state
+  const { data: subscription } = await supabase
     .from('push_subscriptions')
-    .update({
-      fcm_token: token,
-      updated_at: new Date().toISOString()
-    })
-    .match({ user_id: userId, device_id: deviceId });
+    .select('enabled')
+    .match({ user_id: userId, device_id: deviceId })
+    .single();
 
-  if (error) {
-    console.error('Error updating FCM token:', error);
-  } else {
-    console.log('FCM token updated in database');
+  // Only update if notifications are enabled
+  if (subscription?.enabled) {
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .update({
+        fcm_token: token,
+        updated_at: new Date().toISOString()
+      })
+      .match({ user_id: userId, device_id: deviceId });
+
+    if (error) {
+      console.error('Error updating FCM token:', error);
+    } else {
+      console.log('FCM token updated in database');
+    }
   }
 };
 
 // Handle token refresh and message handling
 export const initializeTokenRefresh = async (userId: string) => {
   try {
+    // Get device info
+    const deviceInfo = platform.getDeviceInfo();
+    const isMobileDevice = deviceInfo.deviceType !== 'web';
+
     // Wait for service worker to be ready
     const registration = await navigator.serviceWorker.ready;
     const messaging = getFirebaseMessaging();
     
-    // Get current token with service worker registration
-    const currentToken = await getToken(messaging, {
+    // Configuration for token generation
+    const tokenConfig = {
       vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
       serviceWorkerRegistration: registration
-    });
+    };
+
+    // Get current token
+    let currentToken: string | null = null;
+    try {
+      currentToken = await getToken(messaging, tokenConfig);
+    } catch (error) {
+      if (isMobileDevice) {
+        console.warn('Token generation failed on mobile, might be normal:', error);
+        return; // Exit gracefully for mobile devices
+      }
+      throw error; // Re-throw for web devices
+    }
 
     if (currentToken) {
-      // Update token in Supabase
       await updateTokenInDatabase(userId, currentToken);
     }
 
-    // Set up periodic token refresh
-    const refreshToken = async () => {
-      try {
-        // Get the current service worker registration
-        const registration = await navigator.serviceWorker.ready;
-        const messaging = getFirebaseMessaging();
+    // Set up periodic token refresh only for web
+    if (!isMobileDevice) {
+      const refreshToken = async () => {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const newToken = await getToken(messaging, {
+            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            serviceWorkerRegistration: registration
+          });
 
-        const newToken = await getToken(messaging, {
-          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-          serviceWorkerRegistration: registration
-        });
-
-        if (newToken) {
-          await updateTokenInDatabase(userId, newToken);
-          console.log('FCM token refreshed successfully');
+          if (newToken && newToken !== currentToken) {
+            await updateTokenInDatabase(userId, newToken);
+            currentToken = newToken;
+            console.log('FCM token refreshed successfully');
+          }
+        } catch (error) {
+          console.error('Error in token refresh:', error);
         }
-      } catch (error) {
-        console.error('Error in token refresh:', error);
-      }
-    };
+      };
 
-    // Check token every 6 hours (good balance between freshness and server load)
-    setInterval(refreshToken, 6 * 60 * 60 * 1000);
+      // Check token every 6 hours
+      setInterval(refreshToken, 6 * 60 * 60 * 1000);
+    }
 
     // Set up foreground message handler
     onMessage(messaging, async (payload) => {
@@ -174,7 +208,7 @@ export const initializeTokenRefresh = async (userId: string) => {
           {
             body: notification.body,
             data: payload.data,
-            silent: true, // Prevent Chrome PWA prompt
+            silent: isMobileDevice, // Silent on mobile to prevent duplicate notifications
             actions: [
               {
                 action: 'view',
@@ -188,17 +222,12 @@ export const initializeTokenRefresh = async (userId: string) => {
       // Handle token changes if needed
       if (payload.data?.type === 'token_change') {
         try {
-          // Get the current service worker registration
           const registration = await navigator.serviceWorker.ready;
-          const messaging = getFirebaseMessaging();
-
-          const newToken = await getToken(messaging, {
-            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-            serviceWorkerRegistration: registration
-          });
+          const newToken = await getToken(messaging, tokenConfig);
 
           if (newToken && newToken !== currentToken) {
             await updateTokenInDatabase(userId, newToken);
+            currentToken = newToken;
           }
         } catch (error) {
           console.error('Error in token change handler:', error);
@@ -207,6 +236,6 @@ export const initializeTokenRefresh = async (userId: string) => {
     });
   } catch (error) {
     console.error('Error setting up token refresh:', error);
-    throw error; // Re-throw to allow handling by caller
+    throw error;
   }
 };
