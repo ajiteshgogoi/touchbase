@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase/client';
-import { getToken } from "firebase/messaging";
+import { getToken, deleteToken } from "firebase/messaging";
 import { getFirebaseMessaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
@@ -44,7 +44,7 @@ export class NotificationService {
       // If enabling notifications and no FCM token exists, need to resubscribe
       if (enabled && !subscription?.fcm_token) {
         if (deviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
-          await this.subscribeToPushNotifications(userId, true, true);
+          await this.subscribeToPushNotifications(userId, true, enabled);
         } else {
           throw new Error('Cannot enable notifications for inactive device');
         }
@@ -82,7 +82,7 @@ export class NotificationService {
 
       // No subscription or missing token
       if (!subscription?.fcm_token || !deviceId) {
-        await this.subscribeToPushNotifications(userId, true, true);
+        await this.subscribeToPushNotifications(userId, true);
         return;
       }
 
@@ -99,7 +99,7 @@ export class NotificationService {
       const data = await response.json();
       
       if (response.status === 500 && data.error?.includes('FCM token invalid')) {
-        await this.subscribeToPushNotifications(userId, true, true);
+        await this.subscribeToPushNotifications(userId, true);
       }
     } catch (error) {
       console.error('Error in resubscribeIfNeeded:', error);
@@ -199,69 +199,74 @@ export class NotificationService {
         throw new Error('Notification permission denied');
       }
 
-      // Get FCM token before any database operations
-      let currentToken;
-      try {
-        currentToken = await getToken(getFirebaseMessaging(), {
-          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-          serviceWorkerRegistration: this.registration
-        });
-      } catch (error: any) {
-        console.error('FCM token generation failed:', error);
-        // Check for common mobile-specific token errors
-        if (error.code === 'messaging/token-subscribe-failed' || error.code === 'messaging/push-service-error') {
+      // Special handling for mobile devices to handle Chrome session carryover
+      const deviceInfo = platform.getDeviceInfo();
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        // Force cleanup of any existing token and registration
+        try {
+          const messaging = getFirebaseMessaging();
+          await deleteToken(messaging);
+          await cleanupMessaging();
           await this.registration?.unregister();
+          
+          // Clear all service workers
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const reg of registrations) {
+            await reg.unregister();
+          }
+          
+          // Register fresh service worker
           this.registration = await navigator.serviceWorker.register(this.firebaseSWURL, {
             scope: '/',
             updateViaCache: 'none'
           });
-          // Retry token generation once after re-registering service worker
-          currentToken = await getToken(getFirebaseMessaging(), {
-            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-            serviceWorkerRegistration: this.registration
-          });
-        } else {
-          throw new Error('Push service error - ' + error.message);
+          
+          // Wait for activation
+          if (this.registration.installing) {
+            await new Promise<void>((resolve) => {
+              this.registration!.installing!.addEventListener('statechange', function listener(event) {
+                if ((event.target as ServiceWorker).state === 'activated') {
+                  resolve();
+                }
+              });
+            });
+          }
+        } catch (error) {
+          console.warn('Error cleaning up existing registration:', error);
         }
       }
+
+      // Check existing subscription unless forced
+      if (!forceResubscribe) {
+        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+        if (deviceId) {
+          const { data: subscription } = await supabase
+            .rpc('get_device_subscription', {
+              p_user_id: userId,
+              p_device_id: deviceId
+            });
+            
+          if (subscription?.fcm_token && subscription.enabled) {
+            return;
+          }
+        }
+      }
+
+      // Generate new token
+      const currentToken = await getToken(getFirebaseMessaging(), {
+        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+        serviceWorkerRegistration: this.registration
+      });
 
       if (!currentToken) {
         throw new Error('Failed to get FCM token');
       }
 
-      // Only proceed with device info after successful token generation
-      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'))
+      // Get device info and ID
+      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id')) 
         || platform.generateDeviceId();
-      const deviceInfo = platform.getDeviceInfo();
 
-      // Check existing subscription unless forced
-      if (!forceResubscribe) {
-        const { data: subscription } = await supabase
-          .rpc('get_device_subscription', {
-            p_user_id: userId,
-            p_device_id: deviceId
-          });
-          
-        if (subscription?.fcm_token && subscription.enabled) {
-          return;
-        }
-      }
-
-      // Verify browser storage capabilities
-      try {
-        const request = indexedDB.open('fcm-test-db');
-        await new Promise<void>((resolve, reject) => {
-          request.onerror = () => reject(new Error('IndexedDB access denied'));
-          request.onsuccess = () => {
-            request.result.close();
-            resolve();
-          };
-        });
-      } catch (error) {
-        throw new Error('Browser storage access denied - check privacy settings');
-      }
-
-      // Store token with device info only after successful token generation
+      // Store token with device info
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -269,7 +274,7 @@ export class NotificationService {
           fcm_token: currentToken,
           device_id: deviceId,
           device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
-          device_type: deviceInfo.deviceType,
+          device_type: deviceInfo.deviceType === 'web' ? 'web' : deviceInfo.deviceType,
           enabled: enableNotifications,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         }, {
