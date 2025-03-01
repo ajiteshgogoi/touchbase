@@ -21,7 +21,7 @@ const getEnvVar = (key) => {
 async function generateServiceWorker() {
   try {
     // Read the template
-    const swPath = path.join(__dirname, '../public/firebase-messaging-sw.js');
+    const swPath = path.join(__dirname, '../public/sw.js');
     let swContent = await fs.readFile(swPath, 'utf8');
 
     // Replace environment variables
