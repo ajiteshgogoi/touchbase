@@ -8,7 +8,6 @@ import { useStore } from '../stores/useStore';
 import { supabase } from '../lib/supabase/client';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import { notificationService } from '../services/notifications';
-import { platform } from '../utils/platform';
 import type { NotificationSettings } from '../types/settings';
 import type { UserPreferences } from '../lib/supabase/types';
 import type { Subscription } from '../types/subscription';
@@ -265,28 +264,15 @@ export const Settings = () => {
         }
       }
 
-      // Handle notification permission and device state
+      // Handle notification permission
       if (newSettings.notification_enabled) {
         const hasPermission = await notificationService.checkPermission();
         if (!hasPermission) {
           throw new Error('Notification permission denied');
         }
-
-        // Get or create device subscription when enabling notifications
-        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-        if (deviceId) {
-          // Existing device - enable it
-          await notificationService.subscribeToPushNotifications(user.id, false, true);
-        } else {
-          // New device - register and enable it
-          await notificationService.subscribeToPushNotifications(user.id, true, true);
-        }
+        await notificationService.subscribeToPushNotifications(user.id);
       } else {
-        // When disabling globally, disable all devices but keep registrations
-        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-        if (deviceId) {
-          await notificationService.unsubscribeFromPushNotifications(user.id, deviceId, false);
-        }
+        await notificationService.unsubscribeFromPushNotifications(user.id);
       }
 
       const { error } = await supabase
