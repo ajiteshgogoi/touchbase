@@ -18,9 +18,14 @@ export class NotificationService {
 
   async getCurrentDeviceNotificationState(userId: string): Promise<boolean> {
     console.log(`${DEBUG_PREFIX} Checking device notification state...`);
-    const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+    const deviceInfo = platform.getDeviceInfo();
+    const isMobile = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios';
+    const deviceId = isMobile
+      ? sessionStorage.getItem('mobile_fcm_device_id')
+      : localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+
     if (!deviceId) {
-      console.log(`${DEBUG_PREFIX} No device ID found`);
+      console.log(`${DEBUG_PREFIX} No device ID found for ${isMobile ? 'mobile' : 'desktop'}`);
       return false;
     }
     
@@ -32,6 +37,7 @@ export class NotificationService {
 
     console.log(`${DEBUG_PREFIX} Device notification state:`, {
       deviceId,
+      deviceType: isMobile ? 'mobile' : 'desktop',
       enabled: !!data?.enabled
     });
     return !!data?.enabled;
@@ -402,7 +408,11 @@ export class NotificationService {
     }
 
     // For device-specific checks, also check device state
-    const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+    const deviceInfo = platform.getDeviceInfo();
+    const isMobile = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios';
+    const deviceId = isMobile
+      ? sessionStorage.getItem('mobile_fcm_device_id')
+      : localStorage.getItem(platform.getDeviceStorageKey('device_id'));
     if (deviceId) {
       console.log(`${DEBUG_PREFIX} Checking device-specific state...`);
       const { data: subscription } = await supabase
