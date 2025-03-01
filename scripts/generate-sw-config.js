@@ -35,15 +35,43 @@ async function generateServiceWorker() {
       measurementId: getEnvVar('VITE_FIREBASE_MEASUREMENT_ID')
     };
 
-    // Map each environment variable to its value
-    Object.entries(firebaseConfig).forEach(([key, value]) => {
-      const envKey = `VITE_FIREBASE_${key.toUpperCase()}`;
-      swContent = swContent.replace(`"${envKey}"`, `"${value}"`);
+    // Replace Firebase config values maintaining the exact placeholder format
+    const configReplacements = {
+      "VITE_FIREBASE_API_KEY": firebaseConfig.apiKey,
+      "VITE_FIREBASE_AUTH_DOMAIN": firebaseConfig.authDomain,
+      "VITE_FIREBASE_PROJECT_ID": firebaseConfig.projectId,
+      "VITE_FIREBASE_STORAGE_BUCKET": firebaseConfig.storageBucket,
+      "VITE_FIREBASE_MESSAGING_SENDER_ID": firebaseConfig.messagingSenderId,
+      "VITE_FIREBASE_APP_ID": firebaseConfig.appId,
+      "VITE_FIREBASE_MEASUREMENT_ID": firebaseConfig.measurementId
+    };
+
+    // Replace each placeholder with its actual value
+    Object.entries(configReplacements).forEach(([placeholder, value]) => {
+      swContent = swContent.replace(`"${placeholder}"`, `"${value}"`);
     });
 
     // Write the modified content
+    // Verify all placeholders were replaced
+    const remainingPlaceholders = Object.keys(configReplacements).filter(placeholder =>
+      swContent.includes(`"${placeholder}"`)
+    );
+
+    if (remainingPlaceholders.length > 0) {
+      throw new Error(`Failed to replace Firebase config placeholders: ${remainingPlaceholders.join(', ')}`);
+    }
+
+    // Verify no empty values
+    const emptyValues = Object.entries(configReplacements)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (emptyValues.length > 0) {
+      throw new Error(`Missing Firebase config values for: ${emptyValues.join(', ')}`);
+    }
+
     await fs.writeFile(swPath, swContent);
-    console.log('Firebase messaging service worker configured successfully');
+    console.log('Firebase messaging service worker configuration verified and updated successfully');
   } catch (error) {
     console.error('Error generating service worker:', error);
     process.exit(1);
