@@ -242,7 +242,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0">
                   {/* Show notification toggle if global notifications are enabled */}
                   {preferences?.notification_enabled && (
                     <div className="flex items-center justify-between sm:justify-start gap-2 order-first sm:order-none sm:mr-3">
