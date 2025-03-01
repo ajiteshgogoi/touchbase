@@ -203,7 +203,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
             <p className="text-gray-600/90 text-sm">No devices registered for notifications.</p>
           </div>
         ) : (
-          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 overflow-hidden divide-y divide-gray-100/50">
+          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 overflow-hidden divide-y divide-gray-100/50 pr-0">
             {devices.map((device) => (
               <div
                 key={device.device_id}
@@ -279,7 +279,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   <button
                     onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
                     disabled={unregisterDeviceMutation.isPending}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+                    className="w-full sm:w-auto inline-flex items-center justify-center pl-4 pr-4 sm:pr-3 py-2 text-sm font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
                   >
                     {unregisterDeviceMutation.isPending ? (
                       <div className="flex items-center gap-2">
