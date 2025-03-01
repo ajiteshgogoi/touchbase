@@ -14,21 +14,10 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Handle installation with mobile-optimized initialization
+// Handle installation
 self.addEventListener('install', (event) => {
-debug('Installing Firebase messaging service worker...');
-// Force activation but allow time for push service initialization on mobile
-event.waitUntil(
-  (async () => {
-    await self.skipWaiting();
-    // Add delay only on mobile devices
-    const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
-    if (isMobile) {
-      debug('Mobile device detected, adding extended initialization delay...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-  })()
-);
+  debug('Installing Firebase messaging service worker...');
+  self.skipWaiting();
 });
 
 // Handle activation requests and FCM cleanup
@@ -139,82 +128,47 @@ function initializeFirebase() {
   return firebase.messaging();
 }
 
-// Initialize messaging with enhanced mobile support
+// Initialize messaging with error handling
 let messaging;
-
-const initializeMessaging = async (attempt = 1) => {
-  const maxAttempts = 5;
-  const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
-  const baseDelay = isMobile ? 3000 : 1000; // Longer base delay for mobile
-
-  try {
-    messaging = initializeFirebase();
-    debug('Firebase messaging initialized successfully');
-    return messaging;
-  } catch (error) {
-    debug(`Error initializing Firebase (attempt ${attempt}/${maxAttempts}):`, error);
-
-    if (attempt < maxAttempts) {
-      // Exponential backoff with jitter
-      const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), 10000) +
-                   Math.random() * 1000;
-      debug(`Retrying in ${Math.round(delay)}ms...`);
-      
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return initializeMessaging(attempt + 1);
+try {
+  messaging = initializeFirebase();
+  debug('Firebase messaging initialized successfully');
+} catch (error) {
+  debug('Error initializing Firebase:', error);
+  // Attempt recovery after a short delay (helps on mobile)
+  setTimeout(() => {
+    try {
+      messaging = initializeFirebase();
+      debug('Firebase messaging initialized successfully on retry');
+    } catch (retryError) {
+      debug('Fatal error initializing Firebase:', retryError);
     }
-    
-    throw new Error(`Failed to initialize Firebase after ${maxAttempts} attempts`);
-  }
-};
+  }, 1000);
+}
 
-// Start initialization
-initializeMessaging().catch(error => {
-  debug('Fatal error during Firebase initialization:', error);
-});
-
-// Handle background messages with advanced mobile support and smart retries
+// Handle background messages with enhanced mobile support and retries
 messaging.onBackgroundMessage(async (payload) => {
   debug('Received background message:', payload);
 
-  const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
-  const maxAttempts = isMobile ? 5 : 3;
+  const maxAttempts = 3;
   let attempt = 0;
-
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const getRetryDelay = (attempt) => {
-    const baseDelay = isMobile ? 2000 : 1000;
-    return Math.min(baseDelay * Math.pow(2, attempt), 10000) + Math.random() * 1000;
-  };
-
-  const verifyMessagingHealth = async () => {
-    if (!messaging || !firebase.messaging) {
-      debug('Messaging instance needs reinitialization...');
-      try {
-        messaging = await initializeMessaging();
-        return true;
-      } catch (error) {
-        debug('Failed to reinitialize messaging:', error);
-        return false;
-      }
-    }
-    return true;
-  };
 
   const processNotification = async () => {
     try {
       debug(`Processing notification attempt ${attempt + 1}/${maxAttempts}`);
       
-      if (!(await verifyMessagingHealth())) {
-        throw new Error('Messaging health check failed');
+      // Verify messaging instance is healthy
+      if (!messaging || !firebase.messaging) {
+        debug('Messaging instance lost, reinitializing...');
+        messaging = initializeFirebase();
       }
 
-      // Enhanced data extraction for different message formats
+      // For background messages, FCM puts the data in a different structure
       const notificationData = payload.notification || payload.data || {};
-      debug('Processing notification data:', notificationData);
+      debug('Extracted notification data:', notificationData);
 
-      const deviceId = self.CLEANED_DEVICE_ID || `device-${Date.now()}`;
+      // Get stored device ID from the cleanup process or fallback
+      const deviceId = self.CLEANED_DEVICE_ID || 'unknown-device';
       
       const notificationTitle = notificationData.title || 'New Message';
       const notificationOptions = {
@@ -223,10 +177,8 @@ messaging.onBackgroundMessage(async (payload) => {
         badge: self.location.origin + '/icon-192.png',
         data: {
           ...(payload.data || {}),
-          deviceId,
-          timestamp: new Date().toISOString(),
-          attempt: attempt + 1,
-          isMobile
+          deviceId: deviceId,
+          timestamp: new Date().toISOString()
         },
         tag: `touchbase-notification-${deviceId}`,
         renotify: true,
@@ -236,42 +188,21 @@ messaging.onBackgroundMessage(async (payload) => {
             action: 'view',
             title: 'View'
           }
-        ],
-        // Mobile-specific options
-        ...(isMobile && {
-          vibrate: [200, 100, 200],
-          silent: false
-        })
+        ]
       };
 
-      debug('Attempting to show notification:', {
-        title: notificationTitle,
-        options: notificationOptions,
-        attempt: attempt + 1
-      });
-
+      debug('Showing notification with:', { title: notificationTitle, options: notificationOptions });
       await self.registration.showNotification(notificationTitle, notificationOptions);
-      debug('Notification displayed successfully');
+      debug('Notification shown successfully');
       
       return true;
     } catch (error) {
-      const isTemporaryError = error.name === 'NotAllowedError' ||
-                              error.message.includes('permission') ||
-                              error.message.includes('push service');
-      
-      debug('Notification error:', {
-        attempt: attempt + 1,
-        error: error.toString(),
-        name: error.name,
-        temporary: isTemporaryError,
-        mobile: isMobile
-      });
+      debug('Error in attempt ' + (attempt + 1), error);
       
       if (attempt < maxAttempts - 1) {
         attempt++;
-        const delay = getRetryDelay(attempt);
-        debug(`Scheduling retry in ${delay}ms...`);
-        await sleep(delay);
+        debug('Retrying notification display...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
         return processNotification();
       }
       
@@ -281,16 +212,15 @@ messaging.onBackgroundMessage(async (payload) => {
 
   try {
     await processNotification();
-    debug('Notification chain completed successfully');
+    debug('Notification processing completed successfully');
   } catch (error) {
-    debug('Background message processing failed:', {
+    debug('All notification attempts failed:', {
       error: error.toString(),
       name: error.name,
       message: error.message,
-      attempts: attempt + 1,
-      isMobile
+      stack: error.stack
     });
-  }
+   }
 });
 
 // Handle notification clicks
