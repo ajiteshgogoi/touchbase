@@ -161,17 +161,16 @@ export const initializeTokenRefresh = async (userId: string) => {
     let currentToken: string | null = null;
     try {
       currentToken = await getToken(messaging, tokenConfig);
-    } catch (error) {
-      if (isMobileDevice) {
-        console.warn('Token generation failed on mobile, might be normal:', error);
-        return; // Exit gracefully for mobile devices
+      if (!currentToken) {
+        throw new Error('Failed to generate FCM token');
       }
-      throw error; // Re-throw for web devices
+    } catch (error) {
+      // Don't ignore token generation errors, regardless of platform
+      console.error('Token generation failed:', error);
+      throw error;
     }
 
-    if (currentToken) {
-      await updateTokenInDatabase(userId, currentToken);
-    }
+    await updateTokenInDatabase(userId, currentToken);
 
     // Set up periodic token refresh only for web
     if (!isMobileDevice) {
