@@ -1,5 +1,4 @@
 import { platform } from '../utils/platform';
-
 import { DeviceInfo } from '../utils/platform';
 
 export class NotificationDiagnostics {
@@ -9,11 +8,116 @@ export class NotificationDiagnostics {
     this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
   }
 
+  private logDiagnosticState(context: string, state: Record<string, any>) {
+    console.debug(`[FCM Diagnostics] ${context}:`, JSON.stringify(state, null, 2));
+  }
+
+  private async getStorageQuota(): Promise<Record<string, any>> {
+    try {
+      if (!navigator.storage || !navigator.storage.estimate) {
+        return {
+          available: false,
+          error: 'Storage API not supported'
+        };
+      }
+
+      const estimate = await navigator.storage.estimate();
+      const usage = estimate.usage || 0;
+      const quota = estimate.quota || 0;
+      const percentage = quota ? (usage / quota) * 100 : 0;
+
+      return {
+        available: true,
+        usage,
+        quota,
+        percentage,
+        remaining: quota - usage
+      };
+    } catch (error: any) {
+      return {
+        available: false,
+        error: error.message
+      };
+    }
+  }
+
+  private async getServiceWorkerState(): Promise<Record<string, any>> {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    const firebaseSW = registrations.find(reg => reg.active?.scriptURL === this.firebaseSWURL);
+    
+    return {
+      hasFirebaseSW: !!firebaseSW,
+      swState: firebaseSW?.active?.state || 'none',
+      totalRegistrations: registrations.length,
+      registeredScripts: registrations.map(reg => reg.active?.scriptURL).filter(Boolean)
+    };
+  }
+
+  private async getIndexedDBState(): Promise<Record<string, any>> {
+    try {
+      const databases = await window.indexedDB.databases();
+      const request = indexedDB.open('fcm-test-db');
+      
+      const state = await new Promise<Record<string, any>>((resolve) => {
+        request.onerror = () => resolve({
+          available: false,
+          error: request.error?.message || 'Access denied',
+          errorCode: request.error?.name || 'Unknown'
+        });
+        
+        request.onsuccess = () => {
+          const db = request.result;
+          const state = {
+            available: true,
+            version: db.version,
+            objectStoreNames: Array.from(db.objectStoreNames),
+            existingDatabases: databases.map(db => db.name)
+          };
+          db.close();
+          resolve(state);
+        };
+      });
+
+      return state;
+    } catch (error: any) {
+      return {
+        available: false,
+        error: error.message,
+        errorCode: error.name,
+        privateBrowsing: !window.indexedDB.databases
+      };
+    }
+  }
+
   async handleFCMError(error: any, deviceInfo: DeviceInfo): Promise<never> {
+    // Collect comprehensive diagnostic information
+    const diagnosticState = {
+      error: {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      },
+      device: deviceInfo,
+      serviceWorker: await this.getServiceWorkerState(),
+      indexedDB: await this.getIndexedDBState(),
+      storage: await this.getStorageQuota(),
+      browserFeatures: {
+        serviceWorkerSupported: 'serviceWorker' in navigator,
+        notificationSupported: 'Notification' in window,
+        notificationPermission: Notification.permission,
+        persistentStorageSupported: 'persist' in navigator.storage,
+        cookiesEnabled: navigator.cookieEnabled,
+        language: navigator.language,
+        onLine: navigator.onLine
+      }
+    };
+
+    this.logDiagnosticState('FCM Registration Failed', diagnosticState);
+
     // Mobile-specific error handling with improved diagnostics
     if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
       const errorMessage = error.message?.toLowerCase() || '';
-      console.error('Mobile FCM registration error:', error);
+      console.error('Mobile FCM registration error:', diagnosticState);
       
       // Check for common mobile-specific errors
       if (errorMessage.includes('messaging/permission-blocked')) {
@@ -50,10 +154,10 @@ export class NotificationDiagnostics {
       // For mobile token errors, attempt cleanup and recheck
       if (errorMessage.includes('messaging/token') || errorMessage.includes('fcm_token')) {
         console.log('FCM token error detected, checking service worker state...');
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        const hasFirebaseSW = registrations.some(reg => reg.active?.scriptURL === this.firebaseSWURL);
+        const swState = await this.getServiceWorkerState();
+        this.logDiagnosticState('Service Worker State', swState);
         
-        if (!hasFirebaseSW) {
+        if (!swState.hasFirebaseSW) {
           throw new Error('Firebase service worker not found. Please refresh the page and try again.');
         }
 
@@ -76,51 +180,105 @@ export class NotificationDiagnostics {
 
   async getDiagnosticInfo(): Promise<string> {
     try {
-      // Check service worker registration
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      const hasFirebaseSW = registrations.some(reg => reg.active?.scriptURL === this.firebaseSWURL);
-      if (!hasFirebaseSW) {
-        return 'Firebase service worker not found. Please try refreshing the page.';
+      const swState = await this.getServiceWorkerState();
+      const idbState = await this.getIndexedDBState();
+      const storageQuota = await this.getStorageQuota();
+      const deviceInfo = platform.getDeviceInfo();
+
+      // Log detailed diagnostic state for debugging
+      this.logDiagnosticState('Detailed Diagnostics', {
+        serviceWorker: swState,
+        indexedDB: idbState,
+        storage: storageQuota,
+        device: deviceInfo,
+        browser: {
+          userAgent: navigator.userAgent,
+          vendor: navigator.vendor,
+          language: navigator.language,
+          onLine: navigator.onLine,
+          cookiesEnabled: navigator.cookieEnabled,
+          doNotTrack: navigator.doNotTrack,
+        },
+        notification: {
+          permission: Notification.permission,
+          supported: 'Notification' in window
+        }
+      });
+
+      const issues: string[] = [];
+
+      // Service Worker Diagnostics
+      if (!swState.hasFirebaseSW) {
+        issues.push('Firebase service worker not found');
+      } else if (swState.swState !== 'activated') {
+        issues.push(`Service worker state: ${swState.swState}`);
+      }
+      if (swState.totalRegistrations > 1) {
+        issues.push(`Multiple service workers detected (${swState.totalRegistrations})`);
       }
 
-      // Check notification permission
+      // Notification Permission Diagnostics
       const permission = Notification.permission;
       if (permission === 'denied') {
-        return 'Notification permission denied. Please enable in browser settings.';
+        issues.push('Notification permission denied in browser settings');
+      } else if (permission === 'default') {
+        issues.push('Notification permission not granted');
       }
 
-      // Check IndexedDB access
-      try {
-        const request = indexedDB.open('fcm-test-db');
-        await new Promise<void>((resolve, reject) => {
-          request.onerror = () => reject(new Error('IndexedDB access denied'));
-          request.onsuccess = () => {
-            request.result.close();
-            resolve();
-          };
-        });
-      } catch {
-        return 'Browser storage access denied. Please check privacy settings.';
+      // IndexedDB Diagnostics
+      if (!idbState.available) {
+        if (idbState.privateBrowsing) {
+          issues.push('Private browsing mode detected - IndexedDB restricted');
+        } else {
+          issues.push(`IndexedDB error: ${idbState.error}`);
+        }
       }
 
-      return '';
+      // Storage Quota Diagnostics
+      if (!storageQuota.available) {
+        issues.push('Storage API not available');
+      } else if (storageQuota.percentage > 90) {
+        issues.push(`Storage nearly full (${Math.round(storageQuota.percentage)}% used)`);
+      }
+
+      // Device-specific Diagnostics
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        // Mobile-specific checks
+        if (!deviceInfo.isTWA && !deviceInfo.isPWA) {
+          issues.push('Running in browser mode - consider installing the app for better reliability');
+        }
+        
+        // Only check Play Services on Android
+        if (deviceInfo.deviceType === 'android') {
+          const playServices = await this.checkPlayServicesStatus();
+          if (playServices.includes('missing') || playServices.includes('outdated')) {
+            issues.push('Google Play Services issue detected');
+          }
+        }
+
+        // Network connectivity check
+        if (!navigator.onLine) {
+          issues.push('No network connectivity');
+        }
+      }
+
+      // Return all issues or empty string if none found
+      return issues.length > 0 ? issues.join('; ') : '';
     } catch (error) {
       console.error('Error getting diagnostic info:', error);
-      return 'Could not complete diagnostic checks.';
+      this.logDiagnosticState('Diagnostic Error', { error });
+      return 'Could not complete diagnostic checks';
     }
   }
 
   async checkPlayServicesStatus(): Promise<string> {
     try {
-      // Check if on Android
       if (!platform.isAndroid()) {
         return 'Please ensure notifications are enabled in system settings.';
       }
 
-      // Check if running as TWA/PWA
       const deviceInfo = platform.getDeviceInfo();
       if (deviceInfo.isTWA || deviceInfo.isPWA) {
-        // For TWA/PWA, we can check Google Play Services indirectly
         if (typeof PaymentRequest !== 'undefined') {
           try {
             const request = new PaymentRequest(
