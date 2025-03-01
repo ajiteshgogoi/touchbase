@@ -220,13 +220,10 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                       {/* Show notification toggle if global notifications are enabled */}
                       {preferences?.notification_enabled && (
                         <div className="flex items-center gap-2">
-                          <label 
-                            htmlFor={`notification-toggle-${device.device_id}`}
-                            className="text-sm text-gray-600/90"
-                          >
+                          <span className="text-sm text-gray-600/90">
                             Notifications
-                          </label>
-                          <div className="relative inline-flex cursor-pointer">
+                          </span>
+                          <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               id={`notification-toggle-${device.device_id}`}
                               type="checkbox"
@@ -240,17 +237,17 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                               }}
                             />
                             <div className={`
-                              w-9 h-5 rounded-full 
+                              w-9 h-5 rounded-full
                               after:content-[''] after:absolute after:top-0.5 after:left-0.5
-                              after:bg-white after:border after:border-gray-300 after:rounded-full 
+                              after:bg-white after:border after:border-gray-300 after:rounded-full
                               after:h-4 after:w-4 after:transition-all
-                              ${device.enabled 
-                                ? 'bg-primary-500 after:translate-x-4' 
+                              ${device.enabled
+                                ? 'bg-primary-500 after:translate-x-4'
                                 : 'bg-gray-200'
                               }
                               peer-disabled:opacity-50 peer-disabled:cursor-not-allowed
                             `}></div>
-                          </div>
+                          </label>
                         </div>
                       )}
                       <button
