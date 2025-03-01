@@ -372,10 +372,10 @@ export class NotificationService {
             [channel.port2]
           );
   
-          // Add shorter timeout for initialization
+          // Allow more time for forced reinitialization
           setTimeout(() => {
-            reject(new Error('Service worker did not respond to initialization request'));
-          }, 5000);
+            reject(new Error('Service worker initialization timed out - check browser console for details'));
+          }, 8000);
         });
   
         // Multiple attempts for token retrieval

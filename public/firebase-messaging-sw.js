@@ -22,9 +22,16 @@ const firebaseConfig = {
 // Global messaging instance
 let messagingInstance = null;
 
-// Initialize Firebase and get messaging instance
-async function initializeMessaging() {
+// Initialize Firebase and return active messaging instance
+async function initializeMessaging(force = false) {
   try {
+    // If we already have messaging and not forcing, return it
+    if (!force && messagingInstance && firebase.apps.length) {
+      debug('Using existing Firebase messaging instance');
+      return messagingInstance;
+    }
+
+    // Clean up if needed
     if (firebase.apps.length) {
       debug('Cleaning up existing Firebase instances...');
       await Promise.all(firebase.apps.map(app => app.delete()));
@@ -41,7 +48,7 @@ async function initializeMessaging() {
   }
 }
 
-// Handle activation
+// Initialize messaging on activation
 self.addEventListener('activate', (event) => {
   debug('Activating Firebase messaging service worker...');
   event.waitUntil(self.clients.claim());
@@ -59,21 +66,23 @@ self.addEventListener('message', async (event) => {
     debug('FCM initialization message received');
     
     try {
-      await initializeMessaging();
+      // Force fresh initialization for explicit init requests
+      const instance = await initializeMessaging(true);
       
+      if (!instance) {
+        throw new Error('Failed to initialize Firebase messaging');
+      }
+      
+      debug('FCM explicitly initialized');
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({
-          success: true,
-          message: 'FCM initialized'
-        });
+        event.ports[0].postMessage({ success: true });
       }
     } catch (error) {
       debug('FCM initialization error:', error);
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ 
-          success: false, 
-          error: `FCM initialization failed: ${error.message}`,
-          code: error.code || 'unknown'
+        event.ports[0].postMessage({
+          success: false,
+          error: error.message
         });
       }
     }
@@ -128,9 +137,11 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 });
 
 // Set up initial messaging instance
-initializeMessaging().then(() => {
+initializeMessaging().then((messaging) => {
+  if (!messaging) return;
+  
   // Handle background messages
-  messagingInstance.onBackgroundMessage(async (payload) => {
+  messaging.onBackgroundMessage(async (payload) => {
     debug('Received background message:', payload);
     const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
 
