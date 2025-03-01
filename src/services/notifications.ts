@@ -8,7 +8,7 @@ export class NotificationService {
   private readonly firebaseSWURL: string;
 
   constructor() {
-    this.firebaseSWURL = new URL('/sw.js', window.location.origin).href;
+    this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
   }
 
   // Get notification state for specific device
