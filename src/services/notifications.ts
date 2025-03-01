@@ -343,18 +343,21 @@ export class NotificationService {
 
       // Get FCM token
       console.log('Getting FCM token...');
-      const currentToken = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-        serviceWorkerRegistration: this.registration
-      }).catch(async error => {
+      let currentToken;
+      try {
+        currentToken = await getToken(messaging, {
+          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+          serviceWorkerRegistration: this.registration
+        });
+      } catch (error) {
         console.error('FCM token error:', error);
-        
-        // Handle FCM token error with diagnostics
-        await notificationDiagnostics.handleFCMError(error, deviceInfo);
-      });
+        // Let the diagnostic error propagate up
+        throw await notificationDiagnostics.handleFCMError(error, deviceInfo);
+      }
 
       if (!currentToken) {
-        throw new Error('Failed to get FCM token');
+        // This should never happen as handleFCMError will throw if token retrieval fails
+        throw new Error('Failed to get FCM token - no error was thrown but token is null');
       }
 
       console.log('Successfully obtained FCM token');
