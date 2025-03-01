@@ -193,8 +193,44 @@ export class NotificationService {
         await this.initialize();
       }
 
-      // Get device info
-      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id')) 
+      // Request notification permission first
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notification permission denied');
+      }
+
+      // Get FCM token before any database operations
+      let currentToken;
+      try {
+        currentToken = await getToken(getFirebaseMessaging(), {
+          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+          serviceWorkerRegistration: this.registration
+        });
+      } catch (error: any) {
+        console.error('FCM token generation failed:', error);
+        // Check for common mobile-specific token errors
+        if (error.code === 'messaging/token-subscribe-failed' || error.code === 'messaging/push-service-error') {
+          await this.registration?.unregister();
+          this.registration = await navigator.serviceWorker.register(this.firebaseSWURL, {
+            scope: '/',
+            updateViaCache: 'none'
+          });
+          // Retry token generation once after re-registering service worker
+          currentToken = await getToken(getFirebaseMessaging(), {
+            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            serviceWorkerRegistration: this.registration
+          });
+        } else {
+          throw new Error('Push service error - ' + error.message);
+        }
+      }
+
+      if (!currentToken) {
+        throw new Error('Failed to get FCM token');
+      }
+
+      // Only proceed with device info after successful token generation
+      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'))
         || platform.generateDeviceId();
       const deviceInfo = platform.getDeviceInfo();
 
@@ -211,13 +247,7 @@ export class NotificationService {
         }
       }
 
-      // Request notification permission
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        throw new Error('Notification permission denied');
-      }
-
-      // Verify IndexedDB access
+      // Verify browser storage capabilities
       try {
         const request = indexedDB.open('fcm-test-db');
         await new Promise<void>((resolve, reject) => {
@@ -231,17 +261,7 @@ export class NotificationService {
         throw new Error('Browser storage access denied - check privacy settings');
       }
 
-      // Get FCM token
-      const currentToken = await getToken(getFirebaseMessaging(), {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-        serviceWorkerRegistration: this.registration
-      });
-
-      if (!currentToken) {
-        throw new Error('Failed to get FCM token');
-      }
-
-      // Store token with device info
+      // Store token with device info only after successful token generation
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
