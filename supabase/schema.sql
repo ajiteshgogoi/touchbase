@@ -99,6 +99,7 @@ create table public.push_subscriptions (
     expires_at timestamp with time zone not null default (now() + interval '30 days'),
     last_refresh timestamp with time zone default now(),
     refresh_count integer default 0,
+    enabled boolean not null default false,
     constraint unique_user_device unique (user_id, device_id)
 );
 
