@@ -8,45 +8,76 @@ const debug = (...args) => {
   console.log(`[FCM-SW ${timestamp}]`, ...args);
 };
 
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "VITE_FIREBASE_API_KEY",
+  authDomain: "VITE_FIREBASE_AUTH_DOMAIN",
+  projectId: "VITE_FIREBASE_PROJECT_ID",
+  storageBucket: "VITE_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "VITE_FIREBASE_APP_ID",
+  measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
+};
+
+// Global messaging instance
+let messagingInstance = null;
+
+// Initialize Firebase and get messaging instance
+async function initializeMessaging() {
+  try {
+    if (firebase.apps.length) {
+      debug('Cleaning up existing Firebase instances...');
+      await Promise.all(firebase.apps.map(app => app.delete()));
+    }
+
+    debug('Initializing fresh Firebase instance...');
+    const app = firebase.initializeApp(firebaseConfig);
+    messagingInstance = firebase.messaging(app);
+    
+    // Test token generation
+    await messagingInstance.getToken();
+    debug('Firebase messaging initialized and verified');
+    return messagingInstance;
+  } catch (error) {
+    debug('Error initializing Firebase messaging:', error);
+    throw error;
+  }
+}
+
 // Handle activation
 self.addEventListener('activate', (event) => {
   debug('Activating Firebase messaging service worker...');
   event.waitUntil(self.clients.claim());
 });
 
-// Handle installation - keep it simple, client handles delays
+// Handle installation
 self.addEventListener('install', (event) => {
   debug('Installing Firebase messaging service worker...');
   event.waitUntil(self.skipWaiting());
 });
 
-// Handle activation requests and FCM cleanup
-self.addEventListener('message', (event) => {
+// Handle messages
+self.addEventListener('message', async (event) => {
   if (event.data?.type === 'INIT_FCM') {
     debug('FCM initialization message received');
+    
     try {
-      // Re-initialize Firebase if needed
-      if (!firebase.messaging) {
-        debug('Reinitializing Firebase...');
-        const app = firebase.initializeApp({
-          apiKey: "VITE_FIREBASE_API_KEY",
-          authDomain: "VITE_FIREBASE_AUTH_DOMAIN",
-          projectId: "VITE_FIREBASE_PROJECT_ID",
-          storageBucket: "VITE_FIREBASE_STORAGE_BUCKET",
-          messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID",
-          appId: "VITE_FIREBASE_APP_ID",
-          measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
-        });
-        firebase.messaging(app);
-      }
-      // Send acknowledgment back to client
+      await initializeMessaging();
+      
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ success: true, message: 'FCM initialized' });
+        event.ports[0].postMessage({ 
+          success: true, 
+          message: 'FCM initialized and verified' 
+        });
       }
     } catch (error) {
       debug('FCM initialization error:', error);
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ success: false, error: error.message });
+        event.ports[0].postMessage({ 
+          success: false, 
+          error: `FCM initialization failed: ${error.message}`,
+          code: error.code || 'unknown'
+        });
       }
     }
   } else if (event.data?.type === 'SKIP_WAITING') {
@@ -57,17 +88,17 @@ self.addEventListener('message', (event) => {
     debug('Clearing FCM listeners for device:', deviceId);
     self.CLEANED_DEVICE_ID = deviceId;
 
-    // Remove push subscription for clean state
-    self.registration.pushManager.getSubscription().then(subscription => {
-      if (subscription) {
-        debug('Unsubscribing push subscription for device:', deviceId);
-        subscription.unsubscribe();
-      }
-    });
+    // Remove push subscription
+    const subscription = await self.registration.pushManager.getSubscription();
+    if (subscription) {
+      debug('Unsubscribing push subscription for device:', deviceId);
+      await subscription.unsubscribe();
+    }
 
-    // Reset Firebase messaging state
-    if (firebase.messaging) {
-      delete firebase.messaging;
+    // Reset Firebase messaging
+    messagingInstance = null;
+    if (firebase.apps.length) {
+      await Promise.all(firebase.apps.map(app => app.delete()));
     }
 
     // Notify client
@@ -82,11 +113,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   debug('Push subscription change event received');
   event.waitUntil((async () => {
     try {
-      // Force a fresh messaging instance
-      if (firebase.messaging) {
-        delete firebase.messaging;
-      }
-      initializeFirebase();
+      await initializeMessaging();
       debug('Firebase reinitialized after subscription change');
       
       // Notify clients of change
@@ -103,69 +130,44 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   })());
 });
 
-// Initialize Firebase
-function initializeFirebase() {
-  if (firebase.apps.length) {
-    debug('Firebase already initialized, cleaning up...');
-    firebase.apps.forEach(app => app.delete());
-  }
+// Set up initial messaging instance
+initializeMessaging().then(() => {
+  // Handle background messages
+  messagingInstance.onBackgroundMessage(async (payload) => {
+    debug('Received background message:', payload);
+    const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
 
-  debug('Initializing Firebase...');
-  firebase.initializeApp({
-    apiKey: "VITE_FIREBASE_API_KEY",
-    authDomain: "VITE_FIREBASE_AUTH_DOMAIN",
-    projectId: "VITE_FIREBASE_PROJECT_ID",
-    storageBucket: "VITE_FIREBASE_STORAGE_BUCKET",
-    messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID",
-    appId: "VITE_FIREBASE_APP_ID",
-    measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
+    try {
+      const notificationData = payload.notification || payload.data || {};
+      const deviceId = self.CLEANED_DEVICE_ID || `device-${Date.now()}`;
+      
+      await self.registration.showNotification(notificationData.title || 'New Message', {
+        body: notificationData.body,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: 'touchbase-notification',
+        renotify: true,
+        requireInteraction: true,
+        data: {
+          ...(payload.data || {}),
+          deviceId,
+          timestamp: new Date().toISOString()
+        },
+        actions: [{ action: 'view', title: 'View' }],
+        ...(isMobile && {
+          vibrate: [200, 100, 200],
+          silent: false
+        })
+      });
+      
+      debug('Notification displayed successfully');
+    } catch (error) {
+      debug('Background message processing error:', error);
+      throw error;
+    }
   });
-  
-  return firebase.messaging();
-}
-
-// Initialize messaging
-let messaging;
-try {
-  messaging = initializeFirebase();
-  debug('Initial messaging setup complete');
-} catch (error) {
+}).catch(error => {
   debug('Error during initial Firebase setup:', error);
-}
-
-// Handle background messages
-messaging?.onBackgroundMessage(async (payload) => {
-  debug('Received background message:', payload);
-  const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
-
-  try {
-    const notificationData = payload.notification || payload.data || {};
-    const deviceId = self.CLEANED_DEVICE_ID || `device-${Date.now()}`;
-    
-    await self.registration.showNotification(notificationData.title || 'New Message', {
-      body: notificationData.body,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      tag: 'touchbase-notification',
-      renotify: true,
-      requireInteraction: true,
-      data: {
-        ...(payload.data || {}),
-        deviceId,
-        timestamp: new Date().toISOString()
-      },
-      actions: [{ action: 'view', title: 'View' }],
-      ...(isMobile && {
-        vibrate: [200, 100, 200],
-        silent: false
-      })
-    });
-    
-    debug('Notification displayed successfully');
-  } catch (error) {
-    debug('Background message processing error:', error);
-    throw error;
-  }
 });
 
 // Handle notification clicks

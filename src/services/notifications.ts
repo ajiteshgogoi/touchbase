@@ -345,17 +345,38 @@ export class NotificationService {
       console.log('Getting FCM token...');
       let currentToken;
       try {
-        // Add delay for mobile service worker readiness
-        const deviceInfo = platform.getDeviceInfo();
-        if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-          console.log('Mobile device detected, adding initialization delay...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-
-        // Ensure service worker is fully ready
-        await this.registration.active?.postMessage({ type: 'INIT_FCM' });
-        
-        // Multiple attempts for mobile
+        // Ensure service worker is fully ready using MessageChannel
+        await new Promise<void>((resolve, reject) => {
+          const channel = new MessageChannel();
+          
+          // Handle service worker response
+          channel.port1.onmessage = (event) => {
+            if (event.data?.success) {
+              console.log('FCM initialization confirmed by service worker');
+              resolve();
+            } else {
+              reject(new Error(`FCM initialization failed: ${event.data?.error || 'Unknown error'}`));
+            }
+          };
+  
+          // Send initialization request to service worker
+          if (!this.registration?.active) {
+            reject(new Error('Service worker not active'));
+            return;
+          }
+  
+          this.registration.active.postMessage(
+            { type: 'INIT_FCM' },
+            [channel.port2]
+          );
+  
+          // Add timeout for initialization
+          setTimeout(() => {
+            reject(new Error('FCM initialization timeout'));
+          }, 10000);
+        });
+  
+        // Multiple attempts for token retrieval
         let attempts = 0;
         const maxAttempts = 3;
         
