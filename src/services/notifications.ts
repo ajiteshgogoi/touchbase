@@ -1,8 +1,9 @@
 import { supabase } from '../lib/supabase/client';
-import { getToken, deleteToken } from "firebase/messaging";
+import { getToken } from "firebase/messaging";
 import { getFirebaseMessaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
+import { mobileFCMService } from './mobile-fcm';
 
 export class NotificationService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
@@ -109,17 +110,22 @@ export class NotificationService {
 
   async cleanupAllDevices(): Promise<void> {
     try {
-      await cleanupMessaging();
-      
-      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-      if (deviceId) {
-        const userId = (await supabase.auth.getSession()).data.session?.user.id;
-        if (userId) {
-          await this.unsubscribeFromPushNotifications(userId, deviceId, true);
+      const deviceInfo = platform.getDeviceInfo();
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        await mobileFCMService.cleanup();
+      } else {
+        await cleanupMessaging();
+        
+        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+        if (deviceId) {
+          const userId = (await supabase.auth.getSession()).data.session?.user.id;
+          if (userId) {
+            await this.unsubscribeFromPushNotifications(userId, deviceId, true);
+          }
         }
+        
+        localStorage.removeItem(platform.getDeviceStorageKey('device_id'));
       }
-      
-      localStorage.removeItem(platform.getDeviceStorageKey('device_id'));
     } catch (error) {
       console.error('Failed to cleanup devices:', error);
       throw error;
@@ -139,37 +145,42 @@ export class NotificationService {
         throw new Error('No valid auth token available');
       }
 
-      // Handle service worker registration
-      const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-      for (const reg of existingRegistrations) {
-        if (reg.active?.scriptURL !== this.firebaseSWURL) {
-          await reg.unregister();
-        }
-      }
-
-      // Use existing or register new Firebase service worker
-      this.registration = existingRegistrations.find(reg => 
-        reg.active?.scriptURL === this.firebaseSWURL
-      ) || await navigator.serviceWorker.register(this.firebaseSWURL, {
-        scope: '/',
-        updateViaCache: 'none'
-      });
-
-      // Ensure service worker is active
-      if (this.registration.installing || this.registration.waiting) {
-        await new Promise<void>((resolve) => {
-          const sw = this.registration!.installing || this.registration!.waiting;
-          if (!sw) {
-            resolve();
-            return;
+      const deviceInfo = platform.getDeviceInfo();
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        await mobileFCMService.initialize();
+      } else {
+        // Handle service worker registration for desktop
+        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of existingRegistrations) {
+          if (reg.active?.scriptURL !== this.firebaseSWURL) {
+            await reg.unregister();
           }
-          sw.addEventListener('statechange', function listener(event: Event) {
-            if ((event.target as ServiceWorker).state === 'activated') {
-              sw.removeEventListener('statechange', listener);
-              resolve();
-            }
-          });
+        }
+
+        // Use existing or register new Firebase service worker
+        this.registration = existingRegistrations.find(reg => 
+          reg.active?.scriptURL === this.firebaseSWURL
+        ) || await navigator.serviceWorker.register(this.firebaseSWURL, {
+          scope: '/',
+          updateViaCache: 'none'
         });
+
+        // Ensure service worker is active
+        if (this.registration.installing || this.registration.waiting) {
+          await new Promise<void>((resolve) => {
+            const sw = this.registration!.installing || this.registration!.waiting;
+            if (!sw) {
+              resolve();
+              return;
+            }
+            sw.addEventListener('statechange', function listener(event: Event) {
+              if ((event.target as ServiceWorker).state === 'activated') {
+                sw.removeEventListener('statechange', listener);
+                resolve();
+              }
+            });
+          });
+        }
       }
 
       // Initialize token refresh if user is authenticated
@@ -188,52 +199,20 @@ export class NotificationService {
     enableNotifications = true
   ): Promise<void> {
     try {
-      // Ensure service worker is ready
+      const deviceInfo = platform.getDeviceInfo();
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        await mobileFCMService.subscribeToPushNotifications(userId);
+        return;
+      }
+
+      // Desktop flow
       if (!this.registration?.active) {
         await this.initialize();
       }
 
-      // Request notification permission first
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         throw new Error('Notification permission denied');
-      }
-
-      // Special handling for mobile devices to handle Chrome session carryover
-      const deviceInfo = platform.getDeviceInfo();
-      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-        // Force cleanup of any existing token and registration
-        try {
-          const messaging = getFirebaseMessaging();
-          await deleteToken(messaging);
-          await cleanupMessaging();
-          await this.registration?.unregister();
-          
-          // Clear all service workers
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          for (const reg of registrations) {
-            await reg.unregister();
-          }
-          
-          // Register fresh service worker
-          this.registration = await navigator.serviceWorker.register(this.firebaseSWURL, {
-            scope: '/',
-            updateViaCache: 'none'
-          });
-          
-          // Wait for activation
-          if (this.registration.installing) {
-            await new Promise<void>((resolve) => {
-              this.registration!.installing!.addEventListener('statechange', function listener(event) {
-                if ((event.target as ServiceWorker).state === 'activated') {
-                  resolve();
-                }
-              });
-            });
-          }
-        } catch (error) {
-          console.warn('Error cleaning up existing registration:', error);
-        }
       }
 
       // Check existing subscription unless forced
@@ -299,6 +278,12 @@ export class NotificationService {
 
   async unsubscribeFromPushNotifications(userId: string, deviceId?: string, forceCleanup = false): Promise<void> {
     try {
+      const deviceInfo = platform.getDeviceInfo();
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        await mobileFCMService.cleanup();
+        return;
+      }
+
       const targetDeviceId = deviceId || localStorage.getItem(platform.getDeviceStorageKey('device_id'));
       if (!targetDeviceId) return;
 
