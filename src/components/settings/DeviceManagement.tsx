@@ -169,13 +169,13 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   }
 
   return (
-    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
+    <div>
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h3 className="text-xl font-semibold text-primary-500">
+            <label className="text-gray-900 font-medium">
               Registered Devices
-            </h3>
+            </label>
             <p className="text-sm text-gray-600/90 mt-1">
               Manage your notification-enabled devices
             </p>
