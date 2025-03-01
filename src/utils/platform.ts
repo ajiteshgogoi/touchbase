@@ -85,7 +85,16 @@ export const platform = {
 
   // Check if running in TWA (Trusted Web Activity)
   isTWA(): boolean {
-    return this.isAndroid() && window.matchMedia('(display-mode: standalone)').matches;
+    // More reliable TWA detection via Chrome navigation
+    const isTrustedWebActivity = document.referrer.includes('android-app://');
+    
+    // Fallback check for standalone + android
+    const isStandaloneAndroid = this.isAndroid() && window.matchMedia('(display-mode: standalone)').matches;
+    
+    // TWA specific: check for Digital Asset Links
+    const hasAssetLinks = document.head.querySelector('link[rel="assetlinks.json"]') !== null;
+    
+    return isTrustedWebActivity || (isStandaloneAndroid && hasAssetLinks);
   },
 
   // Check if running as PWA
