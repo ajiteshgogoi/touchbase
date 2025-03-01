@@ -284,14 +284,11 @@ export class NotificationService {
           .match({ user_id: userId })
           .filter('device_id', 'ilike', `${platform.getStorageNamespace()}%`);
 
-        const actualDeviceType = deviceInfo.isTWA ? 'android' :
-                               deviceInfo.isPWA && platform.isAndroid() ? 'android' :
-                               deviceInfo.deviceType;
-
+        // Use the validated device type from platform.getDeviceInfo()
         if (existingTokens?.length) {
           const deviceTypeChanged = existingTokens.some(token =>
             token.device_id === storedDeviceId &&
-            token.device_type !== actualDeviceType
+            token.device_type !== deviceInfo.deviceType
           );
 
           if (deviceTypeChanged || forceResubscribe) {
