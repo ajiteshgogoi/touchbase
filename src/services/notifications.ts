@@ -201,20 +201,15 @@ export class NotificationService {
     }
 
     try {
-      // Check for existing device subscription if not forcing resubscribe
+      // Check for existing subscription if not forcing resubscribe
       if (!forceResubscribe) {
-        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
         const { data: existingSubscription } = await supabase
           .from('push_subscriptions')
-          .select('fcm_token, enabled')
-          .match({
-            user_id: userId,
-            device_id: deviceId
-          })
+          .select('fcm_token')
+          .eq('user_id', userId)
           .maybeSingle();
           
-        // Only use existing token if both token exists and notifications are enabled
-        if (existingSubscription?.fcm_token && existingSubscription.enabled) {
+        if (existingSubscription?.fcm_token) {
           console.log('Using existing FCM token');
           return;
         }
@@ -462,7 +457,7 @@ export class NotificationService {
     }
   }
 
-  async unsubscribeFromPushNotifications(userId: string, specificDeviceId?: string, forceResubscribe = false): Promise<void> {
+  async unsubscribeFromPushNotifications(userId: string, specificDeviceId?: string): Promise<void> {
     try {
       console.log('Unsubscribing from push notifications...');
       
@@ -495,22 +490,21 @@ export class NotificationService {
         await cleanupMessaging();
       }
 
-      // 4. Update device subscription
-      console.log('Updating device subscription state...');
+      // 4. Remove all tokens for this device
+      console.log('Removing FCM tokens for device from Supabase...');
       const { error } = await supabase
         .from('push_subscriptions')
-        .update({
-          enabled: false,
-          // Only clear FCM token if specifically unsubscribing (not just disabling)
-          ...(forceResubscribe ? { fcm_token: null } : {})
-        })
+        .delete()
         .match({
           user_id: userId,
           device_id: targetDeviceId
         });
 
       if (error) {
-        console.error('Failed to update device subscription:', error);
+        if (error.message?.includes('no rows deleted')) {
+          console.warn('Tokens were already removed');
+          return;
+        }
         throw error;
       }
 
@@ -531,32 +525,16 @@ export class NotificationService {
       return false;
     }
 
-    // First check browser permission
+    if (Notification.permission === 'granted') {
+      return true;
+    }
+
     if (Notification.permission === 'denied') {
       return false;
     }
 
-    // Then check device-specific state if we have a device ID
-    const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-    if (deviceId) {
-      const { data: subscription } = await supabase
-        .from('push_subscriptions')
-        .select('enabled')
-        .match({ user_id: (await supabase.auth.getSession()).data.session?.user.id!, device_id: deviceId })
-        .single();
-      
-      if (subscription?.enabled === false) {
-        return false;
-      }
-    }
-
-    // If permission not granted yet, request it
-    if (Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      return permission === 'granted';
-    }
-
-    return true;
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
   }
 
   async cleanupAllDevices(): Promise<void> {
