@@ -354,8 +354,10 @@ export class NotificationService {
             if (event.data?.success) {
               console.log('FCM initialization confirmed by service worker');
               resolve();
+            } else if (event.data?.error) {
+              reject(new Error(event.data.error));
             } else {
-              reject(new Error(`FCM initialization failed: ${event.data?.error || 'Unknown error'}`));
+              reject(new Error('Unknown error initializing FCM'));
             }
           };
   
@@ -370,10 +372,10 @@ export class NotificationService {
             [channel.port2]
           );
   
-          // Add timeout for initialization
+          // Add shorter timeout for initialization
           setTimeout(() => {
-            reject(new Error('FCM initialization timeout'));
-          }, 10000);
+            reject(new Error('Service worker did not respond to initialization request'));
+          }, 5000);
         });
   
         // Multiple attempts for token retrieval

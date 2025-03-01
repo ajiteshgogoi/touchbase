@@ -33,10 +33,7 @@ async function initializeMessaging() {
     debug('Initializing fresh Firebase instance...');
     const app = firebase.initializeApp(firebaseConfig);
     messagingInstance = firebase.messaging(app);
-    
-    // Test token generation
-    await messagingInstance.getToken();
-    debug('Firebase messaging initialized and verified');
+    debug('Firebase messaging initialized');
     return messagingInstance;
   } catch (error) {
     debug('Error initializing Firebase messaging:', error);
@@ -65,9 +62,9 @@ self.addEventListener('message', async (event) => {
       await initializeMessaging();
       
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ 
-          success: true, 
-          message: 'FCM initialized and verified' 
+        event.ports[0].postMessage({
+          success: true,
+          message: 'FCM initialized'
         });
       }
     } catch (error) {
