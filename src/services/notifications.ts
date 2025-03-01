@@ -577,7 +577,7 @@ export class NotificationService {
 
       // 2. Get all tokens for this device (might have multiple due to type changes)
       const { data: subscriptions } = await supabase
-        .rpc('get_device_subscriptions', {
+        .rpc('get_device_subscription', {
           p_user_id: userId,
           p_device_id: targetDeviceId
         });
