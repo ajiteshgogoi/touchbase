@@ -289,33 +289,38 @@ export class NotificationService {
         if (existingTokens?.length) {
           const existingToken = existingTokens.find(token => token.device_id === storedDeviceId);
           if (existingToken) {
-            // Get current enabled state before any changes
-            const currentEnabled = existingToken.enabled;
+            // Check for device type changes
             const deviceTypeChanged = existingToken.device_type !== deviceInfo.deviceType;
-
-            // Preserve enabled state for all operations
-            enableNotifications = currentEnabled;
 
             if (deviceTypeChanged) {
               console.log('Device type change detected, migrating device...');
               // Clean up old subscription completely for type changes
               await this.unsubscribeFromPushNotifications(userId, storedDeviceId, true);
               deviceId = platform.generateDeviceId();
+              // Don't preserve enabled state for new device types
+              enableNotifications = true;
             } else if (forceResubscribe) {
               console.log('Force resubscribe requested, refreshing registration...');
-              // Just clean FCM token for resubscription
+              // For same device type, preserve enabled state
+              enableNotifications = existingToken.enabled;
+              // Clean up FCM token for resubscription
               await this.unsubscribeFromPushNotifications(userId, storedDeviceId, true);
-              // Keep same device ID for resubscribe if type hasn't changed
-              deviceId = platform.generateDeviceId();
+              deviceId = storedDeviceId;
+            } else {
+              // Normal token refresh, preserve enabled state
+              enableNotifications = existingToken.enabled;
             }
             
-            // Log device state for debugging
+            // Log detailed device state for debugging
             console.log('Device state:', {
-              type: deviceInfo.deviceType,
+              currentType: deviceInfo.deviceType,
               previousType: existingToken.device_type,
               enabled: enableNotifications,
               isTypeChange: deviceTypeChanged,
-              isResubscribe: forceResubscribe
+              isResubscribe: forceResubscribe,
+              installType: deviceInfo.isTWA ? 'TWA' : deviceInfo.isPWA ? 'PWA' : 'browser',
+              deviceId: deviceId,
+              storedDeviceId: storedDeviceId
             });
           }
         }
@@ -555,6 +560,9 @@ export class NotificationService {
         return;
       }
 
+      // Get current device info to check for type changes
+      const deviceInfo = platform.getDeviceInfo();
+
       // 2. Get all tokens for this device (might have multiple due to type changes)
       const { data: subscriptions } = await supabase
         .from('push_subscriptions')
@@ -576,17 +584,30 @@ export class NotificationService {
 
       // 4. Update device subscription
       console.log('Updating device subscription state...');
+      
+      const isDeviceTypeChange = subscriptions[0]?.device_type !== deviceInfo.deviceType;
+      
       const { error } = await supabase
         .from('push_subscriptions')
         .update({
-          enabled: false,
-          // Only clear FCM token if specifically unsubscribing (not just disabling)
-          ...(forceResubscribe ? { fcm_token: null } : {})
+          // Keep enabled=true for device type changes or force resubscribe
+          enabled: isDeviceTypeChange || forceResubscribe ? true : false,
+          // Always clear FCM token for reregistration
+          fcm_token: null
         })
         .match({
           user_id: userId,
           device_id: targetDeviceId
         });
+
+      // Log state for debugging
+      console.log('Device unsubscribe state:', {
+        deviceId: targetDeviceId,
+        isDeviceTypeChange,
+        forceResubscribe,
+        previousType: subscriptions[0]?.device_type,
+        currentType: deviceInfo.deviceType
+      });
 
       if (error) {
         console.error('Failed to update device subscription:', error);
