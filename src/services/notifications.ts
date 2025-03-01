@@ -5,17 +5,24 @@ import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
 import { mobileFCMService } from './mobile-fcm';
 
+const DEBUG_PREFIX = '🖥️ [Desktop FCM]';
+
 export class NotificationService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
   private readonly firebaseSWURL: string;
 
   constructor() {
     this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+    console.log(`${DEBUG_PREFIX} Service worker URL:`, this.firebaseSWURL);
   }
 
   async getCurrentDeviceNotificationState(userId: string): Promise<boolean> {
+    console.log(`${DEBUG_PREFIX} Checking device notification state...`);
     const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-    if (!deviceId) return false;
+    if (!deviceId) {
+      console.log(`${DEBUG_PREFIX} No device ID found`);
+      return false;
+    }
     
     const { data } = await supabase
       .rpc('get_device_notification_state', {
@@ -23,10 +30,16 @@ export class NotificationService {
         p_device_id: deviceId
       });
 
+    console.log(`${DEBUG_PREFIX} Device notification state:`, {
+      deviceId,
+      enabled: !!data?.enabled
+    });
     return !!data?.enabled;
   }
 
   async toggleDeviceNotifications(userId: string, deviceId: string, enabled: boolean): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Toggling device notifications:`, { deviceId, enabled });
+    
     try {
       type DeviceSubscription = { enabled: boolean; fcm_token: string | null };
       
@@ -42,14 +55,18 @@ export class NotificationService {
         throw new Error(`Failed to fetch device subscription: ${fetchError?.message || 'No data returned'}`);
       }
 
+      console.log(`${DEBUG_PREFIX} Current subscription state:`, subscription);
+
       // If enabling notifications and no FCM token exists, need to resubscribe
       if (enabled && !subscription?.fcm_token) {
         if (deviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
+          console.log(`${DEBUG_PREFIX} Resubscribing current device...`);
           await this.subscribeToPushNotifications(userId, true, enabled);
         } else {
           throw new Error('Cannot enable notifications for inactive device');
         }
       } else {
+        console.log(`${DEBUG_PREFIX} Updating device enabled state:`, { deviceId, enabled });
         const { error: updateError } = await supabase
           .from('push_subscriptions')
           .update({ enabled })
@@ -61,12 +78,14 @@ export class NotificationService {
       }
 
     } catch (error) {
-      console.error('Error toggling device notifications:', error);
+      console.error(`${DEBUG_PREFIX} Error toggling device notifications:`, error);
       throw error;
     }
   }
 
   async resubscribeIfNeeded(userId: string): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Checking if resubscription needed...`);
+    
     try {
       const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
       
@@ -76,18 +95,23 @@ export class NotificationService {
           p_device_id: deviceId
         });
 
+      console.log(`${DEBUG_PREFIX} Current subscription:`, subscription);
+
       // Don't auto-resubscribe if notifications are disabled
       if (subscription && !subscription.enabled) {
+        console.log(`${DEBUG_PREFIX} Notifications disabled, skipping resubscription`);
         return;
       }
 
       // No subscription or missing token
       if (!subscription?.fcm_token || !deviceId) {
+        console.log(`${DEBUG_PREFIX} No valid subscription found, resubscribing...`);
         await this.subscribeToPushNotifications(userId, true);
         return;
       }
 
       // Verify token with server
+      console.log(`${DEBUG_PREFIX} Verifying FCM token...`);
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/verify`, {
         method: 'POST',
         headers: {
@@ -100,20 +124,27 @@ export class NotificationService {
       const data = await response.json();
       
       if (response.status === 500 && data.error?.includes('FCM token invalid')) {
+        console.log(`${DEBUG_PREFIX} Invalid FCM token detected, resubscribing...`);
         await this.subscribeToPushNotifications(userId, true);
+      } else {
+        console.log(`${DEBUG_PREFIX} FCM token verification successful`);
       }
     } catch (error) {
-      console.error('Error in resubscribeIfNeeded:', error);
+      console.error(`${DEBUG_PREFIX} Error in resubscribeIfNeeded:`, error);
       throw error;
     }
   }
 
   async cleanupAllDevices(): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Starting device cleanup...`);
+    
     try {
       const deviceInfo = platform.getDeviceInfo();
       if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        console.log(`${DEBUG_PREFIX} Delegating to mobile cleanup...`);
         await mobileFCMService.cleanup();
       } else {
+        console.log(`${DEBUG_PREFIX} Cleaning up desktop device...`);
         await cleanupMessaging();
         
         const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
@@ -125,16 +156,19 @@ export class NotificationService {
         }
         
         localStorage.removeItem(platform.getDeviceStorageKey('device_id'));
+        console.log(`${DEBUG_PREFIX} Desktop cleanup completed`);
       }
     } catch (error) {
-      console.error('Failed to cleanup devices:', error);
+      console.error(`${DEBUG_PREFIX} Failed to cleanup devices:`, error);
       throw error;
     }
   }
 
   async initialize(): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Initializing FCM...`);
+    
     if (!('serviceWorker' in navigator)) {
-      console.warn('Service workers are not supported');
+      console.warn(`${DEBUG_PREFIX} Service workers not supported`);
       return;
     }
 
@@ -147,17 +181,21 @@ export class NotificationService {
 
       const deviceInfo = platform.getDeviceInfo();
       if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        console.log(`${DEBUG_PREFIX} Delegating to mobile initialization...`);
         await mobileFCMService.initialize();
       } else {
+        console.log(`${DEBUG_PREFIX} Initializing desktop FCM...`);
         // Handle service worker registration for desktop
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
         for (const reg of existingRegistrations) {
           if (reg.active?.scriptURL !== this.firebaseSWURL) {
+            console.log(`${DEBUG_PREFIX} Unregistering old service worker:`, reg.active?.scriptURL);
             await reg.unregister();
           }
         }
 
         // Use existing or register new Firebase service worker
+        console.log(`${DEBUG_PREFIX} Registering service worker...`);
         this.registration = existingRegistrations.find(reg => 
           reg.active?.scriptURL === this.firebaseSWURL
         ) || await navigator.serviceWorker.register(this.firebaseSWURL, {
@@ -167,6 +205,7 @@ export class NotificationService {
 
         // Ensure service worker is active
         if (this.registration.installing || this.registration.waiting) {
+          console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
           await new Promise<void>((resolve) => {
             const sw = this.registration!.installing || this.registration!.waiting;
             if (!sw) {
@@ -181,14 +220,17 @@ export class NotificationService {
             });
           });
         }
+
+        console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
       }
 
       // Initialize token refresh if user is authenticated
       if (session.user) {
+        console.log(`${DEBUG_PREFIX} Initializing token refresh...`);
         await initializeTokenRefresh(session.user.id);
       }
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      console.error(`${DEBUG_PREFIX} Service Worker registration failed:`, error);
       return notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
     }
   }
@@ -198,18 +240,26 @@ export class NotificationService {
     forceResubscribe = false,
     enableNotifications = true
   ): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Starting push notification subscription...`, {
+      forceResubscribe,
+      enableNotifications
+    });
+    
     try {
       const deviceInfo = platform.getDeviceInfo();
       if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        console.log(`${DEBUG_PREFIX} Delegating to mobile subscription...`);
         await mobileFCMService.subscribeToPushNotifications(userId);
         return;
       }
 
       // Desktop flow
       if (!this.registration?.active) {
+        console.log(`${DEBUG_PREFIX} Initializing before subscription...`);
         await this.initialize();
       }
 
+      console.log(`${DEBUG_PREFIX} Requesting notification permission...`);
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         throw new Error('Notification permission denied');
@@ -219,6 +269,7 @@ export class NotificationService {
       if (!forceResubscribe) {
         const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
         if (deviceId) {
+          console.log(`${DEBUG_PREFIX} Checking existing subscription...`);
           const { data: subscription } = await supabase
             .rpc('get_device_subscription', {
               p_user_id: userId,
@@ -226,12 +277,14 @@ export class NotificationService {
             });
             
           if (subscription?.fcm_token && subscription.enabled) {
+            console.log(`${DEBUG_PREFIX} Valid subscription exists, skipping`);
             return;
           }
         }
       }
 
       // Generate new token
+      console.log(`${DEBUG_PREFIX} Generating new FCM token...`);
       const currentToken = await getToken(getFirebaseMessaging(), {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
         serviceWorkerRegistration: this.registration
@@ -241,11 +294,14 @@ export class NotificationService {
         throw new Error('Failed to get FCM token');
       }
 
+      console.log(`${DEBUG_PREFIX} FCM token generated successfully`);
+
       // Get device info and ID
       const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id')) 
         || platform.generateDeviceId();
 
       // Store token with device info
+      console.log(`${DEBUG_PREFIX} Storing subscription in database...`);
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -269,17 +325,24 @@ export class NotificationService {
 
       // Store device ID in local storage
       localStorage.setItem(platform.getDeviceStorageKey('device_id'), deviceId);
+      console.log(`${DEBUG_PREFIX} Push notification subscription completed successfully`);
 
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      console.error(`${DEBUG_PREFIX} Failed to subscribe to push notifications:`, error);
       return notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
     }
   }
 
   async unsubscribeFromPushNotifications(userId: string, deviceId?: string, forceCleanup = false): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Starting push notification unsubscribe...`, {
+      deviceId,
+      forceCleanup
+    });
+    
     try {
       const deviceInfo = platform.getDeviceInfo();
       if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        console.log(`${DEBUG_PREFIX} Delegating to mobile cleanup...`);
         await mobileFCMService.cleanup();
         return;
       }
@@ -288,6 +351,7 @@ export class NotificationService {
       if (!targetDeviceId) return;
 
       if (targetDeviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
+        console.log(`${DEBUG_PREFIX} Cleaning up messaging...`);
         await cleanupMessaging();
       }
 
@@ -295,6 +359,7 @@ export class NotificationService {
         ? { enabled: false, fcm_token: null }
         : { enabled: false };
 
+      console.log(`${DEBUG_PREFIX} Updating subscription in database...`, updateData);
       await supabase
         .from('push_subscriptions')
         .update(updateData)
@@ -306,29 +371,40 @@ export class NotificationService {
       if (targetDeviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
         localStorage.removeItem(platform.getDeviceStorageKey('device_id'));
       }
+
+      console.log(`${DEBUG_PREFIX} Push notification unsubscribe completed successfully`);
     } catch (error) {
-      console.error('Failed to unsubscribe:', error);
+      console.error(`${DEBUG_PREFIX} Failed to unsubscribe:`, error);
       throw error;
     }
   }
 
   async checkPermission(forGlobalSetting?: boolean): Promise<boolean> {
+    console.log(`${DEBUG_PREFIX} Checking notification permission...`, {
+      forGlobalSetting
+    });
+    
     if (!('Notification' in window)) {
+      console.log(`${DEBUG_PREFIX} Notifications not supported`);
       return false;
     }
 
     if (Notification.permission === 'denied') {
+      console.log(`${DEBUG_PREFIX} Notifications denied by browser`);
       return false;
     }
 
     // For global settings, only check browser permission
     if (forGlobalSetting) {
-      return Notification.permission === 'granted';
+      const permitted = Notification.permission === 'granted';
+      console.log(`${DEBUG_PREFIX} Global permission check:`, permitted);
+      return permitted;
     }
 
     // For device-specific checks, also check device state
     const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
     if (deviceId) {
+      console.log(`${DEBUG_PREFIX} Checking device-specific state...`);
       const { data: subscription } = await supabase
         .rpc('get_device_notification_state', {
           p_user_id: (await supabase.auth.getSession()).data.session?.user.id!,
@@ -336,14 +412,19 @@ export class NotificationService {
         });
       
       if (subscription?.enabled === false) {
+        console.log(`${DEBUG_PREFIX} Notifications disabled for device`);
         return false;
       }
     }
 
-    return Notification.permission === 'granted';
+    const permitted = Notification.permission === 'granted';
+    console.log(`${DEBUG_PREFIX} Permission check result:`, permitted);
+    return permitted;
   }
 
   async sendTestNotification(userId: string, message?: string): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Sending test notification...`);
+    
     try {
       await this.initialize();
       
@@ -352,8 +433,10 @@ export class NotificationService {
       }
 
       // Ensure subscription is active
+      console.log(`${DEBUG_PREFIX} Ensuring active subscription...`);
       await this.subscribeToPushNotifications(userId, true);
       
+      console.log(`${DEBUG_PREFIX} Making test notification request...`);
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
         method: 'POST',
         headers: {
@@ -370,8 +453,10 @@ export class NotificationService {
         const data = await response.json();
         throw new Error(data.error || 'Failed to send test notification');
       }
+
+      console.log(`${DEBUG_PREFIX} Test notification sent successfully`);
     } catch (error) {
-      console.error('Failed to send test notification:', error);
+      console.error(`${DEBUG_PREFIX} Failed to send test notification:`, error);
       return notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
     }
   }
