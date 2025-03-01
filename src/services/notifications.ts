@@ -4,6 +4,10 @@ import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/fire
 import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
 
+interface DeviceNotificationState {
+  enabled: boolean;
+}
+
 export class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
   private readonly firebaseSWURL: string;
@@ -14,13 +18,23 @@ export class NotificationService {
 
   // Get notification state for specific device
   async getDeviceNotificationState(userId: string, deviceId: string): Promise<boolean> {
-    const { data } = await supabase
-      .from('push_subscriptions')
-      .select('enabled')
-      .match({ user_id: userId, device_id: deviceId })
-      .single();
     
-    return data?.enabled ?? false;
+    const { data, error } = await supabase
+      .rpc('get_device_notification_state', {
+        p_user_id: userId,
+        p_device_id: deviceId
+      });
+
+    if (error) {
+      console.error('Error getting device notification state:', error);
+      return false;
+    }
+    
+    const result = data as DeviceNotificationState | null;
+    if (!result) {
+      return false;
+    }
+    return result.enabled;
   }
 
   // Get current device notification state
@@ -34,14 +48,18 @@ export class NotificationService {
   // Toggle device notifications
   async toggleDeviceNotifications(userId: string, deviceId: string, enabled: boolean): Promise<void> {
     try {
-      const { data: subscription, error: fetchError } = await supabase
-        .from('push_subscriptions')
-        .select('enabled, fcm_token')
-        .match({ user_id: userId, device_id: deviceId })
-        .single();
+      type DeviceSubscription = { enabled: boolean; fcm_token: string | null };
+      
+      const { data, error: fetchError } = await supabase
+        .rpc('get_device_subscription', {
+          p_user_id: userId,
+          p_device_id: deviceId
+        });
 
-      if (fetchError) {
-        throw new Error(`Failed to fetch device subscription: ${fetchError.message}`);
+      const subscription = data as DeviceSubscription;
+
+      if (fetchError || !subscription) {
+        throw new Error(`Failed to fetch device subscription: ${fetchError?.message || 'No data returned'}`);
       }
 
       // If enabling notifications and no FCM token exists, need to resubscribe
@@ -217,13 +235,10 @@ export class NotificationService {
       if (!forceResubscribe) {
         const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
         const { data: existingSubscription } = await supabase
-          .from('push_subscriptions')
-          .select('fcm_token, enabled')
-          .match({
-            user_id: userId,
-            device_id: deviceId
-          })
-          .maybeSingle();
+          .rpc('get_device_subscription', {
+            p_user_id: userId,
+            p_device_id: deviceId
+          });
           
         // Only use existing token if both token exists and notifications are enabled
         if (existingSubscription?.fcm_token && existingSubscription.enabled) {
@@ -354,10 +369,10 @@ export class NotificationService {
       // Get current device info for rate limiting
       if (!forceResubscribe) {
         const { data: existingDevice } = await supabase
-          .from('push_subscriptions')
-          .select('refresh_count, last_refresh, expires_at')
-          .match({ user_id: userId, device_id: deviceId })
-          .maybeSingle();
+          .rpc('get_device_subscription', {
+            p_user_id: userId,
+            p_device_id: deviceId
+          });
 
         // Check rate limits and expiry
         if (existingDevice) {
