@@ -35,8 +35,10 @@ export const Settings = () => {
     notification_enabled: false,
     theme: 'light',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ai_suggestions_enabled: true
+    ai_suggestions_enabled: false
   });
+
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   // Get subscription details
   // Get subscription details
@@ -153,6 +155,7 @@ export const Settings = () => {
       };
       
       checkAndUpdateNotifications();
+      setPreferencesLoaded(true);
     }
   }, [preferences]);
 
@@ -365,33 +368,43 @@ export const Settings = () => {
       </div>
 
       <div className="space-y-6">
-        {/* Subscription Settings */}
-        <Suspense fallback={<SectionLoader />}>
-          <SubscriptionSettings
-            isPremium={isPremium}
-            subscription={subscription}
-            timezone={notificationSettings.timezone}
-          />
-        </Suspense>
+        {!preferencesLoaded ? (
+          <div className="space-y-6">
+            <SectionLoader />
+            <SectionLoader />
+            <SectionLoader />
+          </div>
+        ) : (
+          <>
+            {/* Subscription Settings */}
+            <Suspense fallback={<SectionLoader />}>
+              <SubscriptionSettings
+                isPremium={isPremium}
+                subscription={subscription}
+                timezone={notificationSettings.timezone}
+              />
+            </Suspense>
 
-        {/* Notification Settings */}
-        <Suspense fallback={<SectionLoader />}>
-          <NotificationSettings
-            settings={notificationSettings}
-            onUpdate={handleNotificationChange}
-            userId={user.id}
-          />
-        </Suspense>
+            {/* Notification Settings */}
+            <Suspense fallback={<SectionLoader />}>
+              <NotificationSettings
+                settings={notificationSettings}
+                onUpdate={handleNotificationChange}
+                userId={user.id}
+              />
+            </Suspense>
 
-        {/* AI Settings */}
-        <Suspense fallback={<SectionLoader />}>
-          <AISettings
-            settings={notificationSettings}
-            onUpdate={handleNotificationChange}
-            isPremium={isPremium}
-            subscription={subscription}
-          />
-        </Suspense>
+            {/* AI Settings */}
+            <Suspense fallback={<SectionLoader />}>
+              <AISettings
+                settings={notificationSettings}
+                onUpdate={handleNotificationChange}
+                isPremium={isPremium}
+                subscription={subscription}
+              />
+            </Suspense>
+          </>
+        )}
 
         {/* Feedback Section */}
         <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
