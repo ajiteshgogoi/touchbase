@@ -55,34 +55,13 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     mutationFn: async ({ deviceId, enabled }: { deviceId: string; enabled: boolean }) => {
       await notificationService.toggleDeviceNotifications(userId, deviceId, enabled);
     },
-    onMutate: async ({ deviceId, enabled }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['devices', userId] });
-
-      // Snapshot the previous value
-      const previousDevices = queryClient.getQueryData(['devices', userId]);
-
-      // Optimistically update to the new value
-      queryClient.setQueryData(['devices', userId], (old: DeviceInfo[] | undefined) => {
-        if (!old) return old;
-        return old.map(device =>
-          device.device_id === deviceId ? { ...device, enabled } : device
-        );
-      });
-
-      return { previousDevices };
-    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
       toast.success('Device notification settings updated');
     },
-    onError: (error: Error, _variables, context) => {
+    onError: (error: Error) => {
       console.error('Failed to toggle device notifications:', error);
       toast.error(error.message || 'Failed to update device notification settings');
-      // Revert to the previous state on error
-      if (context?.previousDevices) {
-        queryClient.setQueryData(['devices', userId], context.previousDevices);
-      }
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
     }
   });
@@ -238,6 +217,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                                   enabled: e.target.checked
                                 });
                               }}
+                              disabled={toggleDeviceMutation.isPending}
                             />
                             <div className={`
                               w-9 h-5 rounded-full 
