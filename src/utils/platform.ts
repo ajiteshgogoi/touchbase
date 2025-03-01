@@ -125,25 +125,16 @@ export const platform = {
   },
 
   getDeviceInfo(): DeviceInfo {
-    // First determine if it's a TWA or PWA on Android
-    if (this.isTWA() || (this.isPWA() && this.isAndroid())) {
-      return {
-        deviceType: 'android',
-        deviceBrand: this.getDeviceBrand(),
-        browserInfo: this.getBrowserInfo(),
-        isTWA: this.isTWA(),
-        isPWA: this.isPWA()
-      };
-    }
-    
-    // Then check platform-specific types
+    // First check basic platform types
     if (this.isAndroid()) {
+      const isTWAApp = this.isTWA();
+      const isPWAApp = this.isPWA();
       return {
         deviceType: 'android',
         deviceBrand: this.getDeviceBrand(),
         browserInfo: this.getBrowserInfo(),
-        isTWA: false,
-        isPWA: false
+        isTWA: isTWAApp,
+        isPWA: isPWAApp
       };
     }
     
