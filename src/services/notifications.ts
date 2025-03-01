@@ -295,14 +295,14 @@ export class NotificationService {
       // Handle device migrations and resubscriptions
       if (storedDeviceId) {
         const { data: existingTokens } = await supabase
-          .from('push_subscriptions')
-          .select('device_id, device_type, enabled')
-          .match({ user_id: userId })
-          .filter('device_id', 'ilike', `${platform.getStorageNamespace()}%`);
+          .rpc('get_device_subscriptions_by_user', {
+            p_user_id: userId,
+            p_device_prefix: `${platform.getStorageNamespace()}%`
+          });
 
         // Handle any existing tokens for this device
         if (existingTokens?.length) {
-          const existingToken = existingTokens.find(token => token.device_id === storedDeviceId);
+          const existingToken = existingTokens.find((token: { device_id: string }) => token.device_id === storedDeviceId);
           if (existingToken) {
             // Check for device type changes
             const deviceTypeChanged = existingToken.device_type !== deviceInfo.deviceType;
@@ -473,13 +473,10 @@ export class NotificationService {
       // Verify with the server for this specific device
       console.log('Verifying FCM token with server...');
       const { data: existingSubscription } = await supabase
-        .from('push_subscriptions')
-        .select('fcm_token, enabled')
-        .match({
-          user_id: userId,
-          device_id: deviceId
-        })
-        .maybeSingle();
+        .rpc('get_device_subscription', {
+          p_user_id: userId,
+          p_device_id: deviceId
+        });
 
       // Don't auto-resubscribe if device exists but notifications are disabled
       if (existingSubscription && !existingSubscription.enabled) {
@@ -580,11 +577,9 @@ export class NotificationService {
 
       // 2. Get all tokens for this device (might have multiple due to type changes)
       const { data: subscriptions } = await supabase
-        .from('push_subscriptions')
-        .select('device_id, fcm_token, device_type')
-        .match({
-          user_id: userId,
-          device_id: targetDeviceId
+        .rpc('get_device_subscriptions', {
+          p_user_id: userId,
+          p_device_id: targetDeviceId
         });
 
       if (!subscriptions?.length) {
@@ -665,10 +660,10 @@ export class NotificationService {
     const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
     if (deviceId) {
       const { data: subscription } = await supabase
-        .from('push_subscriptions')
-        .select('enabled')
-        .match({ user_id: (await supabase.auth.getSession()).data.session?.user.id!, device_id: deviceId })
-        .single();
+        .rpc('get_device_notification_state', {
+          p_user_id: (await supabase.auth.getSession()).data.session?.user.id!,
+          p_device_id: deviceId
+        });
       
       if (subscription?.enabled === false) {
         return false;
