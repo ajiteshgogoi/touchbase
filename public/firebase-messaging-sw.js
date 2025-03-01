@@ -19,36 +19,15 @@ const firebaseConfig = {
   measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
 };
 
-// Global messaging instance
-let messagingInstance = null;
-
-// Initialize Firebase and return active messaging instance
-async function initializeMessaging(force = false) {
-  try {
-    // If we already have messaging and not forcing, return it
-    if (!force && messagingInstance && firebase.apps.length) {
-      debug('Using existing Firebase messaging instance');
-      return messagingInstance;
-    }
-
-    // Clean up if needed
-    if (firebase.apps.length) {
-      debug('Cleaning up existing Firebase instances...');
-      await Promise.all(firebase.apps.map(app => app.delete()));
-    }
-
-    debug('Initializing fresh Firebase instance...');
-    const app = firebase.initializeApp(firebaseConfig);
-    messagingInstance = firebase.messaging(app);
-    debug('Firebase messaging initialized');
-    return messagingInstance;
-  } catch (error) {
-    debug('Error initializing Firebase messaging:', error);
-    throw error;
-  }
+// Initialize Firebase immediately
+debug('Initializing Firebase...');
+if (firebase.apps.length) {
+  firebase.apps.forEach(app => app.delete());
 }
+const app = firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging(app);
 
-// Initialize messaging on activation
+// Handle activation
 self.addEventListener('activate', (event) => {
   debug('Activating Firebase messaging service worker...');
   event.waitUntil(self.clients.claim());
@@ -61,27 +40,19 @@ self.addEventListener('install', (event) => {
 });
 
 // Handle messages
-self.addEventListener('message', async (event) => {
+self.addEventListener('message', (event) => {
   if (event.data?.type === 'INIT_FCM') {
     debug('FCM initialization message received');
     
     try {
-      // Force fresh initialization for explicit init requests
-      const instance = await initializeMessaging(true);
-      
-      if (!instance) {
-        throw new Error('Failed to initialize Firebase messaging');
-      }
-      
-      debug('FCM explicitly initialized');
       if (event.ports && event.ports[0]) {
         event.ports[0].postMessage({ success: true });
       }
     } catch (error) {
       debug('FCM initialization error:', error);
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({
-          success: false,
+        event.ports[0].postMessage({ 
+          success: false, 
           error: error.message
         });
       }
@@ -95,17 +66,12 @@ self.addEventListener('message', async (event) => {
     self.CLEANED_DEVICE_ID = deviceId;
 
     // Remove push subscription
-    const subscription = await self.registration.pushManager.getSubscription();
-    if (subscription) {
-      debug('Unsubscribing push subscription for device:', deviceId);
-      await subscription.unsubscribe();
-    }
-
-    // Reset Firebase messaging
-    messagingInstance = null;
-    if (firebase.apps.length) {
-      await Promise.all(firebase.apps.map(app => app.delete()));
-    }
+    self.registration.pushManager.getSubscription().then(subscription => {
+      if (subscription) {
+        debug('Unsubscribing push subscription for device:', deviceId);
+        subscription.unsubscribe();
+      }
+    });
 
     // Notify client
     if (event.ports && event.ports[0]) {
@@ -114,71 +80,17 @@ self.addEventListener('message', async (event) => {
   }
 });
 
-// Handle subscription changes
+// Register push event handler immediately
+self.addEventListener('push', (event) => {
+  debug('Push event received');
+});
+
+// Register subscription change handler immediately
 self.addEventListener('pushsubscriptionchange', (event) => {
   debug('Push subscription change event received');
-  event.waitUntil((async () => {
-    try {
-      await initializeMessaging();
-      debug('Firebase reinitialized after subscription change');
-      
-      // Notify clients of change
-      const clients = await self.clients.matchAll({ type: 'window' });
-      clients.forEach(client => {
-        client.postMessage({
-          type: 'PUSH_SUBSCRIPTION_CHANGE',
-          timestamp: new Date().toISOString()
-        });
-      });
-    } catch (error) {
-      debug('Error handling subscription change:', error);
-    }
-  })());
 });
 
-// Set up initial messaging instance
-initializeMessaging().then((messaging) => {
-  if (!messaging) return;
-  
-  // Handle background messages
-  messaging.onBackgroundMessage(async (payload) => {
-    debug('Received background message:', payload);
-    const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
-
-    try {
-      const notificationData = payload.notification || payload.data || {};
-      const deviceId = self.CLEANED_DEVICE_ID || `device-${Date.now()}`;
-      
-      await self.registration.showNotification(notificationData.title || 'New Message', {
-        body: notificationData.body,
-        icon: '/icon-192.png',
-        badge: '/icon-192.png',
-        tag: 'touchbase-notification',
-        renotify: true,
-        requireInteraction: true,
-        data: {
-          ...(payload.data || {}),
-          deviceId,
-          timestamp: new Date().toISOString()
-        },
-        actions: [{ action: 'view', title: 'View' }],
-        ...(isMobile && {
-          vibrate: [200, 100, 200],
-          silent: false
-        })
-      });
-      
-      debug('Notification displayed successfully');
-    } catch (error) {
-      debug('Background message processing error:', error);
-      throw error;
-    }
-  });
-}).catch(error => {
-  debug('Error during initial Firebase setup:', error);
-});
-
-// Handle notification clicks
+// Handle notification clicks immediately
 self.addEventListener('notificationclick', (event) => {
   debug('Notification clicked:', event);
   event.notification.close();
@@ -198,4 +110,39 @@ self.addEventListener('notificationclick', (event) => {
         return self.clients.openWindow(targetUrl);
       })
   );
+});
+
+// Set up background message handler
+messaging.onBackgroundMessage(async (payload) => {
+  debug('Received background message:', payload);
+  const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
+
+  try {
+    const notificationData = payload.notification || payload.data || {};
+    const deviceId = self.CLEANED_DEVICE_ID || `device-${Date.now()}`;
+    
+    await self.registration.showNotification(notificationData.title || 'New Message', {
+      body: notificationData.body,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: 'touchbase-notification',
+      renotify: true,
+      requireInteraction: true,
+      data: {
+        ...(payload.data || {}),
+        deviceId,
+        timestamp: new Date().toISOString()
+      },
+      actions: [{ action: 'view', title: 'View' }],
+      ...(isMobile && {
+        vibrate: [200, 100, 200],
+        silent: false
+      })
+    });
+    
+    debug('Notification displayed successfully');
+  } catch (error) {
+    debug('Background message processing error:', error);
+    throw error;
+  }
 });
