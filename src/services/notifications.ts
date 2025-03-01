@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
 import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
+import { notificationDiagnostics } from './notification-diagnostics';
 
 export class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
@@ -284,32 +285,38 @@ export class NotificationService {
           .match({ user_id: userId })
           .filter('device_id', 'ilike', `${platform.getStorageNamespace()}%`);
 
-        // Check if this is a known device type change
+        // Handle any existing tokens for this device
         if (existingTokens?.length) {
           const existingToken = existingTokens.find(token => token.device_id === storedDeviceId);
-          const deviceTypeChanged = existingToken && existingToken.device_type !== deviceInfo.deviceType;
+          if (existingToken) {
+            // Get current enabled state before any changes
+            const currentEnabled = existingToken.enabled;
+            const deviceTypeChanged = existingToken.device_type !== deviceInfo.deviceType;
 
-          // For mobile (Android/iOS), handle device state
-          if ((deviceTypeChanged || forceResubscribe) && (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios')) {
-            console.log(`Mobile device ${deviceTypeChanged ? 'migration' : 'resubscription'}`);
-            
-            // For new mobile registrations or migrations, default to enabled
-            const wasEnabled = deviceTypeChanged ? true : (existingToken?.enabled ?? true);
-            
-            // First remove old subscription if exists
-            if (existingToken) {
+            // Preserve enabled state for all operations
+            enableNotifications = currentEnabled;
+
+            if (deviceTypeChanged) {
+              console.log('Device type change detected, migrating device...');
+              // Clean up old subscription completely for type changes
               await this.unsubscribeFromPushNotifications(userId, storedDeviceId, true);
+              deviceId = platform.generateDeviceId();
+            } else if (forceResubscribe) {
+              console.log('Force resubscribe requested, refreshing registration...');
+              // Just clean FCM token for resubscription
+              await this.unsubscribeFromPushNotifications(userId, storedDeviceId, true);
+              // Keep same device ID for resubscribe if type hasn't changed
+              deviceId = platform.generateDeviceId();
             }
             
-            // Generate new ID and ensure enabled for mobile
-            deviceId = platform.generateDeviceId();
-            enableNotifications = wasEnabled;
-          }
-          // For web/desktop, follow normal cleanup
-          else if (deviceTypeChanged || forceResubscribe) {
-            console.log(`Web device ${deviceTypeChanged ? 'type change' : 'force resubscribe'}`);
-            await this.unsubscribeFromPushNotifications(userId, storedDeviceId);
-            deviceId = platform.generateDeviceId();
+            // Log device state for debugging
+            console.log('Device state:', {
+              type: deviceInfo.deviceType,
+              previousType: existingToken.device_type,
+              enabled: enableNotifications,
+              isTypeChange: deviceTypeChanged,
+              isResubscribe: forceResubscribe
+            });
           }
         }
       }
@@ -319,35 +326,11 @@ export class NotificationService {
       const currentToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
         serviceWorkerRegistration: this.registration
-      }).catch(error => {
+      }).catch(async error => {
         console.error('FCM token error:', error);
         
-        // Mobile-specific error handling
-        if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-          const errorMessage = error.message?.toLowerCase() || '';
-          
-          if (errorMessage.includes('messaging/permission-blocked')) {
-            throw new Error('Push notification permission blocked. Please enable notifications in your device settings.');
-          }
-          
-          if (errorMessage.includes('messaging/failed-service-worker')) {
-            throw new Error('Push service error. Please check that notifications are enabled in system settings.');
-          }
-          
-          if (errorMessage.includes('messaging/failed-token-generation')) {
-            throw new Error('Could not generate push token. Please ensure you have Google Play Services installed and updated.');
-          }
-
-          // TWA/PWA specific
-          if (deviceInfo.isTWA || deviceInfo.isPWA) {
-            if (errorMessage.includes('messaging/unsupported-browser')) {
-              throw new Error('This browser does not support push notifications. Please use the app from Google Play Store.');
-            }
-          }
-        }
-        
-        // Default error for non-mobile or unhandled cases
-        throw new Error(`Push service error: ${error.message}`);
+        // Handle FCM token error with diagnostics
+        await notificationDiagnostics.handleFCMError(error, deviceInfo);
       });
 
       if (!currentToken) {
