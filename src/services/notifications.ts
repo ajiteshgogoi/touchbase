@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
 import { getFirebaseMessaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
+import { notificationDiagnostics } from './notification-diagnostics';
 
 export class NotificationService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
@@ -177,7 +178,7 @@ export class NotificationService {
       }
     } catch (error) {
       console.error('Service Worker registration failed:', error);
-      throw error;
+      return notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
     }
   }
 
@@ -267,7 +268,7 @@ export class NotificationService {
 
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
-      throw error;
+      return notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
     }
   }
 
@@ -361,7 +362,7 @@ export class NotificationService {
       }
     } catch (error) {
       console.error('Failed to send test notification:', error);
-      throw error;
+      return notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
     }
   }
 }
