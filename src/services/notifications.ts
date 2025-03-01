@@ -537,7 +537,7 @@ export class NotificationService {
     }
   }
 
-  async checkPermission(): Promise<boolean> {
+  async checkPermission(forGlobalSetting: boolean = false): Promise<boolean> {
     if (!('Notification' in window)) {
       return false;
     }
@@ -547,7 +547,17 @@ export class NotificationService {
       return false;
     }
 
-    // Then check device-specific state if we have a device ID
+    // For global settings, only check browser permission
+    if (forGlobalSetting) {
+      // If permission not granted yet, request it
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+      }
+      return true;
+    }
+
+    // For device-specific checks, also check device state
     const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
     if (deviceId) {
       const { data: subscription } = await supabase

@@ -125,9 +125,9 @@ export const Settings = () => {
     if (preferences) {
       const checkAndUpdateNotifications = async () => {
         try {
-          const permission = await notificationService.checkPermission();
-          // If permission is denied but enabled in preferences, update to match actual state
-          if (!permission && preferences.notification_enabled) {
+          // Only check browser permission, not device state
+          if (Notification.permission === 'denied' && preferences.notification_enabled) {
+            // Only update if browser permission is explicitly denied
             setNotificationSettings({
               notification_enabled: false,
               theme: preferences.theme,
@@ -281,11 +281,14 @@ export const Settings = () => {
         
         // Only check permission if there are enabled devices
         if (hasEnabledDevices) {
-          const hasPermission = await notificationService.checkPermission();
+          const hasPermission = await notificationService.checkPermission(true);
           if (!hasPermission) {
             throw new Error('Notification permission denied');
           }
         }
+
+        // If there are no enabled devices, just update the global setting
+        // without checking browser permissions
       }
       
       // Get device info if available
