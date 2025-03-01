@@ -466,13 +466,23 @@ export class NotificationService {
         return;
       }
 
+      // No existing subscription or missing device ID
       if (!existingSubscription?.fcm_token || !deviceId) {
-        console.log('No existing subscription found for this device, creating new one...');
-        // Create subscription first
-        await this.subscribeToPushNotifications(userId, true, false);
-        // Then enable it through the toggle flow
-        await this.toggleDeviceNotifications(userId, deviceId!, true);
-        return;
+        try {
+          // Create subscription first
+          await this.subscribeToPushNotifications(userId, true, false);
+          // Get fresh device ID
+          const newDeviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+          if (!newDeviceId) {
+            throw new Error('Failed to get device ID after subscription');
+          }
+          // Then enable notifications
+          await this.toggleDeviceNotifications(userId, newDeviceId, true);
+          return;
+        } catch (error) {
+          console.error('Failed to create and enable subscription:', error);
+          throw error;
+        }
       }
 
       // If we have a token, verify it with the server
@@ -506,11 +516,13 @@ export class NotificationService {
       try {
         // Create new subscription first
         await this.subscribeToPushNotifications(userId, true, false);
-        // Then enable through toggle flow
-        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-        if (deviceId) {
-          await this.toggleDeviceNotifications(userId, deviceId, true);
+        // Get fresh device ID after subscription
+        const newDeviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+        if (!newDeviceId) {
+          throw new Error('Failed to get device ID after subscription');
         }
+        // Enable through toggle flow
+        await this.toggleDeviceNotifications(userId, newDeviceId, true);
       } catch (subError) {
         console.error('Failed to create fresh subscription:', subError);
         throw subError;
