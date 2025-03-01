@@ -3,12 +3,70 @@ import { getToken } from "firebase/messaging";
 import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
 
-class NotificationService {
+export class NotificationService {
   private registration: ServiceWorkerRegistration | null = null;
   private readonly firebaseSWURL: string;
 
   constructor() {
     this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+  }
+
+  // Get notification state for specific device
+  async getDeviceNotificationState(userId: string, deviceId: string): Promise<boolean> {
+    const { data } = await supabase
+      .from('push_subscriptions')
+      .select('enabled')
+      .match({ user_id: userId, device_id: deviceId })
+      .single();
+    
+    return data?.enabled ?? false;
+  }
+
+  // Get current device notification state
+  async getCurrentDeviceNotificationState(userId: string): Promise<boolean> {
+    const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+    if (!deviceId) return false;
+    
+    return this.getDeviceNotificationState(userId, deviceId);
+  }
+
+  // Toggle device notifications
+  async toggleDeviceNotifications(userId: string, deviceId: string, enabled: boolean): Promise<void> {
+    try {
+      const { data: subscription, error: fetchError } = await supabase
+        .from('push_subscriptions')
+        .select('enabled, fcm_token')
+        .match({ user_id: userId, device_id: deviceId })
+        .single();
+
+      if (fetchError) {
+        throw new Error(`Failed to fetch device subscription: ${fetchError.message}`);
+      }
+
+      // If enabling notifications and no FCM token exists, need to resubscribe
+      if (enabled && !subscription?.fcm_token) {
+        if (deviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
+          // Only attempt FCM registration for current device
+          await this.subscribeToPushNotifications(userId, true, true);
+        } else {
+          throw new Error('Cannot enable notifications for inactive device');
+        }
+        return;
+      }
+
+      // Otherwise just update enabled state
+      const { error: updateError } = await supabase
+        .from('push_subscriptions')
+        .update({ enabled })
+        .match({ user_id: userId, device_id: deviceId });
+
+      if (updateError) {
+        throw new Error(`Failed to update device notification state: ${updateError.message}`);
+      }
+    } catch (error) {
+      console.error('Error toggling device notifications:', error);
+      throw error;
+    }
   }
 
   async initialize(retryDelay = 2000): Promise<void> {
@@ -133,7 +191,7 @@ class NotificationService {
     }
   }
 
-  async subscribeToPushNotifications(userId: string, forceResubscribe = false): Promise<void> {
+  async subscribeToPushNotifications(userId: string, forceResubscribe = false, enableNotifications = true): Promise<void> {
     if (!this.registration) {
       console.warn('Firebase service worker not registered, initializing...');
       await this.initialize();
@@ -289,7 +347,8 @@ class NotificationService {
           device_name: deviceName,
           device_type: deviceType,
           expires_at: currentExpiryDate.toISOString(),
-          refresh_count: refreshCount
+          refresh_count: refreshCount,
+          enabled: enableNotifications
         }, {
           onConflict: 'user_id,device_id'
         });
@@ -342,16 +401,22 @@ class NotificationService {
       console.log('Verifying FCM token with server...');
       const { data: existingSubscription } = await supabase
         .from('push_subscriptions')
-        .select('fcm_token')
+        .select('fcm_token, enabled')
         .match({
           user_id: userId,
           device_id: deviceId
         })
         .maybeSingle();
 
+      // Don't auto-resubscribe if device exists but notifications are disabled
+      if (existingSubscription && !existingSubscription.enabled) {
+        console.log('Device exists but notifications are disabled');
+        return;
+      }
+
       if (!existingSubscription?.fcm_token || !deviceId) {
         console.log('No existing subscription found for this device, creating new one...');
-        await this.subscribeToPushNotifications(userId, true);
+        await this.subscribeToPushNotifications(userId, true, false); // Don't auto-enable
         return;
       }
 
@@ -373,7 +438,8 @@ class NotificationService {
         data.error?.includes('No FCM token found')
       )) {
         console.log('Server indicates token invalid or missing, creating new subscription...');
-        await this.subscribeToPushNotifications(userId, true);
+        // Keep existing enabled state when resubscribing
+        await this.subscribeToPushNotifications(userId, true, existingSubscription.enabled);
         return;
       }
 
@@ -383,7 +449,7 @@ class NotificationService {
       // If any error occurs during verification, try a fresh subscription
       console.log('Error during verification, attempting fresh subscription...');
       try {
-        await this.subscribeToPushNotifications(userId, true);
+        await this.subscribeToPushNotifications(userId, true, false); // Don't auto-enable on error
       } catch (subError) {
         console.error('Failed to create fresh subscription:', subError);
         throw subError;
