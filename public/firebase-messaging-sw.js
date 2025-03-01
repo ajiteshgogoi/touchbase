@@ -28,7 +28,7 @@ self.addEventListener('message', (event) => {
       // Re-initialize Firebase if needed
       if (!firebase.messaging) {
         debug('Reinitializing Firebase...');
-        const app = firebase.initializeApp({
+        firebase.initializeApp({
           apiKey: "VITE_FIREBASE_API_KEY",
           authDomain: "VITE_FIREBASE_AUTH_DOMAIN",
           projectId: "VITE_FIREBASE_PROJECT_ID",
@@ -37,7 +37,7 @@ self.addEventListener('message', (event) => {
           appId: "VITE_FIREBASE_APP_ID",
           measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
         });
-        firebase.messaging(app);
+        firebase.messaging();
       }
       // Send acknowledgment back to client
       if (event.ports && event.ports[0]) {
