@@ -65,6 +65,18 @@ serve(async (req) => {
 
     if (usersError) throw usersError;
 
+    // List of avatar URLs to exclude from the social proof section
+    // To add more URLs in the future:
+    // 1. Copy the exact URL of the avatar you want to exclude
+    // 2. Add it to this EXCLUDED_AVATARS array
+    // The avatar will be filtered out but the user will still be counted in totalCount
+    const EXCLUDED_AVATARS = [
+      'https://lh3.googleusercontent.com/a/ACg8ocKWSafnNZ4dNbK4Ii3RiSOtQF53hyaTQQsv2pXdf9OxkPQD_XcECA=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocIVDi1AUe_mPTpjwHfXMBM9wPWzkyxI7zxTPhwo9DcU6cj-9g=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocLmUFfLvFE-rDyxuypovzFbTMK47YX5qPXqZH76povqDGbqXA=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJaZynRlRqNIZ5POFbikI0wJ37lJdAF4VmSuJZAkasXUFwQag=s96-c'
+    ];
+
     // Map users to get their metadata
     const recentUsers = users
       .map(user => {
@@ -95,6 +107,7 @@ serve(async (req) => {
       })
       .filter(user => {
         if (!user.picture) return false;
+        if (EXCLUDED_AVATARS.includes(user.picture)) return false;
         return !user.isDefault;
       })
       .slice(0, 7);
