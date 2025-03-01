@@ -10,6 +10,7 @@ import { supabase } from './lib/supabase/client';
 import { setQueryClient } from './utils/queryClient';
 import { paymentService } from './services/payment';
 import { notificationService } from './services/notifications';
+import { platform } from './utils/platform';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 // Eagerly load critical components
@@ -187,14 +188,16 @@ function App() {
     }
   };
 
-  // Separate notifications and timezone check
+  // Check notifications and timezone settings
   const checkNotificationsAndTimezone = async (userId: string) => {
     try {
       // Initialize notification service
       await notificationService.initialize();
       
-      // Get current timezone
+      // Get current timezone and device notification state
       const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const hasPermission = await notificationService.checkPermission();
+      const deviceEnabled = await notificationService.getCurrentDeviceNotificationState(userId);
       
       // Get or create user preferences
       const { data: prefs } = await supabase
@@ -204,24 +207,25 @@ function App() {
         .single();
 
       if (prefs) {
-        // Check actual notification permission state
-        const hasPermission = await notificationService.checkPermission();
-        
         // Update timezone if changed
         const updates: { timezone?: string; notification_enabled?: boolean } = {};
         if (prefs.timezone !== currentTimezone) {
           updates.timezone = currentTimezone;
         }
 
-        // If notifications are enabled in db but denied at app level, update db
-        if (prefs.notification_enabled && !hasPermission) {
-          updates.notification_enabled = false;
-        } else if (prefs.notification_enabled && hasPermission) {
-          // If notifications are enabled and permitted, ensure subscription
-          try {
-            await notificationService.resubscribeIfNeeded(userId);
-          } catch (error) {
-            console.log('Error checking subscription:', error);
+        // Handle notification states
+        if (prefs.notification_enabled) {
+          if (!hasPermission) {
+            // If browser permission denied, disable globally
+            updates.notification_enabled = false;
+          } else if (deviceEnabled) {
+            // If device has notifications enabled and permission granted,
+            // ensure subscription is valid
+            try {
+              await notificationService.resubscribeIfNeeded(userId);
+            } catch (error) {
+              console.log('Error checking subscription:', error);
+            }
           }
         }
 
@@ -242,6 +246,9 @@ function App() {
             timezone: currentTimezone,
             theme: 'light'
           });
+
+        // Ensure device state is synced
+        await notificationService.toggleDeviceNotifications(userId, localStorage.getItem(platform.getDeviceStorageKey('device_id'))!, false);
       }
     } catch (error) {
       console.error('Error checking notifications and timezone:', error);
