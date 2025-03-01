@@ -274,6 +274,10 @@ export class NotificationService {
       let deviceId = storedDeviceId;
       if (!deviceId?.startsWith(platform.getStorageNamespace())) {
         deviceId = platform.generateDeviceId();
+        // Default to enabled for new mobile device registrations
+        if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+          enableNotifications = true;
+        }
       }
 
       // Handle device migrations and resubscriptions
@@ -289,17 +293,21 @@ export class NotificationService {
           const existingToken = existingTokens.find(token => token.device_id === storedDeviceId);
           const deviceTypeChanged = existingToken && existingToken.device_type !== deviceInfo.deviceType;
 
-          // For mobile (Android/iOS), preserve enabled state during resubscription
+          // For mobile (Android/iOS), handle device state
           if ((deviceTypeChanged || forceResubscribe) && (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios')) {
             console.log(`Mobile device ${deviceTypeChanged ? 'migration' : 'resubscription'}`);
-            const wasEnabled = existingToken?.enabled ?? false;
             
-            // First remove old subscription
-            await this.unsubscribeFromPushNotifications(userId, storedDeviceId, true);
+            // For new mobile registrations or migrations, default to enabled
+            const wasEnabled = deviceTypeChanged ? true : (existingToken?.enabled ?? true);
             
-            // Generate new ID but preserve enabled state
+            // First remove old subscription if exists
+            if (existingToken) {
+              await this.unsubscribeFromPushNotifications(userId, storedDeviceId, true);
+            }
+            
+            // Generate new ID and ensure enabled for mobile
             deviceId = platform.generateDeviceId();
-            enableNotifications = wasEnabled; // Preserve previous state
+            enableNotifications = wasEnabled;
           }
           // For web/desktop, follow normal cleanup
           else if (deviceTypeChanged || forceResubscribe) {
