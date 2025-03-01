@@ -86,7 +86,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
     }
   });
-   
+    
   // Mutation for unregistering a device completely
   const unregisterDeviceMutation = useMutation({
     mutationFn: async (deviceId: string) => {
@@ -169,24 +169,22 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   }
 
   return (
-    <div className="border-t border-gray-100/50 pt-6 mt-6">
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
+    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex flex-col">
-              <label className="text-gray-900 font-medium">
-                Registered Devices
-              </label>
-              <p className="text-sm text-gray-600/90 mt-1">
-                Manage your notification-enabled devices
-              </p>
-            </div>
+            <h3 className="text-xl font-semibold text-primary-500">
+              Registered Devices
+            </h3>
+            <p className="text-sm text-gray-600/90 mt-1">
+              Manage your notification-enabled devices
+            </p>
           </div>
           {devices && devices.length > 0 && (
             <button
               onClick={() => unregisterAllDevicesMutation.mutate()}
               disabled={isUnregisteringAll}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
               {isUnregisteringAll ? (
                 <div className="flex items-center gap-2">
@@ -201,7 +199,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         </div>
 
         {(!devices || devices.length === 0) ? (
-          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 pl-6 py-4 transition-colors hover:bg-white/50">
+          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 p-4 transition-colors hover:bg-white/50">
             <p className="text-gray-600/90 text-sm">No devices registered for notifications.</p>
           </div>
         ) : (
@@ -209,63 +207,12 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
             {devices.map((device) => (
               <div
                 key={device.device_id}
-                className="py-4 pl-6 pr-4 flex items-center justify-between hover:bg-white/50 transition-colors duration-200"
+                className="p-4 flex flex-col sm:flex-row sm:items-start gap-4 hover:bg-white/50 transition-colors duration-200"
               >
-                <div className="flex-grow space-y-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900">
-                      {formatDeviceType(device.device_type)}
-                    </p>
-                    <div className="flex items-center gap-4">
-                      {/* Show notification toggle if global notifications are enabled */}
-                      {preferences?.notification_enabled && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600/90">
-                            Notifications
-                          </span>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              id={`notification-toggle-${device.device_id}`}
-                              type="checkbox"
-                              className="sr-only peer"
-                              checked={device.enabled}
-                              onChange={(e) => {
-                                toggleDeviceMutation.mutate({
-                                  deviceId: device.device_id,
-                                  enabled: e.target.checked
-                                });
-                              }}
-                            />
-                            <div className={`
-                              w-9 h-5 rounded-full
-                              after:content-[''] after:absolute after:top-0.5 after:left-0.5
-                              after:bg-white after:border after:border-gray-300 after:rounded-full
-                              after:h-4 after:w-4 after:transition-all
-                              ${device.enabled
-                                ? 'bg-primary-500 after:translate-x-4'
-                                : 'bg-gray-200'
-                              }
-                              peer-disabled:opacity-50 peer-disabled:cursor-not-allowed
-                            `}></div>
-                          </label>
-                        </div>
-                      )}
-                      <button
-                        onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
-                        disabled={unregisterDeviceMutation.isPending}
-                        className="px-3 py-1.5 text-xs font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
-                      >
-                        {unregisterDeviceMutation.isPending ? (
-                          <div className="flex items-center gap-2">
-                            <LoadingSpinner />
-                            <span>Unregistering...</span>
-                          </div>
-                        ) : (
-                          'Unregister'
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                <div className="flex-grow flex flex-col space-y-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatDeviceType(device.device_type)}
+                  </p>
                   <p className="text-xs text-gray-600/90">
                     {(() => {
                       try {
@@ -293,6 +240,56 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   <p className="text-xs text-gray-500">
                     Last used: {formatLastUsed(device.updated_at)}
                   </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  {/* Show notification toggle if global notifications are enabled */}
+                  {preferences?.notification_enabled && (
+                    <div className="flex items-center justify-between sm:justify-start gap-2 order-first sm:order-none">
+                      <span className="text-sm text-gray-600/90">
+                        Notifications
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          id={`notification-toggle-${device.device_id}`}
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={device.enabled}
+                          onChange={(e) => {
+                            toggleDeviceMutation.mutate({
+                              deviceId: device.device_id,
+                              enabled: e.target.checked
+                            });
+                          }}
+                        />
+                        <div className={`
+                          w-11 h-6 rounded-full
+                          after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                          after:bg-white after:border after:border-gray-300 after:rounded-full
+                          after:h-5 after:w-5 after:transition-all
+                          ${device.enabled
+                            ? 'bg-primary-500 after:translate-x-full'
+                            : 'bg-gray-200'
+                          }
+                          peer-disabled:opacity-50 peer-disabled:cursor-not-allowed
+                        `}></div>
+                      </label>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
+                    disabled={unregisterDeviceMutation.isPending}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+                  >
+                    {unregisterDeviceMutation.isPending ? (
+                      <div className="flex items-center gap-2">
+                        <LoadingSpinner />
+                        <span>Unregistering...</span>
+                      </div>
+                    ) : (
+                      'Unregister'
+                    )}
+                  </button>
                 </div>
               </div>
             ))}
