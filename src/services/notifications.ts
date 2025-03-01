@@ -389,20 +389,38 @@ export class NotificationService {
         });
 
       if (error) {
-       if (error.message?.includes('check_refresh_rate')) {
-         // Check response details to determine exact cause
-         if (error.details?.includes('refresh_count')) {
-           throw new Error('Maximum refresh limit (1000) reached for this device. Please unregister and register again.');
-         } else {
-           throw new Error('Invalid timestamp detected. Please try again.');
-         }
-       } else if (error.message?.includes('check_device_limit')) {
-         throw new Error('Maximum number of devices (10) reached. Please unregister an existing device first.');
-       }
-       
-       console.error('Failed to store FCM token in Supabase:', error);
-       throw error;
-     }
+        console.error('Failed to store FCM token:', error);
+        if (error.message?.includes('check_refresh_rate')) {
+          // Check response details to determine exact cause
+          if (error.details?.includes('refresh_count')) {
+            throw new Error('Maximum refresh limit (1000) reached for this device. Please unregister and register again.');
+          } else {
+            throw new Error('Invalid timestamp detected. Please try again.');
+          }
+        } else if (error.message?.includes('check_device_limit')) {
+          throw new Error('Maximum number of devices (10) reached. Please unregister an existing device first.');
+        } else if (error.message?.includes('unique_user_device')) {
+          // Handle race condition where device already exists
+          console.log('Device already exists, attempting to update...');
+          const { error: updateError } = await supabase
+            .from('push_subscriptions')
+            .update({
+              fcm_token: currentToken,
+              expires_at: currentExpiryDate.toISOString(),
+              refresh_count: refreshCount,
+              enabled: enableNotifications
+            })
+            .match({ user_id: userId, device_id: deviceId });
+            
+          if (updateError) {
+            console.error('Failed to update existing device:', updateError);
+            throw updateError;
+          }
+        } else {
+          console.error('Failed to store FCM token in Supabase:', error);
+          throw error;
+        }
+      }
 
       // Verify token was stored (might be cleaned up by trigger)
       const { data: storedToken } = await supabase
@@ -452,15 +470,25 @@ export class NotificationService {
       // No existing subscription or missing device ID
       if (!existingSubscription?.fcm_token || !deviceId) {
         try {
-          // Create subscription first
-          await this.subscribeToPushNotifications(userId, true, false);
-          // Get fresh device ID
+          console.log('Creating new subscription with notifications enabled...');
+          // Create and enable subscription in one step
+          await this.subscribeToPushNotifications(userId, true, true);
+          // Get fresh device ID and verify subscription state
           const newDeviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
           if (!newDeviceId) {
             throw new Error('Failed to get device ID after subscription');
           }
-          // Then enable notifications
-          await this.toggleDeviceNotifications(userId, newDeviceId, true);
+          // Verify subscription state
+          const { data: subscription } = await supabase
+            .from('push_subscriptions')
+            .select('enabled, fcm_token')
+            .match({ user_id: userId, device_id: newDeviceId })
+            .single();
+          
+          if (!subscription?.enabled || !subscription?.fcm_token) {
+            console.error('Subscription verification failed:', subscription);
+            throw new Error('Failed to verify subscription state');
+          }
           return;
         } catch (error) {
           console.error('Failed to create and enable subscription:', error);

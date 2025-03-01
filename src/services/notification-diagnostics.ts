@@ -47,6 +47,23 @@ export class NotificationDiagnostics {
         }
       }
 
+      // For mobile token errors, attempt cleanup and recheck
+      if (errorMessage.includes('messaging/token') || errorMessage.includes('fcm_token')) {
+        console.log('FCM token error detected, checking service worker state...');
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        const hasFirebaseSW = registrations.some(reg => reg.active?.scriptURL === this.firebaseSWURL);
+        
+        if (!hasFirebaseSW) {
+          throw new Error('Firebase service worker not found. Please refresh the page and try again.');
+        }
+
+        // Service worker exists but token failed - likely a temporary issue
+        const diagnosticInfo = await this.getDiagnosticInfo();
+        if (diagnosticInfo) {
+          throw new Error(`${diagnosticInfo} Please try again or reinstall the app.`);
+        }
+      }
+
       // Default mobile error with diagnostic info
       const diagnosticInfo = await this.getDiagnosticInfo();
       throw new Error(`Push registration failed: ${diagnosticInfo || error.message}. Please ensure notifications are enabled in both app and system settings.`);
