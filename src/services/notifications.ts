@@ -201,16 +201,20 @@ export class NotificationService {
     }
 
     try {
-      // Check for existing subscription if not forcing resubscribe
+      // Check for existing device subscription if not forcing resubscribe
       if (!forceResubscribe) {
         const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
         const { data: existingSubscription } = await supabase
           .from('push_subscriptions')
-          .select('fcm_token')
-          .eq('user_id', userId)
+          .select('fcm_token, enabled')
+          .match({
+            user_id: userId,
+            device_id: deviceId
+          })
           .maybeSingle();
           
-        if (existingSubscription?.fcm_token) {
+        // Only use existing token if both token exists and notifications are enabled
+        if (existingSubscription?.fcm_token && existingSubscription.enabled) {
           console.log('Using existing FCM token');
           return;
         }
