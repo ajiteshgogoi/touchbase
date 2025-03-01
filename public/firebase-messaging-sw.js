@@ -107,17 +107,33 @@ self.addEventListener('message', (event) => {
   } else if (event.data?.type === 'CLEAR_FCM_LISTENERS') {
     const deviceId = event.data.deviceId;
     debug('Clearing FCM listeners for device:', deviceId);
+    
+    // Store device ID for push event handling
     self.CLEANED_DEVICE_ID = deviceId;
 
-    // Remove push subscription
-    self.registration.pushManager.getSubscription().then(subscription => {
+    // Get current push subscription
+    self.registration.pushManager.getSubscription().then(async subscription => {
       if (subscription) {
-        debug('Unsubscribing push subscription for device:', deviceId);
-        subscription.unsubscribe();
+        try {
+          // Get subscription info including endpoint
+          const subscriptionInfo = subscription.toJSON();
+          
+          // Only unsubscribe if this subscription belongs to the device being cleaned
+          const subscriptionDeviceId = await self.registration.pushManager.permissionState(subscriptionInfo);
+          
+          if (subscriptionDeviceId === deviceId) {
+            debug('Unsubscribing push subscription for device:', deviceId);
+            await subscription.unsubscribe();
+          } else {
+            debug('Skipping unsubscribe - subscription belongs to different device');
+          }
+        } catch (error) {
+          debug('Error handling subscription cleanup:', error);
+        }
       }
     });
 
-    // Reset Firebase messaging
+    // Reset Firebase messaging instance
     messaging = null;
 
     // Notify client
