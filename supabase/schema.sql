@@ -479,3 +479,68 @@ create trigger handle_important_events_updated_at
     before update on public.important_events
     for each row
     execute function public.handle_updated_at();
+
+-- Functions for device push notification management
+create or replace function get_device_notification_state(
+  p_user_id uuid,
+  p_device_id text
+) returns table (
+  enabled boolean
+) language plpgsql security definer as $$
+begin
+  return query
+  select ps.enabled
+  from push_subscriptions ps
+  where ps.user_id = p_user_id
+  and ps.device_id = p_device_id
+  limit 1;
+end;
+$$;
+
+-- Grant execute permission to authenticated users
+grant execute on function get_device_notification_state(uuid, text) to authenticated;
+
+create or replace function get_device_subscription(
+  p_user_id uuid,
+  p_device_id text
+) returns table (
+  fcm_token text,
+  enabled boolean
+) language plpgsql security definer as $$
+begin
+  return query
+  select
+    ps.fcm_token,
+    ps.enabled
+  from push_subscriptions ps
+  where ps.user_id = p_user_id
+  and ps.device_id = p_device_id
+  limit 1;
+end;
+$$;
+
+-- Grant execute permission to authenticated users
+grant execute on function get_device_subscription(uuid, text) to authenticated;
+
+create or replace function get_user_device_tokens(
+  p_user_id uuid,
+  p_namespace text
+) returns table (
+  device_id text,
+  device_type text,
+  enabled boolean
+) language plpgsql security definer as $$
+begin
+  return query
+  select
+    ps.device_id,
+    ps.device_type,
+    ps.enabled
+  from push_subscriptions ps
+  where ps.user_id = p_user_id
+  and ps.device_id ilike p_namespace || '%';
+end;
+$$;
+
+-- Grant execute permission to authenticated users
+grant execute on function get_user_device_tokens(uuid, text) to authenticated;
