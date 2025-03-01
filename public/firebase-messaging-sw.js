@@ -33,6 +33,43 @@ function getMessaging() {
   return messaging;
 }
 
+// Register event handlers before any initialization
+self.addEventListener('push', (event) => {
+  debug('Push event received');
+  if (event.data) {
+    const payload = event.data.json();
+    event.waitUntil(handlePushEvent(payload));
+  }
+});
+
+self.addEventListener('pushsubscriptionchange', (event) => {
+  debug('Push subscription change event received');
+  // Reset messaging instance for reinitialization
+  messaging = null;
+  getMessaging();
+});
+
+self.addEventListener('notificationclick', (event) => {
+  debug('Notification clicked:', event);
+  event.notification.close();
+
+  const targetUrl = event.action === 'view' && event.notification.data?.url 
+    ? event.notification.data.url 
+    : '/';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url === targetUrl && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        return self.clients.openWindow(targetUrl);
+      })
+  );
+});
+
 // Handle activation
 self.addEventListener('activate', (event) => {
   debug('Activating Firebase messaging service worker...');
@@ -88,47 +125,6 @@ self.addEventListener('message', (event) => {
       event.ports[0].postMessage({ success: true, deviceId });
     }
   }
-});
-
-// Handle push events
-self.addEventListener('push', (event) => {
-  debug('Push event received');
-  const messaging = getMessaging();
-
-  if (event.data) {
-    const payload = event.data.json();
-    event.waitUntil(handlePushEvent(payload));
-  }
-});
-
-// Handle subscription changes
-self.addEventListener('pushsubscriptionchange', (event) => {
-  debug('Push subscription change event received');
-  // Just reinitialize messaging
-  messaging = null;
-  getMessaging();
-});
-
-// Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
-  debug('Notification clicked:', event);
-  event.notification.close();
-
-  const targetUrl = event.action === 'view' && event.notification.data?.url 
-    ? event.notification.data.url 
-    : '/';
-
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if (client.url === targetUrl && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        return self.clients.openWindow(targetUrl);
-      })
-  );
 });
 
 // Handle push events
