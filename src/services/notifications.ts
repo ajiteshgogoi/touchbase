@@ -295,9 +295,9 @@ export class NotificationService {
       // Handle device migrations and resubscriptions
       if (storedDeviceId) {
         const { data: existingTokens } = await supabase
-          .rpc('get_device_subscriptions_by_user', {
-            p_user_id: userId,
-            p_device_prefix: `${platform.getStorageNamespace()}%`
+          .rpc('get_user_device_tokens', {
+           p_user_id: userId,
+           p_namespace: platform.getStorageNamespace()
           });
 
         // Handle any existing tokens for this device
