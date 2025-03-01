@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import { getToken } from "firebase/messaging";
-import { messaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
+import { getFirebaseMessaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
 
@@ -384,7 +384,7 @@ export class NotificationService {
         
         while (attempts < maxAttempts) {
           try {
-            currentToken = await getToken(messaging, {
+            currentToken = await getToken(getFirebaseMessaging(), {
               vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
               serviceWorkerRegistration: this.registration
             });

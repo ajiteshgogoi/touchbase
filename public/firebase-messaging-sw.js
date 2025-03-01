@@ -19,13 +19,19 @@ const firebaseConfig = {
   measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
 };
 
-// Initialize Firebase immediately
-debug('Initializing Firebase...');
-if (firebase.apps.length) {
-  firebase.apps.forEach(app => app.delete());
+// Initialize Firebase lazily
+let messaging;
+function getMessaging() {
+  if (!messaging) {
+    debug('Initializing Firebase...');
+    if (firebase.apps.length) {
+      firebase.apps.forEach(app => app.delete());
+    }
+    const app = firebase.initializeApp(firebaseConfig);
+    messaging = firebase.messaging(app);
+  }
+  return messaging;
 }
-const app = firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging(app);
 
 // Handle activation
 self.addEventListener('activate', (event) => {
@@ -45,6 +51,7 @@ self.addEventListener('message', (event) => {
     debug('FCM initialization message received');
     
     try {
+      const messaging = getMessaging();
       if (event.ports && event.ports[0]) {
         event.ports[0].postMessage({ success: true });
       }
@@ -73,6 +80,9 @@ self.addEventListener('message', (event) => {
       }
     });
 
+    // Reset Firebase messaging
+    messaging = null;
+
     // Notify client
     if (event.ports && event.ports[0]) {
       event.ports[0].postMessage({ success: true, deviceId });
@@ -80,17 +90,26 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Register push event handler immediately
+// Handle push events
 self.addEventListener('push', (event) => {
   debug('Push event received');
+  const messaging = getMessaging();
+
+  if (event.data) {
+    const payload = event.data.json();
+    event.waitUntil(handlePushEvent(payload));
+  }
 });
 
-// Register subscription change handler immediately
+// Handle subscription changes
 self.addEventListener('pushsubscriptionchange', (event) => {
   debug('Push subscription change event received');
+  // Just reinitialize messaging
+  messaging = null;
+  getMessaging();
 });
 
-// Handle notification clicks immediately
+// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   debug('Notification clicked:', event);
   event.notification.close();
@@ -112,9 +131,9 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Set up background message handler
-messaging.onBackgroundMessage(async (payload) => {
-  debug('Received background message:', payload);
+// Handle push events
+async function handlePushEvent(payload) {
+  debug('Handling push event:', payload);
   const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
 
   try {
@@ -142,7 +161,7 @@ messaging.onBackgroundMessage(async (payload) => {
     
     debug('Notification displayed successfully');
   } catch (error) {
-    debug('Background message processing error:', error);
+    debug('Push event processing error:', error);
     throw error;
   }
-});
+}

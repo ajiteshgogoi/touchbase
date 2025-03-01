@@ -1,10 +1,19 @@
 import { initializeApp } from "firebase/app";
-import { getMessaging, onMessage, getToken } from "firebase/messaging";
+import { getMessaging, onMessage, getToken, Messaging } from "firebase/messaging";
 import { supabase } from "../supabase/client";
 import { firebaseConfig } from "./config";
 
+// Initialize Firebase app once
 export const app = initializeApp(firebaseConfig);
-export let messaging = getMessaging(app);
+
+// Manage messaging instance
+let messagingInstance: Messaging | null = null;
+export const getFirebaseMessaging = (): Messaging => {
+  if (!messagingInstance) {
+    messagingInstance = getMessaging(app);
+  }
+  return messagingInstance;
+};
 
 // Function to cleanup Firebase messaging instance
 export const cleanupMessaging = async () => {
@@ -31,8 +40,8 @@ export const cleanupMessaging = async () => {
     }, [messageChannel.port2]);
   }
   
-  // Re-initialize messaging instance
-  messaging = getMessaging(app);
+  // Reset messaging instance
+  messagingInstance = null;
 
   // Remove all service workers except Firebase messaging worker
   const registrations = await navigator.serviceWorker.getRegistrations();
@@ -81,13 +90,13 @@ const showNotification = async (title: string, options: ExtendedNotificationOpti
       tag: 'touchbase-notification',
       renotify: true,
       requireInteraction: true
-      // Remove vibrate pattern since we're using silent notifications
     };
     await registration.showNotification(title, notificationOptions as NotificationOptions);
   } catch (error) {
     console.error('Error showing notification:', error);
   }
 };
+
 // Helper function to update token in database
 const updateTokenInDatabase = async (userId: string, token: string) => {
   const deviceId = localStorage.getItem('device_id');
@@ -117,6 +126,7 @@ export const initializeTokenRefresh = async (userId: string) => {
   try {
     // Wait for service worker to be ready
     const registration = await navigator.serviceWorker.ready;
+    const messaging = getFirebaseMessaging();
     
     // Get current token with service worker registration
     const currentToken = await getToken(messaging, {
@@ -134,6 +144,7 @@ export const initializeTokenRefresh = async (userId: string) => {
       try {
         // Get the current service worker registration
         const registration = await navigator.serviceWorker.ready;
+        const messaging = getFirebaseMessaging();
 
         const newToken = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
@@ -179,6 +190,7 @@ export const initializeTokenRefresh = async (userId: string) => {
         try {
           // Get the current service worker registration
           const registration = await navigator.serviceWorker.ready;
+          const messaging = getFirebaseMessaging();
 
           const newToken = await getToken(messaging, {
             vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
@@ -195,5 +207,6 @@ export const initializeTokenRefresh = async (userId: string) => {
     });
   } catch (error) {
     console.error('Error setting up token refresh:', error);
+    throw error; // Re-throw to allow handling by caller
   }
 };
