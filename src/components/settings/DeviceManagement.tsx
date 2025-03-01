@@ -62,6 +62,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     onError: (error: Error) => {
       console.error('Failed to toggle device notifications:', error);
       toast.error(error.message || 'Failed to update device notification settings');
+      // Refresh to get current state
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
     }
   });
@@ -70,6 +71,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   const unregisterDeviceMutation = useMutation({
     mutationFn: async (deviceId: string) => {
       console.log(`Starting unregistration process for device: ${deviceId}`);
+      // Force unregister - removes device completely
       await notificationService.unsubscribeFromPushNotifications(userId, deviceId, true);
     },
     onSuccess: () => {
@@ -82,37 +84,36 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     }
   });
 
-  // Mutation for unregistering all devices
-  const unregisterAllDevicesMutation = useMutation({
+  // Mutation for disabling all devices
+  const disableAllDevicesMutation = useMutation({
     mutationFn: async () => {
-      console.log('Starting unregistration process for all devices...');
+      console.log('Starting disable process for all devices...');
       setIsUnregisteringAll(true);
       try {
-        // Clean up all device registrations
-        console.log('Removing all device registrations...');
-        const { error } = await supabase
-          .from('push_subscriptions')
-          .delete()
-          .eq('user_id', userId);
-        
-        if (error) throw error;
-        
-        // Clean up current device's Firebase instance
+        // First cleanup current device's Firebase instance
         console.log('Cleaning up current device Firebase instance...');
         await notificationService.cleanupAllDevices();
         
-        console.log('Successfully removed all devices');
+        // Then update all device registrations to be disabled
+        console.log('Disabling all device notifications...');
+        const { error } = await supabase
+          .from('push_subscriptions')
+          .update({ enabled: false })
+          .eq('user_id', userId);
+        
+        if (error) throw error;
+        console.log('Successfully disabled all device notifications');
       } finally {
         setIsUnregisteringAll(false);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
-      toast.success('All devices unregistered successfully');
+      toast.success('All devices disabled successfully');
     },
     onError: (error: Error) => {
-      console.error('Failed to unregister all devices:', error);
-      toast.error('Failed to unregister all devices');
+      console.error('Failed to disable all devices:', error);
+      toast.error('Failed to disable all devices');
     }
   });
 
@@ -163,17 +164,17 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
           </div>
           {devices && devices.length > 0 && (
             <button
-              onClick={() => unregisterAllDevicesMutation.mutate()}
+              onClick={() => disableAllDevicesMutation.mutate()}
               disabled={isUnregisteringAll}
               className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
               {isUnregisteringAll ? (
                 <div className="flex items-center gap-2">
                   <LoadingSpinner />
-                  <span>Unregistering...</span>
+                  <span>Disabling...</span>
                 </div>
               ) : (
-                'Unregister All'
+                'Disable All'
               )}
             </button>
           )}
@@ -196,33 +197,35 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                       {formatDeviceType(device.device_type)}
                     </p>
                     <div className="flex items-center gap-4">
-                      {/* Show notification toggle if global notifications are enabled */}
-                      {preferences?.notification_enabled && (
-                        <div className="flex items-center gap-2">
-                          <label 
-                            htmlFor={`notification-toggle-${device.device_id}`}
-                            className="text-sm text-gray-600/90"
-                          >
-                            Notifications
-                          </label>
-                          <div className="relative inline-flex">
-                            <input
-                              id={`notification-toggle-${device.device_id}`}
-                              type="checkbox"
-                              className="sr-only peer"
-                              checked={device.enabled}
-                              onChange={(e) => {
-                                toggleDeviceMutation.mutate({
-                                  deviceId: device.device_id,
-                                  enabled: e.target.checked
-                                });
-                              }}
-                              disabled={toggleDeviceMutation.isPending}
-                            />
-                            <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-500"></div>
-                          </div>
+                      {/* Always show toggle but disable if global notifications are off */}
+                      <div className="flex items-center gap-2">
+                        <label 
+                          htmlFor={`notification-toggle-${device.device_id}`}
+                          className="text-sm text-gray-600/90"
+                        >
+                          Notifications
+                        </label>
+                        <div className="relative inline-flex">
+                          <input
+                            id={`notification-toggle-${device.device_id}`}
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={device.enabled}
+                            onChange={(e) => {
+                              toggleDeviceMutation.mutate({
+                                deviceId: device.device_id,
+                                enabled: e.target.checked
+                              });
+                            }}
+                            disabled={
+                              toggleDeviceMutation.isPending ||
+                              unregisterDeviceMutation.isPending ||
+                              !preferences?.notification_enabled
+                            }
+                          />
+                          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-500"></div>
                         </div>
-                      )}
+                      </div>
                       <button
                         onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
                         disabled={unregisterDeviceMutation.isPending}
