@@ -38,8 +38,6 @@ export const Settings = () => {
     ai_suggestions_enabled: false
   });
 
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
-
   // Get subscription details
   // Get subscription details
   // Get subscription details with automatic store sync
@@ -81,8 +79,9 @@ export const Settings = () => {
   });
 
   // Get user preferences
-  const { data: preferences } = useQuery({
+  const { data: preferences, isLoading: isPreferencesLoading } = useQuery({
     queryKey: ['preferences', user?.id],
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!user?.id) return null;
 
@@ -117,8 +116,7 @@ export const Settings = () => {
       return data as UserPreferences;
     },
     enabled: !!user?.id,
-    retry: 1,
-    refetchOnWindowFocus: false
+    retry: 1
   });
 
   // Update notification settings whenever preferences change or are initially loaded
@@ -132,8 +130,7 @@ export const Settings = () => {
       };
 
       setNotificationSettings(newSettings);
-      setPreferencesLoaded(true);
-
+      
       // Check browser permission asynchronously
       const checkNotificationPermission = async () => {
         try {
@@ -376,7 +373,7 @@ export const Settings = () => {
       </div>
 
       <div className="space-y-6">
-        {!preferencesLoaded || notificationSettings.ai_suggestions_enabled === undefined ? (
+        {isPreferencesLoading || notificationSettings.ai_suggestions_enabled === undefined ? (
           <div className="space-y-6">
             <SectionLoader />
             <SectionLoader />
