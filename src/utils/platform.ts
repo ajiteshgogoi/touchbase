@@ -80,7 +80,7 @@ export const platform = {
   },
 
   isWeb(): boolean {
-    return !this.isAndroid();
+    return !this.isAndroid() && !this.isIOS();
   },
 
   // Check if running in TWA (Trusted Web Activity)
@@ -116,12 +116,44 @@ export const platform = {
   },
 
   getDeviceInfo(): DeviceInfo {
-    const deviceType = this.isAndroid() ? 'android' : this.isIOS() ? 'ios' : 'web';
+    // First determine if it's a TWA or PWA on Android
+    if (this.isTWA() || (this.isPWA() && this.isAndroid())) {
+      return {
+        deviceType: 'android',
+        deviceBrand: this.getDeviceBrand(),
+        browserInfo: this.getBrowserInfo(),
+        isTWA: this.isTWA(),
+        isPWA: this.isPWA()
+      };
+    }
+    
+    // Then check platform-specific types
+    if (this.isAndroid()) {
+      return {
+        deviceType: 'android',
+        deviceBrand: this.getDeviceBrand(),
+        browserInfo: this.getBrowserInfo(),
+        isTWA: false,
+        isPWA: false
+      };
+    }
+    
+    if (this.isIOS()) {
+      return {
+        deviceType: 'ios',
+        deviceBrand: this.getDeviceBrand(),
+        browserInfo: this.getBrowserInfo(),
+        isTWA: false,
+        isPWA: this.isPWA()
+      };
+    }
+    
+    // Default to web for desktop browsers
     return {
-      deviceType,
+      deviceType: 'web',
       deviceBrand: this.getDeviceBrand(),
       browserInfo: this.getBrowserInfo(),
-      isTWA: this.isTWA(),
+      isTWA: false,
       isPWA: this.isPWA()
     };
   },
