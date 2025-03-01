@@ -228,41 +228,7 @@ export const Settings = () => {
 
   const updatePreferencesMutation = useMutation({
     mutationFn: async (newSettings: NotificationSettings) => {
-      if (!user?.id) throw new Error('No user ID available');
-
-      // If we don't have preferences, get or create them
-      let prefsId = preferences?.id;
-      if (!prefsId) {
-        const { data: existingPrefs, error: fetchError } = await supabase
-          .from('user_preferences')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          throw fetchError;
-        }
-
-        if (!existingPrefs) {
-          // Create new preferences
-          const { data: newPrefs, error: insertError } = await supabase
-            .from('user_preferences')
-            .insert({
-              user_id: user.id,
-              notification_enabled: newSettings.notification_enabled,
-              theme: newSettings.theme,
-              timezone: newSettings.timezone,
-              ai_suggestions_enabled: newSettings.ai_suggestions_enabled
-            })
-            .select()
-            .single();
-
-          if (insertError) throw insertError;
-          prefsId = newPrefs.id;
-        } else {
-          prefsId = existingPrefs.id;
-        }
-      }
+      if (!user?.id || !preferences?.id) throw new Error('No user ID or preferences ID');
 
       // Handle notification permission
       if (newSettings.notification_enabled) {
@@ -278,7 +244,7 @@ export const Settings = () => {
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
-          id: prefsId,
+          id: preferences.id,
           user_id: user.id,
           notification_enabled: newSettings.notification_enabled,
           theme: newSettings.theme,
