@@ -274,7 +274,7 @@ export class NotificationService {
           fcm_token: currentToken,
           device_id: deviceId,
           device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
-          device_type: deviceInfo.deviceType === 'web' ? 'web' : deviceInfo.deviceType,
+          device_type: deviceInfo.deviceType,
           enabled: enableNotifications,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         }, {
