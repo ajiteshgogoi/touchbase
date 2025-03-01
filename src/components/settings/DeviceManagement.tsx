@@ -17,18 +17,34 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
   const [isUnregisteringAll, setIsUnregisteringAll] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch registered devices
+  // Query preferences to check global notification state
+  const { data: preferences } = useQuery({
+    queryKey: ['preferences', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('notification_enabled')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId
+  });
+
+  // Fetch registered devices with notification state
   const { data: devices, isLoading } = useQuery({
     queryKey: ['devices', userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('push_subscriptions')
-        .select('device_id, device_name, device_type, updated_at')
+        .select('device_id, device_name, device_type, updated_at, enabled')
         .eq('user_id', userId)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      return data as DeviceInfo[];
+      return data as (DeviceInfo & { enabled: boolean })[];
     },
     enabled: !!userId
   });
@@ -101,23 +117,20 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     }
   });
 
-  // Add refetch on notification settings change
-  useEffect(() => {
-    const observer = new QueryObserver(queryClient, {
-      queryKey: ['preferences', userId],
-      enabled: !!userId,
-      refetchInterval: 1000
-    });
-
-    const unsubscribe = observer.subscribe(() => {
-      // Invalidate devices query when preferences change
+  // Mutation for toggling device notifications
+  const toggleDeviceNotificationMutation = useMutation({
+    mutationFn: async ({ deviceId, enabled }: { deviceId: string; enabled: boolean }) => {
+      await notificationService.toggleDeviceNotifications(userId, deviceId, enabled);
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['devices', userId] });
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [userId, queryClient]);
+      toast.success('Device notification settings updated');
+    },
+    onError: (error: Error) => {
+      console.error('Failed to toggle device notifications:', error);
+      toast.error(error.message || 'Failed to update device notification settings');
+    }
+  });
 
   const formatDeviceType = (type: 'web' | 'android' | 'ios') => {
     switch (type) {
@@ -191,12 +204,57 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
             {devices.map((device) => (
               <div
                 key={device.device_id}
-                className="py-4 pl-6 flex items-center justify-between hover:bg-white/50 transition-colors duration-200"
+                className="py-4 pl-6 pr-4 flex items-center justify-between hover:bg-white/50 transition-colors duration-200"
               >
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {formatDeviceType(device.device_type)}
-                  </p>
+                <div className="flex-grow space-y-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-900">
+                      {formatDeviceType(device.device_type)}
+                    </p>
+                    <div className="flex items-center gap-4">
+                      {/* Only show notification toggle if global notifications are enabled */}
+                      {preferences?.notification_enabled && (
+                        <div className="flex items-center gap-2">
+                          <label
+                            htmlFor={`notification-toggle-${device.device_id}`}
+                            className="text-sm text-gray-600/90"
+                          >
+                            Notifications
+                          </label>
+                          <div className="relative inline-flex">
+                            <input
+                              id={`notification-toggle-${device.device_id}`}
+                              type="checkbox"
+                              className="sr-only peer"
+                              checked={device.enabled}
+                              onChange={(e) => {
+                                toggleDeviceNotificationMutation.mutate({
+                                  deviceId: device.device_id,
+                                  enabled: e.target.checked
+                                });
+                              }}
+                              disabled={toggleDeviceNotificationMutation.isPending}
+                            />
+                            <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-500"></div>
+                          </div>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
+                        disabled={unregisterDeviceMutation.isPending}
+                        className="px-3 py-1.5 text-xs font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+                      >
+                        {unregisterDeviceMutation.isPending ? (
+                          <div className="flex items-center gap-2">
+                            <LoadingSpinner />
+                            <span>Unregistering...</span>
+                          </div>
+                        ) : (
+                          'Unregister'
+                        )}
+                      </button>
+                    </div>
+                  </div>
                   <p className="text-xs text-gray-600/90">
                     {(() => {
                       try {
@@ -225,20 +283,6 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                     Last used: {formatLastUsed(device.updated_at)}
                   </p>
                 </div>
-                <button
-                  onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
-                  disabled={unregisterDeviceMutation.isPending}
-                  className="px-3 py-1.5 text-xs font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
-                >
-                  {unregisterDeviceMutation.isPending ? (
-                    <div className="flex items-center gap-2">
-                      <LoadingSpinner />
-                      <span>Unregistering...</span>
-                    </div>
-                  ) : (
-                    'Unregister'
-                  )}
-                </button>
               </div>
             ))}
           </div>
