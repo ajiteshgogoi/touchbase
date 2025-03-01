@@ -207,7 +207,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
             {devices.map((device) => (
               <div
                 key={device.device_id}
-                className="p-4 flex flex-col sm:flex-row sm:items-start gap-4 hover:bg-white/50 transition-colors duration-200"
+                className="py-4 pl-4 pr-0 flex flex-col sm:flex-row sm:items-start gap-4 hover:bg-white/50 transition-colors duration-200"
               >
                 <div className="flex-grow flex flex-col space-y-1">
                   <p className="text-sm font-medium text-gray-900">
@@ -242,10 +242,10 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center">
                   {/* Show notification toggle if global notifications are enabled */}
                   {preferences?.notification_enabled && (
-                    <div className="flex items-center justify-between sm:justify-start gap-2 order-first sm:order-none">
+                    <div className="flex items-center justify-between sm:justify-start gap-2 order-first sm:order-none sm:mr-3">
                       <span className="text-sm text-gray-600/90">
                         Notifications
                       </span>
