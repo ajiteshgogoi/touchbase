@@ -222,7 +222,6 @@ export const initializeTokenRefresh = async (userId: string) => {
       // Handle token changes if needed
       if (payload.data?.type === 'token_change') {
         try {
-          const registration = await navigator.serviceWorker.ready;
           const newToken = await getToken(messaging, tokenConfig);
 
           if (newToken && newToken !== currentToken) {
