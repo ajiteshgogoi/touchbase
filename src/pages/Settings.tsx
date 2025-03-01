@@ -268,11 +268,23 @@ export const Settings = () => {
         }
       }
 
-      // Always check notification permission first when enabling
+      // Only check notification permission when enabling global notifications
+      // AND there's at least one device with enabled=true
       if (newSettings.notification_enabled) {
-        const hasPermission = await notificationService.checkPermission();
-        if (!hasPermission) {
-          throw new Error('Notification permission denied');
+        // Check if any devices have notifications enabled
+        const { data: devices } = await supabase
+          .from('push_subscriptions')
+          .select('enabled')
+          .eq('user_id', user.id);
+        
+        const hasEnabledDevices = devices?.some(device => device.enabled) ?? false;
+        
+        // Only check permission if there are enabled devices
+        if (hasEnabledDevices) {
+          const hasPermission = await notificationService.checkPermission();
+          if (!hasPermission) {
+            throw new Error('Notification permission denied');
+          }
         }
       }
       
