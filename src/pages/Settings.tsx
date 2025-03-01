@@ -265,29 +265,37 @@ export const Settings = () => {
         }
       }
 
-      // Handle notification permission and device state
+      // Always check notification permission first when enabling
       if (newSettings.notification_enabled) {
         const hasPermission = await notificationService.checkPermission();
         if (!hasPermission) {
           throw new Error('Notification permission denied');
         }
-
-        // Get or create device subscription when enabling notifications
-        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-        if (deviceId) {
-          // Existing device - enable it
-          await notificationService.subscribeToPushNotifications(user.id, false, true);
-        } else {
-          // New device - register and enable it
-          await notificationService.subscribeToPushNotifications(user.id, true, true);
-        }
-      } else {
-        // When disabling globally, disable all devices but keep registrations
-        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-        if (deviceId) {
-          await notificationService.unsubscribeFromPushNotifications(user.id, deviceId, false);
-        }
       }
+      
+      // Get device info if available
+      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+      
+      // Check if device already exists in database
+      let deviceExists = false;
+      if (deviceId) {
+        const { data } = await supabase
+          .from('push_subscriptions')
+          .select('device_id')
+          .match({ user_id: user.id, device_id: deviceId })
+          .maybeSingle();
+        deviceExists = !!data;
+      }
+
+      // Only attempt device registration when:
+      // 1. Notifications are being enabled globally AND
+      // 2. Either no device ID exists OR device isn't registered
+      if (newSettings.notification_enabled && (!deviceId || !deviceExists)) {
+        await notificationService.subscribeToPushNotifications(user.id, true, true);
+      }
+
+      // When toggling global notifications off, leave device registrations intact
+      // Device-specific toggles will be handled by DeviceManagement component
 
       const { error } = await supabase
         .from('user_preferences')
