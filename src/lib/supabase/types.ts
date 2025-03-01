@@ -72,8 +72,27 @@ export interface PushSubscription {
   id: string;
   user_id: string;
   fcm_token: string;
+  device_id: string;
+  device_name: string | null;
+  device_type: 'web' | 'android' | 'ios';
   created_at: string;
   updated_at: string;
+  expires_at: string;
+  last_refresh: string;
+  refresh_count: number;
+  enabled: boolean;
+}
+
+// RPC Function Response Types
+export interface DeviceSubscriptionResponse {
+  fcm_token: string | null;
+  enabled: boolean;
+}
+
+export interface DeviceTokenResponse {
+  device_id: string;
+  device_type: 'web' | 'android' | 'ios';
+  enabled: boolean;
 }
 
 export interface ContactProcessingLog {
