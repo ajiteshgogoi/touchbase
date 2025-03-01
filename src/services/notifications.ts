@@ -274,10 +274,6 @@ export class NotificationService {
       let deviceId = storedDeviceId;
       if (!deviceId?.startsWith(platform.getStorageNamespace())) {
         deviceId = platform.generateDeviceId();
-        // Default to enabled for new mobile device registrations
-        if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-          enableNotifications = true;
-        }
       }
 
       // Handle device migrations and resubscriptions
@@ -472,7 +468,10 @@ export class NotificationService {
 
       if (!existingSubscription?.fcm_token || !deviceId) {
         console.log('No existing subscription found for this device, creating new one...');
-        await this.subscribeToPushNotifications(userId, true, false); // Don't auto-enable
+        // Create subscription first
+        await this.subscribeToPushNotifications(userId, true, false);
+        // Then enable it through the toggle flow
+        await this.toggleDeviceNotifications(userId, deviceId!, true);
         return;
       }
 
@@ -505,7 +504,13 @@ export class NotificationService {
       // If any error occurs during verification, try a fresh subscription
       console.log('Error during verification, attempting fresh subscription...');
       try {
-        await this.subscribeToPushNotifications(userId, true, false); // Don't auto-enable on error
+        // Create new subscription first
+        await this.subscribeToPushNotifications(userId, true, false);
+        // Then enable through toggle flow
+        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+        if (deviceId) {
+          await this.toggleDeviceNotifications(userId, deviceId, true);
+        }
       } catch (subError) {
         console.error('Failed to create fresh subscription:', subError);
         throw subError;
