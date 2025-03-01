@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient, QueryObserver } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase/client';
 import { notificationService } from '../../services/notifications';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
