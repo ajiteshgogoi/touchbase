@@ -197,7 +197,6 @@ function App() {
       // Get current timezone and device notification state
       const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const hasPermission = await notificationService.checkPermission();
-      const deviceEnabled = await notificationService.getCurrentDeviceNotificationState(userId);
       
       // Get or create user preferences
       const { data: prefs } = await supabase
@@ -218,13 +217,13 @@ function App() {
           if (!hasPermission) {
             // If browser permission denied, disable globally
             updates.notification_enabled = false;
-          } else if (deviceEnabled) {
-            // If device has notifications enabled and permission granted,
-            // ensure subscription is valid
+          } else {
+            // If browser permission granted and global notifications on,
+            // ensure device is subscribed
             try {
-              await notificationService.resubscribeIfNeeded(userId);
+              await notificationService.subscribeToPushNotifications(userId, true);
             } catch (error) {
-              console.log('Error checking subscription:', error);
+              console.log('Error subscribing device:', error);
             }
           }
         }
