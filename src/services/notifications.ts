@@ -91,7 +91,7 @@ export class NotificationService {
         const { error: updateError } = await supabase
           .from('push_subscriptions')
           .update({ enabled })
-          .match({ user_id: userId, device_id: deviceId });
+          .match({ user_id: userId, device_id: deviceId, browser_instance: this.browserInstanceId });
 
         if (updateError) {
           throw new Error(`Failed to update device notification state: ${updateError.message}`);
@@ -401,7 +401,8 @@ export class NotificationService {
         .delete()
         .match({
           user_id: userId,
-          device_id: targetDeviceId
+          device_id: targetDeviceId,
+          browser_instance: this.browserInstanceId
         });
 
       if (targetDeviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
