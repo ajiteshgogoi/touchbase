@@ -503,7 +503,8 @@ grant execute on function get_device_notification_state(uuid, text) to authentic
 
 create or replace function get_device_subscription(
   p_user_id uuid,
-  p_device_id text
+  p_device_id text,
+  p_browser_instance text
 ) returns table (
   fcm_token text,
   enabled boolean
@@ -516,12 +517,13 @@ begin
   from push_subscriptions ps
   where ps.user_id = p_user_id
   and ps.device_id = p_device_id
+  and ps.browser_instance = p_browser_instance
   limit 1;
 end;
 $$;
 
 -- Grant execute permission to authenticated users
-grant execute on function get_device_subscription(uuid, text) to authenticated;
+grant execute on function get_device_subscription(uuid, text, text) to authenticated;
 
 create or replace function get_user_device_tokens(
   p_user_id uuid,
