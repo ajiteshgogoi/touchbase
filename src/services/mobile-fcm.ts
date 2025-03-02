@@ -4,11 +4,42 @@ import { getFirebaseMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
 
+const DEBUG_PREFIX = '📱 [Mobile FCM]';
+
 // Key for storing device ID in sessionStorage to prevent Chrome sync issues
 const MOBILE_DEVICE_ID_KEY = 'mobile_fcm_device_id';
 
 export class MobileFCMService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
+
+  private async ensureManifestAccess(): Promise<boolean> {
+    try {
+      console.log(`${DEBUG_PREFIX} Verifying manifest access...`);
+      const manifestResponse = await fetch('/manifest.json', {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/manifest+json'
+        }
+      });
+      
+      if (!manifestResponse.ok) {
+        console.error(`${DEBUG_PREFIX} Manifest access issue:`, manifestResponse.status);
+        return false;
+      }
+      
+      const contentType = manifestResponse.headers.get('content-type');
+      if (!contentType?.includes('application/manifest+json')) {
+        console.error(`${DEBUG_PREFIX} Invalid manifest content-type:`, contentType);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Failed to access manifest:`, error);
+      return false;
+    }
+  }
 
   private generateDeviceId(): string {
     const deviceInfo = platform.getDeviceInfo();
@@ -54,6 +85,12 @@ export class MobileFCMService {
       throw new Error('Service workers not supported');
     }
 
+    // Check manifest access first
+    const manifestAccessible = await this.ensureManifestAccess();
+    if (!manifestAccessible) {
+      throw new Error('Cannot access manifest.json - required for push registration');
+    }
+
     const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
 
     try {
@@ -68,7 +105,7 @@ export class MobileFCMService {
       );
 
       // Use existing Firebase service worker or register new one
-      this.registration = existingRegistrations.find(reg =>
+      this.registration = existingRegistrations.find(reg => 
         reg.active?.scriptURL === firebaseSWURL
       ) || await navigator.serviceWorker.register(firebaseSWURL, {
         scope: '/',

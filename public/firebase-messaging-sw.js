@@ -70,16 +70,29 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Handle activation
-self.addEventListener('activate', (event) => {
-  debug('Activating Firebase messaging service worker...');
-  event.waitUntil(self.clients.claim());
-});
-
-// Handle installation
+// Handle installation with immediate activation
 self.addEventListener('install', (event) => {
   debug('Installing Firebase messaging service worker...');
-  event.waitUntil(self.skipWaiting());
+  self.skipWaiting();
+});
+
+// Handle activation with client claim
+self.addEventListener('activate', (event) => {
+  debug('Activating Firebase messaging service worker...');
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Clear any old caches
+      caches.keys().then(keys => Promise.all(
+        keys.map(key => {
+          if (key.startsWith('firebase-messaging')) {
+            return caches.delete(key);
+          }
+          return Promise.resolve();
+        })
+      ))
+    ])
+  );
 });
 
 // Handle messages
