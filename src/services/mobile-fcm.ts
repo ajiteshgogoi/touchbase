@@ -266,12 +266,6 @@ export class MobileFCMService {
       if (!await this.ensureManifestAccess()) {
         throw new Error('Cannot access manifest.json - required for push registration');
       }
-
-      // Check if service worker file exists first
-      const swResponse = await fetch('/firebase-messaging-sw.js');
-      if (!swResponse.ok) {
-        throw new Error('Firebase service worker not found');
-      }
       
       // Use existing registration if available, otherwise register new one
       this.registration = await navigator.serviceWorker.getRegistration('/');
