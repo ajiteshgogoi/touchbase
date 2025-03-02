@@ -185,65 +185,60 @@ export class MobileFCMService {
         reg.active?.scriptURL === firebaseSWURL
       );
       
-      // If we already have a Firebase SW, use it
-      if (existingFirebaseSW) {
-        console.log(`${DEBUG_PREFIX} Using existing Firebase service worker`);
-        this.registration = existingFirebaseSW;
+      // Register or get existing Firebase service worker
+      this.registration = existingFirebaseSW || await navigator.serviceWorker.register(firebaseSWURL, {
+        scope: '/mobile-fcm/',
+        updateViaCache: 'none'
+      });
+
+      // Always wait for activation, regardless of whether it's new or existing
+      console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
+      await new Promise<void>((resolve) => {
+        const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
         
-        // Ensure it's active and controlling
-        if (existingFirebaseSW.active) {
-            console.log(`${DEBUG_PREFIX} Sending FCM initialization message to service worker...`);
-            const initResponse = await this.sendMessageToSW({
-              type: 'INIT_FCM',
-              deviceInfo: {
-                ...platform.getDeviceInfo(),
-                deviceId: this.getDeviceId(),
-                browserInstanceId: this.browserInstanceId
-              }
-            });
-  
-            console.log(`${DEBUG_PREFIX} FCM initialization response:`, initResponse);
-            if (!initResponse.success) {
-              throw new Error('FCM initialization failed in service worker');
-            }
-  
-            // Give Firebase messaging time to fully initialize on mobile
-            if (platform.getDeviceInfo().deviceType === 'android') {
-              console.log(`${DEBUG_PREFIX} Waiting for mobile FCM initialization...`);
-              await new Promise(resolve => setTimeout(resolve, 1500));
-              console.log(`${DEBUG_PREFIX} Mobile FCM initialization delay complete`);
-            }
-          }
-      } else {
-        // Register a new Firebase service worker
-        console.log(`${DEBUG_PREFIX} Registering new Firebase service worker`);
-        this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-          scope: '/mobile-fcm/',
-          updateViaCache: 'none'
-        });
-        
-        // Wait for activation if needed
-        if (this.registration.installing) {
-          console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
-          await new Promise<void>((resolve) => {
-            const sw = this.registration!.installing;
-            if (!sw) {
-              resolve();
-              return;
-            }
-            const listener = function() {
-              console.log(`${DEBUG_PREFIX} Service worker state changed:`, sw.state);
-              if (sw.state === 'activated') {
-                console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
-                sw.removeEventListener('statechange', listener);
-                resolve();
-              }
-            };
-            sw.addEventListener('statechange', listener);
-          });
-        } else {
-          console.log(`${DEBUG_PREFIX} Service worker already activated`);
+        if (!sw) {
+          resolve();
+          return;
         }
+
+        if (sw.state === 'activated') {
+          console.log(`${DEBUG_PREFIX} Service worker already activated`);
+          resolve();
+          return;
+        }
+
+        const listener = function() {
+          console.log(`${DEBUG_PREFIX} Service worker state changed:`, sw.state);
+          if (sw.state === 'activated') {
+            console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
+            sw.removeEventListener('statechange', listener);
+            resolve();
+          }
+        };
+        sw.addEventListener('statechange', listener);
+      });
+
+      // Send initialization message to activated service worker
+      console.log(`${DEBUG_PREFIX} Sending FCM initialization message to service worker...`);
+      const initResponse = await this.sendMessageToSW({
+        type: 'INIT_FCM',
+        deviceInfo: {
+          ...platform.getDeviceInfo(),
+          deviceId: this.getDeviceId(),
+          browserInstanceId: this.browserInstanceId
+        }
+      });
+
+      console.log(`${DEBUG_PREFIX} FCM initialization response:`, initResponse);
+      if (!initResponse.success) {
+        throw new Error('FCM initialization failed in service worker');
+      }
+
+      // Give Firebase messaging time to fully initialize on mobile
+      if (platform.getDeviceInfo().deviceType === 'android') {
+        console.log(`${DEBUG_PREFIX} Waiting for mobile FCM initialization...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        console.log(`${DEBUG_PREFIX} Mobile FCM initialization delay complete`);
       }
       
       this.initialized = true;
@@ -300,26 +295,59 @@ export class MobileFCMService {
       const deviceId = this.getDeviceId();
       const deviceInfo = platform.getDeviceInfo();
 
-      // Create push subscription first
-      console.log(`${DEBUG_PREFIX} Creating push subscription...`);
-      const subscription = await this.registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-      });
+      if (!this.registration) {
+        throw new Error('Service worker not initialized');
+      }
+
+      // Check for existing push subscription
+      console.log(`${DEBUG_PREFIX} Checking existing push subscription...`);
+      let subscription = await this.registration.pushManager.getSubscription();
+
+      // If no subscription exists or it's expired, create new one
+      const now = Date.now();
+      const isExpired = subscription?.expirationTime ? subscription.expirationTime < now : false;
+      
+      if (!subscription || isExpired) {
+        if (subscription) {
+          console.log(`${DEBUG_PREFIX} Removing expired subscription...`);
+          await subscription.unsubscribe();
+        }
+
+        console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
+        try {
+          subscription = await this.registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+          });
+        } catch (error: any) {
+          console.error(`${DEBUG_PREFIX} Push subscription error:`, error);
+          throw new Error(`Push subscription failed: ${error.message}`);
+        }
+      }
 
       if (!subscription) {
         throw new Error('Failed to create push subscription');
       }
 
-      // Generate FCM token using existing subscription
-      console.log(`${DEBUG_PREFIX} Starting FCM token generation with subscription`);
-      const token = await getToken(getFirebaseMessaging(), {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-        serviceWorkerRegistration: this.registration
+      // Generate FCM token using the subscription
+      console.log(`${DEBUG_PREFIX} Starting FCM token generation with subscription:`, {
+        endpoint: subscription.endpoint,
+        expirationTime: subscription.expirationTime
       });
 
+      let token;
+      try {
+        token = await getToken(getFirebaseMessaging(), {
+          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+          serviceWorkerRegistration: this.registration
+        });
+      } catch (error: any) {
+        // Clean up subscription on token generation failure
+        await subscription.unsubscribe();
+        throw new Error(`FCM token generation failed: ${error.message}`);
+      }
+
       if (!token) {
-        // Clean up subscription if token generation fails
         await subscription.unsubscribe();
         throw new Error('Failed to generate FCM token');
       }
