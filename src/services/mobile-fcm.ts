@@ -27,9 +27,12 @@ export class MobileFCMService {
     }
     this.browserInstanceId = instanceId;
     
-    // Clear any stale subscription locks
+    // Clear all stale locks
     this.isSubscribing = false;
     this.subscriptionPromise = null;
+    this.isInitializing = false;
+    this.initializationPromise = null;
+    this.initialized = false;
     
     console.log(`${DEBUG_PREFIX} Initialized with browser instance ID: ${this.browserInstanceId}`);
   }
@@ -191,10 +194,22 @@ export class MobileFCMService {
       return true;
     }
 
-    // Return existing initialization if in progress
+    // If initialization is in progress, check its state
     if (this.isInitializing || this.initializationPromise) {
-      console.log(`${DEBUG_PREFIX} Initialization in progress, returning existing promise`);
-      return this.initializationPromise || Promise.resolve(false);
+      try {
+        const status = await Promise.race<boolean>([
+          this.initializationPromise || Promise.resolve(false),
+          new Promise<boolean>((_, reject) => setTimeout(() => reject('timeout'), 2000))
+        ]);
+        if (typeof status === 'boolean') {
+          return status;
+        }
+      } catch (e) {
+        // Clear stale initialization state
+        this.isInitializing = false;
+        this.initializationPromise = null;
+        this.initialized = false;
+      }
     }
 
     // Start new initialization
@@ -239,6 +254,12 @@ export class MobileFCMService {
         throw new Error('Cannot access manifest.json - required for push registration');
       }
 
+      // Check if service worker file exists first
+      const swResponse = await fetch('/firebase-messaging-sw.js');
+      if (!swResponse.ok) {
+        throw new Error('Firebase service worker not found');
+      }
+      
       // Use existing registration if available, otherwise register new one
       this.registration = await navigator.serviceWorker.getRegistration('/');
       if (!this.registration) {
