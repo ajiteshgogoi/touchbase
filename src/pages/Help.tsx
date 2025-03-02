@@ -175,11 +175,11 @@ export const Help = () => {
             <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
               <strong className="text-gray-700">Contact Health:</strong> Each contact card shows a coloured indicator representing the relationship health:
               <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-green-400/90 mr-2"></div>Healthy (No missed interactions)</div>
-                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-lime-400/90 mr-2"></div>Good (1 missed interaction)</div>
-                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-yellow-400/90 mr-2"></div>Fair (2 missed interactions)</div>
-                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-orange-400/90 mr-2"></div>Poor (3 missed interactions)</div>
-                <div className="flex items-center"><div className="w-2 h-2 rounded-full bg-red-400/90 mr-2"></div>Critical (4+ missed interactions)</div>
+                <div className="flex items-center"><div className="h-2 w-2 aspect-square rounded-full bg-green-400/90 mr-2"></div>Healthy (No missed interactions)</div>
+                                <div className="flex items-center"><div className="h-2 w-2 rounded-full bg-lime-400/90 mr-2"></div>Good (1 missed interaction)</div>
+                                <div className="flex items-center"><div className="h-2 w-2 rounded-full bg-yellow-400/90 mr-2"></div>Fair (2 missed interactions)</div>
+                                <div className="flex items-center"><div className="h-2 w-2 rounded-full bg-orange-400/90 mr-2"></div>Poor (3 missed interactions)</div>
+                                <div className="flex items-center"><div className="h-2 w-2 aspect-square rounded-full bg-red-400/90 mr-2"></div>Critical (4+ missed interactions)</div>
               </div>
             </div>
             <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
