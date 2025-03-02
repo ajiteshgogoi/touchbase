@@ -219,9 +219,9 @@ export class MobileFCMService {
         reg.active?.scriptURL === firebaseSWURL
       );
       
-      // Register or get existing Firebase service worker
+      // Register or get existing Firebase service worker with root scope
       this.registration = existingFirebaseSW || await navigator.serviceWorker.register(firebaseSWURL, {
-        scope: '/mobile-fcm/',
+        scope: '/',
         updateViaCache: 'none'
       });
 
