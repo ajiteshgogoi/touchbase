@@ -214,7 +214,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
               Manage your notification-enabled devices
             </p>
           </div>
-          {devices && devices.length > 0 && (
+          {devices && devices.length > 0 && preferences?.notification_enabled && (
             <button
               onClick={() => unregisterAllDevicesMutation.mutate()}
               disabled={isUnregisteringAll}
@@ -232,9 +232,13 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
           )}
         </div>
 
-        {(!devices || devices.length === 0) ? (
+        {(!devices || devices.length === 0 || !preferences?.notification_enabled) ? (
           <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 p-4 transition-colors hover:bg-white/50">
-            <p className="text-gray-600/90 text-sm">No devices registered for notifications.</p>
+            <p className="text-gray-600/90 text-sm">
+              {!preferences?.notification_enabled
+                ? "Enable notifications to manage your devices."
+                : "No devices registered for notifications."}
+            </p>
           </div>
         ) : (
           <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 overflow-hidden divide-y divide-gray-100/50 pr-0">
