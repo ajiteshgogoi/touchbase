@@ -303,12 +303,6 @@ export class MobileFCMService {
         }
       }
 
-      // Make sure we have permission
-      const hasPermission = await this.requestPermission();
-      if (!hasPermission) {
-        throw new Error('Notification permission denied');
-      }
-
       if (!this.registration) {
         throw new Error('Service worker not registered');
       }
@@ -317,17 +311,17 @@ export class MobileFCMService {
       const deviceId = this.getDeviceId();
       const deviceInfo = platform.getDeviceInfo();
 
-      if (!this.registration) {
-        throw new Error('Service worker not initialized');
+      // Single permission check
+      console.log(`${DEBUG_PREFIX} Checking notification permission...`);
+      const hasPermission = await this.requestPermission();
+      if (!hasPermission) {
+        throw new Error('Notification permission denied');
       }
 
-      // Check notification permission first
-      if (Notification.permission !== 'granted') {
-        console.log(`${DEBUG_PREFIX} No notification permission, requesting...`);
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          throw new Error('Notification permission denied');
-        }
+      // Add delay for Android before checking subscription
+      if (deviceInfo.deviceType === 'android') {
+        console.log(`${DEBUG_PREFIX} Adding pre-subscription delay for Android...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       // Check existing subscription and permissions
@@ -351,6 +345,12 @@ export class MobileFCMService {
           if (subscription) {
             console.log(`${DEBUG_PREFIX} Removing expired subscription...`);
             await subscription.unsubscribe();
+            
+            // Add delay after unsubscribe on Android
+            if (deviceInfo.deviceType === 'android') {
+              console.log(`${DEBUG_PREFIX} Adding post-unsubscribe delay for Android...`);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           }
 
           console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
@@ -383,7 +383,18 @@ export class MobileFCMService {
                 swState: this.registration.active?.state
               });
               
+              // Add small delay before subscription on Android to ensure push service is ready
+              if (deviceInfo.deviceType === 'android') {
+                await new Promise(resolve => setTimeout(resolve, 500));
+              }
+              
               subscription = await this.registration.pushManager.subscribe(options);
+              
+              // Add delay after subscription on Android before token generation
+              if (deviceInfo.deviceType === 'android') {
+                console.log(`${DEBUG_PREFIX} Adding post-subscription delay for Android...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
             } catch (subError: any) {
               console.error(`${DEBUG_PREFIX} Detailed subscription error:`, {
                 name: subError.name,
