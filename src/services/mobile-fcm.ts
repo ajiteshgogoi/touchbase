@@ -189,27 +189,29 @@ export class MobileFCMService {
   private maxRetries = 3;
 
   async initialize(): Promise<boolean> {
-    // Return true if already initialized
-    if (this.initialized) {
-      return true;
+    // Start with a full cleanup of stale state
+    this.initialized = false;
+    this.isInitializing = false;
+    this.initializationPromise = null;
+    this.subscriptionPromise = null;
+    this.isSubscribing = false;
+    
+    // Clean up existing service workers
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
+          console.log(`${DEBUG_PREFIX} Unregistering stale service worker:`, reg.active.scriptURL);
+          await reg.unregister();
+        }
+      }
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Error cleaning up service workers:`, error);
     }
 
-    // If initialization is in progress, check its state
-    if (this.isInitializing || this.initializationPromise) {
-      try {
-        const status = await Promise.race<boolean>([
-          this.initializationPromise || Promise.resolve(false),
-          new Promise<boolean>((_, reject) => setTimeout(() => reject('timeout'), 2000))
-        ]);
-        if (typeof status === 'boolean') {
-          return status;
-        }
-      } catch (e) {
-        // Clear stale initialization state
-        this.isInitializing = false;
-        this.initializationPromise = null;
-        this.initialized = false;
-      }
+    // If initialization is already in progress, wait for it
+    if (this.initializationPromise) {
+      return this.initializationPromise;
     }
 
     // Start new initialization
@@ -399,26 +401,28 @@ export class MobileFCMService {
    * Subscribe to push notifications
    */
   async subscribeToPushNotifications(userId: string): Promise<boolean> {
-    // If there's an existing subscription promise, check its state
-    if (this.subscriptionPromise) {
-      try {
-        const status = await Promise.race([
-          this.subscriptionPromise,
-          new Promise((_, reject) => setTimeout(() => reject('timeout'), 1000))
-        ]);
-        if (status === true || status === false) {
-          return status;
-        }
-      } catch (e) {
-        // Clear stale promise if it's in error state or timed out
-        this.subscriptionPromise = null;
-        this.isSubscribing = false;
+    // Clear any existing subscription state first
+    if (this.isSubscribing || this.subscriptionPromise) {
+      console.log(`${DEBUG_PREFIX} Cleaning up existing subscription state...`);
+      this.subscriptionPromise = null;
+      this.isSubscribing = false;
+
+      // Give a small delay to ensure cleanup is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Ensure we're properly initialized before subscribing
+    if (!this.initialized) {
+      console.log(`${DEBUG_PREFIX} Initializing before subscription...`);
+      const initSuccess = await this.initialize();
+      if (!initSuccess) {
+        throw new Error('Failed to initialize before subscription');
       }
     }
 
-    // Set the lock
+    // Set subscription lock
     if (this.isSubscribing) {
-      console.log(`${DEBUG_PREFIX} Another subscription attempt in progress, skipping`);
+      console.log(`${DEBUG_PREFIX} Another subscription attempt started, skipping`);
       return false;
     }
 
@@ -647,14 +651,43 @@ export class MobileFCMService {
     try {
       console.log(`${DEBUG_PREFIX} Starting cleanup for device ${deviceId}...`);
       
-      // Clear all locks first
+      // Clear all state and locks first
       this.isSubscribing = false;
       this.isInitializing = false;
       this.subscriptionPromise = null;
       this.initializationPromise = null;
       this.initialized = false;
+      
+      // Clean up service worker registrations first
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
+          // First try to clear FCM listeners
+          try {
+            await this.sendMessageToSW({
+              type: 'CLEAR_FCM_LISTENERS',
+              deviceId: deviceId,
+              browserInstanceId: this.browserInstanceId,
+              forceUnsubscribe: true
+            });
+          } catch (swError) {
+            console.warn(`${DEBUG_PREFIX} Failed to clear FCM listeners:`, swError);
+          }
+          
+          // Then unregister the service worker
+          console.log(`${DEBUG_PREFIX} Unregistering service worker:`, reg.active.scriptURL);
+          await reg.unregister();
+        }
+      }
 
-      // Update database first
+      // Clean up push subscriptions
+      const pushSubscription = await this.registration?.pushManager.getSubscription();
+      if (pushSubscription) {
+        console.log(`${DEBUG_PREFIX} Removing push subscription...`);
+        await pushSubscription.unsubscribe();
+      }
+
+      // Update database last (after all local cleanup)
       await supabase
         .from('push_subscriptions')
         .update({
@@ -666,23 +699,13 @@ export class MobileFCMService {
           browser_instance: this.browserInstanceId
         });
 
-      // Notify service worker to clean up
-      if (this.registration?.active) {
-        await this.sendMessageToSW({
-          type: 'CLEAR_FCM_LISTENERS',
-          deviceId: deviceId,
-          browserInstanceId: this.browserInstanceId,
-          forceUnsubscribe: true
-        });
-      }
-
-      // Clear service worker registration
+      // Clear registration reference
       this.registration = undefined;
       
       console.log(`${DEBUG_PREFIX} Cleanup completed successfully`);
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Cleanup failed:`, error);
-      // Even if cleanup fails, ensure locks are cleared
+      // Even if cleanup fails, ensure all state is cleared
       this.isSubscribing = false;
       this.isInitializing = false;
       this.subscriptionPromise = null;
