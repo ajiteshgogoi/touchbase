@@ -94,13 +94,14 @@ create table public.push_subscriptions (
     device_id text not null,
     device_name text,
     device_type text check (device_type in ('web', 'android', 'ios')) default 'web',
+    browser_instance text not null,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now(),
     expires_at timestamp with time zone not null default (now() + interval '30 days'),
     last_refresh timestamp with time zone default now(),
     refresh_count integer default 0,
     enabled boolean not null default true,
-    constraint unique_user_device unique (user_id, device_id)
+    constraint unique_user_device_browser unique (user_id, device_id, browser_instance)
 );
 
 -- Add check constraint for refresh rate limiting
