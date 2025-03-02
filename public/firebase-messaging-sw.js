@@ -235,54 +235,52 @@ self.addEventListener('message', (event) => {
 
 // Handle push events
 async function handlePushEvent(payload) {
-  debug('Handling push event:', payload);
-  const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
   const startTime = Date.now();
+  debug('Handling push event:', { 
+    hasNotification: !!payload.notification,
+    hasData: !!payload.data,
+    startTime 
+  });
 
   try {
     const notificationData = payload.notification || payload.data || {};
-    const deviceId = self.CLEANED_DEVICE_ID || localStorage.getItem('device_id') || `device-${Date.now()}`;
-    const notificationId = `${deviceId}-${startTime}`;
+    const deviceId = self.CLEANED_DEVICE_ID || self.deviceId || `device-${Date.now()}`;
+    const notificationId = `touchbase-${deviceId}-${startTime}`;
     
-    // Extract additional data with defaults
-    const notificationConfig = {
-      title: notificationData.title || 'New Message',
+    debug('Processing notification:', {
+      deviceId,
+      notificationId,
+      title: notificationData.title || 'New Message'
+    });
+    
+    const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
+    
+    await self.registration.showNotification(notificationData.title || 'New Message', {
       body: notificationData.body,
-      icon: notificationData.icon || '/icon-192.png',
-      badge: notificationData.badge || '/icon-192.png',
-      tag: `touchbase-${deviceId}`, // Device-specific tag
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: 'touchbase-notification', // Match edge function tag
       renotify: true,
-      requireInteraction: notificationData.requireInteraction ?? true,
-      timestamp: new Date().toISOString(),
-      actions: [
-        { action: 'view', title: notificationData.viewText || 'View' },
-        ...(notificationData.additionalActions || [])
-      ].slice(0, 2), // Ensure max 2 actions
+      requireInteraction: true,
       data: {
         ...(payload.data || {}),
         deviceId,
         notificationId,
+        url: notificationData.url || '/',
         timestamp: new Date().toISOString(),
         processedIn: Date.now() - startTime
       },
+      actions: [{ action: 'view', title: 'View' }], // Match edge function actions
       ...(isMobile && {
-        vibrate: notificationData.vibrate || [200, 100, 200],
-        silent: notificationData.silent ?? false
+        vibrate: [200, 100, 200],
+        silent: false
       })
-    };
-
-    debug('Showing notification:', {
-      id: notificationId,
-      tag: notificationConfig.tag,
-      deviceId
     });
-    
-    await self.registration.showNotification(
-      notificationConfig.title,
-      notificationConfig
-    );
-    
-    debug('Notification displayed successfully');
+
+    debug('Notification displayed successfully', {
+      notificationId,
+      processedIn: Date.now() - startTime
+    });
   } catch (error) {
     debug('Push event processing error:', error);
     throw error;
