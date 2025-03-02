@@ -514,7 +514,7 @@ export class MobileFCMService {
             // Add delay after unsubscribe on Android
             if (deviceInfo.deviceType === 'android') {
               console.log(`${DEBUG_PREFIX} Adding post-unsubscribe delay for Android...`);
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }
 
