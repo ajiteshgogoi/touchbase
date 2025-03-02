@@ -219,21 +219,30 @@ export class NotificationService {
               return;
             }
             sw.addEventListener('statechange', function listener(event: Event) {
+              console.log(`${DEBUG_PREFIX} Service worker state changed:`, (event.target as ServiceWorker).state);
               if ((event.target as ServiceWorker).state === 'activated') {
+                console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
                 sw.removeEventListener('statechange', listener);
                 resolve();
               }
             });
           });
+        } else {
+          console.log(`${DEBUG_PREFIX} Service worker already activated`);
         }
-
-        console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
       }
 
       // Initialize token refresh if user is authenticated
       if (session.user) {
-        console.log(`${DEBUG_PREFIX} Initializing token refresh...`);
+        console.log(`${DEBUG_PREFIX} Starting FCM initialization...`);
+        const deviceInfo = platform.getDeviceInfo();
+        console.log(`${DEBUG_PREFIX} Initializing token refresh for device:`, {
+          deviceType: deviceInfo.deviceType,
+          registrationActive: !!this.registration?.active,
+          registrationScope: this.registration?.scope
+        });
         await initializeTokenRefresh(session.user.id);
+        console.log(`${DEBUG_PREFIX} FCM initialization completed successfully`);
       }
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Service Worker registration failed:`, error);
