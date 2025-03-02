@@ -265,8 +265,8 @@ export class NotificationService {
               p_browser_instance: this.browserInstanceId
             });
             
-          if (subscription?.fcm_token && subscription.enabled) {
-            console.log(`${DEBUG_PREFIX} Valid subscription exists, skipping`);
+          if (subscription?.fcm_token) {
+            console.log(`${DEBUG_PREFIX} FCM token exists for device, skipping`);
             return;
           }
         }

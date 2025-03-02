@@ -232,18 +232,19 @@ function App() {
               if (deviceId) {
                 console.log('[Notifications] Found device ID:', deviceId);
                 
-                // Check if any valid subscription exists for this device
+                // Check if any FCM token exists for this device
                 console.log('[Notifications] Checking existing device subscriptions...');
-                const { data: deviceState } = await supabase
-                  .rpc('get_device_notification_state', {
+                const { data: subscription } = await supabase
+                  .rpc('get_device_subscription', {
                     p_user_id: userId,
-                    p_device_id: deviceId
+                    p_device_id: deviceId,
+                    p_browser_instance: localStorage.getItem('browser_instance_id')
                   });
 
-                console.log('[Notifications] Device state check result:', deviceState);
+                console.log('[Notifications] Device subscription check result:', subscription);
                 
-                if (!deviceState?.enabled) {
-                  console.log('[Notifications] No active subscription found for device, creating new one...');
+                if (!subscription?.fcm_token) {
+                  console.log('[Notifications] No FCM token found for device, creating new subscription...');
                   await notificationService.subscribeToPushNotifications(userId);
                   console.log('[Notifications] New subscription created successfully');
                 } else {
