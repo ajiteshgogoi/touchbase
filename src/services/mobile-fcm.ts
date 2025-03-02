@@ -163,17 +163,7 @@ export class MobileFCMService {
 
   private initializationPromise: Promise<boolean> | null = null;
   private isInitializing = false;
-  private initializationTimeout: NodeJS.Timeout | null = null;
-  private readonly INIT_TIMEOUT = 30000; // 30 second timeout
-
-  private clearInitializationState() {
-    this.isInitializing = false;
-    this.initializationPromise = null;
-    if (this.initializationTimeout) {
-      clearTimeout(this.initializationTimeout);
-      this.initializationTimeout = null;
-    }
-  }
+  private maxRetries = 3;
 
   async initialize(): Promise<boolean> {
     // Return true if already initialized
@@ -181,236 +171,116 @@ export class MobileFCMService {
       return true;
     }
 
-    // If initialization is in progress, but has been running too long,
-    // clear the state to allow a new attempt
-    if (this.isInitializing && !this.initializationPromise) {
-      console.warn(`${DEBUG_PREFIX} Stale initialization state detected, resetting...`);
-      this.clearInitializationState();
-    }
-
-    // Return existing initialization if in progress and not stale
-    if (this.initializationPromise) {
+    // Return existing initialization if in progress
+    if (this.isInitializing || this.initializationPromise) {
       console.log(`${DEBUG_PREFIX} Initialization in progress, returning existing promise`);
-      return this.initializationPromise;
+      return this.initializationPromise || Promise.resolve(false);
     }
 
+    // Start new initialization
     this.isInitializing = true;
-
-    // Create a timeout promise that rejects after INIT_TIMEOUT
-    const timeoutPromise = new Promise<boolean>((_, reject) => {
-      this.initializationTimeout = setTimeout(() => {
-        reject(new Error('Initialization timeout'));
-      }, this.INIT_TIMEOUT);
-    });
-
-    // Start new initialization with timeout race
-    this.initializationPromise = Promise.race([
-      this._initialize(),
-      timeoutPromise
-    ]).finally(() => {
-      this.clearInitializationState();
-    });
-
-    try {
-      const result = await this.initializationPromise;
-      return result;
-    } catch (error) {
-      console.error(`${DEBUG_PREFIX} Initialization failed:`, error);
-      // Ensure full cleanup on error
-      this.initialized = false;
-      this.registration = undefined;
-      await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
+    this.initializationPromise = (async () => {
+      let attempt = 1;
+      while (attempt <= this.maxRetries) {
+        console.log(`${DEBUG_PREFIX} Initialization attempt ${attempt}/${this.maxRetries}`);
+        try {
+          const result = await this._initialize();
+          this.initializationPromise = null;
+          this.isInitializing = false;
+          return result;
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} Initialization attempt ${attempt} failed:`, error);
+          if (attempt === this.maxRetries) {
+            this.initialized = false;
+            this.registration = undefined;
+            await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
+            this.initializationPromise = null;
+            this.isInitializing = false;
+            return false;
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          attempt++;
+        }
+      }
+      this.isInitializing = false;
       return false;
-    }
+    })();
+
+    return this.initializationPromise;
   }
 
   private async _initialize(): Promise<boolean> {
-    // Set a local flag to track if we need cleanup
-    let needsCleanup = false;
-    
     try {
       if (!await this.isPushSupported()) {
         throw new Error('Push notifications not supported');
       }
 
-      // Check manifest access first
       if (!await this.ensureManifestAccess()) {
         throw new Error('Cannot access manifest.json - required for push registration');
       }
 
+      // Register service worker
       const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
-      needsCleanup = true; // Set flag since we're starting SW operations
-
-      // Unregister any existing Firebase service workers first to ensure clean state
-      const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-      const existingFirebaseSW = existingRegistrations.find(reg =>
-        reg.active?.scriptURL === firebaseSWURL
-      );
-
-      if (existingFirebaseSW) {
-        console.log(`${DEBUG_PREFIX} Unregistering existing Firebase service worker...`);
-        await existingFirebaseSW.unregister();
-        // Add small delay after unregister
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
-      // Register new Firebase service worker with root scope
-      console.log(`${DEBUG_PREFIX} Registering new Firebase service worker...`);
       this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
         scope: '/',
         updateViaCache: 'none'
       });
 
-      // Wait for activation with timeout
-      console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
-      await Promise.race([
-        new Promise<void>((resolve, reject) => {
-          const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
-          
-          if (!sw) {
-            reject(new Error('No service worker found after registration'));
-            return;
-          }
+      // Wait for service worker activation
+      await new Promise<void>((resolve, reject) => {
+        const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
+        if (!sw) {
+          reject(new Error('No service worker found after registration'));
+          return;
+        }
 
+        if (sw.state === 'activated') {
+          resolve();
+          return;
+        }
+
+        const listener = () => {
           if (sw.state === 'activated') {
-            console.log(`${DEBUG_PREFIX} Service worker already activated`);
-            resolve();
-            return;
-          }
-
-          const timeout = setTimeout(() => {
             sw.removeEventListener('statechange', listener);
-            reject(new Error('Service worker activation timeout'));
-          }, 10000);
+            resolve();
+          }
+        };
+        sw.addEventListener('statechange', listener);
+      });
 
-          const listener = function() {
-            console.log(`${DEBUG_PREFIX} Service worker state changed:`, sw.state);
-            if (sw.state === 'activated') {
-              console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
-              clearTimeout(timeout);
-              sw.removeEventListener('statechange', listener);
-              resolve();
-            }
-          };
-          sw.addEventListener('statechange', listener);
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Service worker activation timeout')), 10000)
-        )
-      ]);
-
-      // Send initialization message to activated service worker with timeout
-      console.log(`${DEBUG_PREFIX} Starting FCM initialization sequence...`);
-      
-      // Initialize Firebase messaging first before service worker registration
-      const messaging = await Promise.race([
-        getFirebaseMessaging(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Firebase messaging initialization timeout')), 5000)
-        )
-      ]);
-
+      // Initialize Firebase messaging
+      const messaging = await getFirebaseMessaging();
       if (!messaging) {
         throw new Error('Failed to initialize Firebase messaging');
       }
 
-      // Platform-specific pre-initialization
+      // Initialize service worker
       const deviceInfo = platform.getDeviceInfo();
-      if (deviceInfo.deviceType === 'android') {
-        console.log(`${DEBUG_PREFIX} Pre-initializing Android FCM...`);
-        // Give a moment for FCM to initialize on Android
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      // Try to generate an FCM token first to verify Firebase setup
-      console.log(`${DEBUG_PREFIX} Verifying FCM setup with test token...`);
-      let testToken;
-      try {
-        testToken = await Promise.race([
-          getToken(messaging, {
-            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-            serviceWorkerRegistration: this.registration
-          }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('FCM token generation timeout')), 10000)
-          )
-        ]);
-      } catch (error: any) {
-        console.log(`${DEBUG_PREFIX} Initial token generation failed, will retry after SW setup:`, error.message);
-      }
-
-      // Send initialization message with retries
-      console.log(`${DEBUG_PREFIX} Sending FCM initialization message to service worker...`);
-      let initResponse = null;
-      const maxRetries = 3;
-      
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          initResponse = await Promise.race([
-            this.sendMessageToSW({
-              type: 'INIT_FCM',
-              deviceInfo: {
-                ...deviceInfo,
-                deviceId: this.getDeviceId(),
-                browserInstanceId: this.browserInstanceId
-              }
-            }),
-            new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error('FCM initialization message timeout')), 5000)
-            )
-          ]);
-
-          if (initResponse?.success) {
-            break;
-          }
-
-          console.log(`${DEBUG_PREFIX} FCM initialization attempt ${attempt} failed, retrying...`);
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        } catch (error) {
-          console.error(`${DEBUG_PREFIX} FCM initialization attempt ${attempt} failed:`, error);
-          if (attempt === maxRetries) throw error;
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      const initResponse = await this.sendMessageToSW({
+        type: 'INIT_FCM',
+        deviceInfo: {
+          ...deviceInfo,
+          deviceId: this.getDeviceId(),
+          browserInstanceId: this.browserInstanceId
         }
-      }
+      });
 
       if (!initResponse?.success) {
-        throw new Error('FCM initialization failed in service worker after retries');
+        throw new Error('FCM initialization failed in service worker');
       }
 
-      // Platform-specific post-initialization
-      if (deviceInfo.deviceType === 'android') {
-        console.log(`${DEBUG_PREFIX} Running Android post-initialization steps...`);
-        
-        // If we didn't get a test token earlier, try again now
-        if (!testToken) {
-          console.log(`${DEBUG_PREFIX} Retrying FCM token generation...`);
-          await Promise.race([
-            (async () => {
-              // Small delay before retry
-              await new Promise(resolve => setTimeout(resolve, 500));
-              
-              testToken = await getToken(messaging, {
-                vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-                serviceWorkerRegistration: this.registration
-              });
-              
-              if (!testToken) {
-                throw new Error('Failed to generate FCM token on retry');
-              }
-              
-              // Quick validity check of the token
-              if (!/^[A-Za-z0-9_-]+$/.test(testToken)) {
-                throw new Error('Generated FCM token appears invalid');
-              }
-            })(),
-            new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error('Android token generation retry timeout')), 10000)
-            )
-          ]);
-        }
+      // Verify setup with test token
+      const testToken = await getToken(messaging, {
+        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+        serviceWorkerRegistration: this.registration
+      });
+
+      if (!testToken || !/^[A-Za-z0-9_-]+$/.test(testToken)) {
+        throw new Error('Invalid FCM token generated');
       }
 
       this.initialized = true;
+      this.isInitializing = false;
       return true;
     } catch (error: any) {
       const errorInfo = {
@@ -425,19 +295,8 @@ export class MobileFCMService {
       await notificationDiagnostics.handleFCMError(error, errorInfo.deviceInfo);
       
       // Cleanup on error
-      if (needsCleanup) {
-        try {
-          await this.cleanup();
-        } catch (cleanupError) {
-          console.error(`${DEBUG_PREFIX} Cleanup after error failed:`, cleanupError);
-        }
-      }
-      
+      await this.cleanup();
       return false;
-    } finally {
-      if (!this.initialized) {
-        this.registration = undefined;
-      }
     }
   }
 
