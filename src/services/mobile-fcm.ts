@@ -201,7 +201,6 @@ export class MobileFCMService {
       
       // Register or get existing Firebase service worker
       this.registration = existingFirebaseSW || await navigator.serviceWorker.register(firebaseSWURL, {
-        scope: '/mobile-fcm/',
         updateViaCache: 'none'
       });
 
