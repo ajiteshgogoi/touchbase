@@ -27,6 +27,10 @@ export class MobileFCMService {
     }
     this.browserInstanceId = instanceId;
     
+    // Clear any stale subscription locks
+    this.isSubscribing = false;
+    this.subscriptionPromise = null;
+    
     console.log(`${DEBUG_PREFIX} Initialized with browser instance ID: ${this.browserInstanceId}`);
   }
 
@@ -374,10 +378,21 @@ export class MobileFCMService {
    * Subscribe to push notifications
    */
   async subscribeToPushNotifications(userId: string): Promise<boolean> {
-    // Return existing subscription promise if one is in progress
+    // If there's an existing subscription promise, check its state
     if (this.subscriptionPromise) {
-      console.log(`${DEBUG_PREFIX} Subscription already in progress, returning existing promise`);
-      return this.subscriptionPromise;
+      try {
+        const status = await Promise.race([
+          this.subscriptionPromise,
+          new Promise((_, reject) => setTimeout(() => reject('timeout'), 1000))
+        ]);
+        if (status === true || status === false) {
+          return status;
+        }
+      } catch (e) {
+        // Clear stale promise if it's in error state or timed out
+        this.subscriptionPromise = null;
+        this.isSubscribing = false;
+      }
     }
 
     // Set the lock
