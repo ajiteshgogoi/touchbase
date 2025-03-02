@@ -61,8 +61,17 @@ export class MobileFCMService {
     });
 
     // Create a stable but unique ID
-    const stableId = `${deviceInfo.deviceType}-${btoa(deviceSignature).slice(0, 8)}`;
-    const uniqueId = `${stableId}-${Date.now()}`;
+    // Create a consistent device identifier using deviceType as prefix
+    // This matches the push_subscriptions.device_type enum ('android', 'ios', 'web')
+    const devicePrefix = deviceInfo.deviceType;
+    const deviceHash = btoa(deviceSignature).slice(0, 12);
+    const uniqueId = `${devicePrefix}-${deviceHash}`;
+
+    console.log(`${DEBUG_PREFIX} Generated device ID:`, {
+      devicePrefix,
+      deviceHash,
+      uniqueId
+    });
 
     return uniqueId;
   }
@@ -159,7 +168,20 @@ export class MobileFCMService {
         throw new Error('Failed to generate FCM token');
       }
 
-      // Store subscription
+      // Check existing subscription first
+      const { data: existingSub, error: subError } = await supabase
+        .rpc('get_device_subscription', {
+          p_user_id: userId,
+          p_device_id: deviceId
+        });
+
+      if (subError) {
+        console.error(`${DEBUG_PREFIX} Error checking subscription:`, subError);
+        throw subError;
+      }
+
+      // If subscription exists and is enabled, update token
+      // If not exists or disabled, create new subscription
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -169,7 +191,9 @@ export class MobileFCMService {
           device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
           device_type: deviceInfo.deviceType,
           enabled: true,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          last_refresh: new Date().toISOString(),
+          refresh_count: existingSub ? (existingSub.refresh_count || 0) + 1 : 0
         }, {
           onConflict: 'user_id,device_id'
         });
