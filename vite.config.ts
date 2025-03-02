@@ -33,10 +33,23 @@ export default defineConfig({
         background_color: '#ffffff'
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
+          {
+            urlPattern: /manifest\.json$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'app-manifest',
+              cacheableResponse: {
+                statuses: [0, 200],
+                headers: {
+                  'content-type': 'application/manifest+json'
+                }
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/api\.groq\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
@@ -85,6 +98,9 @@ export default defineConfig({
         server.middlewares.use((req, res, next) => {
           if (req.url?.endsWith('firebase-messaging-sw.js')) {
             res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          }
+          if (req.url?.endsWith('manifest.json')) {
+            res.setHeader('Content-Type', 'application/manifest+json');
           }
           next();
         });

@@ -62,7 +62,12 @@ export class MobileFCMService {
       if (!manifest) {
         throw new Error('Empty or invalid manifest');
       }
-
+  
+      console.log(`${DEBUG_PREFIX} Manifest access successful:`, {
+        contentType,
+        name: manifest.name,
+        hasIcons: !!manifest.icons?.length
+      });
       return true;
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Failed to access manifest:`, error);
