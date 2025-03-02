@@ -336,9 +336,10 @@ export class NotificationService {
           device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
           device_type: deviceInfo.deviceType,
           enabled: enableNotifications,
+          browser_instance: `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         }, {
-          onConflict: 'user_id,device_id'
+          onConflict: 'user_id,device_id,browser_instance'
         });
 
       if (error) {
