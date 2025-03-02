@@ -270,7 +270,7 @@ export class MobileFCMService {
       // Test direct access to service worker file
       try {
         console.log(`${DEBUG_PREFIX} Testing direct access to service worker file...`);
-        const swResponse = await fetch(`/firebase-messaging-sw.js?test=${Date.now()}`, {
+        const swResponse = await fetch(`./firebase-messaging-sw.js?test=${Date.now()}`, {
           method: 'GET',
           cache: 'no-store',
         });
