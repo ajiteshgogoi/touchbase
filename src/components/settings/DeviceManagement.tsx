@@ -109,18 +109,48 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         if (updateError) throw updateError;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [
-          ['devices', userId],
-          ['preferences', userId]
-        ]
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['devices', userId] });
+      await queryClient.cancelQueries({ queryKey: ['preferences', userId] });
+
+      // Snapshot the previous values
+      const previousDevices = queryClient.getQueryData(['devices', userId]);
+      const previousPreferences = queryClient.getQueryData(['preferences', userId]);
+
+      // Update devices list optimistically
+      queryClient.setQueryData(['devices', userId], (old: DeviceInfo[] | undefined) => {
+        if (!old) return old;
+        return [];
       });
+
+      // Update preferences optimistically
+      queryClient.setQueryData(['preferences', userId], (old: any) => {
+        if (!old) return old;
+        return { ...old, notification_enabled: false };
+      });
+
+      return { previousDevices, previousPreferences };
+    },
+    onSuccess: () => {
       toast.success('Device unregistered successfully');
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
       console.error('Failed to unregister device:', error);
       toast.error('Failed to unregister device');
+      
+      // Restore the previous state on error
+      if (context?.previousDevices) {
+        queryClient.setQueryData(['devices', userId], context.previousDevices);
+      }
+      if (context?.previousPreferences) {
+        queryClient.setQueryData(['preferences', userId], context.previousPreferences);
+      }
+    },
+    onSettled: () => {
+      // Invalidate queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['devices', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['preferences', userId], exact: true });
     }
   });
 
@@ -156,18 +186,48 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         setIsUnregisteringAll(false);
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [
-          ['devices', userId],
-          ['preferences', userId]
-        ]
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['devices', userId] });
+      await queryClient.cancelQueries({ queryKey: ['preferences', userId] });
+
+      // Snapshot the previous values
+      const previousDevices = queryClient.getQueryData(['devices', userId]);
+      const previousPreferences = queryClient.getQueryData(['preferences', userId]);
+
+      // Update devices list optimistically
+      queryClient.setQueryData(['devices', userId], (old: DeviceInfo[] | undefined) => {
+        if (!old) return old;
+        return [];
       });
+
+      // Update preferences optimistically
+      queryClient.setQueryData(['preferences', userId], (old: any) => {
+        if (!old) return old;
+        return { ...old, notification_enabled: false };
+      });
+
+      return { previousDevices, previousPreferences };
+    },
+    onSuccess: () => {
       toast.success('All devices unregistered successfully');
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
       console.error('Failed to unregister all devices:', error);
       toast.error('Failed to unregister all devices');
+
+      // Restore the previous state on error
+      if (context?.previousDevices) {
+        queryClient.setQueryData(['devices', userId], context.previousDevices);
+      }
+      if (context?.previousPreferences) {
+        queryClient.setQueryData(['preferences', userId], context.previousPreferences);
+      }
+    },
+    onSettled: () => {
+      // Invalidate queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['devices', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['preferences', userId], exact: true });
     }
   });
 
