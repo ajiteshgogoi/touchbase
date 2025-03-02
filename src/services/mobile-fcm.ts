@@ -345,7 +345,7 @@ export class MobileFCMService {
           last_refresh: new Date().toISOString(),
           refresh_count: existingSub ? (existingSub.refresh_count || 0) + 1 : 0
         }, {
-          onConflict: 'user_id,device_id'
+          onConflict: 'user_id,device_id,browser_instance'
         });
 
       if (error) {
