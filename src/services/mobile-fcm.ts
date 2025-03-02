@@ -192,7 +192,7 @@ export class MobileFCMService {
         
         // Ensure it's active and controlling
         if (existingFirebaseSW.active) {
-            // Send initialization message to service worker and wait for confirmation
+            console.log(`${DEBUG_PREFIX} Sending FCM initialization message to service worker...`);
             const initResponse = await this.sendMessageToSW({
               type: 'INIT_FCM',
               deviceInfo: {
@@ -202,13 +202,16 @@ export class MobileFCMService {
               }
             });
   
+            console.log(`${DEBUG_PREFIX} FCM initialization response:`, initResponse);
             if (!initResponse.success) {
               throw new Error('FCM initialization failed in service worker');
             }
   
             // Give Firebase messaging time to fully initialize on mobile
             if (platform.getDeviceInfo().deviceType === 'android') {
+              console.log(`${DEBUG_PREFIX} Waiting for mobile FCM initialization...`);
               await new Promise(resolve => setTimeout(resolve, 1500));
+              console.log(`${DEBUG_PREFIX} Mobile FCM initialization delay complete`);
             }
           }
       } else {
@@ -221,6 +224,7 @@ export class MobileFCMService {
         
         // Wait for activation if needed
         if (this.registration.installing) {
+          console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
           await new Promise<void>((resolve) => {
             const sw = this.registration!.installing;
             if (!sw) {
@@ -228,13 +232,17 @@ export class MobileFCMService {
               return;
             }
             const listener = function() {
+              console.log(`${DEBUG_PREFIX} Service worker state changed:`, sw.state);
               if (sw.state === 'activated') {
+                console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
                 sw.removeEventListener('statechange', listener);
                 resolve();
               }
             };
             sw.addEventListener('statechange', listener);
           });
+        } else {
+          console.log(`${DEBUG_PREFIX} Service worker already activated`);
         }
       }
       
@@ -293,7 +301,12 @@ export class MobileFCMService {
       const deviceInfo = platform.getDeviceInfo();
 
       // Generate FCM token for device
-      console.log(`${DEBUG_PREFIX} Generating FCM token for device:`, deviceId);
+      console.log(`${DEBUG_PREFIX} Starting FCM token generation for device:`, {
+        deviceId,
+        deviceType: deviceInfo.deviceType,
+        registrationActive: !!this.registration?.active,
+        registrationScope: this.registration?.scope
+      });
       const token = await getToken(getFirebaseMessaging(), {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
         serviceWorkerRegistration: this.registration
