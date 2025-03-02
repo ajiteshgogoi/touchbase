@@ -7,14 +7,28 @@ import { mobileFCMService } from './mobile-fcm';
 
 const DEBUG_PREFIX = '🖥️ [Desktop FCM]';
 
+// Add browser instance ID to prevent sync issues
+const BROWSER_INSTANCE_KEY = 'browser_instance_id';
+
 export class NotificationService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
   private readonly firebaseSWURL: string;
   private isInitializing = false;
+  private browserInstanceId: string;
 
   constructor() {
     this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+    
+    // Generate a per-browser-instance ID that won't sync across instances
+    let instanceId = localStorage.getItem(BROWSER_INSTANCE_KEY);
+    if (!instanceId) {
+      instanceId = `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+      localStorage.setItem(BROWSER_INSTANCE_KEY, instanceId);
+    }
+    this.browserInstanceId = instanceId;
+    
     console.log(`${DEBUG_PREFIX} Service worker URL:`, this.firebaseSWURL);
+    console.log(`${DEBUG_PREFIX} Initialized with browser instance ID:`, this.browserInstanceId);
   }
 
   async getCurrentDeviceNotificationState(userId: string): Promise<boolean> {
@@ -336,7 +350,7 @@ export class NotificationService {
           device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
           device_type: deviceInfo.deviceType,
           enabled: enableNotifications,
-          browser_instance: `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+          browser_instance: this.browserInstanceId,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         }, {
           onConflict: 'user_id,device_id,browser_instance'
