@@ -4,6 +4,18 @@
   "outputDirectory": "dist",
   "routes": [
     {
+      "src": "/manifest\\.json",
+      "dest": "/manifest.json",
+      "continue": true,
+      "headers": {
+        "content-type": "application/manifest+json",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET",
+        "access-control-max-age": "86400"
+      }
+    },
+    {
       "src": "/.well-known/(.*)",
       "headers": {
         "content-type": "application/json",

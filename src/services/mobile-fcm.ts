@@ -57,13 +57,22 @@ export class MobileFCMService {
     const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
 
     try {
-      // Unregister existing service workers
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map(reg => reg.unregister()));
+      // Handle existing service workers
+      const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+      
+      // Only unregister non-Firebase service workers
+      await Promise.all(
+        existingRegistrations
+          .filter(reg => reg.active?.scriptURL !== firebaseSWURL)
+          .map(reg => reg.unregister())
+      );
 
-      // Register new service worker
-      this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-        scope: '/'
+      // Use existing Firebase service worker or register new one
+      this.registration = existingRegistrations.find(reg =>
+        reg.active?.scriptURL === firebaseSWURL
+      ) || await navigator.serviceWorker.register(firebaseSWURL, {
+        scope: '/',
+        updateViaCache: 'none'
       });
 
       // Wait for activation
@@ -151,9 +160,13 @@ export class MobileFCMService {
         })
         .match({ device_id: deviceId });
 
-      // Clean up service worker registration
+      // Only unregister Firebase service worker
       const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map(reg => reg.unregister()));
+      await Promise.all(
+        registrations
+          .filter(reg => reg.active?.scriptURL.includes('firebase-messaging-sw.js'))
+          .map(reg => reg.unregister())
+      );
 
       // Clear session storage
       sessionStorage.removeItem(MOBILE_DEVICE_ID_KEY);
