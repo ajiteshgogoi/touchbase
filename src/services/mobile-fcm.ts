@@ -210,8 +210,11 @@ export class MobileFCMService {
     try {
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const reg of registrations) {
-        if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
-          console.log(`${DEBUG_PREFIX} Unregistering stale service worker:`, reg.active.scriptURL);
+        // Check any service worker state (installing, waiting, active) for the firebase-messaging-sw.js script
+        const swStates = [reg.installing, reg.waiting, reg.active].filter(Boolean);
+        if (swStates.some(sw => sw?.scriptURL.includes('firebase-messaging-sw.js'))) {
+          const swUrl = swStates.find(sw => sw?.scriptURL)?.scriptURL || 'unknown';
+          console.log(`${DEBUG_PREFIX} Unregistering stale service worker:`, swUrl);
           await reg.unregister();
         }
       }
@@ -287,10 +290,22 @@ export class MobileFCMService {
         // Continue anyway, but log the error
       }
 
-      // Use existing registration if available, otherwise register new one
+      const firebaseSWURL = `/firebase-messaging-sw.js?v=${Date.now()}`;
+      
+      // Get existing registration if available
       this.registration = await navigator.serviceWorker.getRegistration('/');
-      if (!this.registration) {
-        const firebaseSWURL = `/firebase-messaging-sw.js?v=${Date.now()}`;
+      
+      // Force fresh registration if no registration exists or if service worker isn't active
+      if (!this.registration || !this.registration.active ||
+          this.registration.installing || this.registration.waiting) {
+        // Unregister existing registration if it exists
+        if (this.registration) {
+          console.log(`${DEBUG_PREFIX} Unregistering inactive service worker for fresh registration`);
+          await this.registration.unregister();
+        }
+        
+        // Register new service worker
+        console.log(`${DEBUG_PREFIX} Forcing fresh service worker registration`);
         this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
           scope: '/',
           updateViaCache: 'imports'
@@ -696,21 +711,26 @@ export class MobileFCMService {
       // Clean up service worker registrations first
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const reg of registrations) {
-        if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
-          // First try to clear FCM listeners
-          try {
-            await this.sendMessageToSW({
-              type: 'CLEAR_FCM_LISTENERS',
-              deviceId: deviceId,
-              browserInstanceId: this.browserInstanceId,
-              forceUnsubscribe: true
-            });
-          } catch (swError) {
-            console.warn(`${DEBUG_PREFIX} Failed to clear FCM listeners:`, swError);
+        // Check any service worker state (installing, waiting, active) for the firebase-messaging-sw.js script
+        const swStates = [reg.installing, reg.waiting, reg.active].filter(Boolean);
+        if (swStates.some(sw => sw?.scriptURL.includes('firebase-messaging-sw.js'))) {
+          // First try to clear FCM listeners if we have an active worker
+          if (reg.active) {
+            try {
+              await this.sendMessageToSW({
+                type: 'CLEAR_FCM_LISTENERS',
+                deviceId: deviceId,
+                browserInstanceId: this.browserInstanceId,
+                forceUnsubscribe: true
+              });
+            } catch (swError) {
+              console.warn(`${DEBUG_PREFIX} Failed to clear FCM listeners:`, swError);
+            }
           }
           
           // Then unregister the service worker
-          console.log(`${DEBUG_PREFIX} Unregistering service worker:`, reg.active.scriptURL);
+          const swUrl = swStates.find(sw => sw?.scriptURL)?.scriptURL || 'unknown';
+          console.log(`${DEBUG_PREFIX} Unregistering service worker:`, swUrl);
           await reg.unregister();
         }
       }
