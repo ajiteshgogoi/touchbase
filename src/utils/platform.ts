@@ -125,7 +125,30 @@ export const platform = {
   },
 
   getDeviceInfo(): DeviceInfo {
-    // Temporarily treat all devices as web for testing
+    // First check basic platform types
+    if (this.isAndroid()) {
+      const isTWAApp = this.isTWA();
+      const isPWAApp = this.isPWA();
+      return {
+        deviceType: 'android',
+        deviceBrand: this.getDeviceBrand(),
+        browserInfo: this.getBrowserInfo(),
+        isTWA: isTWAApp,
+        isPWA: isPWAApp
+      };
+    }
+    
+    if (this.isIOS()) {
+      return {
+        deviceType: 'ios',
+        deviceBrand: this.getDeviceBrand(),
+        browserInfo: this.getBrowserInfo(),
+        isTWA: false,
+        isPWA: this.isPWA()
+      };
+    }
+    
+    // Default to web for desktop browsers
     return {
       deviceType: 'web',
       deviceBrand: this.getDeviceBrand(),
