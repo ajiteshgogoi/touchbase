@@ -300,19 +300,27 @@ export class MobileFCMService {
       const deviceId = this.getDeviceId();
       const deviceInfo = platform.getDeviceInfo();
 
-      // Generate FCM token for device
-      console.log(`${DEBUG_PREFIX} Starting FCM token generation for device:`, {
-        deviceId,
-        deviceType: deviceInfo.deviceType,
-        registrationActive: !!this.registration?.active,
-        registrationScope: this.registration?.scope
+      // Create push subscription first
+      console.log(`${DEBUG_PREFIX} Creating push subscription...`);
+      const subscription = await this.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
       });
+
+      if (!subscription) {
+        throw new Error('Failed to create push subscription');
+      }
+
+      // Generate FCM token using existing subscription
+      console.log(`${DEBUG_PREFIX} Starting FCM token generation with subscription`);
       const token = await getToken(getFirebaseMessaging(), {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
         serviceWorkerRegistration: this.registration
       });
 
       if (!token) {
+        // Clean up subscription if token generation fails
+        await subscription.unsubscribe();
         throw new Error('Failed to generate FCM token');
       }
 
