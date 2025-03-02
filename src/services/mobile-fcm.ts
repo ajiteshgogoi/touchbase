@@ -233,7 +233,7 @@ export class MobileFCMService {
       // Use existing registration if available, otherwise register new one
       this.registration = await navigator.serviceWorker.getRegistration('/');
       if (!this.registration) {
-        const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+        const firebaseSWURL = `/firebase-messaging-sw.js?v=${Date.now()}`;
         this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
           scope: '/',
           updateViaCache: 'imports'
