@@ -234,7 +234,7 @@ export class MobileFCMService {
       const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
       this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
         scope: '/',
-        updateViaCache: 'none'
+        updateViaCache: 'imports'  // Only bypass cache for imported scripts, not main SW
       });
 
       // Wait for service worker activation
