@@ -237,8 +237,7 @@ function App() {
                 const { data: subscription } = await supabase
                   .rpc('get_device_subscription', {
                     p_user_id: userId,
-                    p_device_id: deviceId,
-                    p_browser_instance: localStorage.getItem('browser_instance_id')
+                    p_device_id: deviceId
                   });
 
                 console.log('[Notifications] Device subscription check result:', subscription);
