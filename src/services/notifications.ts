@@ -380,17 +380,13 @@ export class NotificationService {
         await cleanupMessaging();
       }
 
-      const updateData = forceCleanup 
-        ? { enabled: false, fcm_token: null }
-        : { enabled: false };
-
-      console.log(`${DEBUG_PREFIX} Updating subscription in database...`, updateData);
+      console.log(`${DEBUG_PREFIX} Deleting subscription from database...`);
       await supabase
         .from('push_subscriptions')
-        .update(updateData)
-        .match({ 
-          user_id: userId, 
-          device_id: targetDeviceId 
+        .delete()
+        .match({
+          user_id: userId,
+          device_id: targetDeviceId
         });
 
       if (targetDeviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
