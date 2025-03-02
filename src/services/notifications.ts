@@ -213,7 +213,7 @@ export class NotificationService {
         this.registration = existingRegistrations.find(reg => 
           reg.active?.scriptURL === this.firebaseSWURL
         ) || await navigator.serviceWorker.register(this.firebaseSWURL, {
-          scope: '/',
+          scope: '/desktop-fcm/',
           updateViaCache: 'none'
         });
 

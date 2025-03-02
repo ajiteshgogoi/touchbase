@@ -87,9 +87,13 @@ self.addEventListener('notificationclick', (event) => {
   debug('Notification clicked:', event);
   event.notification.close();
 
-  const targetUrl = event.action === 'view' && event.notification.data?.url 
-    ? event.notification.data.url 
+  const baseUrl = self.registration.scope;
+  const targetPath = event.action === 'view' && event.notification.data?.url
+    ? event.notification.data.url
     : '/';
+  
+  // Ensure we maintain the proper scope when opening URLs
+  const targetUrl = baseUrl + targetPath.replace(/^\//, '');
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true })
@@ -135,9 +139,17 @@ self.addEventListener('message', (event) => {
     debug('FCM initialization message received');
     
     try {
+      // Store device type based on registration scope
+      self.deviceType = self.registration.scope.includes('mobile-fcm') ? 'mobile' : 'desktop';
+      debug('Device type set:', { deviceType: self.deviceType, scope: self.registration.scope });
+      
       const messaging = getMessaging();
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ success: true });
+        event.ports[0].postMessage({
+          success: true,
+          deviceType: self.deviceType,
+          scope: self.registration.scope
+        });
       }
     } catch (error) {
       debug('FCM initialization error:', error);
@@ -233,6 +245,28 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// Handle fetch events to serve both scopes
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/desktop-fcm/') || url.pathname.startsWith('/mobile-fcm/')) {
+    // Strip the scope prefix and forward to root
+    const newUrl = new URL(url.pathname.replace(/^\/(desktop|mobile)-fcm\//, '/'), url.origin);
+    event.respondWith(
+      fetch(new Request(newUrl.toString(), {
+        method: event.request.method,
+        headers: event.request.headers,
+        body: event.request.body,
+        mode: event.request.mode,
+        credentials: event.request.credentials,
+        cache: event.request.cache,
+        redirect: event.request.redirect,
+        referrer: event.request.referrer,
+        integrity: event.request.integrity
+      }))
+    );
+  }
+});
+
 // Handle push events
 async function handlePushEvent(payload) {
   const startTime = Date.now();
@@ -253,7 +287,11 @@ async function handlePushEvent(payload) {
       title: notificationData.title || 'New Message'
     });
     
-    const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
+    const isMobile = self.registration.scope.includes('mobile-fcm');
+    const isDesktop = self.registration.scope.includes('desktop-fcm');
+    
+    // Store the device type in service worker scope
+    self.deviceType = isMobile ? 'mobile' : 'desktop';
     
     await self.registration.showNotification(notificationData.title || 'New Message', {
       body: notificationData.body,

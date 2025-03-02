@@ -218,7 +218,7 @@ export class MobileFCMService {
         // Register a new Firebase service worker
         console.log(`${DEBUG_PREFIX} Registering new Firebase service worker`);
         this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-          scope: '/',
+          scope: '/mobile-fcm/',
           updateViaCache: 'none'
         });
         
