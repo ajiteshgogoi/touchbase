@@ -159,26 +159,40 @@ export class MobileFCMService {
     });
   }
 
+  private initializationPromise: Promise<boolean> | null = null;
+
   async initialize(): Promise<boolean> {
+    // Return existing initialization if in progress
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    // Return true if already initialized
     if (this.initialized) {
       return true;
     }
 
-    if (!await this.isPushSupported()) {
-      console.error(`${DEBUG_PREFIX} Push notifications not supported`);
-      return false;
-    }
+    // Start new initialization
+    this.initializationPromise = this._initialize();
+    return this.initializationPromise;
+  }
 
-    // Check manifest access first
-    const manifestAccessible = await this.ensureManifestAccess();
-    if (!manifestAccessible) {
-      console.error(`${DEBUG_PREFIX} Cannot access manifest.json - required for push registration`);
-      return false;
-    }
-
-    const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
-
+  private async _initialize(): Promise<boolean> {
     try {
+      if (!await this.isPushSupported()) {
+        console.error(`${DEBUG_PREFIX} Push notifications not supported`);
+        return false;
+      }
+
+      // Check manifest access first
+      const manifestAccessible = await this.ensureManifestAccess();
+      if (!manifestAccessible) {
+        console.error(`${DEBUG_PREFIX} Cannot access manifest.json - required for push registration`);
+        return false;
+      }
+
+      const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+
       // Find existing Firebase SW registration
       const existingRegistrations = await navigator.serviceWorker.getRegistrations();
       const existingFirebaseSW = existingRegistrations.find(reg =>
@@ -247,6 +261,14 @@ export class MobileFCMService {
       console.error(`${DEBUG_PREFIX} Service worker registration failed:`, error);
       await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
       return false;
+    } finally {
+      // Clear initialization promise on completion
+      this.initializationPromise = null;
+      
+      // If initialization failed, ensure state is reset
+      if (!this.initialized) {
+        this.registration = undefined;
+      }
     }
   }
 
@@ -299,30 +321,60 @@ export class MobileFCMService {
         throw new Error('Service worker not initialized');
       }
 
-      // Check for existing push subscription
+      // Check notification permission first
+      if (Notification.permission !== 'granted') {
+        console.log(`${DEBUG_PREFIX} No notification permission, requesting...`);
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          throw new Error('Notification permission denied');
+        }
+      }
+
+      // Check existing subscription and permissions
       console.log(`${DEBUG_PREFIX} Checking existing push subscription...`);
       let subscription = await this.registration.pushManager.getSubscription();
 
-      // If no subscription exists or it's expired, create new one
-      const now = Date.now();
-      const isExpired = subscription?.expirationTime ? subscription.expirationTime < now : false;
-      
-      if (!subscription || isExpired) {
-        if (subscription) {
-          console.log(`${DEBUG_PREFIX} Removing expired subscription...`);
-          await subscription.unsubscribe();
-        }
+      // Check permission state for the subscription
+      const pushPermissionState = await this.registration.pushManager.permissionState({
+        userVisibleOnly: true,
+        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+      });
 
-        console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
-        try {
-          subscription = await this.registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-          });
-        } catch (error: any) {
-          console.error(`${DEBUG_PREFIX} Push subscription error:`, error);
-          throw new Error(`Push subscription failed: ${error.message}`);
+      console.log(`${DEBUG_PREFIX} Push permission state:`, pushPermissionState);
+
+      // Only proceed if permission is granted and we either have no subscription or need a new one
+      if (pushPermissionState === 'granted') {
+        const now = Date.now();
+        const isExpired = subscription?.expirationTime ? subscription.expirationTime < now : false;
+
+        if (!subscription || isExpired) {
+          if (subscription) {
+            console.log(`${DEBUG_PREFIX} Removing expired subscription...`);
+            await subscription.unsubscribe();
+          }
+
+          console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
+          try {
+            subscription = await this.registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+            }).catch((error: any) => {
+              if (error.name === 'NotAllowedError') {
+                throw new Error('Push subscription not allowed by browser');
+              }
+              throw error;
+            });
+          } catch (error: any) {
+            console.error(`${DEBUG_PREFIX} Push subscription error:`, {
+              name: error.name,
+              message: error.message,
+              stack: error.stack
+            });
+            throw new Error(`Push subscription failed: ${error.message}`);
+          }
         }
+      } else {
+        throw new Error(`Push permission denied (state: ${pushPermissionState})`);
       }
 
       if (!subscription) {
