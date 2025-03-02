@@ -100,7 +100,7 @@ export const Help = () => {
             <li>View your interaction patterns through the heatmap visualisation</li>
             <li>See your top engaged contacts and their interaction frequencies</li>
             <li>Identify relationships that need attention</li>
-            <li>Get personalised insights about your interactions with each contact</li>
+            <li>Get personalised insights about your interactions and suggestions for improvement</li>
           </ol>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
             <strong className="text-primary-700">Pro Tip:</strong> Analytics are generated on demand and saved for you to revisit anytime. The insights help you understand your relationship patterns and make meaningful improvements.
