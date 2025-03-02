@@ -302,7 +302,7 @@ export class MobileFCMService {
       // Send initialization message to activated service worker with timeout
       console.log(`${DEBUG_PREFIX} Starting FCM initialization sequence...`);
       
-      // Initialize Firebase messaging with timeout
+      // Initialize Firebase messaging first before service worker registration
       const messaging = await Promise.race([
         getFirebaseMessaging(),
         new Promise<never>((_, reject) =>
@@ -314,51 +314,100 @@ export class MobileFCMService {
         throw new Error('Failed to initialize Firebase messaging');
       }
 
-      // Send initialization message with timeout
-      console.log(`${DEBUG_PREFIX} Sending FCM initialization message to service worker...`);
-      const initResponse = await Promise.race([
-        this.sendMessageToSW({
-          type: 'INIT_FCM',
-          deviceInfo: {
-            ...platform.getDeviceInfo(),
-            deviceId: this.getDeviceId(),
-            browserInstanceId: this.browserInstanceId
-          }
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('FCM initialization message timeout')), 5000)
-        )
-      ]);
-
-      if (!initResponse?.success) {
-        throw new Error('FCM initialization failed in service worker');
-      }
-
-      // Platform-specific initialization steps
+      // Platform-specific pre-initialization
       const deviceInfo = platform.getDeviceInfo();
       if (deviceInfo.deviceType === 'android') {
-        console.log(`${DEBUG_PREFIX} Executing Android-specific initialization...`);
-        await Promise.race([
-          (async () => {
-            // Give Firebase messaging time to fully initialize
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Test FCM functionality
-            const testToken = await getToken(messaging, {
-              vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-              serviceWorkerRegistration: this.registration
-            });
-            
-            if (!testToken) {
-              throw new Error('Failed to generate test FCM token');
-            }
+        console.log(`${DEBUG_PREFIX} Pre-initializing Android FCM...`);
+        // Give a moment for FCM to initialize on Android
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
-            console.log(`${DEBUG_PREFIX} Android FCM initialization complete`);
-          })(),
+      // Try to generate an FCM token first to verify Firebase setup
+      console.log(`${DEBUG_PREFIX} Verifying FCM setup with test token...`);
+      let testToken;
+      try {
+        testToken = await Promise.race([
+          getToken(messaging, {
+            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            serviceWorkerRegistration: this.registration
+          }),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Android initialization timeout')), 5000)
+            setTimeout(() => reject(new Error('FCM token generation timeout')), 10000)
           )
         ]);
+      } catch (error: any) {
+        console.log(`${DEBUG_PREFIX} Initial token generation failed, will retry after SW setup:`, error.message);
+      }
+
+      // Send initialization message with retries
+      console.log(`${DEBUG_PREFIX} Sending FCM initialization message to service worker...`);
+      let initResponse = null;
+      const maxRetries = 3;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          initResponse = await Promise.race([
+            this.sendMessageToSW({
+              type: 'INIT_FCM',
+              deviceInfo: {
+                ...deviceInfo,
+                deviceId: this.getDeviceId(),
+                browserInstanceId: this.browserInstanceId
+              }
+            }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('FCM initialization message timeout')), 5000)
+            )
+          ]);
+
+          if (initResponse?.success) {
+            break;
+          }
+
+          console.log(`${DEBUG_PREFIX} FCM initialization attempt ${attempt} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} FCM initialization attempt ${attempt} failed:`, error);
+          if (attempt === maxRetries) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+
+      if (!initResponse?.success) {
+        throw new Error('FCM initialization failed in service worker after retries');
+      }
+
+      // Platform-specific post-initialization
+      if (deviceInfo.deviceType === 'android') {
+        console.log(`${DEBUG_PREFIX} Running Android post-initialization steps...`);
+        
+        // If we didn't get a test token earlier, try again now
+        if (!testToken) {
+          console.log(`${DEBUG_PREFIX} Retrying FCM token generation...`);
+          await Promise.race([
+            (async () => {
+              // Small delay before retry
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              testToken = await getToken(messaging, {
+                vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+                serviceWorkerRegistration: this.registration
+              });
+              
+              if (!testToken) {
+                throw new Error('Failed to generate FCM token on retry');
+              }
+              
+              // Quick validity check of the token
+              if (!/^[A-Za-z0-9_-]+$/.test(testToken)) {
+                throw new Error('Generated FCM token appears invalid');
+              }
+            })(),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('Android token generation retry timeout')), 10000)
+            )
+          ]);
+        }
       }
 
       this.initialized = true;
