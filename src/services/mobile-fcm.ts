@@ -277,27 +277,32 @@ export class MobileFCMService {
         });
       }
 
-      // Wait for service worker activation
-      await new Promise<void>((resolve, reject) => {
-        const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
-        if (!sw) {
-          reject(new Error('No service worker found after registration'));
-          return;
-        }
-
-        if (sw.state === 'activated') {
-          resolve();
-          return;
-        }
-
-        const listener = () => {
-          if (sw.state === 'activated') {
-            sw.removeEventListener('statechange', listener);
-            resolve();
+      // Wait for service worker activation with timeout
+      await Promise.race([
+        new Promise<void>((resolve, reject) => {
+          const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
+          if (!sw) {
+            reject(new Error('No service worker found after registration'));
+            return;
           }
-        };
-        sw.addEventListener('statechange', listener);
-      });
+
+          if (sw.state === 'activated') {
+            resolve();
+            return;
+          }
+
+          const listener = () => {
+            if (sw.state === 'activated') {
+              sw.removeEventListener('statechange', listener);
+              resolve();
+            }
+          };
+          sw.addEventListener('statechange', listener);
+        }),
+        new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Service worker activation timeout')), 10000)
+        )
+      ]);
 
       // Initialize Firebase messaging
       const messaging = await getFirebaseMessaging();
@@ -320,24 +325,29 @@ export class MobileFCMService {
         throw new Error('FCM initialization failed in service worker');
       }
 
-      // Wait for service worker to be fully active
-      await new Promise<void>((resolve) => {
-        if (this.registration?.active?.state === 'activated') {
-          resolve();
-          return;
-        }
-        
-        const sw = this.registration?.active;
-        if (sw) {
-          const listener = () => {
-            if (sw.state === 'activated') {
-              sw.removeEventListener('statechange', listener);
-              resolve();
-            }
-          };
-          sw.addEventListener('statechange', listener);
-        }
-      });
+      // Wait for service worker to be fully active with timeout
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          if (this.registration?.active?.state === 'activated') {
+            resolve();
+            return;
+          }
+          
+          const sw = this.registration?.active;
+          if (sw) {
+            const listener = () => {
+              if (sw.state === 'activated') {
+                sw.removeEventListener('statechange', listener);
+                resolve();
+              }
+            };
+            sw.addEventListener('statechange', listener);
+          }
+        }),
+        new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Service worker activation timeout')), 10000)
+        )
+      ]);
 
       // Verify setup with test token
       const testToken = await getToken(messaging, {
