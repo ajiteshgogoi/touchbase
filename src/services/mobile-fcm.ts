@@ -192,16 +192,25 @@ export class MobileFCMService {
         
         // Ensure it's active and controlling
         if (existingFirebaseSW.active) {
-          // Send initialization message to service worker
-          await this.sendMessageToSW({
-            type: 'INIT_FCM',
-            deviceInfo: {
-              ...platform.getDeviceInfo(),
-              deviceId: this.getDeviceId(),
-              browserInstanceId: this.browserInstanceId
+            // Send initialization message to service worker and wait for confirmation
+            const initResponse = await this.sendMessageToSW({
+              type: 'INIT_FCM',
+              deviceInfo: {
+                ...platform.getDeviceInfo(),
+                deviceId: this.getDeviceId(),
+                browserInstanceId: this.browserInstanceId
+              }
+            });
+  
+            if (!initResponse.success) {
+              throw new Error('FCM initialization failed in service worker');
             }
-          });
-        }
+  
+            // Give Firebase messaging time to fully initialize on mobile
+            if (platform.getDeviceInfo().deviceType === 'android') {
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+          }
       } else {
         // Register a new Firebase service worker
         console.log(`${DEBUG_PREFIX} Registering new Firebase service worker`);
@@ -283,7 +292,7 @@ export class MobileFCMService {
       const deviceId = this.getDeviceId();
       const deviceInfo = platform.getDeviceInfo();
 
-      // Generate FCM token with our browser instance info
+      // Generate FCM token for device
       console.log(`${DEBUG_PREFIX} Generating FCM token for device:`, deviceId);
       const token = await getToken(getFirebaseMessaging(), {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
