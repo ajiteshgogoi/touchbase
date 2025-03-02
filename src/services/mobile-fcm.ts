@@ -548,9 +548,9 @@ export class MobileFCMService {
                 swState: this.registration.active?.state
               });
               
-              // Add small delay before subscription on Android to ensure push service is ready
+              // Add delay before subscription on Android to ensure push service is ready
               if (deviceInfo.deviceType === 'android') {
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 2000));
               }
               
               subscription = await this.registration.pushManager.subscribe(options);
@@ -558,7 +558,7 @@ export class MobileFCMService {
               // Add delay after subscription on Android before token generation
               if (deviceInfo.deviceType === 'android') {
                 console.log(`${DEBUG_PREFIX} Adding post-subscription delay for Android...`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 2000));
               }
             } catch (subError: any) {
               console.error(`${DEBUG_PREFIX} Detailed subscription error:`, {
