@@ -125,7 +125,7 @@ export class NotificationService {
           }
         }
         
-        localStorage.removeItem(platform.getDeviceStorageKey('device_id'));
+        // Don't remove device ID on cleanup - let it remain stable
         console.log(`${DEBUG_PREFIX} Desktop cleanup completed`);
       }
     } catch (error) {

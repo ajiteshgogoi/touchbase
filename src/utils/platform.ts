@@ -167,16 +167,50 @@ export const platform = {
     return `${namespace}_${key}`;
   },
 
+  generateDeviceFingerprint(): string {
+    // Use available browser properties to generate a stable fingerprint
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl');
+    const debugInfo = gl?.getExtension('WEBGL_debug_renderer_info');
+    const vendor = gl?.getParameter(debugInfo?.UNMASKED_VENDOR_WEBGL ?? 0) ?? '';
+    const renderer = gl?.getParameter(debugInfo?.UNMASKED_RENDERER_WEBGL ?? 0) ?? '';
+    
+    // Combine hardware info with screen properties
+    const components = [
+      vendor,
+      renderer,
+      screen.colorDepth,
+      screen.width,
+      screen.height,
+      navigator.hardwareConcurrency,
+      navigator.userAgent
+    ].join('|');
+
+    // Generate a deterministic hash
+    let hash = 0;
+    for (let i = 0; i < components.length; i++) {
+      const char = components.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Convert hash to base36 and take first 8 chars
+    const fingerprint = Math.abs(hash).toString(36).substring(0, 8);
+    return fingerprint;
+  },
+
   generateDeviceId(): string {
     const info = this.getDeviceInfo();
     const prefix = info.isTWA ? 'twa' : info.isPWA ? 'pwa' : 'browser';
     const deviceType = info.deviceType;
     const brand = info.deviceBrand.toLowerCase();
     const browser = info.isTWA ? '' : `-${info.browserInfo.toLowerCase()}`;
-    const random = Math.random().toString(36).substring(2, 8);
+    
+    // Generate deterministic device fingerprint instead of random
+    const fingerprint = this.generateDeviceFingerprint();
     
     // Store in namespaced storage
-    const deviceId = `${prefix}-${deviceType}-${brand}${browser}-${random}`;
+    const deviceId = `${prefix}-${deviceType}-${brand}${browser}-${fingerprint}`;
     localStorage.setItem(this.getDeviceStorageKey('device_id'), deviceId);
     return deviceId;
   },

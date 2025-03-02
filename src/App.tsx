@@ -232,24 +232,22 @@ function App() {
               if (deviceId) {
                 console.log('[Notifications] Found device ID:', deviceId);
                 
-                // Check existing subscription
-                console.log('[Notifications] Checking existing subscription...');
-                const browserInstanceId = localStorage.getItem('browser_instance_id');
-                const { data: subscription } = await supabase
-                  .rpc('get_device_subscription', {
+                // Check if any valid subscription exists for this device
+                console.log('[Notifications] Checking existing device subscriptions...');
+                const { data: deviceState } = await supabase
+                  .rpc('get_device_notification_state', {
                     p_user_id: userId,
-                    p_device_id: deviceId,
-                    p_browser_instance: browserInstanceId
+                    p_device_id: deviceId
                   });
 
-                console.log('[Notifications] Subscription check result:', subscription);
+                console.log('[Notifications] Device state check result:', deviceState);
                 
-                if (!subscription?.fcm_token) {
-                  console.log('[Notifications] No existing subscription found, creating new one...');
+                if (!deviceState?.enabled) {
+                  console.log('[Notifications] No active subscription found for device, creating new one...');
                   await notificationService.subscribeToPushNotifications(userId);
                   console.log('[Notifications] New subscription created successfully');
                 } else {
-                  console.log('[Notifications] Existing subscription found, skipping creation');
+                  console.log('[Notifications] Active subscription exists for device, skipping creation');
                 }
               } else {
                 console.log('[Notifications] No device ID found, creating first-time subscription...');
