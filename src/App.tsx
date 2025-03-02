@@ -235,10 +235,12 @@ function App() {
                 // Check if any FCM token exists for this device
                 console.log('[Notifications] Checking existing device subscriptions...');
                 const { data: subscription } = await supabase
-                  .rpc('get_device_subscription', {
-                    p_user_id: userId,
-                    p_device_id: deviceId
-                  });
+                  .from('push_subscriptions')
+                  .select('fcm_token')
+                  .eq('user_id', userId)
+                  .eq('device_id', deviceId)
+                  .limit(1)
+                  .single();
 
                 console.log('[Notifications] Device subscription check result:', subscription);
                 
