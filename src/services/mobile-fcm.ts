@@ -322,7 +322,8 @@ export class MobileFCMService {
       const { data: existingSub, error: subError } = await supabase
         .rpc('get_device_subscription', {
           p_user_id: userId,
-          p_device_id: deviceId
+          p_device_id: deviceId,
+          p_browser_instance: this.browserInstanceId
         });
 
       if (subError) {

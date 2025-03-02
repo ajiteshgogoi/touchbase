@@ -234,10 +234,12 @@ function App() {
                 
                 // Check existing subscription
                 console.log('[Notifications] Checking existing subscription...');
+                const browserInstanceId = localStorage.getItem('browser_instance_id');
                 const { data: subscription } = await supabase
                   .rpc('get_device_subscription', {
                     p_user_id: userId,
-                    p_device_id: deviceId
+                    p_device_id: deviceId,
+                    p_browser_instance: browserInstanceId
                   });
 
                 console.log('[Notifications] Subscription check result:', subscription);

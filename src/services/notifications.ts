@@ -67,7 +67,8 @@ export class NotificationService {
       const { data, error: fetchError } = await supabase
         .rpc('get_device_subscription', {
           p_user_id: userId,
-          p_device_id: deviceId
+          p_device_id: deviceId,
+          p_browser_instance: this.browserInstanceId
         });
 
       const subscription = data as DeviceSubscription;
@@ -260,7 +261,8 @@ export class NotificationService {
           const { data: subscription } = await supabase
             .rpc('get_device_subscription', {
               p_user_id: userId,
-              p_device_id: deviceId
+              p_device_id: deviceId,
+              p_browser_instance: this.browserInstanceId
             });
             
           if (subscription?.fcm_token && subscription.enabled) {
