@@ -290,12 +290,10 @@ export class MobileFCMService {
       // Use existing registration if available, otherwise register new one
       this.registration = await navigator.serviceWorker.getRegistration('/');
       if (!this.registration) {
-        const baseUrl = new URL('./', window.location.href).href;
-        const firebaseSWURL = `${baseUrl}firebase-messaging-sw.js?v=${Date.now()}`;
-        console.log(`${DEBUG_PREFIX} Registering service worker at: ${firebaseSWURL}`);
+        const firebaseSWURL = `./firebase-messaging-sw.js?v=${Date.now()}`;
         this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-          scope: baseUrl,
-          updateViaCache: 'none'  // More aggressive cache prevention
+          scope: '/',
+          updateViaCache: 'imports'
         });
       }
 
