@@ -354,15 +354,47 @@ export class MobileFCMService {
 
           console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
           try {
-            subscription = await this.registration.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-            }).catch((error: any) => {
-              if (error.name === 'NotAllowedError') {
-                throw new Error('Push subscription not allowed by browser');
+            const urlBase64ToUint8Array = (base64String: string) => {
+              const padding = '='.repeat((4 - base64String.length % 4) % 4);
+              const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+              const rawData = window.atob(base64);
+              const outputArray = new Uint8Array(rawData.length);
+              for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
               }
-              throw error;
-            });
+              return outputArray;
+            };
+
+            try {
+              const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+              const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+              
+              const options = {
+                userVisibleOnly: true,
+                applicationServerKey
+              };
+              
+              console.log(`${DEBUG_PREFIX} Push subscription options:`, {
+                ...options,
+                swScope: this.registration.scope,
+                swState: this.registration.active?.state
+              });
+              
+              subscription = await this.registration.pushManager.subscribe(options);
+            } catch (subError: any) {
+              console.error(`${DEBUG_PREFIX} Detailed subscription error:`, {
+                name: subError.name,
+                message: subError.message,
+                code: subError.code,
+                stack: subError.stack?.split('\n'),
+                details: subError.details,
+                swScope: this.registration.scope,
+                swState: this.registration.active?.state
+              });
+              throw subError;
+            }
           } catch (error: any) {
             console.error(`${DEBUG_PREFIX} Push subscription error:`, {
               name: error.name,
