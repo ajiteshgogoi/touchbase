@@ -221,29 +221,41 @@ function App() {
             // If browser permission granted and global notifications on,
             // ensure device is subscribed
             try {
+              console.log('[Notifications] Checking device notification state...');
               const deviceInfo = platform.getDeviceInfo();
+              console.log('[Notifications] Device info:', deviceInfo);
+              
               const deviceId = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios'
                 ? sessionStorage.getItem('mobile_fcm_device_id')
                 : localStorage.getItem(platform.getDeviceStorageKey('device_id'));
 
               if (deviceId) {
+                console.log('[Notifications] Found device ID:', deviceId);
+                
                 // Check existing subscription
+                console.log('[Notifications] Checking existing subscription...');
                 const { data: subscription } = await supabase
                   .rpc('get_device_subscription', {
                     p_user_id: userId,
                     p_device_id: deviceId
                   });
 
+                console.log('[Notifications] Subscription check result:', subscription);
+                
                 if (!subscription?.fcm_token) {
-                  // Only create new subscription if none exists
+                  console.log('[Notifications] No existing subscription found, creating new one...');
                   await notificationService.subscribeToPushNotifications(userId);
+                  console.log('[Notifications] New subscription created successfully');
+                } else {
+                  console.log('[Notifications] Existing subscription found, skipping creation');
                 }
               } else {
-                // No device ID means first time, create subscription
+                console.log('[Notifications] No device ID found, creating first-time subscription...');
                 await notificationService.subscribeToPushNotifications(userId);
+                console.log('[Notifications] First-time subscription created successfully');
               }
             } catch (error) {
-              console.log('Error subscribing device:', error);
+              console.error('[Notifications] Error handling device notification state:', error);
             }
           }
         }
