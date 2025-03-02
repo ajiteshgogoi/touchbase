@@ -15,6 +15,8 @@ export class MobileFCMService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
   private initialized = false;
   private browserInstanceId: string;
+  private subscriptionPromise: Promise<boolean> | null = null;
+  private isSubscribing = false;
 
   constructor() {
     // Generate a per-browser-instance ID that won't sync across Chrome instances
@@ -160,21 +162,39 @@ export class MobileFCMService {
   }
 
   private initializationPromise: Promise<boolean> | null = null;
+  private isInitializing = false;
 
   async initialize(): Promise<boolean> {
-    // Return existing initialization if in progress
-    if (this.initializationPromise) {
-      return this.initializationPromise;
-    }
-
     // Return true if already initialized
     if (this.initialized) {
       return true;
     }
 
+    // Return existing initialization if in progress
+    if (this.initializationPromise) {
+      console.log(`${DEBUG_PREFIX} Initialization already in progress, returning existing promise`);
+      return this.initializationPromise;
+    }
+
+    // Set initialization lock
+    if (this.isInitializing) {
+      console.log(`${DEBUG_PREFIX} Another initialization attempt in progress, skipping`);
+      return false;
+    }
+
+    this.isInitializing = true;
+
     // Start new initialization
     this.initializationPromise = this._initialize();
-    return this.initializationPromise;
+
+    try {
+      const result = await this.initializationPromise;
+      return result;
+    } finally {
+      // Clear locks regardless of success or failure
+      this.isInitializing = false;
+      this.initializationPromise = null;
+    }
   }
 
   private async _initialize(): Promise<boolean> {
@@ -294,7 +314,37 @@ export class MobileFCMService {
    * Subscribe to push notifications
    */
   async subscribeToPushNotifications(userId: string): Promise<boolean> {
+    // Return existing subscription promise if one is in progress
+    if (this.subscriptionPromise) {
+      console.log(`${DEBUG_PREFIX} Subscription already in progress, returning existing promise`);
+      return this.subscriptionPromise;
+    }
+
+    // Set the lock
+    if (this.isSubscribing) {
+      console.log(`${DEBUG_PREFIX} Another subscription attempt in progress, skipping`);
+      return false;
+    }
+
+    this.isSubscribing = true;
+
+    // Create new subscription promise
+    this.subscriptionPromise = this._subscribeToPushNotifications(userId);
+
     try {
+      const result = await this.subscriptionPromise;
+      return result;
+    } finally {
+      // Clear locks regardless of success or failure
+      this.isSubscribing = false;
+      this.subscriptionPromise = null;
+    }
+  }
+
+  private async _subscribeToPushNotifications(userId: string): Promise<boolean> {
+    try {
+      console.log(`${DEBUG_PREFIX} Starting new subscription attempt...`);
+
       // Make sure everything is initialized
       if (!this.initialized) {
         const initSuccess = await this.initialize();
@@ -499,6 +549,15 @@ export class MobileFCMService {
     const deviceId = this.getDeviceId();
     
     try {
+      console.log(`${DEBUG_PREFIX} Starting cleanup for device ${deviceId}...`);
+      
+      // Clear all locks first
+      this.isSubscribing = false;
+      this.isInitializing = false;
+      this.subscriptionPromise = null;
+      this.initializationPromise = null;
+      this.initialized = false;
+
       // Update database first
       await supabase
         .from('push_subscriptions')
@@ -520,9 +579,20 @@ export class MobileFCMService {
           forceUnsubscribe: true
         });
       }
+
+      // Clear service worker registration
+      this.registration = undefined;
       
+      console.log(`${DEBUG_PREFIX} Cleanup completed successfully`);
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Cleanup failed:`, error);
+      // Even if cleanup fails, ensure locks are cleared
+      this.isSubscribing = false;
+      this.isInitializing = false;
+      this.subscriptionPromise = null;
+      this.initializationPromise = null;
+      this.initialized = false;
+      this.registration = undefined;
     }
   }
 }
