@@ -34,7 +34,9 @@
       "dest": "/firebase-messaging-sw.js",
       "headers": {
         "content-type": "application/javascript",
-        "cache-control": "public, max-age=0, must-revalidate",
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
         "service-worker-allowed": "/",
         "access-control-allow-origin": "*"
       }
