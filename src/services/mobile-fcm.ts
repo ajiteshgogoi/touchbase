@@ -189,6 +189,16 @@ export class MobileFCMService {
   private maxRetries = 3;
 
   async initialize(): Promise<boolean> {
+    // If already initialized, return early
+    if (this.initialized) {
+      return true;
+    }
+
+    // If already initializing, wait for existing promise
+    if (this.isInitializing && this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
     // Start with a full cleanup of stale state
     this.initialized = false;
     this.isInitializing = false;
@@ -217,30 +227,31 @@ export class MobileFCMService {
     // Start new initialization
     this.isInitializing = true;
     this.initializationPromise = (async () => {
-      let attempt = 1;
-      while (attempt <= this.maxRetries) {
-        console.log(`${DEBUG_PREFIX} Initialization attempt ${attempt}/${this.maxRetries}`);
-        try {
-          const result = await this._initialize();
-          this.initializationPromise = null;
-          this.isInitializing = false;
-          return result;
-        } catch (error) {
-          console.error(`${DEBUG_PREFIX} Initialization attempt ${attempt} failed:`, error);
-          if (attempt === this.maxRetries) {
-            this.initialized = false;
-            this.registration = undefined;
-            await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
-            this.initializationPromise = null;
-            this.isInitializing = false;
-            return false;
+      try {
+        let attempt = 1;
+        while (attempt <= this.maxRetries) {
+          console.log(`${DEBUG_PREFIX} Initialization attempt ${attempt}/${this.maxRetries}`);
+          try {
+            const result = await this._initialize();
+            this.initialized = result;
+            return result;
+          } catch (error) {
+            console.error(`${DEBUG_PREFIX} Initialization attempt ${attempt} failed:`, error);
+            if (attempt === this.maxRetries) {
+              this.initialized = false;
+              this.registration = undefined;
+              await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
+              return false;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            attempt++;
           }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          attempt++;
         }
+        return false;
+      } finally {
+        this.isInitializing = false;
+        this.initializationPromise = null;
       }
-      this.isInitializing = false;
-      return false;
     })();
 
     return this.initializationPromise;
