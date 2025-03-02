@@ -58,18 +58,24 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               disabled={isRegistering}
               onChange={(e) => {
                const enabled = e.target.checked;
-               setIsRegistering(true);
-               onUpdate({
-                 notification_enabled: enabled
-               }).finally(() => {
-                 setIsRegistering(false);
-               });
+               if (enabled) {
+                 setIsRegistering(true);
+                 onUpdate({
+                   notification_enabled: true
+                 }).finally(() => {
+                   setIsRegistering(false);
+                 });
+               } else {
+                 onUpdate({
+                   notification_enabled: false
+                 });
+               }
              }}
             />
             <div className="relative w-11 h-6">
               <div className={`
                w-11 h-6 rounded-full
-               ${settings.notification_enabled ? 'bg-primary-500' : 'bg-gray-200'}
+               ${isRegistering ? 'bg-gray-200' : (settings.notification_enabled ? 'bg-primary-500' : 'bg-gray-200')}
                relative
                after:content-['']
                after:absolute
@@ -80,8 +86,7 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
                after:h-5
                after:w-5
                after:transition-all
-               ${settings.notification_enabled ? 'after:translate-x-full' : ''}
-               ${isRegistering ? 'opacity-0' : ''}
+               ${isRegistering ? 'after:opacity-0' : (settings.notification_enabled ? 'after:translate-x-full' : '')}
              `}></div>
               {isRegistering && (
                 <div className="absolute inset-0 flex items-center justify-center">
