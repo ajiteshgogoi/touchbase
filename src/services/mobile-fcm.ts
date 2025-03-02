@@ -267,6 +267,26 @@ export class MobileFCMService {
         throw new Error('Cannot access manifest.json - required for push registration');
       }
       
+      // Test direct access to service worker file
+      try {
+        console.log(`${DEBUG_PREFIX} Testing direct access to service worker file...`);
+        const swResponse = await fetch(`/firebase-messaging-sw.js?test=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        
+        if (!swResponse.ok) {
+          console.error(`${DEBUG_PREFIX} Service worker file access failed:`, swResponse.status);
+          throw new Error(`Service worker file HTTP error: ${swResponse.status}`);
+        }
+        
+        const contentType = swResponse.headers.get('content-type');
+        console.log(`${DEBUG_PREFIX} Service worker file accessible: ${swResponse.status}, type: ${contentType}`);
+      } catch (swFetchError) {
+        console.error(`${DEBUG_PREFIX} Service worker fetch test failed:`, swFetchError);
+        // Continue anyway, but log the error
+      }
+
       // Use existing registration if available, otherwise register new one
       this.registration = await navigator.serviceWorker.getRegistration('/');
       if (!this.registration) {
