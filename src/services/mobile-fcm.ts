@@ -230,12 +230,15 @@ export class MobileFCMService {
         throw new Error('Cannot access manifest.json - required for push registration');
       }
 
-      // Register service worker
-      const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
-      this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-        scope: '/',
-        updateViaCache: 'imports'  // Only bypass cache for imported scripts, not main SW
-      });
+      // Use existing registration if available, otherwise register new one
+      this.registration = await navigator.serviceWorker.getRegistration('/');
+      if (!this.registration) {
+        const firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
+        this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
+          scope: '/',
+          updateViaCache: 'imports'
+        });
+      }
 
       // Wait for service worker activation
       await new Promise<void>((resolve, reject) => {
