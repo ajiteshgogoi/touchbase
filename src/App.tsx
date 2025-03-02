@@ -221,7 +221,27 @@ function App() {
             // If browser permission granted and global notifications on,
             // ensure device is subscribed
             try {
-              await notificationService.subscribeToPushNotifications(userId, true);
+              const deviceInfo = platform.getDeviceInfo();
+              const deviceId = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios'
+                ? sessionStorage.getItem('mobile_fcm_device_id')
+                : localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+
+              if (deviceId) {
+                // Check existing subscription
+                const { data: subscription } = await supabase
+                  .rpc('get_device_subscription', {
+                    p_user_id: userId,
+                    p_device_id: deviceId
+                  });
+
+                if (!subscription?.fcm_token) {
+                  // Only create new subscription if none exists
+                  await notificationService.subscribeToPushNotifications(userId);
+                }
+              } else {
+                // No device ID means first time, create subscription
+                await notificationService.subscribeToPushNotifications(userId);
+              }
             } catch (error) {
               console.log('Error subscribing device:', error);
             }
