@@ -30,10 +30,11 @@ async function getMessaging() {
     debug('Initializing Firebase...', { attempt: initializationAttempts + 1 });
     
     try {
-      // Clean up any existing apps
-      if (firebase.apps.length) {
-        debug('Cleaning up existing Firebase apps...');
-        await Promise.all(firebase.apps.map(app => app.delete()));
+      // Only clean up duplicate apps if we have more than one
+      if (firebase.apps.length > 1) {
+        debug('Cleaning up duplicate Firebase apps...');
+        const apps = firebase.apps.slice(1); // Keep the first app
+        await Promise.all(apps.map(app => app.delete()));
       }
 
       // Initialize with retry logic
@@ -78,9 +79,11 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('pushsubscriptionchange', (event) => {
   debug('Push subscription change event received');
-  // Reset messaging instance for reinitialization
-  messaging = null;
-  getMessaging();
+  event.waitUntil((async () => {
+    // Reset messaging instance for reinitialization
+    messaging = null;
+    await getMessaging();
+  })());
 });
 
 self.addEventListener('notificationclick', (event) => {
