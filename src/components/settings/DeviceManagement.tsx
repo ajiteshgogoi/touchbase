@@ -92,9 +92,30 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     mutationFn: async (deviceId: string) => {
       console.log(`Starting unregistration process for device: ${deviceId}`);
       await notificationService.unsubscribeFromPushNotifications(userId, deviceId, true);
+      
+      // Check if this was the last device
+      const { data: remainingDevices } = await supabase
+        .from('push_subscriptions')
+        .select('device_id')
+        .eq('user_id', userId);
+        
+      // If no devices remain, disable global notifications
+      if (!remainingDevices || remainingDevices.length === 0) {
+        const { error: updateError } = await supabase
+          .from('user_preferences')
+          .update({ notification_enabled: false })
+          .eq('user_id', userId);
+          
+        if (updateError) throw updateError;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          ['devices', userId],
+          ['preferences', userId]
+        ]
+      });
       toast.success('Device unregistered successfully');
     },
     onError: (error: Error) => {
@@ -111,16 +132,24 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       try {
         // Clean up all device registrations
         console.log('Removing all device registrations...');
-        const { error } = await supabase
+        const { error: deleteError } = await supabase
           .from('push_subscriptions')
           .delete()
           .eq('user_id', userId);
         
-        if (error) throw error;
+        if (deleteError) throw deleteError;
         
         // Clean up current device's Firebase instance
         console.log('Cleaning up current device Firebase instance...');
         await notificationService.cleanupAllDevices();
+        
+        // Disable global notifications since no devices exist
+        const { error: updateError } = await supabase
+          .from('user_preferences')
+          .update({ notification_enabled: false })
+          .eq('user_id', userId);
+          
+        if (updateError) throw updateError;
         
         console.log('Successfully removed all devices');
       } finally {
@@ -128,7 +157,12 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          ['devices', userId],
+          ['preferences', userId]
+        ]
+      });
       toast.success('All devices unregistered successfully');
     },
     onError: (error: Error) => {
