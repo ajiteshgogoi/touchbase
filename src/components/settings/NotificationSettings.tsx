@@ -2,15 +2,17 @@ import { useState } from 'react';
 import type { NotificationSettings as NotificationSettingsType } from '../../types';
 import { TIMEZONE_LIST } from '../../constants/timezones';
 import { DeviceManagement } from './DeviceManagement';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface Props {
   settings: NotificationSettingsType;
-  onUpdate: (settings: Partial<NotificationSettingsType>) => void;
+  onUpdate: (settings: Partial<NotificationSettingsType>) => Promise<void>;
   userId: string;
 }
 
 export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
 
   // Get user's timezone and ensure it's in the list
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -53,11 +55,42 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               type="checkbox"
               className="sr-only peer"
               checked={settings.notification_enabled}
-              onChange={(e) => onUpdate({
-                notification_enabled: e.target.checked
-              })}
+              disabled={isRegistering}
+              onChange={(e) => {
+               const enabled = e.target.checked;
+               setIsRegistering(true);
+               onUpdate({
+                 notification_enabled: enabled
+               }).finally(() => {
+                 setIsRegistering(false);
+               });
+             }}
             />
-            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+            <div className="relative w-11 h-6">
+              <div className={`
+               w-11 h-6 rounded-full
+               ${settings.notification_enabled ? 'bg-primary-500' : 'bg-gray-200'}
+               relative
+               after:content-['']
+               after:absolute
+               after:top-[2px]
+               after:left-[2px]
+               after:bg-white
+               after:rounded-full
+               after:h-5
+               after:w-5
+               after:transition-all
+               ${settings.notification_enabled ? 'after:translate-x-full' : ''}
+               ${isRegistering ? 'opacity-0' : ''}
+             `}></div>
+              {isRegistering && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="scale-[0.6] origin-center">
+                    <LoadingSpinner />
+                  </div>
+                </div>
+              )}
+            </div>
           </label>
         </div>
 
