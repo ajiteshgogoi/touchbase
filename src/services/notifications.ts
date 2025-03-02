@@ -89,6 +89,87 @@ export class NotificationService {
       throw error;
     }
   }
+  
+  async resubscribeIfNeeded(userId: string): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Checking if resubscription needed...`);
+    
+    try {
+      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+      
+      const { data: subscription } = await supabase
+        .rpc('get_device_subscription', {
+          p_user_id: userId,
+          p_device_id: deviceId
+        });
+
+      console.log(`${DEBUG_PREFIX} Current subscription:`, subscription);
+
+      // Don't auto-resubscribe if notifications are disabled
+      if (subscription && !subscription.enabled) {
+        console.log(`${DEBUG_PREFIX} Notifications disabled, skipping resubscription`);
+        return;
+      }
+
+      // No subscription or missing token
+      if (!subscription?.fcm_token || !deviceId) {
+        console.log(`${DEBUG_PREFIX} No valid subscription found, resubscribing...`);
+        await this.subscribeToPushNotifications(userId, true);
+        return;
+      }
+
+      // Verify token with server
+      console.log(`${DEBUG_PREFIX} Verifying FCM token...`);
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const data = await response.json();
+      
+      if (response.status === 500 && data.error?.includes('FCM token invalid')) {
+        console.log(`${DEBUG_PREFIX} Invalid FCM token detected, resubscribing...`);
+        await this.subscribeToPushNotifications(userId, true);
+      } else {
+        console.log(`${DEBUG_PREFIX} FCM token verification successful`);
+      }
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Error in resubscribeIfNeeded:`, error);
+      throw error;
+    }
+  }
+
+  async cleanupAllDevices(): Promise<void> {
+    console.log(`${DEBUG_PREFIX} Starting device cleanup...`);
+    
+    try {
+      const deviceInfo = platform.getDeviceInfo();
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        console.log(`${DEBUG_PREFIX} Delegating to mobile cleanup...`);
+        await mobileFCMService.cleanup();
+      } else {
+        console.log(`${DEBUG_PREFIX} Cleaning up desktop device...`);
+        await cleanupMessaging();
+        
+        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+        if (deviceId) {
+          const userId = (await supabase.auth.getSession()).data.session?.user.id;
+          if (userId) {
+            await this.unsubscribeFromPushNotifications(userId, deviceId, true);
+          }
+        }
+        
+        localStorage.removeItem(platform.getDeviceStorageKey('device_id'));
+        console.log(`${DEBUG_PREFIX} Desktop cleanup completed`);
+      }
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Failed to cleanup devices:`, error);
+      throw error;
+    }
+  }
 
   async initialize(): Promise<void> {
     if (this.isInitializing) {
