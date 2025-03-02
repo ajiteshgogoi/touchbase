@@ -2,10 +2,11 @@
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
-// Initialize debug logging
+// Initialize debug logging with timestamped backtrace
 const debug = (...args) => {
   const timestamp = new Date().toISOString();
-  console.log(`[FCM-SW ${timestamp}]`, ...args);
+  const trace = new Error().stack?.split('\n')[2]?.trim() || '';
+  console.log(`[FCM-SW ${timestamp}]${trace ? ` (${trace})` : ''}`, ...args);
 };
 
 // Firebase configuration
@@ -19,16 +20,49 @@ const firebaseConfig = {
   measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
 };
 
-// Initialize Firebase lazily
+// Initialize Firebase lazily with retries
 let messaging;
-function getMessaging() {
+let initializationAttempts = 0;
+const MAX_INIT_ATTEMPTS = 3;
+
+async function getMessaging() {
   if (!messaging) {
-    debug('Initializing Firebase...');
-    if (firebase.apps.length) {
-      firebase.apps.forEach(app => app.delete());
+    debug('Initializing Firebase...', { attempt: initializationAttempts + 1 });
+    
+    try {
+      // Clean up any existing apps
+      if (firebase.apps.length) {
+        debug('Cleaning up existing Firebase apps...');
+        await Promise.all(firebase.apps.map(app => app.delete()));
+      }
+
+      // Initialize with retry logic
+      let app;
+      try {
+        app = firebase.initializeApp(firebaseConfig);
+      } catch (error) {
+        if (error.code === 'app/duplicate-app' && initializationAttempts < MAX_INIT_ATTEMPTS) {
+          debug('Duplicate app detected, retrying initialization...');
+          initializationAttempts++;
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
+          return getMessaging(); // Recursive retry
+        }
+        throw error;
+      }
+
+      messaging = firebase.messaging(app);
+      debug('Firebase initialized successfully', {
+        appName: app.name,
+        deviceId: self.deviceId || 'unknown'
+      });
+
+      // Reset attempt counter on success
+      initializationAttempts = 0;
+    } catch (error) {
+      debug('Firebase initialization error:', error);
+      messaging = null; // Reset on error
+      throw error;
     }
-    const app = firebase.initializeApp(firebaseConfig);
-    messaging = firebase.messaging(app);
   }
   return messaging;
 }
@@ -118,41 +152,84 @@ self.addEventListener('message', (event) => {
     debug('Skip waiting message received');
     self.skipWaiting();
   } else if (event.data?.type === 'CLEAR_FCM_LISTENERS') {
-    const deviceId = event.data.deviceId;
-    debug('Clearing FCM listeners for device:', deviceId);
-    
-    // Store device ID for push event handling
-    self.CLEANED_DEVICE_ID = deviceId;
-
-    // Get current push subscription
-    self.registration.pushManager.getSubscription().then(async subscription => {
-      if (subscription) {
+      const { deviceId, forceCleanup = false } = event.data;
+      debug('Clearing FCM listeners for device:', { deviceId, forceCleanup });
+      
+      event.waitUntil((async () => {
         try {
-          // Get subscription info including endpoint
-          const subscriptionInfo = subscription.toJSON();
-          
-          // Only unsubscribe if this subscription belongs to the device being cleaned
-          const subscriptionDeviceId = await self.registration.pushManager.permissionState(subscriptionInfo);
-          
-          if (subscriptionDeviceId === deviceId) {
-            debug('Unsubscribing push subscription for device:', deviceId);
-            await subscription.unsubscribe();
+          // Store device ID for push event handling
+          self.CLEANED_DEVICE_ID = deviceId;
+          self.deviceId = deviceId; // Store in service worker scope
+  
+          // Get current push subscription
+          const subscription = await self.registration.pushManager.getSubscription();
+          if (subscription) {
+            try {
+              debug('Found existing push subscription');
+              
+              // Get subscription details
+              const subscriptionInfo = subscription.toJSON();
+              const subscriptionState = await self.registration.pushManager.permissionState(subscriptionInfo);
+              
+              debug('Subscription state:', {
+                deviceId,
+                currentState: subscriptionState,
+                endpoint: subscriptionInfo.endpoint
+              });
+              
+              // Unsubscribe based on criteria
+              if (forceCleanup || subscriptionState === 'denied' || subscriptionInfo.expirationTime < Date.now()) {
+                debug('Unsubscribing push subscription:', {
+                  reason: forceCleanup ? 'forced' : subscriptionState === 'denied' ? 'permission denied' : 'expired'
+                });
+                await subscription.unsubscribe();
+              } else {
+                debug('Keeping active subscription');
+              }
+            } catch (error) {
+              debug('Error handling subscription cleanup:', error);
+              // Attempt cleanup on error
+              try {
+                await subscription.unsubscribe();
+              } catch (cleanupError) {
+                debug('Final cleanup attempt failed:', cleanupError);
+              }
+            }
           } else {
-            debug('Skipping unsubscribe - subscription belongs to different device');
+            debug('No existing push subscription found');
+          }
+          
+          // Reset Firebase messaging instance
+          debug('Resetting Firebase messaging instance');
+          if (messaging) {
+            try {
+              await messaging.deleteToken();
+            } catch (error) {
+              debug('Error deleting Firebase token:', error);
+            }
+            messaging = null;
+          }
+  
+          // Notify client of completion
+          if (event.ports?.[0]) {
+            event.ports[0].postMessage({
+              success: true,
+              deviceId,
+              timestamp: new Date().toISOString()
+            });
           }
         } catch (error) {
-          debug('Error handling subscription cleanup:', error);
+          debug('Fatal error in FCM cleanup:', error);
+          // Notify client of failure
+          if (event.ports?.[0]) {
+            event.ports[0].postMessage({
+              success: false,
+              error: error.message,
+              deviceId
+            });
+          }
         }
-      }
-    });
-
-    // Reset Firebase messaging instance
-    messaging = null;
-
-    // Notify client
-    if (event.ports && event.ports[0]) {
-      event.ports[0].postMessage({ success: true, deviceId });
-    }
+      })());
   }
 });
 
@@ -160,29 +237,50 @@ self.addEventListener('message', (event) => {
 async function handlePushEvent(payload) {
   debug('Handling push event:', payload);
   const isMobile = /Mobile|Android|iPhone/i.test(self.registration.scope);
+  const startTime = Date.now();
 
   try {
     const notificationData = payload.notification || payload.data || {};
-    const deviceId = self.CLEANED_DEVICE_ID || `device-${Date.now()}`;
+    const deviceId = self.CLEANED_DEVICE_ID || localStorage.getItem('device_id') || `device-${Date.now()}`;
+    const notificationId = `${deviceId}-${startTime}`;
     
-    await self.registration.showNotification(notificationData.title || 'New Message', {
+    // Extract additional data with defaults
+    const notificationConfig = {
+      title: notificationData.title || 'New Message',
       body: notificationData.body,
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      tag: 'touchbase-notification',
+      icon: notificationData.icon || '/icon-192.png',
+      badge: notificationData.badge || '/icon-192.png',
+      tag: `touchbase-${deviceId}`, // Device-specific tag
       renotify: true,
-      requireInteraction: true,
+      requireInteraction: notificationData.requireInteraction ?? true,
+      timestamp: new Date().toISOString(),
+      actions: [
+        { action: 'view', title: notificationData.viewText || 'View' },
+        ...(notificationData.additionalActions || [])
+      ].slice(0, 2), // Ensure max 2 actions
       data: {
         ...(payload.data || {}),
         deviceId,
-        timestamp: new Date().toISOString()
+        notificationId,
+        timestamp: new Date().toISOString(),
+        processedIn: Date.now() - startTime
       },
-      actions: [{ action: 'view', title: 'View' }],
       ...(isMobile && {
-        vibrate: [200, 100, 200],
-        silent: false
+        vibrate: notificationData.vibrate || [200, 100, 200],
+        silent: notificationData.silent ?? false
       })
+    };
+
+    debug('Showing notification:', {
+      id: notificationId,
+      tag: notificationConfig.tag,
+      deviceId
     });
+    
+    await self.registration.showNotification(
+      notificationConfig.title,
+      notificationConfig
+    );
     
     debug('Notification displayed successfully');
   } catch (error) {
