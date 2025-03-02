@@ -80,7 +80,7 @@ export const Help = () => {
             <li>Pick the contact for whom you want to set a quick reminder</li>
             <li>Enter the reminder description</li>
             <li>Set the due date</li>
-            <li>Optionally mark it as important to show in Important Events timeline</li>
+            <li>Optionally mark it as important to show in the 'Important Events' timeline</li>
           </ol>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
             <strong className="text-primary-700">Pro Tip:</strong> Quick reminders are perfect for one-time events. Mark them as important to highlight key events in your timeline without affecting regular contact schedules.
