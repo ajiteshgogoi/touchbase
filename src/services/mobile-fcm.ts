@@ -32,24 +32,35 @@ export class MobileFCMService {
 
   private async ensureManifestAccess(): Promise<boolean> {
     try {
+      // Skip manifest check for iOS as it's not critical there
+      if (platform.getDeviceInfo().deviceType === 'ios') {
+        return true;
+      }
+
       console.log(`${DEBUG_PREFIX} Verifying manifest access...`);
       const manifestResponse = await fetch('/manifest.json', {
         method: 'GET',
         cache: 'no-store',
         headers: {
-          'Accept': 'application/manifest+json'
+          'Accept': 'application/manifest+json, application/json'
         }
       });
       
       if (!manifestResponse.ok) {
         console.error(`${DEBUG_PREFIX} Manifest access issue:`, manifestResponse.status);
-        return false;
+        throw new Error(`Manifest HTTP error: ${manifestResponse.status}`);
       }
       
       const contentType = manifestResponse.headers.get('content-type');
-      if (!contentType?.includes('application/manifest+json')) {
+      if (!contentType?.includes('application/manifest+json') && !contentType?.includes('application/json')) {
         console.error(`${DEBUG_PREFIX} Invalid manifest content-type:`, contentType);
-        return false;
+        throw new Error(`Invalid manifest content-type: ${contentType}`);
+      }
+
+      // Try to parse manifest to ensure it's valid
+      const manifest = await manifestResponse.json();
+      if (!manifest) {
+        throw new Error('Empty or invalid manifest');
       }
 
       return true;
@@ -269,30 +280,63 @@ export class MobileFCMService {
         throw new Error('FCM initialization failed in service worker');
       }
 
+      // Wait for service worker to be fully active
+      await new Promise<void>((resolve) => {
+        if (this.registration?.active?.state === 'activated') {
+          resolve();
+          return;
+        }
+        
+        const sw = this.registration?.active;
+        if (sw) {
+          const listener = () => {
+            if (sw.state === 'activated') {
+              sw.removeEventListener('statechange', listener);
+              resolve();
+            }
+          };
+          sw.addEventListener('statechange', listener);
+        }
+      });
+
       // Verify setup with test token
       const testToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
         serviceWorkerRegistration: this.registration
       });
 
-      if (!testToken || !/^[A-Za-z0-9_-]+$/.test(testToken)) {
-        throw new Error('Invalid FCM token generated');
+      if (!testToken) {
+        throw new Error('No FCM token generated');
+      }
+
+      // Validate token format (allow longer tokens)
+      if (!/^[A-Za-z0-9:_\-\/]+$/.test(testToken)) {
+        throw new Error('Invalid FCM token format');
       }
 
       this.initialized = true;
       this.isInitializing = false;
       return true;
     } catch (error: any) {
-      const errorInfo = {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack?.split('\n'),
-        deviceInfo: platform.getDeviceInfo()
+      const deviceInfo = platform.getDeviceInfo();
+      const diagnosticInfo = {
+        error: {
+          name: error.name,
+          message: error.message,
+          code: error.code,
+          stack: error.stack?.split('\n')
+        },
+        environment: {
+          notificationPermission: Notification.permission,
+          serviceWorkerSupport: 'serviceWorker' in navigator,
+          pushManagerSupport: 'PushManager' in window,
+          registrationState: this.registration?.active?.state,
+          vapidKeyExists: !!import.meta.env.VITE_VAPID_PUBLIC_KEY
+        }
       };
       
-      console.error(`${DEBUG_PREFIX} Initialization failed:`, errorInfo);
-      await notificationDiagnostics.handleFCMError(error, errorInfo.deviceInfo);
+      console.error(`${DEBUG_PREFIX} Initialization failed:`, diagnosticInfo);
+      await notificationDiagnostics.handleFCMError(error, deviceInfo);
       
       // Cleanup on error
       await this.cleanup();
