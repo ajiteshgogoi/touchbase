@@ -623,7 +623,7 @@ export class MobileFCMService {
             // Check final subscription state with required userVisibleOnly flag
             const pushManagerState = await this.registration.pushManager.permissionState({
               userVisibleOnly: true,
-              applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+              applicationServerKey: this.applicationServerKey
             });
             
             const currentSubscription = await this.registration.pushManager.getSubscription();
