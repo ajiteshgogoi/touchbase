@@ -37,7 +37,7 @@ async function getMessaging() {
         await Promise.all(apps.map(app => app.delete()));
       }
 
-      // Initialize with retry logic
+      // Initialize with retry logic and detailed error capture
       let app;
       try {
         app = firebase.initializeApp(firebaseConfig);
@@ -48,10 +48,34 @@ async function getMessaging() {
           await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
           return getMessaging(); // Recursive retry
         }
+        
+        // Log detailed error info for debugging
+        debug('Firebase initialization failed:', {
+          error: {
+            code: error.code,
+            message: error.message,
+            stack: error.stack,
+          },
+          attempt: initializationAttempts + 1,
+          serviceWorkerState: self.registration.active?.state,
+          scope: self.registration.scope
+        });
         throw error;
       }
 
-      messaging = firebase.messaging(app);
+      try {
+        messaging = firebase.messaging(app);
+      } catch (msgError) {
+        debug('Messaging initialization failed:', {
+          error: {
+            code: msgError.code,
+            message: msgError.message,
+            stack: msgError.stack
+          },
+          serviceWorkerState: self.registration.active?.state
+        });
+        throw msgError;
+      }
       debug('Firebase initialized successfully', {
         appName: app.name,
         deviceId: self.deviceId || 'unknown'
@@ -134,6 +158,45 @@ self.addEventListener('activate', (event) => {
       ))
     ])
   );
+});
+
+// Handle fetch events for FCM
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Check if this is an FCM endpoint
+  if (url.hostname === 'fcm.googleapis.com' ||
+      url.hostname.endsWith('.googleapis.com') && url.pathname.includes('/fcm/')) {
+    debug('Handling FCM fetch request:', {
+      url: url.toString(),
+      method: event.request.method,
+      deviceType: self.deviceType,
+      deviceId: self.deviceId
+    });
+
+    // For mobile devices, we need to explicitly handle the FCM request
+    if (self.deviceType === 'mobile') {
+      event.respondWith(
+        fetch(event.request.clone())
+          .then(response => {
+            debug('FCM fetch succeeded:', {
+              status: response.status,
+              statusText: response.statusText
+            });
+            return response;
+          })
+          .catch(error => {
+            debug('FCM fetch failed:', {
+              error: error.message,
+              deviceType: self.deviceType
+            });
+            throw error;
+          })
+      );
+    }
+    // For desktop, let browser handle directly
+    return;
+  }
 });
 
 // Handle messages
