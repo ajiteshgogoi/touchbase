@@ -297,20 +297,26 @@ export class MobileFCMService {
       // Wait for the service worker to be activated
       console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
       const maxWaitTime = 10000;
-      const startTime = Date.now();
-
-      while (Date.now() - startTime < maxWaitTime) {
-        const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
-        if (sw?.state === 'activated') {
-          console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
-          break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const sw = this.registration!.installing || this.registration!.waiting;
+      if (sw) {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Service worker activation timeout')), maxWaitTime);
+          sw.addEventListener('statechange', (e: Event) => {
+            const target = e.target as ServiceWorker;
+            if (target.state === 'activated') {
+              clearTimeout(timeout);
+              resolve();
+            }
+          });
+        });
       }
 
       if (!this.registration?.active) {
         throw new Error('Service worker failed to activate');
       }
+
+      console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
 
       // Short delay for stability
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -486,8 +492,8 @@ export class MobileFCMService {
       // Let Firebase handle push subscription setup
       console.log(`${DEBUG_PREFIX} Getting FCM token...`);
       
-      // Add small delay before token generation to ensure service worker is ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Ensure service worker is fully ready before token generation
+      await navigator.serviceWorker.ready;
       
       const messaging = getFirebaseMessaging();
       if (!messaging) {
