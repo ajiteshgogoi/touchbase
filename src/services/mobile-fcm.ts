@@ -318,6 +318,21 @@ export class MobileFCMService {
         throw new Error('Push notifications not supported');
       }
 
+      // Initialize VAPID key first
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!vapidKey || vapidKey.length < 30) {
+        throw new Error('Invalid VAPID key configuration');
+      }
+
+      // Convert VAPID key once and store for reuse
+      try {
+        this.applicationServerKey = this.urlB64ToUint8Array(vapidKey);
+        console.log(`${DEBUG_PREFIX} VAPID key initialized successfully`);
+      } catch (error) {
+        console.error(`${DEBUG_PREFIX} Failed to convert VAPID key:`, error);
+        throw new Error('Invalid VAPID key format');
+      }
+
       if (!await this.ensureManifestAccess()) {
         throw new Error('Cannot access manifest.json - required for push registration');
       }
@@ -434,21 +449,6 @@ export class MobileFCMService {
 
       // Initialize service worker with device info
       const deviceInfo = platform.getDeviceInfo();
-      // Validate and convert VAPID key before initialization
-      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!vapidKey || vapidKey.length < 30) {
-        throw new Error('Invalid VAPID key configuration');
-      }
-
-      // Convert VAPID key once and store for reuse
-      try {
-        this.applicationServerKey = this.urlB64ToUint8Array(vapidKey);
-        console.log(`${DEBUG_PREFIX} VAPID key converted successfully`);
-      } catch (error) {
-        console.error(`${DEBUG_PREFIX} Failed to convert VAPID key:`, error);
-        throw new Error('Invalid VAPID key format');
-      }
-
       const initResponse = await this.sendMessageToSW({
         type: 'INIT_FCM',
         deviceInfo: {
