@@ -341,8 +341,24 @@ export class MobileFCMService {
         throw new Error('Failed to initialize Firebase messaging');
       }
 
+      // Verify Firebase configuration is consistent
+      const appId = messaging.app.options.appId;
+      if (!appId || appId !== import.meta.env.VITE_FIREBASE_APP_ID) {
+        console.error(`${DEBUG_PREFIX} Firebase app ID mismatch`, {
+          clientAppId: appId,
+          envAppId: import.meta.env.VITE_FIREBASE_APP_ID
+        });
+        throw new Error('Firebase configuration mismatch between client and service worker');
+      }
+
       // Initialize service worker with device info
       const deviceInfo = platform.getDeviceInfo();
+      // Validate VAPID key before initialization
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!vapidKey || vapidKey.length < 30) {
+        throw new Error('Invalid VAPID key configuration');
+      }
+
       const initResponse = await this.sendMessageToSW({
         type: 'INIT_FCM',
         deviceInfo: {
@@ -350,7 +366,13 @@ export class MobileFCMService {
           deviceId: this.getDeviceId(),
           browserInstanceId: this.browserInstanceId
         },
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        vapidKey: vapidKey,
+        firebaseConfig: {
+          apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+          projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+          appId: import.meta.env.VITE_FIREBASE_APP_ID,
+          messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID
+        }
       });
 
       if (!initResponse?.success) {
