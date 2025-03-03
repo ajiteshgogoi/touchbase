@@ -581,12 +581,26 @@ export class MobileFCMService {
     try {
       console.log(`${DEBUG_PREFIX} Starting new subscription attempt...`);
 
+      // Initialize VAPID key first if not already done
+      if (!this.applicationServerKey) {
+        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        if (!vapidKey || vapidKey.length < 30) {
+          throw new Error('Invalid VAPID key configuration');
+        }
+        this.applicationServerKey = this.urlB64ToUint8Array(vapidKey);
+      }
+
       // Make sure everything is initialized
       if (!this.initialized) {
         const initSuccess = await this.initialize();
         if (!initSuccess) {
           throw new Error('Failed to initialize mobile FCM');
         }
+      }
+
+      // Double check VAPID key is still valid after initialization
+      if (!this.applicationServerKey) {
+        throw new Error('VAPID key lost during initialization');
       }
 
       if (!this.registration) {
@@ -646,19 +660,33 @@ export class MobileFCMService {
         }
 
         console.log(`${DEBUG_PREFIX} Creating new push subscription with userVisibleOnly...`);
-        // Create new subscription with required userVisibleOnly flag
-        pushSubscription = await this.registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: this.applicationServerKey
-        });
+        // Add retry logic for push subscription creation
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            // Create new subscription with required userVisibleOnly flag
+            pushSubscription = await this.registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: this.applicationServerKey
+            });
 
-        // Verify subscription was created properly
-        if (!pushSubscription || !pushSubscription.options?.userVisibleOnly) {
-          throw new Error('Failed to create push subscription with userVisibleOnly');
+            // Verify subscription was created properly
+            if (!pushSubscription || !pushSubscription.options?.userVisibleOnly) {
+              throw new Error('Failed to create push subscription with userVisibleOnly');
+            }
+
+            console.log(`${DEBUG_PREFIX} Push subscription created successfully on attempt ${attempt}`);
+            break;
+          } catch (error: any) {
+            console.error(`${DEBUG_PREFIX} Push subscription attempt ${attempt} failed:`, error);
+            
+            if (attempt === 3) {
+              throw new Error(`Failed to create push subscription after ${attempt} attempts: ${error?.message || 'Unknown error'}`);
+            }
+            
+            // Increasing delay between attempts
+            await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+          }
         }
-        
-        // Longer delay for subscription setup on physical devices
-        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
       // Now that we have a valid push subscription, try token generation
