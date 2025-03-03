@@ -288,7 +288,7 @@ export class MobileFCMService {
       // Test direct access to service worker file
       try {
         console.log(`${DEBUG_PREFIX} Testing direct access to service worker file...`);
-        const swResponse = await fetch(`/firebase-messaging-sw.js?test=${Date.now()}`, {
+        const swResponse = await fetch('/firebase-messaging-sw.js', {
           method: 'GET',
           cache: 'no-store',
         });
@@ -308,7 +308,7 @@ export class MobileFCMService {
       // No existing Firebase service worker, register new one
       console.log(`${DEBUG_PREFIX} Registering new Firebase service worker`);
       
-      const firebaseSWURL = `/firebase-messaging-sw.js?v=${Date.now()}`;
+      const firebaseSWURL = '/firebase-messaging-sw.js';
       this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
         scope: '/',
         updateViaCache: 'imports'
