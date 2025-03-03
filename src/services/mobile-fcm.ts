@@ -361,8 +361,25 @@ export class MobileFCMService {
         )
       ]);
 
-      // Initialize Firebase messaging
-      const messaging = await getFirebaseMessaging();
+      // Add delay before Firebase initialization to ensure SW stability
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
+
+      // Initialize Firebase messaging with retries
+      let messaging;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          console.log(`${DEBUG_PREFIX} Firebase init attempt ${attempt}/3`);
+          messaging = await getFirebaseMessaging();
+          if (messaging) break;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} Firebase init error (attempt ${attempt}):`, error);
+          if (attempt === 3) throw new Error('Failed to initialize Firebase messaging after 3 attempts');
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+      
       if (!messaging) {
         throw new Error('Failed to initialize Firebase messaging');
       }
