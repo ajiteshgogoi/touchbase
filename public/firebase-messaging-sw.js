@@ -184,6 +184,13 @@ self.addEventListener('pushsubscriptionchange', (event) => {
         if (existingSub) {
           await existingSub.unsubscribe();
         }
+
+        // Create new subscription with userVisibleOnly
+        const subscriptionOptions = {
+          userVisibleOnly: true,
+          applicationServerKey: vapidKey
+        };
+        await self.registration.pushManager.subscribe(subscriptionOptions);
         
         // Small delay for stability
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -356,6 +363,13 @@ self.addEventListener('message', (event) => {
           
           // Small delay for stability on mobile
           await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Ensure proper push subscription with userVisibleOnly
+          const subscriptionOptions = {
+            userVisibleOnly: true,
+            applicationServerKey: vapidKey
+          };
+          await self.registration.pushManager.subscribe(subscriptionOptions);
         }
         
         // Initialize Firebase
@@ -470,10 +484,11 @@ self.addEventListener('message', (event) => {
 // Handle push events
 async function handlePushEvent(payload) {
   const startTime = Date.now();
-  debug('Handling push event:', { 
+  debug('Handling push event:', {
     hasNotification: !!payload.notification,
     hasData: !!payload.data,
-    startTime 
+    startTime,
+    userVisibleOnly: true
   });
 
   try {
