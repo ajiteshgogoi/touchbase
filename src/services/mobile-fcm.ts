@@ -17,7 +17,6 @@ export class MobileFCMService {
   private browserInstanceId: string;
   private subscriptionPromise: Promise<boolean> | null = null;
   private isSubscribing = false;
-  private lastPermissionState: NotificationPermission | undefined;
 
   constructor() {
     // Generate a per-browser-instance ID that won't sync across Chrome instances
@@ -186,19 +185,6 @@ export class MobileFCMService {
 
   private isInitializing = false;
   private maxRetries = 3;
-
-  private urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
 
   async initialize(): Promise<boolean> {
     if (this.initialized) return true;
@@ -384,19 +370,7 @@ export class MobileFCMService {
         throw new Error('Failed to initialize Firebase messaging');
       }
 
-      // Ensure push service is available before proceeding
-      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
-      const pushSupported = await this.registration.pushManager.permissionState({
-        userVisibleOnly: true,
-        applicationServerKey
-      });
-      
-      if (pushSupported !== 'granted') {
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      }
-
-      // Initialize service worker
+      // Initialize service worker with device info
       const deviceInfo = platform.getDeviceInfo();
       const initResponse = await this.sendMessageToSW({
         type: 'INIT_FCM',
@@ -438,19 +412,9 @@ export class MobileFCMService {
         )
       ]);
 
-      // Verify setup with test token
-      const testToken = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-        serviceWorkerRegistration: this.registration
-      });
-
-      if (!testToken) {
-        throw new Error('No FCM token generated');
-      }
-
-      // Validate token format (allow longer tokens)
-      if (!/^[A-Za-z0-9:_\-\/]+$/.test(testToken)) {
-        throw new Error('Invalid FCM token format');
+      // Verify Firebase is properly initialized
+      if (!messaging) {
+        throw new Error('Firebase messaging not initialized');
       }
 
       this.initialized = true;
@@ -469,8 +433,7 @@ export class MobileFCMService {
           notificationPermission: Notification.permission,
           serviceWorkerSupport: 'serviceWorker' in navigator,
           pushManagerSupport: 'PushManager' in window,
-          registrationState: this.registration?.active?.state,
-          vapidKeyExists: !!import.meta.env.VITE_VAPID_PUBLIC_KEY
+          registrationState: this.registration?.active?.state
         }
       };
       
@@ -565,221 +528,28 @@ export class MobileFCMService {
       const deviceId = this.getDeviceId();
       const deviceInfo = platform.getDeviceInfo();
 
-      // Single permission check
+      // Check notification permission
       console.log(`${DEBUG_PREFIX} Checking notification permission...`);
       const hasPermission = await this.requestPermission();
       if (!hasPermission) {
         throw new Error('Notification permission denied');
       }
 
-      // Add delay before checking subscription to ensure push service is ready
-      console.log(`${DEBUG_PREFIX} Adding pre-subscription delay...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Enhanced permission state verification with exponential backoff
-      let permState;
-      for (let attempt = 1; attempt <= 5; attempt++) {
-        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-        const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
-        permState = await this.registration.pushManager.permissionState({
-          userVisibleOnly: true,
-          applicationServerKey
-        });
-        
-        console.log(`${DEBUG_PREFIX} Push service state check (attempt ${attempt}):`, {
-          state: permState,
-          lastState: this.lastPermissionState
-        });
-
-        if (permState === 'granted') {
-          this.lastPermissionState = permState;
-          break;
-        }
-        
-        // Exponential backoff between checks
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
-        console.log(`${DEBUG_PREFIX} Waiting ${delay}ms for push service (attempt ${attempt})...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-
-      if (permState !== 'granted') {
-        throw new Error(`Push permission not stabilized after retries (final state: ${permState})`);
-      }
-
-      // Check existing subscription and permissions
-      console.log(`${DEBUG_PREFIX} Checking existing push subscription...`);
-      let subscription = await this.registration.pushManager.getSubscription();
-
-      // Check permission state for the subscription
-      const pushPermissionState = await this.registration.pushManager.permissionState({
-        userVisibleOnly: true,
-        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+      // Let Firebase handle push subscription setup
+      console.log(`${DEBUG_PREFIX} Getting FCM token...`);
+      const messaging = getFirebaseMessaging();
+      const token = await getToken(messaging, {
+        serviceWorkerRegistration: this.registration
       });
-
-      console.log(`${DEBUG_PREFIX} Push permission state:`, pushPermissionState);
-
-      // Only proceed if permission is granted and we either have no subscription or need a new one
-      if (pushPermissionState === 'granted') {
-        const now = Date.now();
-        const isExpired = subscription?.expirationTime ? subscription.expirationTime < now : false;
-
-        if (!subscription || isExpired) {
-          if (subscription) {
-            console.log(`${DEBUG_PREFIX} Removing expired subscription...`);
-            await subscription.unsubscribe();
-            
-            // Add delay after unsubscribe on Android
-            if (deviceInfo.deviceType === 'android') {
-              console.log(`${DEBUG_PREFIX} Adding post-unsubscribe delay for Android...`);
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-          }
-
-          console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
-          try {
-            try {
-              const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-              const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
-              
-              // Log VAPID key details for debugging
-              console.log(`${DEBUG_PREFIX} VAPID key details:`, {
-                original: vapidKey,
-                length: applicationServerKey.length
-              });
-
-              const options = {
-                userVisibleOnly: true,
-                applicationServerKey
-              };
-              
-              console.log(`${DEBUG_PREFIX} Push subscription options:`, {
-                ...options,
-                swScope: this.registration.scope,
-                swState: this.registration.active?.state
-              });
-              
-              // Handle subscription with retries
-              for (let subAttempt = 1; subAttempt <= 3; subAttempt++) {
-                try {
-                  subscription = await this.registration.pushManager.subscribe(options);
-                  break;
-                } catch (subError) {
-                  if (subAttempt === 3) throw subError;
-                  console.log(`${DEBUG_PREFIX} Subscription attempt ${subAttempt} failed, retrying...`);
-                  await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-              }
-
-              // Increase delay after service worker registration before attempting subscription
-              console.log(`${DEBUG_PREFIX} Adding extended delay for service worker stabilization...`);
-              await new Promise(resolve => setTimeout(resolve, 5000));
-            } catch (subError: any) {
-              console.error(`${DEBUG_PREFIX} Detailed subscription error:`, {
-                name: subError.name,
-                message: subError.message,
-                code: subError.code,
-                stack: subError.stack?.split('\n'),
-                details: subError.details,
-                swScope: this.registration.scope,
-                swState: this.registration.active?.state
-              });
-              throw subError;
-            }
-          } catch (error: any) {
-            console.error(`${DEBUG_PREFIX} Push subscription error:`, {
-              name: error.name,
-              message: error.message,
-              stack: error.stack
-            });
-            throw new Error(`Push subscription failed: ${error.message}`);
-          }
-        }
-      } else {
-        throw new Error(`Push permission denied (state: ${pushPermissionState})`);
-      }
-
-      if (!subscription) {
-        throw new Error('Failed to create push subscription');
-      }
-
-      // Verify push service state before token generation
-      console.log(`${DEBUG_PREFIX} Verifying push service state...`);
-      const pushManager = this.registration?.pushManager;
-      if (!pushManager) {
-        throw new Error('Push manager not available');
-      }
-
-      // Test push manager permission state
-      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
-      const permissionState = await pushManager.permissionState({
-        userVisibleOnly: true,
-        applicationServerKey
-      });
-      console.log(`${DEBUG_PREFIX} Push permission state:`, permissionState);
-
-      if (permissionState !== 'granted') {
-        throw new Error(`Push permission not granted: ${permissionState}`);
-      }
-
-      // Generate FCM token using the subscription
-      console.log(`${DEBUG_PREFIX} Starting FCM token generation with subscription:`, {
-        endpoint: subscription.endpoint,
-        expirationTime: subscription.expirationTime,
-        pushManager: 'available',
-        permissionState
-      });
-
-      let token;
-      try {
-        const messaging = getFirebaseMessaging();
-        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-        console.log(`${DEBUG_PREFIX} FCM token generation started with VAPID key length:`, vapidKey.length);
-        
-        token = await getToken(messaging, {
-          vapidKey,
-          serviceWorkerRegistration: this.registration
-        });
-
-        // Verify the token was generated
-        if (!token) {
-          throw new Error('FCM token generation returned empty token');
-        }
-
-        console.log(`${DEBUG_PREFIX} FCM token generated successfully:`, {
-          tokenLength: token.length,
-          tokenPrefix: token.substring(0, 8) + '...',
-          subscriptionEndpoint: subscription.endpoint
-        });
-      } catch (error: any) {
-        // Log detailed error info
-        console.error(`${DEBUG_PREFIX} FCM token generation failed:`, {
-          error: error.toString(),
-          code: error.code,
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          subscription: {
-            endpoint: subscription.endpoint,
-            expirationTime: subscription.expirationTime
-          },
-          registration: {
-            scope: this.registration?.scope,
-            active: this.registration?.active?.state
-          }
-        });
-
-        // Clean up subscription on token generation failure
-        await subscription.unsubscribe();
-        throw new Error(`FCM token generation failed: ${error.message} (${error.code || 'no code'})`);
-      }
 
       if (!token) {
-        await subscription.unsubscribe();
         throw new Error('Failed to generate FCM token');
       }
 
-      console.log(`${DEBUG_PREFIX} Successfully generated FCM token`);
+      console.log(`${DEBUG_PREFIX} FCM token generated successfully:`, {
+        tokenLength: token.length,
+        tokenPrefix: token.substring(0, 8) + '...'
+      });
 
       // Check existing subscription first
       const { data: existingSub, error: subError } = await supabase
