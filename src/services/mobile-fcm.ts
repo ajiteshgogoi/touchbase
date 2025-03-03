@@ -194,11 +194,21 @@ export class MobileFCMService {
     console.log(`${DEBUG_PREFIX} Starting initialization`);
 
     try {
-      // Clean up everything first
-      console.log(`${DEBUG_PREFIX} Cleaning up old registrations`);
-      const oldRegistrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(oldRegistrations.map(reg => reg.unregister()));
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Allow time for cleanup
+      // Only clean up Firebase service worker registrations
+      console.log(`${DEBUG_PREFIX} Cleaning up old Firebase service worker registrations`);
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      const firebaseSWs = registrations.filter(reg =>
+        reg.active?.scriptURL.includes('firebase-messaging-sw.js')
+      );
+      
+      if (firebaseSWs.length > 0) {
+        await Promise.all(firebaseSWs.map(reg => reg.unregister()));
+        console.log(`${DEBUG_PREFIX} Unregistered ${firebaseSWs.length} Firebase service worker(s)`);
+        // Allow time for cleanup
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        console.log(`${DEBUG_PREFIX} No existing Firebase service workers found`);
+      }
 
       // Reset state
       this.initialized = false;
@@ -622,22 +632,71 @@ export class MobileFCMService {
         throw new Error('Failed to create push subscription');
       }
 
+      // Verify push service state before token generation
+      console.log(`${DEBUG_PREFIX} Verifying push service state...`);
+      const pushManager = this.registration?.pushManager;
+      if (!pushManager) {
+        throw new Error('Push manager not available');
+      }
+
+      // Test push manager permission state
+      const permissionState = await pushManager.permissionState({
+        userVisibleOnly: true,
+        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+      });
+      console.log(`${DEBUG_PREFIX} Push permission state:`, permissionState);
+
+      if (permissionState !== 'granted') {
+        throw new Error(`Push permission not granted: ${permissionState}`);
+      }
+
       // Generate FCM token using the subscription
       console.log(`${DEBUG_PREFIX} Starting FCM token generation with subscription:`, {
         endpoint: subscription.endpoint,
-        expirationTime: subscription.expirationTime
+        expirationTime: subscription.expirationTime,
+        pushManager: 'available',
+        permissionState
       });
 
       let token;
       try {
-        token = await getToken(getFirebaseMessaging(), {
+        const messaging = getFirebaseMessaging();
+        token = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
           serviceWorkerRegistration: this.registration
         });
+
+        // Verify the token was generated
+        if (!token) {
+          throw new Error('FCM token generation returned empty token');
+        }
+
+        console.log(`${DEBUG_PREFIX} FCM token generated successfully:`, {
+          tokenLength: token.length,
+          tokenPrefix: token.substring(0, 8) + '...',
+          subscriptionEndpoint: subscription.endpoint
+        });
       } catch (error: any) {
+        // Log detailed error info
+        console.error(`${DEBUG_PREFIX} FCM token generation failed:`, {
+          error: error.toString(),
+          code: error.code,
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          subscription: {
+            endpoint: subscription.endpoint,
+            expirationTime: subscription.expirationTime
+          },
+          registration: {
+            scope: this.registration?.scope,
+            active: this.registration?.active?.state
+          }
+        });
+
         // Clean up subscription on token generation failure
         await subscription.unsubscribe();
-        throw new Error(`FCM token generation failed: ${error.message}`);
+        throw new Error(`FCM token generation failed: ${error.message} (${error.code || 'no code'})`);
       }
 
       if (!token) {
@@ -705,13 +764,15 @@ export class MobileFCMService {
       this.subscriptionPromise = null;
       this.initialized = false;
       
-      // Clean up service worker registrations first
+      // Clean up Firebase service worker registrations
       const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const reg of registrations) {
-        // Check any service worker state (installing, waiting, active) for the firebase-messaging-sw.js script
-        const swStates = [reg.installing, reg.waiting, reg.active].filter(Boolean);
-        if (swStates.some(sw => sw?.scriptURL.includes('firebase-messaging-sw.js'))) {
-          // First try to clear FCM listeners if we have an active worker
+      const firebaseSWs = registrations.filter(reg =>
+        reg.active?.scriptURL.includes('firebase-messaging-sw.js')
+      );
+
+      for (const reg of firebaseSWs) {
+        try {
+          // First try to clear FCM listeners if worker is active
           if (reg.active) {
             try {
               await this.sendMessageToSW({
@@ -720,16 +781,24 @@ export class MobileFCMService {
                 browserInstanceId: this.browserInstanceId,
                 forceUnsubscribe: true
               });
+              console.log(`${DEBUG_PREFIX} Successfully cleared FCM listeners`);
             } catch (swError) {
               console.warn(`${DEBUG_PREFIX} Failed to clear FCM listeners:`, swError);
             }
           }
           
           // Then unregister the service worker
-          const swUrl = swStates.find(sw => sw?.scriptURL)?.scriptURL || 'unknown';
-          console.log(`${DEBUG_PREFIX} Unregistering service worker:`, swUrl);
+          const swUrl = reg.active?.scriptURL || 'unknown';
+          console.log(`${DEBUG_PREFIX} Unregistering Firebase service worker:`, swUrl);
           await reg.unregister();
+          console.log(`${DEBUG_PREFIX} Successfully unregistered Firebase service worker`);
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} Error during service worker cleanup:`, error);
         }
+      }
+
+      if (firebaseSWs.length === 0) {
+        console.log(`${DEBUG_PREFIX} No Firebase service workers found to clean up`);
       }
 
       // Clean up push subscriptions
