@@ -30,7 +30,7 @@
       "handle": "filesystem"
     },
     {
-      "src": "/firebase-messaging-sw\\.js",
+      "src": "/firebase-messaging-sw\\.js(\\?.*)?",
       "dest": "/firebase-messaging-sw.js",
       "headers": {
         "content-type": "application/javascript",
