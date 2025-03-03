@@ -138,9 +138,15 @@ self.addEventListener('push', (event) => {
 self.addEventListener('pushsubscriptionchange', (event) => {
   debug('Push subscription change event received');
   event.waitUntil((async () => {
-    // Reset messaging instance for reinitialization
-    messaging = null;
-    await getMessaging();
+    try {
+      // Let Firebase handle the resubscription
+      messaging = null;
+      await getMessaging();
+      debug('Successfully reinitialized Firebase messaging');
+    } catch (error) {
+      debug('Push resubscription failed:', error);
+      throw error;
+    }
   })());
 });
 

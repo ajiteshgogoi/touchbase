@@ -290,7 +290,8 @@ export class MobileFCMService {
         const firebaseSWURL = '/firebase-messaging-sw.js';
         this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
           scope: '/',
-          updateViaCache: 'none'  // Ensure we always get fresh worker
+          updateViaCache: 'none',  // Ensure we always get fresh worker
+          type: 'module'  // Required for proper scope enforcement on mobile
         });
       }
 

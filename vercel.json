@@ -38,7 +38,10 @@
         "pragma": "no-cache",
         "expires": "0",
         "service-worker-allowed": "/",
-        "access-control-allow-origin": "*"
+        "access-control-allow-origin": "*",
+        "cross-origin-embedder-policy": "require-corp",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "cross-origin"
       }
     },
     {
