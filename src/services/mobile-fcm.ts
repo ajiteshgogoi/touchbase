@@ -698,8 +698,13 @@ export class MobileFCMService {
             throw new Error('Application server key not initialized');
           }
 
+          // Convert Uint8Array to base64 using browser APIs
+          const vapidKeyBase64 = this.applicationServerKey ?
+            btoa(String.fromCharCode.apply(null, [...this.applicationServerKey])) :
+            import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
           token = await getToken(messaging, {
-            vapidKey: this.applicationServerKey ? Buffer.from(this.applicationServerKey).toString('base64') : import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            vapidKey: vapidKeyBase64,
             serviceWorkerRegistration: this.registration
           });
 
