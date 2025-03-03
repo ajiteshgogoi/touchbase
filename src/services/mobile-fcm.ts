@@ -637,9 +637,9 @@ export class MobileFCMService {
                 }
               }
 
-              // Add delay after subscription before token generation
-              console.log(`${DEBUG_PREFIX} Adding post-subscription delay...`);
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              // Increase delay after service worker registration before attempting subscription
+              console.log(`${DEBUG_PREFIX} Adding extended delay for service worker stabilization...`);
+              await new Promise(resolve => setTimeout(resolve, 5000));
             } catch (subError: any) {
               console.error(`${DEBUG_PREFIX} Detailed subscription error:`, {
                 name: subError.name,
