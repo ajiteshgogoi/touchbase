@@ -514,6 +514,17 @@ export class MobileFCMService {
       // Let Firebase handle push subscription setup
       console.log(`${DEBUG_PREFIX} Getting FCM token...`);
       
+      // For Android, verify push manager state first
+      if (deviceInfo.deviceType === 'android') {
+        const pushManagerState = await this.registration.pushManager.permissionState({
+          applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        });
+        console.log(`${DEBUG_PREFIX} Push manager state for Android:`, pushManagerState);
+        if (pushManagerState !== 'granted') {
+          throw new Error(`Push manager permission denied: ${pushManagerState}`);
+        }
+      }
+      
       // Ensure service worker is fully ready before token generation
       await navigator.serviceWorker.ready;
       
