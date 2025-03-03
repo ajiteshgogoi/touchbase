@@ -9,6 +9,40 @@ const debug = (...args) => {
   console.log(`[FCM-SW ${timestamp}]${trace ? ` (${trace})` : ''}`, ...args);
 };
 
+// Persistent device info storage
+const DB_NAME = 'fcm-device-info';
+const STORE_NAME = 'device-info';
+
+async function getDeviceInfo() {
+  const db = await openDB(DB_NAME, 1, {
+    upgrade(db) {
+      db.createObjectStore(STORE_NAME);
+    }
+  });
+  return db.get(STORE_NAME, 'device-info');
+}
+
+async function saveDeviceInfo(info) {
+  const db = await openDB(DB_NAME, 1, {
+    upgrade(db) {
+      db.createObjectStore(STORE_NAME);
+    }
+  });
+  await db.put(STORE_NAME, info, 'device-info');
+}
+
+// Function to open IndexedDB
+function openDB(name, version, { upgrade } = {}) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(name, version);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    if (upgrade) {
+      request.onupgradeneeded = (event) => upgrade(request.result, event.oldVersion, event.newVersion);
+    }
+  });
+}
+
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "VITE_FIREBASE_API_KEY",
@@ -166,37 +200,42 @@ self.addEventListener('fetch', (event) => {
   
   // Check if this is an FCM endpoint
   if (url.hostname === 'fcm.googleapis.com' ||
-      url.hostname.endsWith('.googleapis.com') && url.pathname.includes('/fcm/')) {
-    debug('Handling FCM fetch request:', {
-      url: url.toString(),
-      method: event.request.method,
-      deviceType: self.deviceType,
-      deviceId: self.deviceId
-    });
+     url.hostname.endsWith('.googleapis.com') && url.pathname.includes('/fcm/')) {
+   
+   event.respondWith((async () => {
+     try {
+       // Get device info from storage
+       const deviceInfo = await getDeviceInfo() || {};
+       const isMobile = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios';
+       
+       debug('Handling FCM fetch request:', {
+         url: url.toString(),
+         method: event.request.method,
+         deviceType: deviceInfo.deviceType,
+         isMobile
+       });
 
-    // For mobile devices, we need to explicitly handle the FCM request
-    if (self.deviceType === 'mobile') {
-      event.respondWith(
-        fetch(event.request.clone())
-          .then(response => {
-            debug('FCM fetch succeeded:', {
-              status: response.status,
-              statusText: response.statusText
-            });
-            return response;
-          })
-          .catch(error => {
-            debug('FCM fetch failed:', {
-              error: error.message,
-              deviceType: self.deviceType
-            });
-            throw error;
-          })
-      );
-    }
-    // For desktop, let browser handle directly
-    return;
-  }
+       // Clone request for logging
+       const request = event.request.clone();
+       const response = await fetch(request);
+
+       debug('FCM fetch succeeded:', {
+         status: response.status,
+         statusText: response.statusText,
+         deviceType: deviceInfo.deviceType
+       });
+
+       return response;
+     } catch (error) {
+       debug('FCM fetch failed:', {
+         error: error.message,
+         deviceType: (await getDeviceInfo())?.deviceType
+       });
+       throw error;
+     }
+   })());
+   return;
+ }
 });
 
 // Handle messages //
@@ -204,35 +243,42 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'INIT_FCM') {
     debug('FCM initialization message received');
     
-    try {
-      // Get device info from initialization message
-      const deviceInfo = event.data.deviceInfo || {};
-      self.deviceType = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios' ? 'mobile' : 'desktop';
-      self.deviceId = deviceInfo.deviceId;
-      
-      debug('Device info set:', {
-        deviceType: self.deviceType,
-        deviceId: self.deviceId,
-        scope: self.registration.scope
-      });
-      
-      const messaging = getMessaging();
-      if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({
-          success: true,
-          deviceType: self.deviceType,
-          deviceId: self.deviceId
+    event.waitUntil((async () => {
+      try {
+        // Get device info from initialization message
+        const deviceInfo = event.data.deviceInfo || {};
+        const deviceType = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios' ? 'mobile' : 'desktop';
+        const deviceId = deviceInfo.deviceId;
+        
+        // Save device info to persistent storage
+        await saveDeviceInfo({ deviceType, deviceId });
+        self.deviceType = deviceType;
+        self.deviceId = deviceId;
+        
+        debug('Device info set and persisted:', {
+          deviceType,
+          deviceId,
+          scope: self.registration.scope
         });
+        
+        const messaging = getMessaging();
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({
+            success: true,
+            deviceType: deviceType,
+            deviceId: deviceId
+          });
+        }
+      } catch (error) {
+        debug('FCM initialization error:', error);
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({
+            success: false,
+            error: error.message
+          });
+        }
       }
-    } catch (error) {
-      debug('FCM initialization error:', error);
-      if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ 
-          success: false, 
-          error: error.message
-        });
-      }
-    }
+    })());
   } else if (event.data?.type === 'SKIP_WAITING') {
     debug('Skip waiting message received');
     self.skipWaiting();
