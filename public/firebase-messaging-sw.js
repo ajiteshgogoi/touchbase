@@ -199,7 +199,7 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-// Handle messages
+// Handle messages //
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'INIT_FCM') {
     debug('FCM initialization message received');
