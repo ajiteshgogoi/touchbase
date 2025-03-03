@@ -102,7 +102,7 @@ export class MobileFCMService {
       const requiredFields = {
         start_url: manifest.start_url === '/',
         display: manifest.display === 'standalone',
-        gcm_sender_id: manifest.gcm_sender_id === '468744965191',
+        gcm_sender_id: manifest.gcm_sender_id === import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
         icons: manifest.icons?.some(icon =>
           (icon.sizes === '192x192' || icon.sizes === '512x512') &&
           icon.purpose?.includes('maskable')
@@ -703,6 +703,13 @@ export class MobileFCMService {
             btoa(String.fromCharCode.apply(null, [...this.applicationServerKey])) :
             import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
+          // Get current auth state
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            throw new Error('User must be authenticated for FCM token generation');
+          }
+
+          // Use fcmSettings for token generation
           token = await getToken(messaging, {
             vapidKey: vapidKeyBase64,
             serviceWorkerRegistration: this.registration

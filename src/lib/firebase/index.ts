@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, onMessage, getToken, Messaging } from "firebase/messaging";
 import { supabase } from "../supabase/client";
-import { firebaseConfig } from "./config";
+import { firebaseConfig, fcmSettings } from "./config";
 import { platform } from "../../utils/platform";
 
 // Initialize Firebase app once
@@ -151,9 +151,15 @@ export const initializeTokenRefresh = async (userId: string) => {
     const registration = await navigator.serviceWorker.ready;
     const messaging = getFirebaseMessaging();
     
-    // Configuration for token generation
+    // Ensure we have an authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User must be authenticated for FCM token generation');
+    }
+
+    // Configuration for token generation using fcmSettings
     const tokenConfig = {
-      vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+      vapidKey: fcmSettings.vapidKey,
       serviceWorkerRegistration: registration
     };
 
