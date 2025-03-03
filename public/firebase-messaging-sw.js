@@ -164,63 +164,53 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   event.waitUntil((async () => {
     try {
       const deviceInfo = await getDeviceInfo();
-      const isMobile = deviceInfo?.deviceType === 'android' || deviceInfo?.deviceType === 'ios';
-      
+      if (!deviceInfo?.vapidKey) {
+        throw new Error('VAPID key not found in device info');
+      }
+
       debug('Processing push subscription change:', {
         deviceType: deviceInfo?.deviceType,
-        isMobile,
         hasVapidKey: !!deviceInfo?.vapidKey
       });
 
-      // For mobile devices, we need to do a complete reset
-      if (isMobile) {
-        debug('Mobile device detected, performing full reset...');
-        
-        // Reset Firebase instance
-        messaging = null;
-        
-        // Clean up any existing subscription
-        const existingSub = await self.registration.pushManager.getSubscription();
-        if (existingSub) {
-          await existingSub.unsubscribe();
-        }
-
-        // Get VAPID key from device info
-        if (!deviceInfo?.vapidKey) {
-          throw new Error('VAPID key not found in device info');
-        }
-
-        // Create new subscription with userVisibleOnly and stored VAPID key
-        const subscriptionOptions = {
-          userVisibleOnly: true,
-          applicationServerKey: deviceInfo.vapidKey
-        };
-
-        debug('Creating new push subscription with options:', {
-          userVisibleOnly: true,
-          hasApplicationServerKey: !!deviceInfo.vapidKey
-        });
-
-        await self.registration.pushManager.subscribe(subscriptionOptions);
-        
-        // Small delay for stability
-        await new Promise(resolve => setTimeout(resolve, 500));
+      // Always clean up existing subscription first
+      const existingSub = await self.registration.pushManager.getSubscription();
+      if (existingSub) {
+        await existingSub.unsubscribe();
       }
+
+      // Small delay for proper cleanup
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Create new subscription with proper options
+      const subscriptionOptions = {
+        userVisibleOnly: true,
+        applicationServerKey: deviceInfo.vapidKey
+      };
+
+      debug('Creating new push subscription');
+      const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
       
-      // Only proceed with reinitialization if we have the necessary info
-      if (deviceInfo?.vapidKey) {
-        debug('Reinitializing messaging with existing VAPID key');
-        const newMessaging = await getMessaging();
-        if (!newMessaging) {
-          throw new Error('Failed to reinitialize messaging after subscription change');
-        }
-      } else {
-        debug('Awaiting new initialization from client...');
+      // Verify subscription was created properly
+      if (!newSubscription?.options?.userVisibleOnly) {
+        throw new Error('Failed to create push subscription with userVisibleOnly');
       }
+
+      // Reset and reinitialize Firebase messaging
+      messaging = null;
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const newMessaging = await getMessaging();
+      if (!newMessaging) {
+        throw new Error('Failed to reinitialize messaging after subscription change');
+      }
+
+      debug('Successfully reinitialized push subscription and messaging');
     } catch (error) {
       debug('Error handling push subscription change:', error);
-      // Reset state on error
+      // Reset state and rethrow to trigger recovery
       messaging = null;
+      throw error;
     }
   })());
 });
@@ -517,18 +507,11 @@ self.addEventListener('message', (event) => {
 // Handle push events
 async function handlePushEvent(payload) {
   const startTime = Date.now();
-  // Verify we have a valid push subscription before handling
+  // Only verify subscription exists, don't try to recreate during push event
   const subscription = await self.registration.pushManager.getSubscription();
-  if (!subscription?.options?.userVisibleOnly) {
-    debug('Invalid push subscription state detected during event handling');
-    // Ensure subscription is properly configured before continuing
-    const newSubscription = await self.registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: self.vapidKey
-    });
-    if (!newSubscription.options?.userVisibleOnly) {
-      throw new Error('Failed to create valid push subscription during event handling');
-    }
+  if (!subscription) {
+    debug('No push subscription found during event handling');
+    throw new Error('Missing push subscription');
   }
 
   debug('Handling push event:', {
