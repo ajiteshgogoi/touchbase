@@ -350,15 +350,19 @@ export class MobileFCMService {
       if (!initResponse?.success) {
         throw new Error('FCM initialization failed in service worker');
       }
+
+      // Add sufficient delay to ensure proper Firebase initialization
+      console.log(`${DEBUG_PREFIX} Waiting for service worker initialization...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Verify service worker is still active
+      // Verify service worker state after delay
       if (!this.registration?.active || this.registration.active.state !== 'activated') {
-        throw new Error('Service worker lost activation state');
+        throw new Error('Service worker not properly activated after initialization');
       }
 
-      // Verify Firebase is properly initialized
-      if (!messaging) {
-        throw new Error('Firebase messaging not initialized');
+      // Verify Firebase messaging instance is still ready after delay
+      if (!await getFirebaseMessaging()) {
+        throw new Error('Firebase messaging not properly initialized after delay');
       }
 
       this.initialized = true;
@@ -481,11 +485,31 @@ export class MobileFCMService {
 
       // Let Firebase handle push subscription setup
       console.log(`${DEBUG_PREFIX} Getting FCM token...`);
+      
+      // Add small delay before token generation to ensure service worker is ready
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const messaging = getFirebaseMessaging();
-      const token = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-        serviceWorkerRegistration: this.registration
-      });
+      if (!messaging) {
+        throw new Error('Firebase messaging not available for token generation');
+      }
+
+      // Try token generation with retries
+      let token;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          token = await getToken(messaging, {
+            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            serviceWorkerRegistration: this.registration
+          });
+          if (token) break;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} Token generation attempt ${attempt} failed:`, error);
+          if (attempt === 3) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
 
       if (!token) {
         throw new Error('Failed to generate FCM token');
