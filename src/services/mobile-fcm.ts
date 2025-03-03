@@ -334,7 +334,8 @@ export class MobileFCMService {
         )
       ]);
 
-      // Wait for service worker activation with timeout
+      // Enhanced service worker state verification
+      console.log(`${DEBUG_PREFIX} Starting service worker state verification...`);
       await Promise.race([
         new Promise<void>((resolve, reject) => {
           const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
@@ -343,15 +344,28 @@ export class MobileFCMService {
             return;
           }
 
+          console.log(`${DEBUG_PREFIX} Current service worker state:`, sw.state);
+
+          // Check if already activated
           if (sw.state === 'activated') {
-            resolve();
-            return;
+            // Double check readiness
+            if (this.registration!.active?.state === 'activated') {
+              console.log(`${DEBUG_PREFIX} Service worker already activated and ready`);
+              resolve();
+              return;
+            }
           }
 
+          // Enhanced state change monitoring
           const listener = () => {
+            console.log(`${DEBUG_PREFIX} Service worker state changed to:`, sw.state);
             if (sw.state === 'activated') {
-              sw.removeEventListener('statechange', listener);
-              resolve();
+              // Verify through registration object
+              if (this.registration!.active?.state === 'activated') {
+                console.log(`${DEBUG_PREFIX} Service worker activation confirmed`);
+                sw.removeEventListener('statechange', listener);
+                resolve();
+              }
             }
           };
           sw.addEventListener('statechange', listener);
@@ -363,15 +377,31 @@ export class MobileFCMService {
 
       // Add delay before Firebase initialization to ensure SW stability
       await new Promise(resolve => setTimeout(resolve, 3000));
-      console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
+      console.log(`${DEBUG_PREFIX} Service worker activation verified, initializing Firebase messaging...`);
 
-      // Initialize Firebase messaging with retries
+      // Verify service worker registration is still valid
+      console.log(`${DEBUG_PREFIX} Verifying service worker registration before Firebase init...`);
+      if (!this.registration || !this.registration.active || this.registration.active.state !== 'activated') {
+        throw new Error('Service worker not properly registered and activated');
+      }
+
+      // Initialize Firebase messaging with enhanced verification
       let messaging;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           console.log(`${DEBUG_PREFIX} Firebase init attempt ${attempt}/3`);
+          
+          // Verify service worker state before each attempt
+          if (this.registration.active.state !== 'activated') {
+            console.error(`${DEBUG_PREFIX} Service worker not activated before attempt ${attempt}`);
+            throw new Error('Service worker state check failed');
+          }
+          
           messaging = await getFirebaseMessaging();
-          if (messaging) break;
+          if (messaging) {
+            console.log(`${DEBUG_PREFIX} Firebase messaging initialized successfully`);
+            break;
+          }
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
           console.error(`${DEBUG_PREFIX} Firebase init error (attempt ${attempt}):`, error);
@@ -381,6 +411,7 @@ export class MobileFCMService {
       }
       
       if (!messaging) {
+        console.error(`${DEBUG_PREFIX} Firebase messaging initialization failed completely`);
         throw new Error('Failed to initialize Firebase messaging');
       }
 
