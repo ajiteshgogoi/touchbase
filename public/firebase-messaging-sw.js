@@ -185,11 +185,22 @@ self.addEventListener('pushsubscriptionchange', (event) => {
           await existingSub.unsubscribe();
         }
 
-        // Create new subscription with userVisibleOnly
+        // Get VAPID key from device info
+        if (!deviceInfo?.vapidKey) {
+          throw new Error('VAPID key not found in device info');
+        }
+
+        // Create new subscription with userVisibleOnly and stored VAPID key
         const subscriptionOptions = {
           userVisibleOnly: true,
-          applicationServerKey: vapidKey
+          applicationServerKey: deviceInfo.vapidKey
         };
+
+        debug('Creating new push subscription with options:', {
+          userVisibleOnly: true,
+          hasApplicationServerKey: !!deviceInfo.vapidKey
+        });
+
         await self.registration.pushManager.subscribe(subscriptionOptions);
         
         // Small delay for stability
