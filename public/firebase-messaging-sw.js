@@ -365,22 +365,44 @@ self.addEventListener('message', (event) => {
         if (isMobile) {
           debug('Starting mobile-specific initialization...');
           
-          // Ensure clean push manager state
+          // Check current subscription state
           const existingSub = await self.registration.pushManager.getSubscription();
-          if (existingSub) {
-            debug('Cleaning up existing push subscription...');
+          const pushManagerState = existingSub ?
+            await self.registration.pushManager.permissionState(existingSub.options) :
+            'prompt';
+          
+          debug('Current push subscription state:', {
+            hasExistingSub: !!existingSub,
+            pushManagerState,
+            userVisibleOnly: existingSub?.options?.userVisibleOnly
+          });
+          
+          // Clean up if subscription is invalid or doesn't have userVisibleOnly
+          if (existingSub && (!existingSub.options?.userVisibleOnly || pushManagerState !== 'granted')) {
+            debug('Cleaning up invalid subscription...');
             await existingSub.unsubscribe();
+            
+            // Small delay for cleanup
+            await new Promise(resolve => setTimeout(resolve, 500));
           }
           
-          // Small delay for stability on mobile
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // Ensure proper push subscription with userVisibleOnly
-          const subscriptionOptions = {
-            userVisibleOnly: true,
-            applicationServerKey: vapidKey
-          };
-          await self.registration.pushManager.subscribe(subscriptionOptions);
+          // Create new subscription only if needed
+          if (!existingSub || !existingSub.options?.userVisibleOnly) {
+            debug('Creating new push subscription with userVisibleOnly...');
+            const subscriptionOptions = {
+              userVisibleOnly: true,
+              applicationServerKey: vapidKey
+            };
+            
+            const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
+            
+            // Verify subscription was created properly
+            if (!newSubscription.options?.userVisibleOnly) {
+              throw new Error('Failed to create push subscription with userVisibleOnly');
+            }
+            
+            debug('Successfully created new push subscription');
+          }
         }
         
         // Initialize Firebase
@@ -495,11 +517,26 @@ self.addEventListener('message', (event) => {
 // Handle push events
 async function handlePushEvent(payload) {
   const startTime = Date.now();
+  // Verify we have a valid push subscription before handling
+  const subscription = await self.registration.pushManager.getSubscription();
+  if (!subscription?.options?.userVisibleOnly) {
+    debug('Invalid push subscription state detected during event handling');
+    // Ensure subscription is properly configured before continuing
+    const newSubscription = await self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: self.vapidKey
+    });
+    if (!newSubscription.options?.userVisibleOnly) {
+      throw new Error('Failed to create valid push subscription during event handling');
+    }
+  }
+
   debug('Handling push event:', {
     hasNotification: !!payload.notification,
     hasData: !!payload.data,
     startTime,
-    userVisibleOnly: true
+    userVisibleOnly: true,
+    subscriptionValid: true
   });
 
   try {

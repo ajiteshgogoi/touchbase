@@ -533,35 +533,58 @@ export class MobileFCMService {
         throw new Error('Firebase messaging not available for token generation');
       }
 
-      // Try token generation with retries
+      // First ensure we have a valid push subscription
+      let pushSubscription = await this.registration.pushManager.getSubscription();
+      if (!pushSubscription || !pushSubscription.options?.userVisibleOnly) {
+        // Unsubscribe from any existing subscription first
+        if (pushSubscription) {
+          await pushSubscription.unsubscribe();
+        }
+
+        console.log(`${DEBUG_PREFIX} Creating new push subscription with userVisibleOnly...`);
+        // Create new subscription with required userVisibleOnly flag
+        pushSubscription = await this.registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        });
+
+        // Verify subscription was created properly
+        if (!pushSubscription || !pushSubscription.options?.userVisibleOnly) {
+          throw new Error('Failed to create push subscription with userVisibleOnly');
+        }
+        
+        // Small delay to ensure subscription is ready
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Now that we have a valid push subscription, try token generation
       let token;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          // Create a push subscription with userVisibleOnly first
-          await this.registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
-          });
-
-          // Then get the FCM token
           token = await getToken(messaging, {
             vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
             serviceWorkerRegistration: this.registration
           });
 
-          if (token) break;
+          if (token) {
+            console.log(`${DEBUG_PREFIX} FCM token generated successfully on attempt ${attempt}`);
+            break;
+          }
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error: any) {
           console.error(`${DEBUG_PREFIX} Token generation attempt ${attempt} failed:`, error);
           
-          // If it's a push subscription error, log more details
-          if (typeof error === 'object' &&
-              error?.name === 'NotSupportedError' &&
-              error?.message?.includes('userVisibleOnly')) {
-            console.error(`${DEBUG_PREFIX} Push subscription failed - userVisibleOnly required on this platform`);
+          if (attempt === 3) {
+            // On final attempt, check subscription state
+            const pushManagerState = await this.registration.pushManager.permissionState({
+              userVisibleOnly: true,
+              applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+            });
+            
+            console.error(`${DEBUG_PREFIX} Final attempt failed. Push manager state:`, pushManagerState);
+            throw error;
           }
           
-          if (attempt === 3) throw error;
           await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
