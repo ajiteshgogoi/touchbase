@@ -17,6 +17,7 @@ export class MobileFCMService {
   private browserInstanceId: string;
   private subscriptionPromise: Promise<boolean> | null = null;
   private isSubscribing = false;
+  private lastPermissionState: NotificationPermission | undefined;
 
   constructor() {
     // Generate a per-browser-instance ID that won't sync across Chrome instances
@@ -558,19 +559,34 @@ export class MobileFCMService {
       console.log(`${DEBUG_PREFIX} Adding pre-subscription delay...`);
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Verify push service is ready before proceeding
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      // Enhanced permission state verification with exponential backoff
+      let permState;
+      for (let attempt = 1; attempt <= 5; attempt++) {
         const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
         const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
-        const permState = await this.registration.pushManager.permissionState({
+        permState = await this.registration.pushManager.permissionState({
           userVisibleOnly: true,
           applicationServerKey
         });
         
-        if (permState === 'granted') break;
+        console.log(`${DEBUG_PREFIX} Push service state check (attempt ${attempt}):`, {
+          state: permState,
+          lastState: this.lastPermissionState
+        });
+
+        if (permState === 'granted') {
+          this.lastPermissionState = permState;
+          break;
+        }
         
-        console.log(`${DEBUG_PREFIX} Waiting for push service (attempt ${attempt})...`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Exponential backoff between checks
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+        console.log(`${DEBUG_PREFIX} Waiting ${delay}ms for push service (attempt ${attempt})...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+
+      if (permState !== 'granted') {
+        throw new Error(`Push permission not stabilized after retries (final state: ${permState})`);
       }
 
       // Check existing subscription and permissions
