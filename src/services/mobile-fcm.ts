@@ -517,6 +517,7 @@ export class MobileFCMService {
       // For Android, verify push manager state first
       if (deviceInfo.deviceType === 'android') {
         const pushManagerState = await this.registration.pushManager.permissionState({
+          userVisibleOnly: true,
           applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
         });
         console.log(`${DEBUG_PREFIX} Push manager state for Android:`, pushManagerState);
@@ -533,9 +534,10 @@ export class MobileFCMService {
         throw new Error('Firebase messaging not available for token generation');
       }
 
-      // First ensure we have a valid push subscription
+      // First ensure we have a valid push subscription with userVisibleOnly
       let pushSubscription = await this.registration.pushManager.getSubscription();
-      if (!pushSubscription || !pushSubscription.options?.userVisibleOnly) {
+      const pushOptions = pushSubscription?.options as PushSubscriptionOptions | undefined;
+      if (!pushSubscription || !pushOptions?.userVisibleOnly) {
         // Unsubscribe from any existing subscription first
         if (pushSubscription) {
           await pushSubscription.unsubscribe();
@@ -576,9 +578,19 @@ export class MobileFCMService {
           
           if (attempt === 3) {
             // On final attempt, check subscription state
+            // Check final subscription state with required userVisibleOnly flag
             const pushManagerState = await this.registration.pushManager.permissionState({
               userVisibleOnly: true,
               applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+            });
+            
+            const currentSubscription = await this.registration.pushManager.getSubscription();
+            const hasValidSubscription = currentSubscription?.options?.userVisibleOnly === true;
+            
+            console.error(`${DEBUG_PREFIX} Final attempt failed. State:`, {
+              pushManagerState,
+              hasValidSubscription,
+              subscriptionEndpoint: currentSubscription?.endpoint
             });
             
             console.error(`${DEBUG_PREFIX} Final attempt failed. Push manager state:`, pushManagerState);
