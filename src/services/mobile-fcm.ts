@@ -186,6 +186,19 @@ export class MobileFCMService {
   private isInitializing = false;
   private maxRetries = 3;
 
+  private urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
   async initialize(): Promise<boolean> {
     if (this.initialized) return true;
     if (this.isInitializing) return false;
@@ -354,9 +367,11 @@ export class MobileFCMService {
       }
 
       // Ensure push service is available before proceeding
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
       const pushSupported = await this.registration.pushManager.permissionState({
         userVisibleOnly: true,
-        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        applicationServerKey
       });
       
       if (pushSupported !== 'granted') {
@@ -545,9 +560,11 @@ export class MobileFCMService {
 
       // Verify push service is ready before proceeding
       for (let attempt = 1; attempt <= 3; attempt++) {
+        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
         const permState = await this.registration.pushManager.permissionState({
           userVisibleOnly: true,
-          applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+          applicationServerKey
         });
         
         if (permState === 'granted') break;
@@ -587,23 +604,16 @@ export class MobileFCMService {
 
           console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
           try {
-            const urlBase64ToUint8Array = (base64String: string) => {
-              const padding = '='.repeat((4 - base64String.length % 4) % 4);
-              const base64 = (base64String + padding)
-                .replace(/\-/g, '+')
-                .replace(/_/g, '/');
-              const rawData = window.atob(base64);
-              const outputArray = new Uint8Array(rawData.length);
-              for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-              }
-              return outputArray;
-            };
-
             try {
               const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-              const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+              const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
               
+              // Log VAPID key details for debugging
+              console.log(`${DEBUG_PREFIX} VAPID key details:`, {
+                original: vapidKey,
+                length: applicationServerKey.length
+              });
+
               const options = {
                 userVisibleOnly: true,
                 applicationServerKey
@@ -667,9 +677,11 @@ export class MobileFCMService {
       }
 
       // Test push manager permission state
+      const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      const applicationServerKey = this.urlBase64ToUint8Array(vapidKey);
       const permissionState = await pushManager.permissionState({
         userVisibleOnly: true,
-        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        applicationServerKey
       });
       console.log(`${DEBUG_PREFIX} Push permission state:`, permissionState);
 
@@ -688,8 +700,11 @@ export class MobileFCMService {
       let token;
       try {
         const messaging = getFirebaseMessaging();
+        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        console.log(`${DEBUG_PREFIX} FCM token generation started with VAPID key length:`, vapidKey.length);
+        
         token = await getToken(messaging, {
-          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+          vapidKey,
           serviceWorkerRegistration: this.registration
         });
 
