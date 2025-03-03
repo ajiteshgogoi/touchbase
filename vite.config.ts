@@ -89,8 +89,27 @@ export default defineConfig({
                 maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
               }
             }
+          },
+          {
+            urlPattern: /firebase-messaging-sw\.js/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'firebase-messaging-sw',
+              expiration: {
+                maxAgeSeconds: 24 * 60 * 60 // 24 hours
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              matchOptions: {
+                ignoreVary: true,
+                ignoreSearch: true
+              }
+            }
           }
-        ]
+        ],
+        skipWaiting: true,
+        clientsClaim: true
       }
     }),
     {
