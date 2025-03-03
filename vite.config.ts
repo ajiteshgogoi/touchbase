@@ -2,37 +2,15 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
-import fs from 'fs/promises';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-      react(),
-      {
-        name: 'firebase-messaging-sw',
-        enforce: 'post',
-        async generateBundle() {
-          // Read the service worker file
-          const swContent = await fs.readFile('public/firebase-messaging-sw.js', 'utf-8');
-          
-          // Replace environment variables
-          const processedContent = swContent
-            .replace(/"VITE_FIREBASE_API_KEY"/g, `"${process.env.VITE_FIREBASE_API_KEY}"`)
-            .replace(/"VITE_FIREBASE_AUTH_DOMAIN"/g, `"${process.env.VITE_FIREBASE_AUTH_DOMAIN}"`)
-            .replace(/"VITE_FIREBASE_PROJECT_ID"/g, `"${process.env.VITE_FIREBASE_PROJECT_ID}"`)
-            .replace(/"VITE_FIREBASE_STORAGE_BUCKET"/g, `"${process.env.VITE_FIREBASE_STORAGE_BUCKET}"`)
-            .replace(/"VITE_FIREBASE_MESSAGING_SENDER_ID"/g, `"${process.env.VITE_FIREBASE_MESSAGING_SENDER_ID}"`)
-            .replace(/"VITE_FIREBASE_APP_ID"/g, `"${process.env.VITE_FIREBASE_APP_ID}"`)
-            .replace(/"VITE_FIREBASE_MEASUREMENT_ID"/g, `"${process.env.VITE_FIREBASE_MEASUREMENT_ID}"`);
-          
-          // Write the processed file
-          await fs.writeFile('dist/firebase-messaging-sw.js', processedContent);
-        }
-      },
-      VitePWA({
+    react(),
+    VitePWA({
       registerType: 'autoUpdate',
       injectRegister: null,  // Don't inject automatic registration
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'firebase-messaging-sw.js'],
       manifest: {
         name: 'TouchBase',
         short_name: 'TouchBase',
