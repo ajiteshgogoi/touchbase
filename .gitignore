@@ -79,6 +79,7 @@ src/lib/supabase/database.types.ts
 android/keystore/
 android/twa/app/build/
 android/twa/build/
+android/twa/app/google-services.json
 android/twa/.gradle/
 android/twa/gradle/
 android/twa/local.properties
