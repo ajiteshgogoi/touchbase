@@ -353,6 +353,16 @@ export class MobileFCMService {
         throw new Error('Failed to initialize Firebase messaging');
       }
 
+      // Ensure push service is available before proceeding
+      const pushSupported = await this.registration.pushManager.permissionState({
+        userVisibleOnly: true,
+        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+      });
+      
+      if (pushSupported !== 'granted') {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+
       // Initialize service worker
       const deviceInfo = platform.getDeviceInfo();
       const initResponse = await this.sendMessageToSW({
@@ -367,6 +377,9 @@ export class MobileFCMService {
       if (!initResponse?.success) {
         throw new Error('FCM initialization failed in service worker');
       }
+      
+      // Wait for service worker to be fully ready
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Wait for service worker to be fully active with timeout
       await Promise.race([
