@@ -31,7 +31,6 @@ export class MobileFCMService {
     this.isSubscribing = false;
     this.subscriptionPromise = null;
     this.isInitializing = false;
-    this.initializationPromise = null;
     this.initialized = false;
     
     console.log(`${DEBUG_PREFIX} Initialized with browser instance ID: ${this.browserInstanceId}`);
@@ -184,95 +183,57 @@ export class MobileFCMService {
     });
   }
 
-  private initializationPromise: Promise<boolean> | null = null;
   private isInitializing = false;
   private maxRetries = 3;
 
   async initialize(): Promise<boolean> {
-    // If already initialized, return early
-    if (this.initialized) {
-      return true;
-    }
+    if (this.initialized) return true;
+    if (this.isInitializing) return false;
 
-    // If already initializing, wait for existing promise
-    if (this.isInitializing && this.initializationPromise) {
-      return this.initializationPromise;
-    }
-
-    // Start with a full cleanup of stale state
-    this.initialized = false;
-    this.isInitializing = false;
-    this.initializationPromise = null;
-    this.subscriptionPromise = null;
-    this.isSubscribing = false;
-    
-    // Wait for service worker ready state
-    await navigator.serviceWorker.ready;
-    
-    // Check for existing Firebase service worker
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const reg of registrations) {
-      const swStates = [reg.installing, reg.waiting, reg.active].filter(Boolean);
-      if (swStates.some(sw => sw?.scriptURL.includes('firebase-messaging-sw.js'))) {
-        // If the service worker is already active, use it
-        if (reg.active && reg.active.state === 'activated') {
-          console.log(`${DEBUG_PREFIX} Using existing activated Firebase service worker`);
-          this.registration = reg;
-          return true;
-        }
-        // Otherwise, wait for it to activate
-        console.log(`${DEBUG_PREFIX} Waiting for existing Firebase service worker to activate`);
-        await new Promise<void>((resolve) => {
-          const sw = reg.installing || reg.waiting;
-          if (sw) {
-            sw.addEventListener('statechange', () => {
-              if (sw.state === 'activated') {
-                this.registration = reg;
-                resolve();
-              }
-            });
-          }
-        });
-        return true;
-      }
-    }
-
-    // If initialization is already in progress, wait for it
-    if (this.initializationPromise) {
-      return this.initializationPromise;
-    }
-
-    // Start new initialization
     this.isInitializing = true;
-    this.initializationPromise = (async () => {
-      try {
-        let attempt = 1;
-        while (attempt <= this.maxRetries) {
-          console.log(`${DEBUG_PREFIX} Initialization attempt ${attempt}/${this.maxRetries}`);
-          try {
-            const result = await this._initialize();
-            this.initialized = result;
-            return result;
-          } catch (error) {
-            console.error(`${DEBUG_PREFIX} Initialization attempt ${attempt} failed:`, error);
-            if (attempt === this.maxRetries) {
-              this.initialized = false;
-              this.registration = undefined;
-              await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
-              return false;
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-            attempt++;
-          }
-        }
-        return false;
-      } finally {
-        this.isInitializing = false;
-        this.initializationPromise = null;
-      }
-    })();
+    console.log(`${DEBUG_PREFIX} Starting initialization`);
 
-    return this.initializationPromise;
+    try {
+      // Clean up everything first
+      console.log(`${DEBUG_PREFIX} Cleaning up old registrations`);
+      const oldRegistrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(oldRegistrations.map(reg => reg.unregister()));
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Allow time for cleanup
+
+      // Reset state
+      this.initialized = false;
+      this.subscriptionPromise = null;
+      this.isSubscribing = false;
+
+      // Try initialization with retries
+      for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+        console.log(`${DEBUG_PREFIX} Initialization attempt ${attempt}/${this.maxRetries}`);
+        try {
+          const result = await this._initialize();
+          this.initialized = result;
+          return result;
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} Initialization attempt ${attempt} failed:`, error);
+          
+          if (attempt === this.maxRetries) {
+            this.initialized = false;
+            this.registration = undefined;
+            await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
+            return false;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Fatal initialization error:`, error);
+      this.initialized = false;
+      this.registration = undefined;
+      return false;
+    } finally {
+      this.isInitializing = false;
+    }
+    return false;
   }
 
   private async _initialize(): Promise<boolean> {
@@ -735,7 +696,6 @@ export class MobileFCMService {
       this.isSubscribing = false;
       this.isInitializing = false;
       this.subscriptionPromise = null;
-      this.initializationPromise = null;
       this.initialized = false;
       
       // Clean up service worker registrations first
@@ -794,7 +754,6 @@ export class MobileFCMService {
       this.isSubscribing = false;
       this.isInitializing = false;
       this.subscriptionPromise = null;
-      this.initializationPromise = null;
       this.initialized = false;
       this.registration = undefined;
     }
