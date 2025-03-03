@@ -17,6 +17,20 @@ export class MobileFCMService {
   private browserInstanceId: string;
   private subscriptionPromise: Promise<boolean> | null = null;
   private isSubscribing = false;
+  private applicationServerKey: Uint8Array | undefined = undefined;
+
+  private urlB64ToUint8Array(base64String: string): Uint8Array {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
 
   constructor() {
     // Generate a per-browser-instance ID that won't sync across Chrome instances
@@ -222,6 +236,7 @@ export class MobileFCMService {
       this.initialized = false;
       this.subscriptionPromise = null;
       this.isSubscribing = false;
+      this.applicationServerKey = undefined;
 
       // Try initialization with retries
       for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -353,10 +368,19 @@ export class MobileFCMService {
 
       // Initialize service worker with device info
       const deviceInfo = platform.getDeviceInfo();
-      // Validate VAPID key before initialization
+      // Validate and convert VAPID key before initialization
       const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
       if (!vapidKey || vapidKey.length < 30) {
         throw new Error('Invalid VAPID key configuration');
+      }
+
+      // Convert VAPID key once and store for reuse
+      try {
+        this.applicationServerKey = this.urlB64ToUint8Array(vapidKey);
+        console.log(`${DEBUG_PREFIX} VAPID key converted successfully`);
+      } catch (error) {
+        console.error(`${DEBUG_PREFIX} Failed to convert VAPID key:`, error);
+        throw new Error('Invalid VAPID key format');
       }
 
       const initResponse = await this.sendMessageToSW({
@@ -521,12 +545,15 @@ export class MobileFCMService {
       if (deviceInfo.deviceType === 'android') {
         const pushManagerState = await this.registration.pushManager.permissionState({
           userVisibleOnly: true,
-          applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+          applicationServerKey: this.applicationServerKey
         });
         console.log(`${DEBUG_PREFIX} Push manager state for Android:`, pushManagerState);
         if (pushManagerState !== 'granted') {
           throw new Error(`Push manager permission denied: ${pushManagerState}`);
         }
+
+        // Extra delay for Android initialization
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
       
       // Ensure service worker is fully ready before token generation
@@ -544,13 +571,19 @@ export class MobileFCMService {
         // Unsubscribe from any existing subscription first
         if (pushSubscription) {
           await pushSubscription.unsubscribe();
+          // Allow time for unsubscribe to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        if (!this.applicationServerKey) {
+          throw new Error('Application server key not initialized');
         }
 
         console.log(`${DEBUG_PREFIX} Creating new push subscription with userVisibleOnly...`);
         // Create new subscription with required userVisibleOnly flag
         pushSubscription = await this.registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+          applicationServerKey: this.applicationServerKey
         });
 
         // Verify subscription was created properly
@@ -558,16 +591,21 @@ export class MobileFCMService {
           throw new Error('Failed to create push subscription with userVisibleOnly');
         }
         
-        // Small delay to ensure subscription is ready
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Longer delay for subscription setup on physical devices
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
       // Now that we have a valid push subscription, try token generation
       let token;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
+          // Ensure we have applicationServerKey before token generation
+          if (!this.applicationServerKey) {
+            throw new Error('Application server key not initialized');
+          }
+
           token = await getToken(messaging, {
-            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            vapidKey: this.applicationServerKey ? Buffer.from(this.applicationServerKey).toString('base64') : import.meta.env.VITE_VAPID_PUBLIC_KEY,
             serviceWorkerRegistration: this.registration
           });
 
@@ -575,7 +613,8 @@ export class MobileFCMService {
             console.log(`${DEBUG_PREFIX} FCM token generated successfully on attempt ${attempt}`);
             break;
           }
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Increase delay between attempts for physical devices
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } catch (error: any) {
           console.error(`${DEBUG_PREFIX} Token generation attempt ${attempt} failed:`, error);
           
@@ -739,6 +778,7 @@ export class MobileFCMService {
       this.subscriptionPromise = null;
       this.initialized = false;
       this.registration = undefined;
+      this.applicationServerKey = undefined;  // Ensure VAPID key is cleared
     }
   }
 }
