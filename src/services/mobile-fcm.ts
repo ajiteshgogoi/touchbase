@@ -482,6 +482,7 @@ export class MobileFCMService {
       console.log(`${DEBUG_PREFIX} Getting FCM token...`);
       const messaging = getFirebaseMessaging();
       const token = await getToken(messaging, {
+        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
         serviceWorkerRegistration: this.registration
       });
 
