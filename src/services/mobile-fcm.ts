@@ -537,16 +537,32 @@ export class MobileFCMService {
       let token;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
+          // Create a push subscription with userVisibleOnly first
+          await this.registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+          });
+
+          // Then get the FCM token
           token = await getToken(messaging, {
             vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
             serviceWorkerRegistration: this.registration
           });
+
           if (token) break;
           await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (error) {
+        } catch (error: any) {
           console.error(`${DEBUG_PREFIX} Token generation attempt ${attempt} failed:`, error);
+          
+          // If it's a push subscription error, log more details
+          if (typeof error === 'object' &&
+              error?.name === 'NotSupportedError' &&
+              error?.message?.includes('userVisibleOnly')) {
+            console.error(`${DEBUG_PREFIX} Push subscription failed - userVisibleOnly required on this platform`);
+          }
+          
           if (attempt === 3) throw error;
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
 
