@@ -371,7 +371,10 @@ export class MobileFCMService {
           apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
           projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
           appId: import.meta.env.VITE_FIREBASE_APP_ID,
-          messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID
+          messagingSenderId: '468744965191',
+          android: {
+            gcm_sender_id: '468744965191'  // Required for physical Android devices
+          }
         }
       });
 
