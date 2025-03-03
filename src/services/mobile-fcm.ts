@@ -77,16 +77,59 @@ export class MobileFCMService {
         throw new Error(`Invalid manifest content-type: ${contentType}`);
       }
 
-      // Try to parse manifest to ensure it's valid
-      const manifest = await manifestResponse.json();
+      interface WebAppManifestIcon {
+        src: string;
+        sizes: string;
+        type?: string;
+        purpose?: string;
+      }
+
+      interface WebAppManifest {
+        start_url: string;
+        display: string;
+        gcm_sender_id: string;
+        name: string;
+        icons?: WebAppManifestIcon[];
+      }
+
+      // Try to parse manifest and validate required PWA elements
+      const manifest = await manifestResponse.json() as WebAppManifest;
       if (!manifest) {
         throw new Error('Empty or invalid manifest');
       }
-  
-      console.log(`${DEBUG_PREFIX} Manifest access successful:`, {
+
+      // Validate required PWA elements for Android push support
+      const requiredFields = {
+        start_url: manifest.start_url === '/',
+        display: manifest.display === 'standalone',
+        gcm_sender_id: manifest.gcm_sender_id === '468744965191',
+        icons: manifest.icons?.some(icon =>
+          (icon.sizes === '192x192' || icon.sizes === '512x512') &&
+          icon.purpose?.includes('maskable')
+        )
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([_, valid]) => !valid)
+        .map(([field]) => field);
+
+      if (missingFields.length > 0) {
+        console.error(`${DEBUG_PREFIX} Missing/invalid manifest fields:`, {
+          missing: missingFields,
+          current: {
+            start_url: manifest.start_url,
+            display: manifest.display,
+            gcm_sender_id: manifest.gcm_sender_id,
+            icons: manifest.icons
+          }
+        });
+        throw new Error(`Invalid manifest configuration for PWA push support: ${missingFields.join(', ')}`);
+      }
+
+      console.log(`${DEBUG_PREFIX} Manifest validation successful:`, {
         contentType,
         name: manifest.name,
-        hasIcons: !!manifest.icons?.length
+        validated: Object.keys(requiredFields)
       });
       return true;
     } catch (error) {
@@ -302,11 +345,34 @@ export class MobileFCMService {
       // Register new service worker if needed
       if (!this.registration) {
         console.log(`${DEBUG_PREFIX} Registering new Firebase service worker`);
+        
+        // Get manifest for scope validation
+        const manifestResponse = await fetch('/manifest.json');
+        const manifest = await manifestResponse.json();
+        if (manifest.start_url !== '/') {
+          throw new Error('Manifest start_url must be "/" for proper PWA and push support');
+        }
+
+        // Validate service worker scope against manifest
         const firebaseSWURL = '/firebase-messaging-sw.js';
-        this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-          scope: '/',
-          updateViaCache: 'none'  // Ensure we always get fresh worker
-        });
+        try {
+          this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
+            scope: manifest.start_url,  // Must match manifest start_url
+            updateViaCache: 'none'      // Ensure we always get fresh worker
+          });
+
+          // Double check scope after registration
+          if (this.registration.scope !== window.location.origin + '/') {
+            throw new Error('Service worker scope mismatch with manifest start_url');
+          }
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} Service worker registration failed:`, {
+            manifestStartUrl: manifest.start_url,
+            currentOrigin: window.location.origin,
+            error
+          });
+          throw error;
+        }
       }
 
       // Wait for the service worker to be activated
