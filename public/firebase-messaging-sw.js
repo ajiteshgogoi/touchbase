@@ -63,22 +63,24 @@ let initializationAttempts = 0;
 const MAX_INIT_ATTEMPTS = 3;
 
 async function getMessaging() {
+  // Don't initialize Firebase until we have a VAPID key and device info
+  const deviceInfo = await getDeviceInfo();
+  if (!deviceInfo?.vapidKey) {
+    debug('No VAPID key found in device info, waiting for initialization...');
+    return null;
+  }
+
   if (!messaging) {
-    debug('Initializing Firebase...', { attempt: initializationAttempts + 1 });
+    debug('Initializing Firebase...', {
+      attempt: initializationAttempts + 1,
+      deviceType: deviceInfo.deviceType || 'unknown'
+    });
     
     try {
-      // Get stored device info including VAPID key
-      const deviceInfo = await getDeviceInfo();
-      if (!deviceInfo?.vapidKey) {
-        debug('No VAPID key found in device info');
-        throw new Error('VAPID key not available');
-      }
-
-      // Only clean up duplicate apps if we have more than one
-      if (firebase.apps.length > 1) {
-        debug('Cleaning up duplicate Firebase apps...');
-        const apps = firebase.apps.slice(1); // Keep the first app
-        await Promise.all(apps.map(app => app.delete()));
+      // Ensure any existing Firebase apps are properly cleaned up
+      if (firebase.apps.length > 0) {
+        debug('Cleaning up existing Firebase apps...');
+        await Promise.all(firebase.apps.map(app => app.delete()));
       }
 
       // Initialize with retry logic and detailed error capture
@@ -92,11 +94,10 @@ async function getMessaging() {
         if (error.code === 'app/duplicate-app' && initializationAttempts < MAX_INIT_ATTEMPTS) {
           debug('Duplicate app detected, retrying initialization...');
           initializationAttempts++;
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
           return getMessaging(); // Recursive retry
         }
         
-        // Log detailed error info for debugging
         debug('Firebase initialization failed:', {
           error: {
             code: error.code,
@@ -105,13 +106,20 @@ async function getMessaging() {
           },
           attempt: initializationAttempts + 1,
           serviceWorkerState: self.registration.active?.state,
-          scope: self.registration.scope
+          scope: self.registration.scope,
+          deviceType: deviceInfo.deviceType
         });
         throw error;
       }
 
       try {
         messaging = firebase.messaging(app);
+        
+        // Additional mobile-specific initialization
+        if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+          debug('Performing mobile-specific initialization...');
+          await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for stability
+        }
       } catch (msgError) {
         debug('Messaging initialization failed:', {
           error: {
@@ -119,13 +127,16 @@ async function getMessaging() {
             message: msgError.message,
             stack: msgError.stack
           },
-          serviceWorkerState: self.registration.active?.state
+          serviceWorkerState: self.registration.active?.state,
+          deviceType: deviceInfo.deviceType
         });
         throw msgError;
       }
+      
       debug('Firebase initialized successfully', {
         appName: app.name,
-        deviceId: self.deviceId || 'unknown'
+        deviceId: self.deviceId || 'unknown',
+        deviceType: deviceInfo.deviceType
       });
 
       // Reset attempt counter on success
@@ -151,9 +162,48 @@ self.addEventListener('push', (event) => {
 self.addEventListener('pushsubscriptionchange', (event) => {
   debug('Push subscription change event received');
   event.waitUntil((async () => {
-    // Reset messaging instance for reinitialization
-    messaging = null;
-    await getMessaging();
+    try {
+      const deviceInfo = await getDeviceInfo();
+      const isMobile = deviceInfo?.deviceType === 'android' || deviceInfo?.deviceType === 'ios';
+      
+      debug('Processing push subscription change:', {
+        deviceType: deviceInfo?.deviceType,
+        isMobile,
+        hasVapidKey: !!deviceInfo?.vapidKey
+      });
+
+      // For mobile devices, we need to do a complete reset
+      if (isMobile) {
+        debug('Mobile device detected, performing full reset...');
+        
+        // Reset Firebase instance
+        messaging = null;
+        
+        // Clean up any existing subscription
+        const existingSub = await self.registration.pushManager.getSubscription();
+        if (existingSub) {
+          await existingSub.unsubscribe();
+        }
+        
+        // Small delay for stability
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // Only proceed with reinitialization if we have the necessary info
+      if (deviceInfo?.vapidKey) {
+        debug('Reinitializing messaging with existing VAPID key');
+        const newMessaging = await getMessaging();
+        if (!newMessaging) {
+          throw new Error('Failed to reinitialize messaging after subscription change');
+        }
+      } else {
+        debug('Awaiting new initialization from client...');
+      }
+    } catch (error) {
+      debug('Error handling push subscription change:', error);
+      // Reset state on error
+      messaging = null;
+    }
   })());
 });
 
@@ -262,6 +312,7 @@ self.addEventListener('message', (event) => {
         const deviceInfo = event.data.deviceInfo || {};
         const deviceType = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios' ? 'mobile' : 'desktop';
         const deviceId = deviceInfo.deviceId;
+        const isMobile = deviceType === 'mobile';
         
         // Save device info and VAPID key to persistent storage
         const vapidKey = event.data.vapidKey;
@@ -269,10 +320,15 @@ self.addEventListener('message', (event) => {
           throw new Error('VAPID key not provided in initialization message');
         }
         
+        // Clear any existing data for clean state
+        messaging = null;
+        
+        // Save new device info
         await saveDeviceInfo({
           deviceType,
           deviceId,
-          vapidKey // Store VAPID key for push subscription
+          vapidKey,
+          timestamp: Date.now()
         });
         
         self.deviceType = deviceType;
@@ -283,15 +339,37 @@ self.addEventListener('message', (event) => {
           deviceType,
           deviceId,
           hasVapidKey: !!vapidKey,
-          scope: self.registration.scope
+          scope: self.registration.scope,
+          isMobile
         });
+
+        // Mobile-specific initialization sequence
+        if (isMobile) {
+          debug('Starting mobile-specific initialization...');
+          
+          // Ensure clean push manager state
+          const existingSub = await self.registration.pushManager.getSubscription();
+          if (existingSub) {
+            debug('Cleaning up existing push subscription...');
+            await existingSub.unsubscribe();
+          }
+          
+          // Small delay for stability on mobile
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
         
-        const messaging = getMessaging();
+        // Initialize Firebase
+        const messaging = await getMessaging();
+        if (!messaging) {
+          throw new Error('Failed to initialize Firebase messaging');
+        }
+        
         if (event.ports && event.ports[0]) {
           event.ports[0].postMessage({
             success: true,
-            deviceType: deviceType,
-            deviceId: deviceId
+            deviceType,
+            deviceId,
+            isMobile
           });
         }
       } catch (error) {
