@@ -526,9 +526,20 @@ export class MobileFCMService {
         throw new Error('Notification permission denied');
       }
 
-      // Add delay for Android before checking subscription
-      if (deviceInfo.deviceType === 'android') {
-        console.log(`${DEBUG_PREFIX} Adding pre-subscription delay for Android...`);
+      // Add delay before checking subscription to ensure push service is ready
+      console.log(`${DEBUG_PREFIX} Adding pre-subscription delay...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Verify push service is ready before proceeding
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const permState = await this.registration.pushManager.permissionState({
+          userVisibleOnly: true,
+          applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        });
+        
+        if (permState === 'granted') break;
+        
+        console.log(`${DEBUG_PREFIX} Waiting for push service (attempt ${attempt})...`);
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
@@ -591,18 +602,21 @@ export class MobileFCMService {
                 swState: this.registration.active?.state
               });
               
-              // Add delay before subscription on Android to ensure push service is ready
-              if (deviceInfo.deviceType === 'android') {
-                await new Promise(resolve => setTimeout(resolve, 2000));
+              // Handle subscription with retries
+              for (let subAttempt = 1; subAttempt <= 3; subAttempt++) {
+                try {
+                  subscription = await this.registration.pushManager.subscribe(options);
+                  break;
+                } catch (subError) {
+                  if (subAttempt === 3) throw subError;
+                  console.log(`${DEBUG_PREFIX} Subscription attempt ${subAttempt} failed, retrying...`);
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+                }
               }
-              
-              subscription = await this.registration.pushManager.subscribe(options);
-              
-              // Add delay after subscription on Android before token generation
-              if (deviceInfo.deviceType === 'android') {
-                console.log(`${DEBUG_PREFIX} Adding post-subscription delay for Android...`);
-                await new Promise(resolve => setTimeout(resolve, 2000));
-              }
+
+              // Add delay after subscription before token generation
+              console.log(`${DEBUG_PREFIX} Adding post-subscription delay...`);
+              await new Promise(resolve => setTimeout(resolve, 2000));
             } catch (subError: any) {
               console.error(`${DEBUG_PREFIX} Detailed subscription error:`, {
                 name: subError.name,
