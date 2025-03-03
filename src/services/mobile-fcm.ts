@@ -194,20 +194,28 @@ export class MobileFCMService {
     console.log(`${DEBUG_PREFIX} Starting initialization`);
 
     try {
-      // Only clean up Firebase service worker registrations
-      console.log(`${DEBUG_PREFIX} Cleaning up old Firebase service worker registrations`);
+      // Check existing Firebase service workers
+      console.log(`${DEBUG_PREFIX} Checking Firebase service worker status`);
       const registrations = await navigator.serviceWorker.getRegistrations();
       const firebaseSWs = registrations.filter(reg =>
         reg.active?.scriptURL.includes('firebase-messaging-sw.js')
       );
       
       if (firebaseSWs.length > 0) {
-        await Promise.all(firebaseSWs.map(reg => reg.unregister()));
-        console.log(`${DEBUG_PREFIX} Unregistered ${firebaseSWs.length} Firebase service worker(s)`);
-        // Allow time for cleanup
+        // Only unregister if not in good state
+        for (const reg of firebaseSWs) {
+          if (reg.active?.state !== 'activated') {
+            await reg.unregister();
+            console.log(`${DEBUG_PREFIX} Unregistered inactive service worker`);
+          } else {
+            // If we have an active worker, use it
+            this.registration = reg;
+            console.log(`${DEBUG_PREFIX} Using existing active service worker`);
+            return true;
+          }
+        }
+        // Wait for cleanup if any workers were unregistered
         await new Promise(resolve => setTimeout(resolve, 1000));
-      } else {
-        console.log(`${DEBUG_PREFIX} No existing Firebase service workers found`);
       }
 
       // Reset state
@@ -276,79 +284,36 @@ export class MobileFCMService {
         // Continue anyway, but log the error
       }
 
-      // No existing Firebase service worker, register new one
-      console.log(`${DEBUG_PREFIX} Registering new Firebase service worker`);
-      
-      const firebaseSWURL = '/firebase-messaging-sw.js';
-      this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
-        scope: '/',
-        updateViaCache: 'imports'
-      });
+      // Register new service worker if needed
+      if (!this.registration) {
+        console.log(`${DEBUG_PREFIX} Registering new Firebase service worker`);
+        const firebaseSWURL = '/firebase-messaging-sw.js';
+        this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
+          scope: '/',
+          updateViaCache: 'none'  // Ensure we always get fresh worker
+        });
+      }
 
-      // Wait for the service worker to be activated with timeout
-      await Promise.race([
-        new Promise<void>((resolve, reject) => {
-          const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
-          if (!sw) {
-            reject(new Error('No service worker found'));
-            return;
-          }
+      // Wait for the service worker to be activated
+      console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
+      const maxWaitTime = 10000;
+      const startTime = Date.now();
 
-          // If already activated, resolve immediately
-          if (sw.state === 'activated') {
-            resolve();
-            return;
-          }
+      while (Date.now() - startTime < maxWaitTime) {
+        const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
+        if (sw?.state === 'activated') {
+          console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
 
-          // Otherwise wait for activation
-          const timeout = setTimeout(() => {
-            sw.removeEventListener('statechange', listener);
-            reject(new Error('Service worker activation timeout'));
-          }, 10000);
+      if (!this.registration?.active) {
+        throw new Error('Service worker failed to activate');
+      }
 
-          const listener = () => {
-            if (sw.state === 'activated') {
-              clearTimeout(timeout);
-              sw.removeEventListener('statechange', listener);
-              resolve();
-            }
-          };
-          sw.addEventListener('statechange', listener);
-        }),
-        new Promise<void>((_, reject) =>
-          setTimeout(() => reject(new Error('Overall service worker timeout')), 15000)
-        )
-      ]);
-
-      // Wait for service worker activation with timeout
-      await Promise.race([
-        new Promise<void>((resolve, reject) => {
-          const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
-          if (!sw) {
-            reject(new Error('No service worker found after registration'));
-            return;
-          }
-
-          if (sw.state === 'activated') {
-            resolve();
-            return;
-          }
-
-          const listener = () => {
-            if (sw.state === 'activated') {
-              sw.removeEventListener('statechange', listener);
-              resolve();
-            }
-          };
-          sw.addEventListener('statechange', listener);
-        }),
-        new Promise<void>((_, reject) =>
-          setTimeout(() => reject(new Error('Service worker activation timeout')), 10000)
-        )
-      ]);
-
-      // Add delay before Firebase initialization to ensure SW stability
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Short delay for stability
+      await new Promise(resolve => setTimeout(resolve, 1000));
       console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
 
       // Initialize Firebase messaging with retries
@@ -385,32 +350,10 @@ export class MobileFCMService {
         throw new Error('FCM initialization failed in service worker');
       }
       
-      // Wait for service worker to be fully ready
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Wait for service worker to be fully active with timeout
-      await Promise.race([
-        new Promise<void>((resolve) => {
-          if (this.registration?.active?.state === 'activated') {
-            resolve();
-            return;
-          }
-          
-          const sw = this.registration?.active;
-          if (sw) {
-            const listener = () => {
-              if (sw.state === 'activated') {
-                sw.removeEventListener('statechange', listener);
-                resolve();
-              }
-            };
-            sw.addEventListener('statechange', listener);
-          }
-        }),
-        new Promise<void>((_, reject) =>
-          setTimeout(() => reject(new Error('Service worker activation timeout')), 10000)
-        )
-      ]);
+      // Verify service worker is still active
+      if (!this.registration?.active || this.registration.active.state !== 'activated') {
+        throw new Error('Service worker lost activation state');
+      }
 
       // Verify Firebase is properly initialized
       if (!messaging) {
