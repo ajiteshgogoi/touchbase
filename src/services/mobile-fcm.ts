@@ -343,7 +343,8 @@ export class MobileFCMService {
           ...deviceInfo,
           deviceId: this.getDeviceId(),
           browserInstanceId: this.browserInstanceId
-        }
+        },
+        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY
       });
 
       if (!initResponse?.success) {

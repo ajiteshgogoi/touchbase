@@ -16,7 +16,10 @@ const STORE_NAME = 'device-info';
 async function getDeviceInfo() {
   const db = await openDB(DB_NAME, 1, {
     upgrade(db) {
-      db.createObjectStore(STORE_NAME);
+      const store = db.createObjectStore(STORE_NAME);
+      // Add indices for better querying if needed
+      store.createIndex('deviceId', 'deviceId', { unique: false });
+      store.createIndex('vapidKey', 'vapidKey', { unique: false });
     }
   });
   return db.get(STORE_NAME, 'device-info');
@@ -64,6 +67,13 @@ async function getMessaging() {
     debug('Initializing Firebase...', { attempt: initializationAttempts + 1 });
     
     try {
+      // Get stored device info including VAPID key
+      const deviceInfo = await getDeviceInfo();
+      if (!deviceInfo?.vapidKey) {
+        debug('No VAPID key found in device info');
+        throw new Error('VAPID key not available');
+      }
+
       // Only clean up duplicate apps if we have more than one
       if (firebase.apps.length > 1) {
         debug('Cleaning up duplicate Firebase apps...');
@@ -74,7 +84,10 @@ async function getMessaging() {
       // Initialize with retry logic and detailed error capture
       let app;
       try {
-        app = firebase.initializeApp(firebaseConfig);
+        app = firebase.initializeApp({
+          ...firebaseConfig,
+          vapidKey: deviceInfo.vapidKey
+        });
       } catch (error) {
         if (error.code === 'app/duplicate-app' && initializationAttempts < MAX_INIT_ATTEMPTS) {
           debug('Duplicate app detected, retrying initialization...');
@@ -250,14 +263,26 @@ self.addEventListener('message', (event) => {
         const deviceType = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios' ? 'mobile' : 'desktop';
         const deviceId = deviceInfo.deviceId;
         
-        // Save device info to persistent storage
-        await saveDeviceInfo({ deviceType, deviceId });
+        // Save device info and VAPID key to persistent storage
+        const vapidKey = event.data.vapidKey;
+        if (!vapidKey) {
+          throw new Error('VAPID key not provided in initialization message');
+        }
+        
+        await saveDeviceInfo({
+          deviceType,
+          deviceId,
+          vapidKey // Store VAPID key for push subscription
+        });
+        
         self.deviceType = deviceType;
         self.deviceId = deviceId;
+        self.vapidKey = vapidKey;
         
         debug('Device info set and persisted:', {
           deviceType,
           deviceId,
+          hasVapidKey: !!vapidKey,
           scope: self.registration.scope
         });
         
