@@ -278,12 +278,19 @@ export class MobileFCMService {
       // Wait for the service worker to be activated with timeout
       await Promise.race([
         new Promise<void>((resolve, reject) => {
-          const sw = this.registration!.installing || this.registration!.waiting;
+          const sw = this.registration!.installing || this.registration!.waiting || this.registration!.active;
           if (!sw) {
-            reject(new Error('No installing/waiting service worker found'));
+            reject(new Error('No service worker found'));
             return;
           }
 
+          // If already activated, resolve immediately
+          if (sw.state === 'activated') {
+            resolve();
+            return;
+          }
+
+          // Otherwise wait for activation
           const timeout = setTimeout(() => {
             sw.removeEventListener('statechange', listener);
             reject(new Error('Service worker activation timeout'));
