@@ -1,13 +1,13 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
 import { supabase } from './lib/supabase/client';
-import { setQueryClient } from './utils/queryClient';
+import { createQueryClient, setQueryClient } from './utils/queryClient';
 import { paymentService } from './services/payment';
 import { notificationService } from './services/notifications';
 import { platform } from './utils/platform';
@@ -34,22 +34,38 @@ const LazyComponent = ({ children }: { children: React.ReactNode }) => (
 
 // Lazy loaded components with async imports
 const Dashboard = lazy(async () => {
-  const module = await import('./pages/Dashboard');
+  const module = await import(
+    /* webpackPreload: true */
+    /* @vite-preload */
+    './pages/Dashboard'
+  );
   return { default: module.Dashboard };
 });
 
 const Contacts = lazy(async () => {
-  const module = await import('./pages/Contacts');
+  const module = await import(
+    /* webpackPreload: true */
+    /* @vite-preload */
+    './pages/Contacts'
+  );
   return { default: module.Contacts };
 });
 
 const Settings = lazy(async () => {
-  const module = await import('./pages/Settings');
+  const module = await import(
+    /* webpackPreload: true */
+    /* @vite-preload */
+    './pages/Settings'
+  );
   return { default: module.Settings };
 });
 
 const Reminders = lazy(async () => {
-  const module = await import('./pages/Reminders');
+  const module = await import(
+    /* webpackPreload: true */
+    /* @vite-preload */
+    './pages/Reminders'
+  );
   return { default: module.Reminders };
 });
 
@@ -84,7 +100,11 @@ const Support = lazy(async () => {
 });
 
 const ContactForm = lazy(async () => {
-  const module = await import('./components/contacts/ContactForm');
+  const module = await import(
+    /* webpackPreload: true */
+    /* @vite-preload */
+    './components/contacts/ContactForm'
+  );
   return { default: module.ContactForm };
 });
 
@@ -98,16 +118,14 @@ const ImportantEvents = lazy(async () => {
   return { default: module.ImportantEventsPage };
 });
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-    },
-  },
-});
-
+const queryClient = createQueryClient();
 setQueryClient(queryClient);
+
+// Add data prefetching for critical queries
+useEffect(() => {
+  queryClient.prefetchQuery({ queryKey: ['contacts', 'recent'], queryFn: () => Promise.resolve() });
+  queryClient.prefetchQuery({ queryKey: ['reminders', 'upcoming'], queryFn: () => Promise.resolve() });
+}, []); // Run once on app initialization
 
 const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useStore();
