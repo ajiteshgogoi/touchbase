@@ -418,20 +418,19 @@ export class MobileFCMService {
         throw new Error('User must be authenticated for FCM token generation');
       }
 
-      // Try FCM token first, then fallback to direct push if it fails
+      // Generate FCM token
       let token;
-      let subscriptionType = 'fcm';
       try {
         token = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
           serviceWorkerRegistration: this.registration
         });
       } catch (error: any) {
-        // Log FCM error
+        // Add more detailed logging
         console.error(`${DEBUG_PREFIX} FCM Token Error Details:`, {
           errorCode: error.code,
           errorMessage: error.message,
-          errorDetails: error.details,
+          errorDetails: error.details, // Some Firebase errors have this
           errorName: error.name,
           stack: error.stack,
           serviceWorkerState: this.registration?.active?.state,
@@ -440,18 +439,7 @@ export class MobileFCMService {
             serviceWorkerPresent: !!this.registration
           }
         });
-
-        // Try direct push subscription as fallback
-        console.log(`${DEBUG_PREFIX} Attempting direct push subscription fallback...`);
-        const directPushSubscription = await this.useDirectPushSubscription();
-        
-        if (!directPushSubscription) {
-          throw new Error('Both FCM and direct push subscription failed');
-        }
-
-        token = directPushSubscription;
-        subscriptionType = 'direct';
-        console.log(`${DEBUG_PREFIX} Successfully fell back to direct push subscription`);
+        throw error;
       }
 
       // Verify token format
@@ -473,7 +461,6 @@ export class MobileFCMService {
           device_id: deviceId,
           device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
           device_type: deviceInfo.deviceType,
-          subscription_type: subscriptionType,
           enabled: true,
           browser_instance: this.browserInstanceId,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
