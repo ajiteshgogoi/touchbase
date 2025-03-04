@@ -1,11 +1,35 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, FirebaseApp } from "firebase/app";
 import { getMessaging, onMessage, getToken, Messaging } from "firebase/messaging";
 import { supabase } from "../supabase/client";
 import { firebaseConfig, fcmSettings } from "./config";
 import { platform } from "../../utils/platform";
 
-// Initialize Firebase app once
-export const app = initializeApp(firebaseConfig);
+// Debug prefix for better log tracking
+const DEBUG_PREFIX = '🔥 [Firebase Init]';
+
+// Initialize Firebase app once and validate configuration
+let app: FirebaseApp;
+try {
+  // Validate required Firebase config
+  const requiredKeys: (keyof typeof firebaseConfig)[] = ['apiKey', 'authDomain', 'projectId', 'messagingSenderId', 'appId'];
+  const missingKeys = requiredKeys.filter(key => !firebaseConfig[key]);
+  
+  if (missingKeys.length > 0) {
+    throw new Error(`Missing required Firebase config keys: ${missingKeys.join(', ')}`);
+  }
+
+  if (!fcmSettings.vapidKey) {
+    throw new Error('Missing required VAPID key for FCM');
+  }
+
+  app = initializeApp(firebaseConfig);
+  console.log(`${DEBUG_PREFIX} Firebase initialized successfully`);
+} catch (error) {
+  console.error(`${DEBUG_PREFIX} Firebase initialization failed:`, error);
+  throw error;
+}
+
+export { app };
 
 // Manage messaging instance with initialization delay
 let messagingInstance: Messaging | null = null;
@@ -21,14 +45,25 @@ export const getFirebaseMessaging = async (): Promise<Messaging> => {
   }
 
   initializationPromise = (async () => {
-    // Add delay before initialization
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
     try {
+      // Ensure service worker is registered
+      const registration = await navigator.serviceWorker.ready;
+      console.log(`${DEBUG_PREFIX} Service worker ready for messaging:`, {
+        state: registration.active?.state,
+        scope: registration.scope
+      });
+
+      // Initialize messaging with service worker registration
       messagingInstance = getMessaging(app);
+      
+      // Wait a moment for the service worker to be ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify messaging instance
       if (!messagingInstance?.app) {
         throw new Error('Messaging initialization failed');
       }
+
       return messagingInstance;
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Failed to initialize messaging:`, error);
@@ -166,9 +201,6 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
   }
 };
 
-// Debug prefix for better log tracking
-const DEBUG_PREFIX = '🔥 [Firebase Init]';
-
 // Service worker initialization response type
 interface ServiceWorkerInitResponse {
   success: boolean;
@@ -238,7 +270,7 @@ export const initializeTokenRefresh = async (userId: string) => {
           deviceType: deviceInfo.deviceType,
           deviceId: deviceId,
           isMobile: isMobileDevice,
-          vapidKey: fcmSettings.vapidKey // Move vapidKey inside deviceInfo
+          vapidKey: fcmSettings.vapidKey
         }
       }, [messageChannel.port2]);
     });

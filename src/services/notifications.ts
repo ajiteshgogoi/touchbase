@@ -274,8 +274,9 @@ export class NotificationService {
 
       // Generate new token
       console.log(`${DEBUG_PREFIX} Generating new FCM token...`);
-      const currentToken = await getToken(getFirebaseMessaging(), {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+      const messaging = await getFirebaseMessaging();
+      const currentToken = await getToken(messaging, {
+        vapidKey: (await import('../lib/firebase/config')).fcmSettings.vapidKey,
         serviceWorkerRegistration: this.registration
       });
 

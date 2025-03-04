@@ -17,33 +17,24 @@ const firebaseConfig = {
   storageBucket: "VITE_FIREBASE_STORAGE_BUCKET",
   messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID",
   appId: "VITE_FIREBASE_APP_ID",
-  measurementId: "VITE_FIREBASE_MEASUREMENT_ID",
-  gcm_sender_id: "VITE_FIREBASE_MESSAGING_SENDER_ID"
+  measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
 };
 
 // Initialize Firebase messaging instance
-let messaging = null;
+let messagingInstance = null;
 
-// Simple, reliable messaging initialization
-async function getMessaging() {
-  try {
-    if (messaging) {
-      return messaging;
-    }
-
-    // Initialize Firebase if not already initialized
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-
-    // Create messaging instance
-    messaging = firebase.messaging();
-    return messaging;
-  } catch (error) {
-    debug('Error in getMessaging:', error);
-    messaging = null;
-    throw error;
+// Get or initialize messaging
+function getMessaging() {
+  if (messagingInstance) {
+    return messagingInstance;
   }
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  messagingInstance = firebase.messaging();
+  return messagingInstance;
 }
 
 // Register service worker event handlers
@@ -128,15 +119,12 @@ self.addEventListener('message', (event) => {
     debug('FCM initialization message received');
     event.waitUntil((async () => {
       try {
-        // Initialize Firebase if needed
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-        }
-        
-        // Create messaging instance
-        messaging = firebase.messaging();
-        
-        event.ports[0].postMessage({ success: true });
+        const messaging = getMessaging();
+        event.ports[0].postMessage({ 
+          success: true,
+          deviceType: 'web',
+          isMobile: false
+        });
       } catch (error) {
         debug('FCM initialization error:', error);
         event.ports[0].postMessage({
