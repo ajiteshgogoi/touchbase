@@ -451,10 +451,25 @@ export class MobileFCMService {
       if (!('PushManager' in window)) {
         throw new Error('Push messaging is not supported');
       }
+
+      // Verify push manager state ////////////////////////////////
+      const pushManager = this.registration?.pushManager;
+      if (!pushManager) {
+        throw new Error('Push manager not available');
+      }
+      console.log(`${DEBUG_PREFIX} Push manager verified`);
       
-      // Add delay after service worker activation for mobile
+      // Add longer delay after service worker activation for mobile ////////////////////
       console.log(`${DEBUG_PREFIX} Adding delay for push service initialization...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      // Check push subscription state /////////////////////////
+      console.log(`${DEBUG_PREFIX} Checking push subscription state...`);
+      const existingSubscription = await pushManager.getSubscription();
+      if (existingSubscription) {
+        console.log(`${DEBUG_PREFIX} Found existing push subscription, unsubscribing...`);
+        await existingSubscription.unsubscribe();
+      }
 
       // Get messaging and token in one step like desktop implementation
       console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
@@ -465,7 +480,11 @@ export class MobileFCMService {
 
       let token;
       try {
-        console.log(`${DEBUG_PREFIX} Requesting FCM token with service worker state:`, this.registration?.active?.state);
+        console.log(`${DEBUG_PREFIX} Requesting FCM token with configuration:`, {
+          serviceWorkerState: this.registration?.active?.state,
+          scope: this.registration?.scope,
+          pushManagerReady: !!pushManager
+        });
         token = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
           serviceWorkerRegistration: this.registration
