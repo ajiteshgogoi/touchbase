@@ -39,7 +39,7 @@ export const Help = () => {
           <li>Click 'Add detailed information' to access additional fields:</li>
           <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-600">
             <li>Contact methods (phone, social media)</li>
-            <li>Yearly recurring important events (birthdays, anniversaries)</li>
+            <li>Yearly recurring important events (birthdays, anniversaries, etc.)</li>
             <li>Personal notes and preferences</li>
           </ul>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
