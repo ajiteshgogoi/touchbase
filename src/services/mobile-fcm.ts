@@ -258,24 +258,39 @@ export class MobileFCMService {
 
       // Initialize token refresh mechanism with user ID
       await initializeTokenRefresh(user.id);
+      console.log(`${DEBUG_PREFIX} Starting Firebase messaging initialization...`);
       
-      // Basic delay for service worker initialization
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Wait for Firebase messaging to be fully initialized with timeout
+      const timeout = 10000;
+      const startTime = Date.now();
+      let messaging;
+      let attempts = 0;
       
-      console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
+      while (Date.now() - startTime < timeout) {
+        attempts++;
+        console.log(`${DEBUG_PREFIX} Attempt ${attempts} to initialize Firebase messaging...`);
+        
+        messaging = await getFirebaseMessaging();
+        if (messaging?.app?.options?.messagingSenderId) {
+          const timeElapsed = Date.now() - startTime;
+          console.log(`${DEBUG_PREFIX} Firebase messaging successfully initialized after ${timeElapsed}ms (${attempts} attempts)`);
+          console.log(`${DEBUG_PREFIX} Messaging config verified:`, {
+            messagingSenderId: messaging.app.options.messagingSenderId.substring(0, 8) + '...',
+            isInitialized: true,
+            timeToInit: timeElapsed
+          });
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
 
-      // Initialize Firebase messaging
-      const messaging = await getFirebaseMessaging();
       if (!messaging) {
         throw new Error('Firebase messaging initialization returned null');
       }
       
-      // Verify messaging instance is properly configured
       if (!messaging.app?.options?.messagingSenderId) {
         throw new Error('Firebase messaging not properly configured');
       }
-      
-      console.log(`${DEBUG_PREFIX} Firebase messaging initialized successfully`);
 
       // Verify Firebase configuration is consistent
       const appId = messaging.app.options.appId;
@@ -286,9 +301,6 @@ export class MobileFCMService {
         });
         throw new Error('Firebase configuration mismatch between client and service worker');
       }
-
-      // Add sufficient delay to ensure proper Firebase initialization
-      console.log(`${DEBUG_PREFIX} Waiting for service worker initialization...`);
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Verify service worker state after delay
@@ -322,8 +334,11 @@ export class MobileFCMService {
       console.error(`${DEBUG_PREFIX} Initialization failed:`, diagnosticInfo);
       await notificationDiagnostics.handleFCMError(error, deviceInfo);
       
-      // Cleanup on error
-      await this.cleanup();
+      // Only cleanup on specific errors that require it
+      if (error.message?.includes('Service worker registration failed') ||
+          error.message?.includes('Service worker failed to activate')) {
+        await this.cleanup();
+      }
       return false;
     }
   }
@@ -556,29 +571,7 @@ export class MobileFCMService {
     try {
       console.log(`${DEBUG_PREFIX} Starting cleanup for device ${deviceId}...`);
       
-      // Clean up Firebase service worker registrations
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      const firebaseSWs = registrations.filter(reg =>
-        reg.active?.scriptURL.includes('firebase-messaging-sw.js')
-      );
-
-      for (const reg of firebaseSWs) {
-        try {
-          // Unregister the service worker
-          const swUrl = reg.active?.scriptURL || 'unknown';
-          console.log(`${DEBUG_PREFIX} Unregistering Firebase service worker:`, swUrl);
-          await reg.unregister();
-          console.log(`${DEBUG_PREFIX} Successfully unregistered Firebase service worker`);
-        } catch (error) {
-          console.error(`${DEBUG_PREFIX} Error during service worker cleanup:`, error);
-        }
-      }
-
-      if (firebaseSWs.length === 0) {
-        console.log(`${DEBUG_PREFIX} No Firebase service workers found to clean up`);
-      }
-
-      // Clean up push subscriptions
+      // Clean up push subscription if exists
       const pushSubscription = await this.registration?.pushManager.getSubscription();
       if (pushSubscription) {
         console.log(`${DEBUG_PREFIX} Removing push subscription...`);
