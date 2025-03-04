@@ -7,13 +7,39 @@ import { platform } from "../../utils/platform";
 // Initialize Firebase app once
 export const app = initializeApp(firebaseConfig);
 
-// Manage messaging instance
+// Manage messaging instance with initialization delay
 let messagingInstance: Messaging | null = null;
-export const getFirebaseMessaging = (): Messaging => {
-  if (!messagingInstance) {
-    messagingInstance = getMessaging(app);
+let initializationPromise: Promise<Messaging> | null = null;
+
+export const getFirebaseMessaging = async (): Promise<Messaging> => {
+  if (messagingInstance?.app) {
+    return messagingInstance;
   }
-  return messagingInstance;
+
+  if (initializationPromise) {
+    return initializationPromise;
+  }
+
+  initializationPromise = (async () => {
+    // Add delay before initialization
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    try {
+      messagingInstance = getMessaging(app);
+      if (!messagingInstance?.app) {
+        throw new Error('Messaging initialization failed');
+      }
+      return messagingInstance;
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Failed to initialize messaging:`, error);
+      messagingInstance = null;
+      throw error;
+    } finally {
+      initializationPromise = null;
+    }
+  })();
+
+  return initializationPromise;
 };
 
 // Function to cleanup Firebase messaging instance
@@ -237,15 +263,7 @@ export const initializeTokenRefresh = async (userId: string) => {
     console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
     let messaging: Messaging;
     try {
-      messaging = getFirebaseMessaging();
-      if (!messaging || !messaging.app) {
-        console.log(`${DEBUG_PREFIX} Messaging not properly initialized, retrying...`);
-        messagingInstance = null;
-        messaging = getFirebaseMessaging();
-        if (!messaging || !messaging.app) {
-          throw new Error('Failed to initialize Firebase messaging');
-        }
-      }
+      messaging = await getFirebaseMessaging();
       console.log(`${DEBUG_PREFIX} Firebase messaging initialized successfully`);
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Failed to initialize Firebase messaging:`, error);
@@ -347,8 +365,9 @@ export const initializeTokenRefresh = async (userId: string) => {
       const refreshToken = async () => {
         try {
           const registration = await navigator.serviceWorker.ready;
+          const messaging = await getFirebaseMessaging();
           const newToken = await getToken(messaging, {
-            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            vapidKey: fcmSettings.vapidKey,
             serviceWorkerRegistration: registration
           });
 
@@ -391,11 +410,16 @@ export const initializeTokenRefresh = async (userId: string) => {
       // Handle token changes if needed
       if (payload.data?.type === 'token_change') {
         try {
-          const newToken = await getToken(messaging, tokenConfig);
+          const messaging = await getFirebaseMessaging();
+          const newToken = await getToken(messaging, {
+            vapidKey: fcmSettings.vapidKey,
+            serviceWorkerRegistration: registration
+          });
 
           if (newToken && newToken !== currentToken) {
             await updateTokenInDatabase(userId, newToken);
             currentToken = newToken;
+            console.log(`${DEBUG_PREFIX} Token updated after change event`);
           }
         } catch (error) {
           console.error('Error in token change handler:', error);
