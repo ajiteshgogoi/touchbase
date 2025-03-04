@@ -87,7 +87,29 @@ export const platform = {
   },
 
   isIOS(): boolean {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+    // First try the traditional user agent check
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      return true;
+    }
+
+    // Check for iPad requesting desktop site
+    // iPad on iOS 13+ reports as Mac
+    if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0) {
+      return true;
+    }
+
+    // Fallback check for standalone mode + iOS-specific features
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      // Check for iOS-specific features
+      const isIOSPWA =
+        'standalone' in window.navigator &&
+        // @ts-ignore - iOS-specific property
+        window.navigator.standalone === true;
+      
+      return isIOSPWA;
+    }
+
+    return false;
   },
 
   isWeb(): boolean {
