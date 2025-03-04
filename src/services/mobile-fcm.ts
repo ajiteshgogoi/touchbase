@@ -443,10 +443,30 @@ export class MobileFCMService {
       // Ensure service worker is fully ready
       const registration = await navigator.serviceWorker.ready;
       
+      // Verify basic push capability first
+      if (!registration.pushManager) {
+        throw new Error('Push notifications not supported');
+      }
+
+      // Check for existing subscription first
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        await existingSubscription.unsubscribe();
+      }
+
       // Verify push service is ready with retries
       const maxRetries = 3;
       for (let i = 0; i < maxRetries; i++) {
         try {
+          // First check push permission state
+          if (Notification.permission !== 'granted') {
+            throw new Error('Notification permission required');
+          }
+
+          console.log(`${DEBUG_PREFIX} Verifying push service (attempt ${i + 1}/${maxRetries})...`);
+          await registration.pushManager.permissionState({userVisibleOnly: true});
+          
+          // Now attempt subscription
           const testSubscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: this.applicationServerKey
@@ -459,7 +479,6 @@ export class MobileFCMService {
           if (i === maxRetries - 1) {
             throw new Error('Push service not ready - please try again in a few moments');
           }
-          // Exponential backoff: 2s, 4s, 8s
           await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, i)));
         }
       }
