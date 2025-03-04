@@ -83,8 +83,9 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       }
     },
     onSettled: () => {
-      // Invalidate query to ensure consistency
+      // Invalidate queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['devices', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['preferences', userId], exact: true });
     }
   });
 
@@ -148,8 +149,9 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       }
     },
     onSettled: () => {
-      // Invalidate query to ensure consistency
+      // Invalidate queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['devices', userId], exact: true });
+      queryClient.invalidateQueries({ queryKey: ['preferences', userId], exact: true });
     }
   });
 
