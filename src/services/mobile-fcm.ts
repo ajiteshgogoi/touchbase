@@ -116,6 +116,20 @@ export class MobileFCMService {
     console.log(`${DEBUG_PREFIX} Starting initialization`);
 
     try {
+      // Check Firebase version compatibility
+      const firebase = await import('firebase/app');
+      console.log(`${DEBUG_PREFIX} Firebase version:`, firebase.SDK_VERSION);
+      
+      // Verify minimum required version
+      const version = firebase.SDK_VERSION || '0.0.0';
+      const [majorStr = '0', minorStr = '0'] = version.split('.');
+      const major = parseInt(majorStr, 10);
+      const minor = parseInt(minorStr, 10);
+      
+      if (major < 11 || (major === 11 && minor < 2)) {
+        throw new Error(`Firebase SDK version ${version} is not supported. Minimum required version is 11.2.0`);
+      }
+
       // Check existing Firebase service workers
       console.log(`${DEBUG_PREFIX} Checking Firebase service worker status`);
       const registrations = await navigator.serviceWorker.getRegistrations();
