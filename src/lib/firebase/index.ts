@@ -193,7 +193,8 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
   const { data: subscription } = await supabase
     .from('push_subscriptions')
     .select('enabled')
-    .match({ user_id: userId, device_id: deviceId })
+    .eq('user_id', userId)
+    .eq('device_id', deviceId)
     .single();
 
   // Only update if notifications are enabled
@@ -204,7 +205,8 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
         fcm_token: token,
         updated_at: new Date().toISOString()
       })
-      .match({ user_id: userId, device_id: deviceId });
+      .eq('user_id', userId)
+      .eq('device_id', deviceId);
 
     if (error) {
       console.error('Error updating FCM token:', error);
