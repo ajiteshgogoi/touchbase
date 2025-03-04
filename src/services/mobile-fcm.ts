@@ -228,7 +228,7 @@ export class MobileFCMService {
 
       // Wait for the service worker to be activated
       console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
-      const maxWaitTime = 30000;
+      const maxWaitTime = 10000;
       
       const sw = this.registration!.installing || this.registration!.waiting;
       if (sw) {
@@ -476,7 +476,7 @@ export class MobileFCMService {
       
       // Add longer delay after service worker activation for mobile
       console.log(`${DEBUG_PREFIX} Adding extended delay for push service initialization...`);
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise(resolve => setTimeout(resolve, 30000));
 
       // Check push subscription state
       console.log(`${DEBUG_PREFIX} Checking push subscription state...`);
