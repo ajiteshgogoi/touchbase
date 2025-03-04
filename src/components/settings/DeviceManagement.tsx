@@ -11,28 +11,11 @@ interface DeviceInfo {
   device_name: string;
   device_type: 'web' | 'android' | 'ios';
   updated_at: string;
-  enabled: boolean;
 }
 
 export const DeviceManagement = ({ userId }: { userId: string }) => {
   const [isUnregisteringAll, setIsUnregisteringAll] = useState(false);
   const queryClient = useQueryClient();
-
-  // Query preferences to check global notification state
-  const { data: preferences } = useQuery({
-    queryKey: ['preferences', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('notification_enabled')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userId
-  });
 
   // Get registered devices
   const { data: devices, isLoading } = useQuery({
@@ -40,7 +23,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('push_subscriptions')
-        .select('device_id, device_name, device_type, updated_at, enabled')
+        .select('device_id, device_name, device_type, updated_at')
         .eq('user_id', userId)
         .order('updated_at', { ascending: false });
 
@@ -48,43 +31,6 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       return data as DeviceInfo[];
     },
     enabled: !!userId
-  });
-
-  // Mutation for toggling device notifications
-  const toggleDeviceMutation = useMutation({
-    mutationFn: async ({ deviceId, enabled }: { deviceId: string; enabled: boolean }) => {
-      await notificationService.toggleDeviceNotifications(userId, deviceId, enabled);
-    },
-    onMutate: async ({ deviceId, enabled }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['devices', userId] });
-
-      // Snapshot the previous value
-      const previousDevices = queryClient.getQueryData(['devices', userId]);
-
-      // Optimistically update to the new value
-      queryClient.setQueryData(['devices', userId], (old: DeviceInfo[] | undefined) => {
-        if (!old) return old;
-        return old.map(device =>
-          device.device_id === deviceId ? { ...device, enabled } : device
-        );
-      });
-
-      return { previousDevices };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
-      toast.success('Device notification settings updated');
-    },
-    onError: (error: Error, _variables, context) => {
-      console.error('Failed to toggle device notifications:', error);
-      toast.error(error.message || 'Failed to update device notification settings');
-      // Revert to the previous state on error
-      if (context?.previousDevices) {
-        queryClient.setQueryData(['devices', userId], context.previousDevices);
-      }
-      queryClient.invalidateQueries({ queryKey: ['devices', userId] });
-    }
   });
     
   // Mutation for unregistering a device completely
@@ -112,11 +58,9 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     onMutate: async () => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['devices', userId] });
-      await queryClient.cancelQueries({ queryKey: ['preferences', userId] });
 
-      // Snapshot the previous values
+      // Snapshot the previous value
       const previousDevices = queryClient.getQueryData(['devices', userId]);
-      const previousPreferences = queryClient.getQueryData(['preferences', userId]);
 
       // Update devices list optimistically
       queryClient.setQueryData(['devices', userId], (old: DeviceInfo[] | undefined) => {
@@ -124,13 +68,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         return [];
       });
 
-      // Update preferences optimistically
-      queryClient.setQueryData(['preferences', userId], (old: any) => {
-        if (!old) return old;
-        return { ...old, notification_enabled: false };
-      });
-
-      return { previousDevices, previousPreferences };
+      return { previousDevices };
     },
     onSuccess: () => {
       toast.success('Device unregistered successfully');
@@ -142,9 +80,6 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       // Restore the previous state on error
       if (context?.previousDevices) {
         queryClient.setQueryData(['devices', userId], context.previousDevices);
-      }
-      if (context?.previousPreferences) {
-        queryClient.setQueryData(['preferences', userId], context.previousPreferences);
       }
     },
     onSettled: () => {
@@ -274,7 +209,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
               Manage your notification-enabled devices
             </p>
           </div>
-          {devices && devices.length > 0 && preferences?.notification_enabled && (
+          {devices && devices.length > 0 && (
             <button
               onClick={() => unregisterAllDevicesMutation.mutate()}
               disabled={isUnregisteringAll}
@@ -292,12 +227,10 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
           )}
         </div>
 
-        {(!devices || devices.length === 0 || !preferences?.notification_enabled) ? (
+        {(!devices || devices.length === 0) ? (
           <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 p-4 transition-colors hover:bg-white/50">
             <p className="text-gray-600/90 text-sm">
-              {!preferences?.notification_enabled
-                ? "Enable notifications to manage your devices."
-                : "No devices registered for notifications."}
+              No devices registered for notifications.
             </p>
           </div>
         ) : (
@@ -340,40 +273,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0">
-                  {/* Show notification toggle if global notifications are enabled */}
-                  {preferences?.notification_enabled && (
-                    <div className="flex items-center justify-between sm:justify-start gap-2 order-first sm:order-none sm:mr-3">
-                      <span className="text-sm text-gray-600/90">
-                        Notifications
-                      </span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          id={`notification-toggle-${device.device_id}`}
-                          type="checkbox"
-                          className="sr-only peer"
-                          checked={device.enabled}
-                          onChange={(e) => {
-                            toggleDeviceMutation.mutate({
-                              deviceId: device.device_id,
-                              enabled: e.target.checked
-                            });
-                          }}
-                        />
-                        <div className={`
-                          w-11 h-6 rounded-full
-                          after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                          after:bg-white after:border after:border-gray-300 after:rounded-full
-                          after:h-5 after:w-5 after:transition-all
-                          ${device.enabled
-                            ? 'bg-primary-500 after:translate-x-full'
-                            : 'bg-gray-200'
-                          }
-                          peer-disabled:opacity-50 peer-disabled:cursor-not-allowed
-                        `}></div>
-                      </label>
-                    </div>
-                  )}
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
                     disabled={unregisterDeviceMutation.isPending}
