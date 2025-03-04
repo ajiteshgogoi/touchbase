@@ -443,17 +443,25 @@ export class MobileFCMService {
       // Ensure service worker is fully ready
       const registration = await navigator.serviceWorker.ready;
       
-      // Verify push service is ready with a test subscription
-      try {
-        const testSubscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: this.applicationServerKey
-        });
-        await testSubscription.unsubscribe();
-        console.log(`${DEBUG_PREFIX} Push service verified ready`);
-      } catch (error) {
-        console.error(`${DEBUG_PREFIX} Push service not ready:`, error);
-        throw new Error('Push service not ready - please try again in a few moments');
+      // Verify push service is ready with retries
+      const maxRetries = 3;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const testSubscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: this.applicationServerKey
+          });
+          await testSubscription.unsubscribe();
+          console.log(`${DEBUG_PREFIX} Push service verified ready`);
+          break;
+        } catch (error) {
+          console.error(`${DEBUG_PREFIX} Push service not ready (attempt ${i + 1}/${maxRetries}):`, error);
+          if (i === maxRetries - 1) {
+            throw new Error('Push service not ready - please try again in a few moments');
+          }
+          // Exponential backoff: 2s, 4s, 8s
+          await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, i)));
+        }
       }
       
       const messaging = await getFirebaseMessaging();
