@@ -19,11 +19,7 @@ import { getEventTypeDisplay, formatEventDate, sortEventsByType } from '../../co
 import dayjs from 'dayjs';
 import { lazy, Suspense } from 'react';
 
-const QuickInteraction = lazy(() => import(
-  /* webpackPreload: true */
-  /* @vite-preload */
-  '../contacts/QuickInteraction'
-));
+const QuickInteraction = lazy(() => import('../contacts/QuickInteraction'));
 
 export const RecentContacts = () => {
   const queryClient = useQueryClient();

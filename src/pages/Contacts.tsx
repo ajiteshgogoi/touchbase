@@ -23,12 +23,8 @@ import { getEventTypeDisplay, formatEventDate, sortEventsByType } from '../compo
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-// Lazy load QuickInteraction with preload hint
-const QuickInteraction = lazy(() => import(
-  /* webpackPreload: true */
-  /* @vite-preload */
-  '../components/contacts/QuickInteraction'
-));
+// Lazy load QuickInteraction
+const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
 
 dayjs.extend(relativeTime);
 

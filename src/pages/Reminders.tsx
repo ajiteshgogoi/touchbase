@@ -1,10 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-// Lazy load with preload hint
-const QuickReminderModal = lazy(() => import(
-  /* webpackPreload: true */
-  /* @vite-preload */
-  '../components/reminders/QuickReminderModal'
-));
+import QuickReminderModal from '../components/reminders/QuickReminderModal';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { contactsService } from '../services/contacts';
@@ -15,12 +10,8 @@ import type { Reminder, Contact, Interaction, ImportantEvent } from '../lib/supa
 import { CalendarIcon, ArrowLeftIcon, FlagIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline/esm/index.js';
 import { getEventTypeDisplay } from '../components/contacts/utils';
 
-// Lazy load with preload hint
-const QuickInteraction = lazy(() => import(
-  /* webpackPreload: true */
-  /* @vite-preload */
-  '../components/contacts/QuickInteraction'
-));
+// Lazy load QuickInteraction
+const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
 
 const getEventIcon = (type: string) => {
   switch (type) {
