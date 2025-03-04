@@ -53,7 +53,7 @@ export const getFirebaseMessaging = async (): Promise<Messaging> => {
         scope: registration.scope
       });
 
-      // Initialize messaging
+      // Initialize messaging with service worker registration
       messagingInstance = getMessaging(app);
       
       // Wait for messaging to initialize with exponential backoff
@@ -333,10 +333,7 @@ export const initializeTokenRefresh = async (userId: string) => {
     // Configuration for token generation using fcmSettings
     const tokenConfig = {
       vapidKey: fcmSettings.vapidKey,
-      serviceWorkerRegistration: registration,
-      ...(deviceInfo.deviceType === 'android' ? fcmSettings.android : {}),
-      ...(deviceInfo.deviceType === 'ios' ? fcmSettings.ios : {}),
-      ...(deviceInfo.deviceType === 'web' ? fcmSettings.web : {})
+      serviceWorkerRegistration: registration
     };
     console.log(`${DEBUG_PREFIX} Token config prepared:`, {
       hasVapidKey: !!fcmSettings.vapidKey,
