@@ -414,22 +414,82 @@ export class MobileFCMService {
 
       console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
 
-      // Short delay for stability
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
+      // Get device info once for initialization
+      const deviceInfo = platform.getDeviceInfo();
+      const isAndroid = deviceInfo.deviceType === 'android';
+      
+      // For Android, ensure service worker is fully ready
+      if (isAndroid) {
+        console.log(`${DEBUG_PREFIX} Performing Android-specific initialization checks...`);
+        
+        // Allow more time for Android service worker activation
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Verify service worker state
+        if (!this.registration?.active || this.registration.active.state !== 'activated') {
+          throw new Error('Service worker not properly activated for Android initialization');
+        }
+        
+        // Verify push manager availability
+        const pushManager = this.registration.pushManager;
+        const permState = await pushManager.permissionState({
+          userVisibleOnly: true,
+          applicationServerKey: this.applicationServerKey
+        });
+        
+        if (permState !== 'granted') {
+          throw new Error(`Push permission not granted for Android: ${permState}`);
+        }
+      } else {
+        // Shorter delay for non-Android platforms
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`, {
+        deviceType: deviceInfo.deviceType,
+        swState: this.registration?.active?.state
+      });
 
-      // Initialize Firebase messaging with retries
+      // Initialize Firebase messaging with exponential backoff
       let messaging;
+      
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           console.log(`${DEBUG_PREFIX} Firebase init attempt ${attempt}/3`);
+          
+          // For Android, verify service worker is fully activated
+          if (isAndroid) {
+            const swState = this.registration?.active?.state;
+            if (swState !== 'activated') {
+              throw new Error(`Service worker not ready: ${swState}`);
+            }
+          }
+          
           messaging = await getFirebaseMessaging();
-          if (messaging) break;
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (error) {
+          if (!messaging) {
+            throw new Error('Firebase messaging initialization returned null');
+          }
+          
+          // Verify messaging instance is properly configured
+          if (!messaging.app?.options?.messagingSenderId) {
+            throw new Error('Firebase messaging not properly configured');
+          }
+          
+          console.log(`${DEBUG_PREFIX} Firebase messaging initialized successfully`);
+          break;
+        } catch (err: unknown) {
+          const error = err instanceof Error ? err : new Error(String(err));
           console.error(`${DEBUG_PREFIX} Firebase init error (attempt ${attempt}):`, error);
-          if (attempt === 3) throw new Error('Failed to initialize Firebase messaging after 3 attempts');
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          
+          if (attempt === 3) {
+            const finalError = new Error(`Failed to initialize Firebase messaging: ${error.message}`);
+            (finalError as any).cause = error;
+            throw finalError;
+          }
+          
+          // Exponential backoff with longer delays for Android
+          const delay = isAndroid ? 3000 * Math.pow(2, attempt - 1) : 1000 * attempt;
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
       
@@ -447,8 +507,6 @@ export class MobileFCMService {
         throw new Error('Firebase configuration mismatch between client and service worker');
       }
 
-      // Initialize service worker with device info
-      const deviceInfo = platform.getDeviceInfo();
       const initResponse = await this.sendMessageToSW({
         type: 'INIT_FCM',
         deviceInfo: {
@@ -621,19 +679,39 @@ export class MobileFCMService {
       // Let Firebase handle push subscription setup
       console.log(`${DEBUG_PREFIX} Getting FCM token...`);
       
-      // For Android, verify push manager state first
+      // For Android, ensure proper push subscription setup
       if (deviceInfo.deviceType === 'android') {
+        // First verify push manager state
         const pushManagerState = await this.registration.pushManager.permissionState({
           userVisibleOnly: true,
           applicationServerKey: this.applicationServerKey
         });
         console.log(`${DEBUG_PREFIX} Push manager state for Android:`, pushManagerState);
+        
         if (pushManagerState !== 'granted') {
           throw new Error(`Push manager permission denied: ${pushManagerState}`);
         }
 
-        // Extra delay for Android initialization
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Clean up existing subscription if it exists
+        const existingSub = await this.registration.pushManager.getSubscription();
+        if (existingSub) {
+          await existingSub.unsubscribe();
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+
+        // Create fresh subscription for Android
+        console.log(`${DEBUG_PREFIX} Creating fresh Android push subscription...`);
+        const subscription = await this.registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.applicationServerKey
+        });
+
+        if (!subscription?.endpoint?.includes('fcm.googleapis.com')) {
+          throw new Error('Invalid FCM endpoint for Android device');
+        }
+
+        // Allow time for subscription propagation
+        await new Promise(resolve => setTimeout(resolve, 4000));
       }
       
       // Ensure service worker is fully ready before token generation
@@ -644,49 +722,83 @@ export class MobileFCMService {
         throw new Error('Firebase messaging not available for token generation');
       }
 
-      // First ensure we have a valid push subscription with userVisibleOnly
+      // Check existing push subscription state
       let pushSubscription = await this.registration.pushManager.getSubscription();
       const pushOptions = pushSubscription?.options as PushSubscriptionOptions | undefined;
-      if (!pushSubscription || !pushOptions?.userVisibleOnly) {
-        // Unsubscribe from any existing subscription first
+      const isAndroid = deviceInfo.deviceType === 'android';
+
+      // For Android, check permission state before any subscription changes
+      if (isAndroid) {
+        const permState = await this.registration.pushManager.permissionState({
+          userVisibleOnly: true,
+          applicationServerKey: this.applicationServerKey
+        });
+        console.log(`${DEBUG_PREFIX} Android push permission state:`, permState);
+        
+        // Wait longer for Android system push services
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+
+      // Only recreate subscription if necessary
+      const needsNewSubscription = !pushSubscription ||
+                                 !pushOptions?.userVisibleOnly ||
+                                 (isAndroid && !pushSubscription.endpoint.includes('fcm.googleapis.com'));
+
+      if (needsNewSubscription) {
+        console.log(`${DEBUG_PREFIX} Creating new push subscription...`, {
+          reason: !pushSubscription ? 'no subscription' :
+                 !pushOptions?.userVisibleOnly ? 'missing userVisibleOnly' :
+                 'invalid endpoint'
+        });
+
+        // Safely unsubscribe from existing subscription
         if (pushSubscription) {
-          await pushSubscription.unsubscribe();
-          // Allow time for unsubscribe to complete
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            await pushSubscription.unsubscribe();
+            await new Promise(resolve => setTimeout(resolve, isAndroid ? 3000 : 1000));
+          } catch (error) {
+            console.warn(`${DEBUG_PREFIX} Error unsubscribing:`, error);
+            // Continue anyway - old subscription might be invalid
+          }
         }
 
-        if (!this.applicationServerKey) {
-          throw new Error('Application server key not initialized');
-        }
-
-        console.log(`${DEBUG_PREFIX} Creating new push subscription with userVisibleOnly...`);
-        // Add retry logic for push subscription creation
+        // Create new subscription with exponential backoff
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
-            // Create new subscription with required userVisibleOnly flag
+            console.log(`${DEBUG_PREFIX} Subscription attempt ${attempt}/3`);
+            
+            // Create new subscription
             pushSubscription = await this.registration.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey: this.applicationServerKey
             });
 
-            // Verify subscription was created properly
-            if (!pushSubscription || !pushSubscription.options?.userVisibleOnly) {
-              throw new Error('Failed to create push subscription with userVisibleOnly');
+            // Verify subscription
+            if (!pushSubscription?.endpoint || !pushSubscription.options?.userVisibleOnly) {
+              throw new Error('Invalid push subscription created');
             }
 
-            console.log(`${DEBUG_PREFIX} Push subscription created successfully on attempt ${attempt}`);
+            // For Android, verify FCM endpoint
+            if (isAndroid && !pushSubscription.endpoint.includes('fcm.googleapis.com')) {
+              throw new Error('Invalid FCM endpoint for Android device');
+            }
+
+            console.log(`${DEBUG_PREFIX} Push subscription created successfully`);
             break;
           } catch (error: any) {
             console.error(`${DEBUG_PREFIX} Push subscription attempt ${attempt} failed:`, error);
             
             if (attempt === 3) {
-              throw new Error(`Failed to create push subscription after ${attempt} attempts: ${error?.message || 'Unknown error'}`);
+              throw new Error(`Push subscription failed: ${error?.message || 'Unknown error'}`);
             }
             
-            // Increasing delay between attempts
-            await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+            // Exponential backoff with longer delays for Android
+            const delay = isAndroid ? 4000 * attempt : 2000 * attempt;
+            await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
+      } else {
+        console.log(`${DEBUG_PREFIX} Using existing valid push subscription`);
       }
 
       // Now that we have a valid push subscription, try token generation
@@ -698,10 +810,25 @@ export class MobileFCMService {
             throw new Error('Application server key not initialized');
           }
 
-          // Use original VAPID key for token generation
-          const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-          if (!vapidKey) {
-            throw new Error('VAPID key not available for token generation');
+          if (isAndroid) {
+            // For Android, we need to ensure push subscription is valid first
+            const subscription = await this.registration.pushManager.getSubscription();
+            if (!subscription?.endpoint?.includes('fcm.googleapis.com')) {
+              // Force a new push subscription
+              if (subscription) {
+                await subscription.unsubscribe();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+              }
+
+              // Create new subscription with proper VAPID key
+              await this.registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: this.applicationServerKey
+              });
+
+              // Wait for subscription to be properly registered
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            }
           }
 
           // Get current auth state
@@ -710,16 +837,20 @@ export class MobileFCMService {
             throw new Error('User must be authenticated for FCM token generation');
           }
 
-          // Use the original VAPID key for token generation
+          // Always use the raw VAPID key for token generation
           token = await getToken(messaging, {
-            vapidKey,
+            vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
             serviceWorkerRegistration: this.registration
           });
 
-          // Add extra delay for Android devices to ensure proper token generation
-          const deviceInfo = platform.getDeviceInfo();
-          if (deviceInfo.deviceType === 'android') {
-            await new Promise(resolve => setTimeout(resolve, 3000));
+          // Additional wait for Android token registration
+          if (isAndroid) {
+            await new Promise(resolve => setTimeout(resolve, 4000));
+          }
+
+          // Verify token format
+          if (!token || token.length < 50) {
+            throw new Error('Invalid FCM token generated');
           }
 
           if (token) {
