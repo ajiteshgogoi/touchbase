@@ -20,8 +20,10 @@ const firebaseConfig = {
   measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
 };
 
-// Initialize Firebase messaging instance
+// Shared state
 let messagingInstance = null;
+let deviceType = 'web'; // Default to web
+let isMobile = false;
 
 // Get or initialize messaging
 function getMessaging() {
@@ -85,6 +87,12 @@ self.addEventListener('notificationclick', (event) => {
 // Process push events
 async function handlePushEvent(payload) {
   try {
+    // Skip showing notifications on mobile devices as they're handled by the native platform
+    if (isMobile) {
+      debug('Skipping notification on mobile device:', { deviceType });
+      return;
+    }
+
     // Only process top-level notification to match foreground behavior
     const notificationData = payload.notification || {};
     const deviceId = self.deviceId || `device-${Date.now()}`;
@@ -119,6 +127,14 @@ async function handlePushEvent(payload) {
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'INIT_FCM') {
     debug('FCM initialization message received');
+    
+    // Store device info
+    if (event.data?.deviceInfo) {
+      deviceType = event.data.deviceInfo.deviceType;
+      isMobile = event.data.deviceInfo.isMobile;
+      debug('Device info stored:', { deviceType, isMobile });
+    }
+    
     event.waitUntil((async () => {
       try {
         // Add delay before initialization
