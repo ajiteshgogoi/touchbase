@@ -357,10 +357,34 @@ export class NotificationService {
     console.log(`${DEBUG_PREFIX} Sending test notification...`);
     
     try {
+      // Initialize and explicitly wait for service worker activation
       await this.initialize();
+      
+      const maxWaitTime = 10000; // 10 seconds
+      const startTime = Date.now();
+      
+      while (!this.registration?.active && Date.now() - startTime < maxWaitTime) {
+        console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       
       if (!this.registration?.active) {
         throw new Error('Firebase service worker failed to activate');
+      }
+
+      // Double check service worker state
+      if (this.registration.active.state !== 'activated') {
+        console.log(`${DEBUG_PREFIX} Service worker not in activated state, waiting...`);
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Service worker activation timeout')), 5000);
+          this.registration!.active!.addEventListener('statechange', (e: Event) => {
+            const target = e.target as ServiceWorker;
+            if (target.state === 'activated') {
+              clearTimeout(timeout);
+              resolve();
+            }
+          });
+        });
       }
 
       // Ensure subscription is active
