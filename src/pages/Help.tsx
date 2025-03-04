@@ -161,7 +161,7 @@ export const Help = () => {
             </ol>
           </div>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen and access to push-notifications.
+            <strong className="text-primary-700">Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen and push-notifications.
           </div>
         </div>
       )
