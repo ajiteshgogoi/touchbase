@@ -476,7 +476,7 @@ export class MobileFCMService {
       
       // Add longer delay after service worker activation for mobile
       console.log(`${DEBUG_PREFIX} Adding extended delay for push service initialization...`);
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
 
       // Initialize messaging first
       console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
