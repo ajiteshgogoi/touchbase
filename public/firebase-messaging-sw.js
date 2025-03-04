@@ -22,7 +22,9 @@ async function getDeviceInfo() {
       store.createIndex('vapidKey', 'vapidKey', { unique: false });
     }
   });
-  return db.get(STORE_NAME, 'device-info');
+  const tx = db.transaction(STORE_NAME, 'readonly');
+  const store = tx.objectStore(STORE_NAME);
+  return store.get('device-info');
 }
 
 async function saveDeviceInfo(info) {
@@ -31,7 +33,10 @@ async function saveDeviceInfo(info) {
       db.createObjectStore(STORE_NAME);
     }
   });
-  await db.put(STORE_NAME, info, 'device-info');
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  await store.put(info, 'device-info');
+  await tx.done;
 }
 
 // Function to open IndexedDB
