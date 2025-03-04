@@ -112,10 +112,31 @@ export class MobileFCMService {
   /**
    * Initialize the service but don't register for push yet
    */
-  async initialize(): Promise<boolean> {
+  async initialize(retryDelay = 2000): Promise<boolean> {
     console.log(`${DEBUG_PREFIX} Starting initialization`);
 
     try {
+      // Wait for valid session before proceeding
+      const maxRetries = 3;
+      let authToken = null;
+      
+      for (let i = 0; i < maxRetries; i++) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          authToken = session.access_token;
+          break;
+        }
+        // Wait between retries with increasing delay
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+
+      if (!authToken) {
+        throw new Error('No valid auth token available');
+      }
+
+      // Add delay to ensure auth token is properly propagated
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+
       // Check Firebase version compatibility
       const firebase = await import('firebase/app');
       console.log(`${DEBUG_PREFIX} Firebase version:`, firebase.SDK_VERSION);
@@ -395,11 +416,28 @@ export class MobileFCMService {
       const deviceId = this.getDeviceId();
       const deviceInfo = platform.getDeviceInfo();
 
-      // Check notification permission
+      // Check IndexedDB access before proceeding
       console.log(`${DEBUG_PREFIX} Checking notification permission...`);
       const hasPermission = await this.requestPermission();
       if (!hasPermission) {
         throw new Error('Notification permission denied');
+      }
+
+      // Early IndexedDB check before proceeding
+      console.log(`${DEBUG_PREFIX} Verifying IndexedDB access...`);
+      try {
+        const request = indexedDB.open('fcm-test-db');
+        await new Promise<void>((resolve, reject) => {
+          request.onerror = () => reject(new Error('IndexedDB access denied - check browser settings'));
+          request.onsuccess = () => {
+            request.result.close();
+            resolve();
+          };
+        });
+        console.log(`${DEBUG_PREFIX} IndexedDB access confirmed`);
+      } catch (error) {
+        console.error(`${DEBUG_PREFIX} IndexedDB access error:`, error);
+        throw new Error('Browser storage access denied - check privacy settings and third-party cookie settings');
       }
 
       // Ensure service worker is fully ready before token generation
