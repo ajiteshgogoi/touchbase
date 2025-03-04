@@ -9,48 +9,6 @@ const debug = (...args) => {
   console.log(`[FCM-SW ${timestamp}]${trace ? ` (${trace})` : ''}`, ...args);
 };
 
-// Persistent device info storage
-const DB_NAME = 'fcm-device-info';
-const STORE_NAME = 'device-info';
-
-async function getDeviceInfo() {
-  const db = await openDB(DB_NAME, 1, {
-    upgrade(db) {
-      const store = db.createObjectStore(STORE_NAME);
-      // Add indices for better querying if needed
-      store.createIndex('deviceId', 'deviceId', { unique: false });
-      store.createIndex('vapidKey', 'vapidKey', { unique: false });
-    }
-  });
-  const tx = db.transaction(STORE_NAME, 'readonly');
-  const store = tx.objectStore(STORE_NAME);
-  return store.get('device-info');
-}
-
-async function saveDeviceInfo(info) {
-  const db = await openDB(DB_NAME, 1, {
-    upgrade(db) {
-      db.createObjectStore(STORE_NAME);
-    }
-  });
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
-  await store.put(info, 'device-info');
-  await tx.done;
-}
-
-// Function to open IndexedDB
-function openDB(name, version, { upgrade } = {}) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(name, version);
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    if (upgrade) {
-      request.onupgradeneeded = (event) => upgrade(request.result, event.oldVersion, event.newVersion);
-    }
-  });
-}
-
 // Firebase configuration
 const firebaseConfig = {
   apiKey: "VITE_FIREBASE_API_KEY",
@@ -60,124 +18,26 @@ const firebaseConfig = {
   messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID",
   appId: "VITE_FIREBASE_APP_ID",
   measurementId: "VITE_FIREBASE_MEASUREMENT_ID",
-  gcm_sender_id: "VITE_FIREBASE_MESSAGING_SENDER_ID" // Add GCM sender ID
+  gcm_sender_id: "VITE_FIREBASE_MESSAGING_SENDER_ID"
 };
 
-// Initialize Firebase lazily with retries
+// Initialize Firebase messaging instance
 let messaging = null;
-let initializationAttempts = 0;
-const MAX_INIT_ATTEMPTS = 3;
 
+// Simple, reliable messaging initialization
 async function getMessaging() {
   try {
-    // First check if we have the VAPID key in service worker scope
-    if (!self.vapidKey) {
-      // Fallback to stored device info
-      const deviceInfo = await getDeviceInfo();
-      if (!deviceInfo?.vapidKey) {
-        debug('No VAPID key available', {
-          inScope: false,
-          inDeviceInfo: false
-        });
-        return null;
-      }
-      // Restore VAPID key to scope if found in storage
-      self.vapidKey = deviceInfo.vapidKey;
+    if (messaging) {
+      return messaging;
     }
 
-    // Wait for service worker to be fully activated
-    debug('Checking service worker state...');
-    if (!self.registration.active) {
-      debug('Service worker not active yet, waiting...');
-      return null;
+    // Initialize Firebase if not already initialized
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
 
-    if (!messaging) {
-      const deviceInfo = await getDeviceInfo();
-      debug('Initializing Firebase...', {
-        attempt: initializationAttempts + 1,
-        deviceType: deviceInfo?.deviceType || self.deviceType || 'unknown',
-        serviceWorkerState: self.registration.active.state,
-        hasVapidKey: !!self.vapidKey
-      });
-      
-      try {
-        // Ensure any existing Firebase apps are properly cleaned up
-        if (firebase.apps.length > 0) {
-          debug('Cleaning up existing Firebase apps...');
-          await Promise.all(firebase.apps.map(app => app.delete()));
-        }
-
-        // Initialize Firebase app
-        let app;
-        try {
-          // Get the stored VAPID key
-          const storedVapidKey = deviceInfo?.vapidKey || self.vapidKey;
-          if (!storedVapidKey) {
-            throw new Error('No VAPID key available for initialization');
-          }
-
-          // Initialize Firebase with VAPID key
-          app = firebase.initializeApp({
-            ...firebaseConfig,
-            vapidKey: storedVapidKey
-          });
-        } catch (initError) {
-          if (initError.code === 'app/duplicate-app' && initializationAttempts < MAX_INIT_ATTEMPTS) {
-            debug('Duplicate app detected, retrying initialization...');
-            initializationAttempts++;
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            return getMessaging();
-          }
-          debug('Firebase initialization failed:', {
-            error: {
-              code: initError.code,
-              message: initError.message,
-              stack: initError.stack
-            },
-            attempt: initializationAttempts + 1
-          });
-          throw initError;
-        }
-
-        // Small delay to ensure app is ready
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Initialize messaging
-        try {
-          messaging = firebase.messaging(app);
-        } catch (msgError) {
-          debug('Messaging initialization failed:', {
-            error: {
-              code: msgError.code,
-              message: msgError.message,
-              stack: msgError.stack
-            },
-            serviceWorkerState: self.registration.active?.state
-          });
-          throw msgError;
-        }
-        
-        // Additional mobile-specific initialization
-        if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-          debug('Performing mobile-specific initialization...');
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-
-        debug('Firebase initialized successfully', {
-          appName: app.name,
-          deviceId: self.deviceId || 'unknown',
-          deviceType: deviceInfo.deviceType
-        });
-
-        // Reset attempt counter on success
-        initializationAttempts = 0;
-      } catch (error) {
-        debug('Firebase initialization error:', error);
-        messaging = null;
-        throw error;
-      }
-    }
+    // Create messaging instance
+    messaging = firebase.messaging();
     return messaging;
   } catch (error) {
     debug('Error in getMessaging:', error);
@@ -186,7 +46,18 @@ async function getMessaging() {
   }
 }
 
-// Register event handlers before any initialization
+// Register service worker event handlers
+self.addEventListener('install', (event) => {
+  debug('Installing Firebase messaging service worker...');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  debug('Activating Firebase messaging service worker...');
+  event.waitUntil(self.clients.claim());
+});
+
+// Handle push notification events
 self.addEventListener('push', (event) => {
   debug('Push event received');
   if (event.data) {
@@ -195,64 +66,7 @@ self.addEventListener('push', (event) => {
   }
 });
 
-self.addEventListener('pushsubscriptionchange', (event) => {
-  debug('Push subscription change event received');
-  event.waitUntil((async () => {
-    try {
-      const deviceInfo = await getDeviceInfo();
-      const vapidKey = deviceInfo?.vapidKey;
-      if (!vapidKey) {
-        throw new Error('VAPID key not found in device info');
-      }
-
-      debug('Processing push subscription change:', {
-        deviceType: deviceInfo?.deviceType,
-        hasVapidKey: !!vapidKey,
-        deviceId: deviceInfo?.deviceId
-      });
-
-      // Always clean up existing subscription first
-      const existingSub = await self.registration.pushManager.getSubscription();
-      if (existingSub) {
-        await existingSub.unsubscribe();
-      }
-
-      // Small delay for proper cleanup
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      // Create new subscription with proper options
-      const subscriptionOptions = {
-        userVisibleOnly: true,
-        applicationServerKey: vapidKey
-      };
-
-      debug('Creating new push subscription');
-      const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
-      
-      // Verify subscription was created properly
-      if (!newSubscription?.options?.userVisibleOnly) {
-        throw new Error('Failed to create push subscription with userVisibleOnly');
-      }
-
-      // Reset and reinitialize Firebase messaging
-      messaging = null;
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const newMessaging = await getMessaging();
-      if (!newMessaging) {
-        throw new Error('Failed to reinitialize messaging after subscription change');
-      }
-
-      debug('Successfully reinitialized push subscription and messaging');
-    } catch (error) {
-      debug('Error handling push subscription change:', error);
-      // Reset state and rethrow to trigger recovery
-      messaging = null;
-      throw error;
-    }
-  })());
-});
-
+// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   debug('Notification clicked:', event);
   event.notification.close();
@@ -262,7 +76,6 @@ self.addEventListener('notificationclick', (event) => {
     ? event.notification.data.url
     : '/';
   
-  // Ensure we maintain the proper scope when opening URLs
   const targetUrl = baseUrl + targetPath.replace(/^\//, '');
 
   event.waitUntil(
@@ -278,346 +91,29 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Handle installation with immediate activation
-self.addEventListener('install', (event) => {
-  debug('Installing Firebase messaging service worker...');
-  self.skipWaiting();
-});
-
-// Handle activation with client claim
-self.addEventListener('activate', (event) => {
-  debug('Activating Firebase messaging service worker...');
-  event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      // Clear any old caches
-      caches.keys().then(keys => Promise.all(
-        keys.map(key => {
-          if (key.startsWith('firebase-messaging')) {
-            return caches.delete(key);
-          }
-          return Promise.resolve();
-        })
-      ))
-    ])
-  );
-});
-
-// Handle fetch events for FCM
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  
-  // Check if this is an FCM endpoint
-  if (url.hostname === 'fcm.googleapis.com' ||
-     url.hostname.endsWith('.googleapis.com') && url.pathname.includes('/fcm/')) {
-   
-   event.respondWith((async () => {
-     try {
-       // Get device info from storage
-       const deviceInfo = await getDeviceInfo() || {};
-       const isMobile = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios';
-       
-       debug('Handling FCM fetch request:', {
-         url: url.toString(),
-         method: event.request.method,
-         deviceType: deviceInfo.deviceType,
-         isMobile
-       });
-
-       // Clone request for logging
-       const request = event.request.clone();
-       const response = await fetch(request);
-
-       debug('FCM fetch succeeded:', {
-         status: response.status,
-         statusText: response.statusText,
-         deviceType: deviceInfo.deviceType
-       });
-
-       return response;
-     } catch (error) {
-       debug('FCM fetch failed:', {
-         error: error.message,
-         deviceType: (await getDeviceInfo())?.deviceType
-       });
-       throw error;
-     }
-   })());
-   return;
- }
-});
-
-// Handle messages //
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'INIT_FCM') {
-    debug('FCM initialization message received');
-    
-    event.waitUntil((async () => {
-      try {
-        // Get initialization data and extract VAPID key from deviceInfo
-        const { deviceInfo = {} } = event.data;
-        const deviceType = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios' ? 'mobile' : 'desktop';
-        const deviceId = deviceInfo.deviceId;
-        const isMobile = deviceType === 'mobile';
-        
-        // Extract and validate VAPID key from deviceInfo
-        const validVapidKey = deviceInfo.vapidKey;
-        if (!validVapidKey) {
-          throw new Error('VAPID key not provided in initialization message');
-        }
-        
-        // Clear any existing data for clean state
-        messaging = null;
-        
-        // Save new device info with validated key
-        const deviceInfoToSave = {
-          deviceType,
-          deviceId,
-          vapidKey: validVapidKey,
-          timestamp: Date.now()
-        };
-
-        // Ensure we store the key before any initialization
-        await saveDeviceInfo(deviceInfoToSave);
-        
-        // Set service worker scope variables in proper order
-        self.vapidKey = validVapidKey; // Set VAPID key first
-        self.deviceType = deviceType;
-        self.deviceId = deviceId;
-        
-        debug('Device info set and persisted:', {
-          deviceType,
-          deviceId,
-          hasVapidKey: !!vapidKey,
-          scope: self.registration.scope,
-          isMobile
-        });
-
-        // Ensure proper initialization state
-        const initState = {
-          vapidKey: self.vapidKey,
-          deviceType: self.deviceType,
-          deviceId: self.deviceId
-        };
-
-        if (!initState.vapidKey || !initState.deviceType || !initState.deviceId) {
-          throw new Error('Missing required initialization state');
-        }
-
-        // Mobile-specific initialization sequence
-        if (isMobile) {
-          debug('Starting mobile-specific initialization...');
-          
-          // Check current subscription state
-          const existingSub = await self.registration.pushManager.getSubscription();
-          const pushManagerState = existingSub ?
-            await self.registration.pushManager.permissionState(existingSub.options) :
-            'prompt';
-          
-          debug('Current push subscription state:', {
-            hasExistingSub: !!existingSub,
-            pushManagerState,
-            userVisibleOnly: existingSub?.options?.userVisibleOnly
-          });
-          
-          // Clean up existing subscription
-          if (existingSub) {
-            debug('Cleaning up existing subscription...');
-            await existingSub.unsubscribe();
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
-          
-          debug('Creating new push subscription...');
-          const subscriptionOptions = {
-            userVisibleOnly: true,
-            applicationServerKey: initState.vapidKey
-          };
-          
-          const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
-          
-          // Verify subscription was created properly
-          if (!newSubscription?.options?.userVisibleOnly) {
-            throw new Error('Failed to create push subscription with userVisibleOnly');
-          }
-          
-          debug('Successfully created new push subscription');
-          
-          // Small delay to ensure subscription is properly registered
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
-        
-        // Initialize Firebase with verification
-        debug('Initializing Firebase messaging...');
-        const fcm = await getMessaging();
-        if (!fcm) {
-          debug('Firebase messaging initialization failed, retrying...');
-          // Clear messaging instance and retry once
-          messaging = null;
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const retryFcm = await getMessaging();
-          if (!retryFcm) {
-            throw new Error('Failed to initialize Firebase messaging after retry');
-          }
-          debug('Firebase messaging initialized successfully on retry');
-        }
-        
-        if (event.ports && event.ports[0]) {
-          event.ports[0].postMessage({
-            success: true,
-            deviceType,
-            deviceId,
-            isMobile
-          });
-        }
-      } catch (error) {
-        debug('FCM initialization error:', error);
-        if (event.ports && event.ports[0]) {
-          event.ports[0].postMessage({
-            success: false,
-            error: error.message
-          });
-        }
-      }
-    })());
-  } else if (event.data?.type === 'SKIP_WAITING') {
-    debug('Skip waiting message received');
-    self.skipWaiting();
-  } else if (event.data?.type === 'CLEAR_FCM_LISTENERS') {
-      const { deviceId, forceCleanup = false } = event.data;
-      debug('Clearing FCM listeners for device:', { deviceId, forceCleanup });
-      
-      event.waitUntil((async () => {
-        try {
-          // Store device ID for push event handling
-          self.CLEANED_DEVICE_ID = deviceId;
-          self.deviceId = deviceId; // Store in service worker scope
-  
-          // Get current push subscription
-          const subscription = await self.registration.pushManager.getSubscription();
-          if (subscription) {
-            try {
-              debug('Found existing push subscription');
-              
-              // Get subscription details
-              const subscriptionInfo = subscription.toJSON();
-              const subscriptionState = await self.registration.pushManager.permissionState(subscriptionInfo);
-              
-              debug('Subscription state:', {
-                deviceId,
-                currentState: subscriptionState,
-                endpoint: subscriptionInfo.endpoint
-              });
-              
-              // Unsubscribe based on criteria
-              if (forceCleanup || subscriptionState === 'denied' || subscriptionInfo.expirationTime < Date.now()) {
-                debug('Unsubscribing push subscription:', {
-                  reason: forceCleanup ? 'forced' : subscriptionState === 'denied' ? 'permission denied' : 'expired'
-                });
-                await subscription.unsubscribe();
-              } else {
-                debug('Keeping active subscription');
-              }
-            } catch (error) {
-              debug('Error handling subscription cleanup:', error);
-              // Attempt cleanup on error
-              try {
-                await subscription.unsubscribe();
-              } catch (cleanupError) {
-                debug('Final cleanup attempt failed:', cleanupError);
-              }
-            }
-          } else {
-            debug('No existing push subscription found');
-          }
-          
-          // Reset Firebase messaging instance
-          debug('Resetting Firebase messaging instance');
-          if (messaging) {
-            try {
-              await messaging.deleteToken();
-            } catch (error) {
-              debug('Error deleting Firebase token:', error);
-            }
-            messaging = null;
-          }
-  
-          // Notify client of completion
-          if (event.ports?.[0]) {
-            event.ports[0].postMessage({
-              success: true,
-              deviceId,
-              timestamp: new Date().toISOString()
-            });
-          }
-        } catch (error) {
-          debug('Fatal error in FCM cleanup:', error);
-          // Notify client of failure
-          if (event.ports?.[0]) {
-            event.ports[0].postMessage({
-              success: false,
-              error: error.message,
-              deviceId
-            });
-          }
-        }
-      })());
-  }
-});
-
-// Handle push events
+// Process push events
 async function handlePushEvent(payload) {
-  const startTime = Date.now();
-  // Only verify subscription exists, don't try to recreate during push event
-  const subscription = await self.registration.pushManager.getSubscription();
-  if (!subscription) {
-    debug('No push subscription found during event handling');
-    throw new Error('Missing push subscription');
-  }
-
-  debug('Handling push event:', {
-    hasNotification: !!payload.notification,
-    hasData: !!payload.data,
-    startTime,
-    userVisibleOnly: true,
-    subscriptionValid: true
-  });
-
   try {
     const notificationData = payload.notification || payload.data || {};
-    const deviceId = self.CLEANED_DEVICE_ID || self.deviceId || `device-${Date.now()}`;
-    const notificationId = `touchbase-${deviceId}-${startTime}`;
-    
-    debug('Processing notification:', {
-      deviceId,
-      notificationId,
-      title: notificationData.title || 'New Message'
-    });
-    
+    const deviceId = self.deviceId || `device-${Date.now()}`;
+    const startTime = Date.now();
+
     await self.registration.showNotification(notificationData.title || 'New Message', {
       body: notificationData.body,
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       tag: 'touchbase-notification',
-      renotify: true,
-      requireInteraction: true,
       data: {
-        ...(payload.data || {}),
+        ...payload.data,
         deviceId,
-        notificationId,
         url: notificationData.url || '/',
-        timestamp: new Date().toISOString(),
-        processedIn: Date.now() - startTime,
-        deviceType: self.deviceType
+        timestamp: new Date().toISOString()
       },
-      actions: [{ action: 'view', title: 'View' }],
-      ...(self.deviceType === 'mobile' && {
-        vibrate: [200, 100, 200],
-        silent: false
-      })
+      actions: [{ action: 'view', title: 'View' }]
     });
 
     debug('Notification displayed successfully', {
-      notificationId,
+      deviceId,
       processedIn: Date.now() - startTime
     });
   } catch (error) {
@@ -625,3 +121,29 @@ async function handlePushEvent(payload) {
     throw error;
   }
 }
+
+// Handle FCM initialization messages
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'INIT_FCM') {
+    debug('FCM initialization message received');
+    event.waitUntil((async () => {
+      try {
+        // Initialize Firebase if needed
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        
+        // Create messaging instance
+        messaging = firebase.messaging();
+        
+        event.ports[0].postMessage({ success: true });
+      } catch (error) {
+        debug('FCM initialization error:', error);
+        event.ports[0].postMessage({
+          success: false,
+          error: error.message
+        });
+      }
+    })());
+  }
+});
