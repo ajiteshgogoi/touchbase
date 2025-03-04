@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase/client';
-import { getToken } from "firebase/messaging";
 import { getFirebaseMessaging, initializeTokenRefresh } from '../lib/firebase';
 import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
@@ -451,52 +450,9 @@ export class MobileFCMService {
         throw new Error('Browser storage access denied - check privacy settings and third-party cookie settings');
       }
 
-      // Let shared initialization handle FCM token generation
+      // Let shared initialization handle FCM token generation and database updates
       await initializeTokenRefresh(userId);
-      console.log(`${DEBUG_PREFIX} FCM token generation handled by shared initialization`);
-
-      // Get messaging instance and token
-      const messaging = await getFirebaseMessaging();
-      if (!messaging?.app) {
-        throw new Error('Firebase messaging not properly initialized');
-      }
-
-      const token = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-        serviceWorkerRegistration: this.registration
-      });
-
-      if (!token) {
-        throw new Error('Failed to get FCM token after initialization');
-      }
-
-      // Get device info for database update
-      const deviceId = this.getDeviceId();
-      const deviceInfo = platform.getDeviceInfo();
-
-      // Save subscription to database
-      const { error: saveError } = await supabase
-        .from('push_subscriptions')
-        .upsert({
-          user_id: userId,
-          fcm_token: token,
-          device_id: deviceId,
-          device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
-          device_type: deviceInfo.deviceType,
-          enabled: true,
-          browser_instance: this.browserInstanceId,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        }, {
-          onConflict: 'user_id,device_id,browser_instance'
-        });
-
-      if (saveError) {
-        if (saveError.message?.includes('check_device_limit')) {
-          throw new Error('Maximum number of devices (10) reached');
-        }
-        throw saveError;
-      }
-
+      console.log(`${DEBUG_PREFIX} FCM token generation and database update handled by shared initialization`);
       return true;
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Subscribe failed:`, error);
