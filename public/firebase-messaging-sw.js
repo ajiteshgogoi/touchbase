@@ -85,6 +85,15 @@ self.addEventListener('notificationclick', (event) => {
 // Process push events
 async function handlePushEvent(payload) {
   try {
+    const deviceInfo = payload.data?.deviceInfo ? JSON.parse(payload.data.deviceInfo) : {};
+    const isMobile = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios';
+    
+    // Skip handling on mobile devices to let Firebase handle it natively
+    if (isMobile) {
+      debug('Skipping notification on mobile device, letting Firebase handle it');
+      return;
+    }
+
     // Only process top-level notification to match foreground behavior
     const notificationData = payload.notification || {};
     const deviceId = self.deviceId || `device-${Date.now()}`;

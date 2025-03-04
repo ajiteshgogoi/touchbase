@@ -12,6 +12,19 @@ export const firebaseConfig = {
 export const fcmSettings = {
   vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
   android: {
-    gcm_sender_id: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID
+    gcm_sender_id: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    // Direct control to native Android notification handling
+    direct_boot_ok: true,
+    notification_priority: 'high',
+    notification_foreground: false // Let system handle notifications on Android
+  },
+  ios: {
+    // Use native iOS notification handling
+    critical: false,
+    foreground_presentation: false // Let system handle notifications on iOS
+  },
+  web: {
+    // Custom handling for web platform
+    foreground_notification: true
   }
 };
