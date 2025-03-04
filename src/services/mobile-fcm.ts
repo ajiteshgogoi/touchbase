@@ -260,7 +260,7 @@ export class MobileFCMService {
       console.log(`${DEBUG_PREFIX} Starting Firebase messaging initialization...`);
       
       // Wait for Firebase messaging to be fully initialized with timeout
-      const timeout = 10000;
+      const timeout = 1500;
       const startTime = Date.now();
       let messaging;
       let attempts = 0;
@@ -300,7 +300,7 @@ export class MobileFCMService {
         });
         throw new Error('Firebase configuration mismatch between client and service worker');
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Verify service worker state after delay
       if (!this.registration?.active || this.registration.active.state !== 'activated') {
