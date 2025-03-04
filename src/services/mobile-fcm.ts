@@ -440,8 +440,21 @@ export class MobileFCMService {
         throw new Error('Browser storage access denied - check privacy settings and third-party cookie settings');
       }
 
-      // Ensure service worker is fully ready before token generation
-      await navigator.serviceWorker.ready;
+      // Ensure service worker is fully ready
+      const registration = await navigator.serviceWorker.ready;
+      
+      // Verify push service is ready with a test subscription
+      try {
+        const testSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.applicationServerKey
+        });
+        await testSubscription.unsubscribe();
+        console.log(`${DEBUG_PREFIX} Push service verified ready`);
+      } catch (error) {
+        console.error(`${DEBUG_PREFIX} Push service not ready:`, error);
+        throw new Error('Push service not ready - please try again in a few moments');
+      }
       
       const messaging = await getFirebaseMessaging();
       if (!messaging) {
