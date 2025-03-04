@@ -83,9 +83,8 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       }
     },
     onSettled: () => {
-      // Invalidate queries to ensure consistency
+      // Invalidate query to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['devices', userId], exact: true });
-      queryClient.invalidateQueries({ queryKey: ['preferences', userId], exact: true });
     }
   });
 
@@ -124,11 +123,9 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
     onMutate: async () => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['devices', userId] });
-      await queryClient.cancelQueries({ queryKey: ['preferences', userId] });
 
-      // Snapshot the previous values
+      // Snapshot the previous value
       const previousDevices = queryClient.getQueryData(['devices', userId]);
-      const previousPreferences = queryClient.getQueryData(['preferences', userId]);
 
       // Update devices list optimistically
       queryClient.setQueryData(['devices', userId], (old: DeviceInfo[] | undefined) => {
@@ -136,13 +133,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         return [];
       });
 
-      // Update preferences optimistically
-      queryClient.setQueryData(['preferences', userId], (old: any) => {
-        if (!old) return old;
-        return { ...old, notification_enabled: false };
-      });
-
-      return { previousDevices, previousPreferences };
+      return { previousDevices };
     },
     onSuccess: () => {
       toast.success('All devices unregistered successfully');
@@ -155,14 +146,10 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       if (context?.previousDevices) {
         queryClient.setQueryData(['devices', userId], context.previousDevices);
       }
-      if (context?.previousPreferences) {
-        queryClient.setQueryData(['preferences', userId], context.previousPreferences);
-      }
     },
     onSettled: () => {
-      // Invalidate queries to ensure consistency
+      // Invalidate query to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['devices', userId], exact: true });
-      queryClient.invalidateQueries({ queryKey: ['preferences', userId], exact: true });
     }
   });
 
