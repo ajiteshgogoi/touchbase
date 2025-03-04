@@ -111,7 +111,7 @@ export class MobileFCMService {
   /**
    * Initialize the service but don't register for push yet
    */
-  async initialize(retryDelay = 2000): Promise<boolean> {
+  async initialize(retryDelay = 1000): Promise<boolean> {
     console.log(`${DEBUG_PREFIX} Starting initialization`);
 
     try {
@@ -465,12 +465,59 @@ export class MobileFCMService {
   /**
    * Cleanup and unsubscribe
    */
-  async cleanup(): Promise<void> {
-    const deviceId = this.getDeviceId();
-    
+  /**
+   * Unsubscribe a specific device
+   */
+  async unsubscribeDevice(userId: string, deviceId: string): Promise<void> {
     try {
-      console.log(`${DEBUG_PREFIX} Starting cleanup for device ${deviceId}...`);
-      
+      console.log(`${DEBUG_PREFIX} Unsubscribing device ${deviceId}...`);
+
+      // If this is the current device, clean up FCM resources
+      const currentDeviceId = this.getDeviceId();
+      if (deviceId === currentDeviceId) {
+        console.log(`${DEBUG_PREFIX} Cleaning up current device resources...`);
+        const pushSubscription = await this.registration?.pushManager.getSubscription();
+        if (pushSubscription) {
+          console.log(`${DEBUG_PREFIX} Removing push subscription...`);
+          await pushSubscription.unsubscribe();
+        }
+
+        // Clear registration reference for current device
+        this.registration = undefined;
+        this.applicationServerKey = undefined;
+      }
+
+      // Delete subscription from database with proper user_id match
+      await supabase
+        .from('push_subscriptions')
+        .delete()
+        .match({
+          user_id: userId,
+          device_id: deviceId
+        });
+
+      console.log(`${DEBUG_PREFIX} Device unsubscribed successfully`);
+    } catch (error) {
+      const cleanupError = error as Error;
+      console.error(`${DEBUG_PREFIX} Device unsubscribe failed:`, {
+        errorName: cleanupError.name,
+        errorMessage: cleanupError.message,
+        errorStack: cleanupError.stack,
+        deviceId,
+        userId
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Cleanup all resources for current device
+   */
+  async cleanup(): Promise<void> {
+    try {
+      const deviceId = this.getDeviceId();
+      console.log(`${DEBUG_PREFIX} Starting cleanup for current device ${deviceId}...`);
+
       // Clean up push subscription if exists
       const pushSubscription = await this.registration?.pushManager.getSubscription();
       if (pushSubscription) {
@@ -478,7 +525,7 @@ export class MobileFCMService {
         await pushSubscription.unsubscribe();
       }
 
-      // Disable subscription in database
+      // Delete all subscriptions for this browser instance
       await supabase
         .from('push_subscriptions')
         .delete()
@@ -490,7 +537,7 @@ export class MobileFCMService {
       // Clear registration reference
       this.registration = undefined;
       this.applicationServerKey = undefined;
-      
+
       console.log(`${DEBUG_PREFIX} Cleanup completed successfully`);
     } catch (error) {
       const cleanupError = error as Error;
@@ -498,7 +545,6 @@ export class MobileFCMService {
         errorName: cleanupError.name,
         errorMessage: cleanupError.message,
         errorStack: cleanupError.stack,
-        deviceId,
         browserInstance: this.browserInstanceId,
         registrationState: this.registration?.active?.state
       });

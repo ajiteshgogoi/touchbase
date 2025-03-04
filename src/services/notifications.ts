@@ -280,14 +280,15 @@ export class NotificationService {
     });
     
     try {
+      const targetDeviceId = deviceId || localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+      if (!targetDeviceId) return;
+
       const deviceInfo = platform.getDeviceInfo();
       if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-        console.log(`${DEBUG_PREFIX} Delegating to mobile cleanup...`);
-        await mobileFCMService.cleanup();
+        console.log(`${DEBUG_PREFIX} Delegating to mobile device unsubscribe...`);
+        await mobileFCMService.unsubscribeDevice(userId, targetDeviceId);
         return;
       }
-
-      const targetDeviceId = deviceId || localStorage.getItem(platform.getDeviceStorageKey('device_id'));
       if (!targetDeviceId) return;
 
       if (targetDeviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
