@@ -58,96 +58,101 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase lazily with retries
-let messaging;
+let messaging = null;
 let initializationAttempts = 0;
 const MAX_INIT_ATTEMPTS = 3;
 
 async function getMessaging() {
-  // Don't initialize Firebase until we have a VAPID key and device info
-  const deviceInfo = await getDeviceInfo();
-  if (!deviceInfo?.vapidKey) {
-    debug('No VAPID key found in device info, waiting for initialization...');
-    return null;
-  }
+  try {
+    // Don't initialize Firebase until we have a VAPID key and device info
+    const deviceInfo = await getDeviceInfo();
+    if (!deviceInfo?.vapidKey) {
+      debug('No VAPID key found in device info, waiting for initialization...');
+      return null;
+    }
 
-  if (!messaging) {
-    debug('Initializing Firebase...', {
-      attempt: initializationAttempts + 1,
-      deviceType: deviceInfo.deviceType || 'unknown'
-    });
-    
-    try {
-      // Ensure any existing Firebase apps are properly cleaned up
-      if (firebase.apps.length > 0) {
-        debug('Cleaning up existing Firebase apps...');
-        await Promise.all(firebase.apps.map(app => app.delete()));
-      }
-
-      // Initialize with retry logic and detailed error capture
-      let app;
+    if (!messaging) {
+      debug('Initializing Firebase...', {
+        attempt: initializationAttempts + 1,
+        deviceType: deviceInfo.deviceType || 'unknown'
+      });
+      
       try {
-        app = firebase.initializeApp({
-          ...firebaseConfig,
-          vapidKey: deviceInfo.vapidKey
-        });
-      } catch (error) {
-        if (error.code === 'app/duplicate-app' && initializationAttempts < MAX_INIT_ATTEMPTS) {
-          debug('Duplicate app detected, retrying initialization...');
-          initializationAttempts++;
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return getMessaging(); // Recursive retry
+        // Ensure any existing Firebase apps are properly cleaned up
+        if (firebase.apps.length > 0) {
+          debug('Cleaning up existing Firebase apps...');
+          await Promise.all(firebase.apps.map(app => app.delete()));
         }
-        
-        debug('Firebase initialization failed:', {
-          error: {
-            code: error.code,
-            message: error.message,
-            stack: error.stack,
-          },
-          attempt: initializationAttempts + 1,
-          serviceWorkerState: self.registration.active?.state,
-          scope: self.registration.scope,
-          deviceType: deviceInfo.deviceType
-        });
-        throw error;
-      }
 
-      try {
-        messaging = firebase.messaging(app);
+        // Initialize Firebase app
+        let app;
+        try {
+          app = firebase.initializeApp({
+            ...firebaseConfig,
+            vapidKey: deviceInfo.vapidKey
+          });
+        } catch (initError) {
+          if (initError.code === 'app/duplicate-app' && initializationAttempts < MAX_INIT_ATTEMPTS) {
+            debug('Duplicate app detected, retrying initialization...');
+            initializationAttempts++;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return getMessaging();
+          }
+          debug('Firebase initialization failed:', {
+            error: {
+              code: initError.code,
+              message: initError.message,
+              stack: initError.stack
+            },
+            attempt: initializationAttempts + 1
+          });
+          throw initError;
+        }
+
+        // Small delay to ensure app is ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Initialize messaging
+        try {
+          messaging = firebase.messaging(app);
+        } catch (msgError) {
+          debug('Messaging initialization failed:', {
+            error: {
+              code: msgError.code,
+              message: msgError.message,
+              stack: msgError.stack
+            },
+            serviceWorkerState: self.registration.active?.state
+          });
+          throw msgError;
+        }
         
         // Additional mobile-specific initialization
         if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
           debug('Performing mobile-specific initialization...');
-          await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for stability
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
-      } catch (msgError) {
-        debug('Messaging initialization failed:', {
-          error: {
-            code: msgError.code,
-            message: msgError.message,
-            stack: msgError.stack
-          },
-          serviceWorkerState: self.registration.active?.state,
+
+        debug('Firebase initialized successfully', {
+          appName: app.name,
+          deviceId: self.deviceId || 'unknown',
           deviceType: deviceInfo.deviceType
         });
-        throw msgError;
-      }
-      
-      debug('Firebase initialized successfully', {
-        appName: app.name,
-        deviceId: self.deviceId || 'unknown',
-        deviceType: deviceInfo.deviceType
-      });
 
-      // Reset attempt counter on success
-      initializationAttempts = 0;
-    } catch (error) {
-      debug('Firebase initialization error:', error);
-      messaging = null; // Reset on error
-      throw error;
+        // Reset attempt counter on success
+        initializationAttempts = 0;
+      } catch (error) {
+        debug('Firebase initialization error:', error);
+        messaging = null;
+        throw error;
+      }
     }
+    return messaging;
+  } catch (error) {
+    debug('Error in getMessaging:', error);
+    messaging = null;
+    throw error;
   }
-  return messaging;
 }
 
 // Register event handlers before any initialization
@@ -396,8 +401,8 @@ self.addEventListener('message', (event) => {
         }
         
         // Initialize Firebase
-        const messaging = await getMessaging();
-        if (!messaging) {
+        const fcm = await getMessaging();
+        if (!fcm) {
           throw new Error('Failed to initialize Firebase messaging');
         }
         
