@@ -4,8 +4,16 @@ import { supabase } from "../supabase/client";
 import { firebaseConfig, fcmSettings } from "./config";
 import { platform } from "../../utils/platform";
 
-// Debug prefix for better log tracking
+// Constants
 const DEBUG_PREFIX = '🔥 [Firebase Init]';
+const BROWSER_INSTANCE_KEY = 'browser_instance_id';
+
+// Initialize browser instance ID if not exists
+let browserInstanceId = localStorage.getItem(BROWSER_INSTANCE_KEY);
+if (!browserInstanceId) {
+  browserInstanceId = `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+  localStorage.setItem(BROWSER_INSTANCE_KEY, browserInstanceId);
+}
 
 // Initialize Firebase app once and validate configuration
 let app: FirebaseApp;
@@ -189,15 +197,15 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
     return;
   }
 
-  // Get current device subscription state
+  // Get subscription state using RPC function
   const { data: subscription } = await supabase
-    .from('push_subscriptions')
-    .select('enabled')
-    .eq('user_id', userId)
-    .eq('device_id', deviceId)
-    .single();
+    .rpc('get_device_subscription', {
+      p_user_id: userId,
+      p_device_id: deviceId,
+      p_browser_instance: localStorage.getItem(BROWSER_INSTANCE_KEY)
+    });
 
-  // Only update if notifications are enabled
+  // Update token if subscription exists and is enabled
   if (subscription?.enabled) {
     const { error } = await supabase
       .from('push_subscriptions')
@@ -205,8 +213,11 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
         fcm_token: token,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', userId)
-      .eq('device_id', deviceId);
+      .match({
+        user_id: userId,
+        device_id: deviceId,
+        browser_instance: localStorage.getItem(BROWSER_INSTANCE_KEY)
+      });
 
     if (error) {
       console.error('Error updating FCM token:', error);
