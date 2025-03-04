@@ -228,7 +228,7 @@ export class MobileFCMService {
 
       // Wait for the service worker to be activated
       console.log(`${DEBUG_PREFIX} Waiting for service worker activation...`);
-      const maxWaitTime = 10000;
+      const maxWaitTime = 30000;
       
       const sw = this.registration!.installing || this.registration!.waiting;
       if (sw) {
