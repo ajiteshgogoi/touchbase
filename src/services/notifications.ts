@@ -6,28 +6,16 @@ import { mobileFCMService } from './mobile-fcm';
 
 const DEBUG_PREFIX = '🖥️ [Desktop FCM]';
 
-// Add browser instance ID to prevent sync issues
-const BROWSER_INSTANCE_KEY = 'browser_instance_id';
-
 export class NotificationService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
   private readonly firebaseSWURL: string;
   private isInitializing = false;
-  private browserInstanceId: string;
 
   constructor() {
     this.firebaseSWURL = new URL('/firebase-messaging-sw.js', window.location.origin).href;
     
-    // Generate a per-browser-instance ID that won't sync across instances
-    let instanceId = localStorage.getItem(BROWSER_INSTANCE_KEY);
-    if (!instanceId) {
-      instanceId = `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-      localStorage.setItem(BROWSER_INSTANCE_KEY, instanceId);
-    }
-    this.browserInstanceId = instanceId;
-    
     console.log(`${DEBUG_PREFIX} Service worker URL:`, this.firebaseSWURL);
-    console.log(`${DEBUG_PREFIX} Initialized with browser instance ID:`, this.browserInstanceId);
+    console.log(`${DEBUG_PREFIX} Initialized with browser instance ID:`, platform.browserInstanceId);
   }
 
   async getCurrentDeviceNotificationState(userId: string): Promise<boolean> {
@@ -67,7 +55,7 @@ export class NotificationService {
         .rpc('get_device_subscription', {
           p_user_id: userId,
           p_device_id: deviceId,
-          p_browser_instance: this.browserInstanceId
+          p_browser_instance: platform.browserInstanceId
         });
 
       const subscription = data as DeviceSubscription;
@@ -91,7 +79,7 @@ export class NotificationService {
         const { error: updateError } = await supabase
           .from('push_subscriptions')
           .update({ enabled })
-          .match({ user_id: userId, device_id: deviceId, browser_instance: this.browserInstanceId });
+          .match({ user_id: userId, device_id: deviceId, browser_instance: platform.browserInstanceId });
 
         if (updateError) {
           throw new Error(`Failed to update device notification state: ${updateError.message}`);
@@ -303,7 +291,7 @@ export class NotificationService {
         .match({
           user_id: userId,
           device_id: targetDeviceId,
-          browser_instance: this.browserInstanceId
+          browser_instance: platform.browserInstanceId
         });
 
       if (targetDeviceId === localStorage.getItem(platform.getDeviceStorageKey('device_id'))) {
