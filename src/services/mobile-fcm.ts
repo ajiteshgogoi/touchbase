@@ -461,24 +461,11 @@ export class MobileFCMService {
         throw new Error('User must be authenticated for FCM token generation');
       }
 
-      // Verify push service is available on mobile
-      console.log(`${DEBUG_PREFIX} Verifying push service availability...`);
-      if (!('PushManager' in window)) {
-        throw new Error('Push messaging is not supported');
-      }
-
-      // Verify push manager state ////////////////////////////////
-      const pushManager = this.registration?.pushManager;
-      if (!pushManager) {
-        throw new Error('Push manager not available');
-      }
-      console.log(`${DEBUG_PREFIX} Push manager verified`);
-      
-      // Add longer delay after service worker activation for mobile
+      // Add delay for FCM initialization on mobile
       console.log(`${DEBUG_PREFIX} Adding extended delay for push service initialization...`);
       await new Promise(resolve => setTimeout(resolve, 10000));
 
-      // Initialize messaging first
+      // Get FCM token which will handle push subscription internally
       console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
       const messaging = await getFirebaseMessaging();
       if (!messaging) {
@@ -486,13 +473,6 @@ export class MobileFCMService {
       }
 
       let token;
-      
-      // Create push subscription
-      console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
-      await pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: this.applicationServerKey
-      });
       try {
         console.log(`${DEBUG_PREFIX} Requesting FCM token...`);
         token = await getToken(messaging, {
