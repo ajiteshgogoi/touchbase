@@ -698,10 +698,11 @@ export class MobileFCMService {
             throw new Error('Application server key not initialized');
           }
 
-          // Convert Uint8Array to base64 using browser APIs
-          const vapidKeyBase64 = this.applicationServerKey ?
-            btoa(String.fromCharCode.apply(null, [...this.applicationServerKey])) :
-            import.meta.env.VITE_VAPID_PUBLIC_KEY;
+          // Use original VAPID key for token generation
+          const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+          if (!vapidKey) {
+            throw new Error('VAPID key not available for token generation');
+          }
 
           // Get current auth state
           const { data: { user } } = await supabase.auth.getUser();
@@ -709,11 +710,17 @@ export class MobileFCMService {
             throw new Error('User must be authenticated for FCM token generation');
           }
 
-          // Use fcmSettings for token generation
+          // Use the original VAPID key for token generation
           token = await getToken(messaging, {
-            vapidKey: vapidKeyBase64,
+            vapidKey,
             serviceWorkerRegistration: this.registration
           });
+
+          // Add extra delay for Android devices to ensure proper token generation
+          const deviceInfo = platform.getDeviceInfo();
+          if (deviceInfo.deviceType === 'android') {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
 
           if (token) {
             console.log(`${DEBUG_PREFIX} FCM token generated successfully on attempt ${attempt}`);
