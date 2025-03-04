@@ -434,10 +434,6 @@ export class MobileFCMService {
         this.applicationServerKey = this.urlB64ToUint8Array(vapidKey);
       }
 
-      // Get device identification
-      const deviceId = this.getDeviceId();
-      const deviceInfo = platform.getDeviceInfo();
-
       // Early IndexedDB check before proceeding
       console.log(`${DEBUG_PREFIX} Verifying IndexedDB access...`);
       try {
@@ -455,47 +451,28 @@ export class MobileFCMService {
         throw new Error('Browser storage access denied - check privacy settings and third-party cookie settings');
       }
 
-      // Get current auth state
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User must be authenticated for FCM token generation');
-      }
+      // Let shared initialization handle FCM token generation
+      await initializeTokenRefresh(userId);
+      console.log(`${DEBUG_PREFIX} FCM token generation handled by shared initialization`);
 
-      // Add delay for FCM initialization on mobile
-      console.log(`${DEBUG_PREFIX} Adding extended delay for push service initialization...`);
-      await new Promise(resolve => setTimeout(resolve, 10000));
-
-      // Get FCM token which will handle push subscription internally
-      console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
+      // Get messaging instance and token
       const messaging = await getFirebaseMessaging();
-      if (!messaging) {
-        throw new Error('Firebase messaging not available for token generation');
+      if (!messaging?.app) {
+        throw new Error('Firebase messaging not properly initialized');
       }
 
-      let token;
-      try {
-        console.log(`${DEBUG_PREFIX} Requesting FCM token...`);
-        token = await getToken(messaging, {
-          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-          serviceWorkerRegistration: this.registration
-        });
-      } catch (error: any) {
-        console.error(`${DEBUG_PREFIX} FCM Token Error:`, {
-          errorCode: error.code,
-          errorMessage: error.message
-        });
-        throw error;
-      }
-
-      // Verify token format
-      if (!token || token.length < 50) {
-        throw new Error('Invalid FCM token generated');
-      }
-
-      console.log(`${DEBUG_PREFIX} FCM token generated successfully:`, {
-        tokenLength: token.length,
-        tokenPrefix: token.substring(0, 8) + '...'
+      const token = await getToken(messaging, {
+        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+        serviceWorkerRegistration: this.registration
       });
+
+      if (!token) {
+        throw new Error('Failed to get FCM token after initialization');
+      }
+
+      // Get device info for database update
+      const deviceId = this.getDeviceId();
+      const deviceInfo = platform.getDeviceInfo();
 
       // Save subscription to database
       const { error: saveError } = await supabase
