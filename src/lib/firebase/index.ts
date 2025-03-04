@@ -363,22 +363,17 @@ export const initializeTokenRefresh = async (userId: string) => {
         throw new Error('Failed to generate FCM token');
       }
 
-      // Validate token format
-      const isValidToken = currentToken.length >= 50 && /^[A-Za-z0-9\-_=]+$/.test(currentToken);
-      if (!isValidToken) {
-        console.error(`${DEBUG_PREFIX} Invalid token format:`, {
-          tokenLength: currentToken.length,
-          isMobile: isMobileDevice,
-          deviceType: deviceInfo.deviceType
-        });
-        throw new Error('Invalid FCM token format');
-      }
+      // Log token info
+      console.log(`${DEBUG_PREFIX} Token generated:`, {
+        tokenLength: currentToken.length,
+        tokenPrefix: currentToken.substring(0, 8) + '...',
+        deviceType: deviceInfo.deviceType
+      });
 
       console.log(`${DEBUG_PREFIX} Token generated successfully:`, {
         tokenLength: currentToken.length,
         tokenPrefix: currentToken.substring(0, 8) + '...',
-        deviceType: deviceInfo.deviceType,
-        isValidFormat: isValidToken
+        deviceType: deviceInfo.deviceType
       });
 
       // Add post-token delay for mobile
