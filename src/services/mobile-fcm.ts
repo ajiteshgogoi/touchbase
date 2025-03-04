@@ -203,8 +203,7 @@ export class MobileFCMService {
         throw new Error('User must be authenticated');
       }
 
-      // Initialize token refresh mechanism with user ID
-      await initializeTokenRefresh(user.id);
+      // Starting Firebase messaging initialization
       console.log(`${DEBUG_PREFIX} Starting Firebase messaging initialization...`);
       
       // Wait for Firebase messaging to be fully initialized with timeout

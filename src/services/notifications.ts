@@ -193,12 +193,6 @@ export class NotificationService {
       // Initialize token refresh if user is authenticated
       if (session.user) {
         console.log(`${DEBUG_PREFIX} Starting FCM initialization...`);
-        console.log(`${DEBUG_PREFIX} Initializing token refresh for device:`, {
-          deviceType: deviceInfo.deviceType,
-          registrationActive: !!this.registration?.active,
-          registrationScope: this.registration?.scope
-        });
-        await initializeTokenRefresh(session.user.id);
         console.log(`${DEBUG_PREFIX} FCM initialization completed successfully`);
       }
     } catch (error) {
