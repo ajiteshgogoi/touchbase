@@ -211,12 +211,8 @@ export const initializeTokenRefresh = async (userId: string) => {
         deviceInfo: {
           deviceType: deviceInfo.deviceType,
           deviceId: deviceId,
-          isMobile: isMobileDevice
-        },
-        vapidKey: fcmSettings.vapidKey,
-        firebase: {
-          ...firebaseConfig,
-          messagingSenderId: firebaseConfig.messagingSenderId
+          isMobile: isMobileDevice,
+          vapidKey: fcmSettings.vapidKey // Move vapidKey inside deviceInfo
         }
       }, [messageChannel.port2]);
     });

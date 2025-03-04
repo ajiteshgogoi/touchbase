@@ -71,8 +71,12 @@ async function getMessaging() {
   try {
     // Don't initialize Firebase until we have a VAPID key and device info
     const deviceInfo = await getDeviceInfo();
-    if (!deviceInfo?.vapidKey) {
-      debug('No VAPID key found in device info, waiting for initialization...');
+    const vapidKey = deviceInfo?.vapidKey;
+    if (!vapidKey) {
+      debug('No VAPID key found in device info, waiting for initialization...', {
+        hasDeviceInfo: !!deviceInfo,
+        deviceType: deviceInfo?.deviceType
+      });
       return null;
     }
 
@@ -100,9 +104,16 @@ async function getMessaging() {
         // Initialize Firebase app
         let app;
         try {
+          // Get the stored VAPID key
+          const storedVapidKey = deviceInfo?.vapidKey || self.vapidKey;
+          if (!storedVapidKey) {
+            throw new Error('No VAPID key available for initialization');
+          }
+
+          // Initialize Firebase with VAPID key
           app = firebase.initializeApp({
             ...firebaseConfig,
-            vapidKey: deviceInfo.vapidKey
+            vapidKey: storedVapidKey
           });
         } catch (initError) {
           if (initError.code === 'app/duplicate-app' && initializationAttempts < MAX_INIT_ATTEMPTS) {
@@ -182,13 +193,15 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   event.waitUntil((async () => {
     try {
       const deviceInfo = await getDeviceInfo();
-      if (!deviceInfo?.vapidKey) {
+      const vapidKey = deviceInfo?.vapidKey;
+      if (!vapidKey) {
         throw new Error('VAPID key not found in device info');
       }
 
       debug('Processing push subscription change:', {
         deviceType: deviceInfo?.deviceType,
-        hasVapidKey: !!deviceInfo?.vapidKey
+        hasVapidKey: !!vapidKey,
+        deviceId: deviceInfo?.deviceId
       });
 
       // Always clean up existing subscription first
@@ -203,7 +216,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
       // Create new subscription with proper options
       const subscriptionOptions = {
         userVisibleOnly: true,
-        applicationServerKey: deviceInfo.vapidKey
+        applicationServerKey: vapidKey
       };
 
       debug('Creating new push subscription');
@@ -334,28 +347,34 @@ self.addEventListener('message', (event) => {
     
     event.waitUntil((async () => {
       try {
-        // Get device info from initialization message
-        const deviceInfo = event.data.deviceInfo || {};
+        // Get initialization data
+        const { deviceInfo = {}, vapidKey } = event.data;
         const deviceType = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios' ? 'mobile' : 'desktop';
         const deviceId = deviceInfo.deviceId;
         const isMobile = deviceType === 'mobile';
         
-        // Save device info and VAPID key to persistent storage
-        const vapidKey = event.data.vapidKey;
-        if (!vapidKey) {
+        // Validate VAPID key from either source
+        const validVapidKey = vapidKey || deviceInfo.vapidKey;
+        if (!validVapidKey) {
           throw new Error('VAPID key not provided in initialization message');
         }
         
         // Clear any existing data for clean state
         messaging = null;
         
-        // Save new device info
-        await saveDeviceInfo({
+        // Save new device info with validated key
+        const deviceInfoToSave = {
           deviceType,
           deviceId,
-          vapidKey,
+          vapidKey: validVapidKey,
           timestamp: Date.now()
-        });
+        };
+        await saveDeviceInfo(deviceInfoToSave);
+        
+        // Ensure Firebase has access to VAPID key
+        if (self && typeof self === 'object') {
+          self.vapidKey = validVapidKey;
+        }
         
         self.deviceType = deviceType;
         self.deviceId = deviceId;
