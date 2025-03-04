@@ -234,8 +234,7 @@ export const platform = {
     const deviceHash = btoa(deviceSignature).slice(0, 12);
     
     // Build final device ID
-    const prefix = deviceInfo.isTWA ? 'twa' : deviceInfo.isPWA ? 'pwa' : 'browser';
-    const deviceId = `${prefix}-${deviceInfo.deviceType}-${deviceHash}-${this.browserInstanceId.slice(0, 8)}`;
+    const deviceId = `${deviceInfo.deviceType}-${deviceHash}-${this.browserInstanceId.slice(0, 8)}`;
     
     // Store in namespaced storage
     localStorage.setItem(this.getDeviceStorageKey('device_id'), deviceId);
