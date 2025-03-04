@@ -46,7 +46,7 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
               Notifications
             </label>
             <p className="text-sm text-gray-600/90 mt-1">
-              Get notified about your daily interactions
+              Get notified about your due interactions
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
