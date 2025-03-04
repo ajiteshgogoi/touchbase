@@ -6,14 +6,6 @@ import { platform } from "../../utils/platform";
 
 // Constants
 const DEBUG_PREFIX = '🔥 [Firebase Init]';
-const BROWSER_INSTANCE_KEY = 'browser_instance_id';
-
-// Initialize browser instance ID if not exists
-let browserInstanceId = localStorage.getItem(BROWSER_INSTANCE_KEY);
-if (!browserInstanceId) {
-  browserInstanceId = `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-  localStorage.setItem(BROWSER_INSTANCE_KEY, browserInstanceId);
-}
 
 // Initialize Firebase app once and validate configuration
 let app: FirebaseApp;
@@ -204,7 +196,7 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
     .rpc('get_device_subscription', {
       p_user_id: userId,
       p_device_id: deviceId,
-      p_browser_instance: localStorage.getItem(BROWSER_INSTANCE_KEY)
+      p_browser_instance: platform.browserInstanceId
     });
 
   // If subscription exists, update it. If not, create new one.
@@ -217,7 +209,7 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
       device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
       device_type: deviceInfo.deviceType,
       enabled: subscription?.enabled ?? true,
-      browser_instance: localStorage.getItem(BROWSER_INSTANCE_KEY),
+      browser_instance: platform.browserInstanceId,
       expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString()
     }, {
