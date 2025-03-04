@@ -478,22 +478,7 @@ export class MobileFCMService {
       console.log(`${DEBUG_PREFIX} Adding extended delay for push service initialization...`);
       await new Promise(resolve => setTimeout(resolve, 30000));
 
-      // Check push subscription state
-      console.log(`${DEBUG_PREFIX} Checking push subscription state...`);
-      const existingSubscription = await pushManager.getSubscription();
-      if (existingSubscription) {
-        console.log(`${DEBUG_PREFIX} Found existing push subscription, unsubscribing...`);
-        await existingSubscription.unsubscribe();
-      }
-
-      // Create new push subscription with required options
-      console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
-      await pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: this.applicationServerKey
-      });
-
-      // Get messaging and token
+      // Initialize messaging first
       console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
       const messaging = await getFirebaseMessaging();
       if (!messaging) {
@@ -501,6 +486,13 @@ export class MobileFCMService {
       }
 
       let token;
+      
+      // Create push subscription
+      console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
+      await pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.applicationServerKey
+      });
       try {
         console.log(`${DEBUG_PREFIX} Requesting FCM token...`);
         token = await getToken(messaging, {
