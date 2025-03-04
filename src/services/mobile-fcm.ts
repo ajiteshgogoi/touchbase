@@ -326,6 +326,47 @@ export class MobileFCMService {
   }
 
   /**
+   * Alternative push registration using direct PushManager subscription
+   * This can be used as a fallback when FCM registration fails
+   */
+  async useDirectPushSubscription(): Promise<string | null> {
+    try {
+      if (!this.registration) {
+        throw new Error('Service worker registration not available');
+      }
+      
+      // Get permission first
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notification permission not granted');
+      }
+      
+      // Subscribe directly using pushManager
+      const subscription = await this.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.applicationServerKey
+      });
+      
+      // Convert subscription to string
+      const subscriptionJson = JSON.stringify(subscription);
+      
+      console.log(`${DEBUG_PREFIX} Direct push subscription successful:`, {
+        endpoint: subscription.endpoint,
+        authKey: !!subscription.getKey('auth'),
+        p256dhKey: !!subscription.getKey('p256dh')
+      });
+      
+      // Send this to your server to use for push notifications
+      // instead of using FCM directly
+      return subscriptionJson;
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Direct push subscription failed:`, error);
+      await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
+      return null;
+    }
+  }
+
+  /**
    * Subscribe to push notifications
    */
   async subscribeToPushNotifications(userId: string): Promise<boolean> {
