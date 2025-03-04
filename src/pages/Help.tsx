@@ -122,8 +122,17 @@ export const Help = () => {
             <li>Allow notification permissions when prompted</li>
             <li>Set your timezone for accurate reminder timing</li>
           </ol>
-          <div className="mt-4 text-[15px] leading-relaxed bg-yellow-50/90 backdrop-blur-sm p-4 rounded-xl border border-yellow-100/50 shadow-sm text-gray-600">
-            <strong className="text-amber-600">Important:</strong> Enabling notifications is crucial for receiving timely reminders about your interactions. Without notifications, you might miss important updates about when to reconnect with your contacts.
+          <div className="mt-4 space-y-4">
+            <div className="text-[15px] leading-relaxed bg-yellow-50/90 backdrop-blur-sm p-4 rounded-xl border border-yellow-100/50 shadow-sm text-gray-600">
+              <strong className="text-amber-600">Important:</strong> Enabling notifications is crucial for receiving timely reminders about your interactions. Without notifications, you might miss important updates about when to reconnect with your contacts.
+            </div>
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
+              <strong className="text-gray-700">Troubleshooting:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Android users experiencing push service errors should disable battery optimisation for TouchBase and Chrome in system settings</li>
+                <li>iOS users may need to manually enable notifications for web apps in device settings</li>
+              </ul>
+            </div>
           </div>
         </>
       )
