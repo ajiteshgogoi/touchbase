@@ -59,7 +59,8 @@ const firebaseConfig = {
   storageBucket: "VITE_FIREBASE_STORAGE_BUCKET",
   messagingSenderId: "VITE_FIREBASE_MESSAGING_SENDER_ID",
   appId: "VITE_FIREBASE_APP_ID",
-  measurementId: "VITE_FIREBASE_MEASUREMENT_ID"
+  measurementId: "VITE_FIREBASE_MEASUREMENT_ID",
+  gcm_sender_id: "VITE_FIREBASE_MESSAGING_SENDER_ID" // Add GCM sender ID
 };
 
 // Initialize Firebase lazily with retries
@@ -347,14 +348,14 @@ self.addEventListener('message', (event) => {
     
     event.waitUntil((async () => {
       try {
-        // Get initialization data
-        const { deviceInfo = {}, vapidKey } = event.data;
+        // Get initialization data and extract VAPID key from deviceInfo
+        const { deviceInfo = {} } = event.data;
         const deviceType = deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios' ? 'mobile' : 'desktop';
         const deviceId = deviceInfo.deviceId;
         const isMobile = deviceType === 'mobile';
         
-        // Validate VAPID key from either source
-        const validVapidKey = vapidKey || deviceInfo.vapidKey;
+        // Extract VAPID key from deviceInfo
+        const validVapidKey = deviceInfo.vapidKey;
         if (!validVapidKey) {
           throw new Error('VAPID key not provided in initialization message');
         }
@@ -413,12 +414,18 @@ self.addEventListener('message', (event) => {
             await new Promise(resolve => setTimeout(resolve, 500));
           }
           
-          // Create new subscription only if needed
-          if (!existingSub || !existingSub.options?.userVisibleOnly) {
-            debug('Creating new push subscription with userVisibleOnly...');
+          // Always create a new subscription for mobile to ensure proper setup
+          if (isMobile) {
+            debug('Creating new mobile push subscription...');
+            // Clean up existing subscription first
+            if (existingSub) {
+              await existingSub.unsubscribe();
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
             const subscriptionOptions = {
               userVisibleOnly: true,
-              applicationServerKey: vapidKey
+              applicationServerKey: validVapidKey
             };
             
             const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
@@ -428,7 +435,23 @@ self.addEventListener('message', (event) => {
               throw new Error('Failed to create push subscription with userVisibleOnly');
             }
             
-            debug('Successfully created new push subscription');
+            debug('Successfully created new push subscription for mobile');
+          } else if (!existingSub || !existingSub.options?.userVisibleOnly) {
+            // For non-mobile, only create if needed
+            debug('Creating new web push subscription...');
+            const subscriptionOptions = {
+              userVisibleOnly: true,
+              applicationServerKey: validVapidKey
+            };
+            
+            const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
+            
+            // Verify subscription was created properly
+            if (!newSubscription.options?.userVisibleOnly) {
+              throw new Error('Failed to create push subscription with userVisibleOnly');
+            }
+            
+            debug('Successfully created new web push subscription');
           }
         }
         
