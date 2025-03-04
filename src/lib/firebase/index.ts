@@ -140,15 +140,92 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
   }
 };
 
+// Debug prefix for better log tracking
+const DEBUG_PREFIX = '🔥 [Firebase Init]';
+
+// Service worker initialization response type
+interface ServiceWorkerInitResponse {
+  success: boolean;
+  deviceType?: string;
+  isMobile?: boolean;
+  error?: string;
+}
+
 // Handle token refresh and message handling
 export const initializeTokenRefresh = async (userId: string) => {
   try {
     // Get device info
     const deviceInfo = platform.getDeviceInfo();
     const isMobileDevice = deviceInfo.deviceType !== 'web';
+    console.log(`${DEBUG_PREFIX} Starting token refresh:`, {
+      deviceType: deviceInfo.deviceType,
+      isMobile: isMobileDevice,
+      userId: userId.slice(0, 8)
+    });
 
     // Wait for service worker to be ready
+    console.log(`${DEBUG_PREFIX} Waiting for service worker...`);
     const registration = await navigator.serviceWorker.ready;
+    console.log(`${DEBUG_PREFIX} Service worker ready:`, {
+      state: registration.active?.state,
+      scope: registration.scope
+    });
+
+    // Initialize service worker with device info
+    console.log(`${DEBUG_PREFIX} Preparing service worker initialization...`, {
+      deviceType: deviceInfo.deviceType,
+      isMobile: isMobileDevice,
+      swState: registration.active?.state
+    });
+
+    const messageChannel = new MessageChannel();
+    const initResult = await new Promise<ServiceWorkerInitResponse>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Service worker initialization timeout'));
+      }, 5000);
+
+      messageChannel.port1.onmessage = (event) => {
+        clearTimeout(timeout);
+        const response = event.data as ServiceWorkerInitResponse;
+        console.log(`${DEBUG_PREFIX} Received init response:`, response);
+        resolve(response);
+      };
+
+      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
+      console.log(`${DEBUG_PREFIX} Sending init message with device info:`, {
+        deviceType: deviceInfo.deviceType,
+        deviceId: deviceId ? deviceId.slice(0, 8) + '...' : 'none',
+        hasVapidKey: !!fcmSettings.vapidKey
+      });
+
+      registration.active?.postMessage({
+        type: 'INIT_FCM',
+        deviceInfo: {
+          deviceType: deviceInfo.deviceType,
+          deviceId: deviceId,
+          isMobile: isMobileDevice
+        },
+        vapidKey: fcmSettings.vapidKey
+      }, [messageChannel.port2]);
+    });
+
+    if (!initResult?.success) {
+      console.error(`${DEBUG_PREFIX} Service worker initialization failed:`, initResult);
+      throw new Error('Service worker initialization failed: ' + (initResult?.error || 'unknown error'));
+    }
+
+    console.log(`${DEBUG_PREFIX} Service worker initialization complete:`, {
+      success: initResult.success,
+      deviceType: initResult.deviceType,
+      isMobile: initResult.isMobile
+    });
+
+    // Add delay after successful initialization for mobile
+    if (isMobileDevice) {
+      console.log(`${DEBUG_PREFIX} Adding mobile initialization delay...`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
     const messaging = getFirebaseMessaging();
     
     // Ensure we have an authenticated user
@@ -162,21 +239,50 @@ export const initializeTokenRefresh = async (userId: string) => {
       vapidKey: fcmSettings.vapidKey,
       serviceWorkerRegistration: registration
     };
+    console.log(`${DEBUG_PREFIX} Token config prepared:`, {
+      hasVapidKey: !!fcmSettings.vapidKey,
+      hasRegistration: !!registration
+    });
 
     // Get current token
     let currentToken: string | null = null;
     try {
+      console.log(`${DEBUG_PREFIX} Starting token generation...`, {
+        deviceType: deviceInfo.deviceType,
+        serviceWorkerState: registration.active?.state,
+        scope: registration.scope
+      });
+
       currentToken = await getToken(messaging, tokenConfig);
+      
       if (!currentToken) {
+        console.error(`${DEBUG_PREFIX} Token generation returned null`);
         throw new Error('Failed to generate FCM token');
       }
-    } catch (error) {
-      // Don't ignore token generation errors, regardless of platform
-      console.error('Token generation failed:', error);
+
+      console.log(`${DEBUG_PREFIX} Token generated successfully:`, {
+        tokenLength: currentToken.length,
+        tokenPrefix: currentToken.substring(0, 8) + '...',
+        deviceType: deviceInfo.deviceType
+      });
+    } catch (error: any) {
+      console.error(`${DEBUG_PREFIX} Token generation failed:`, {
+        errorCode: error.code,
+        errorName: error.name,
+        errorMessage: error.message,
+        deviceType: deviceInfo.deviceType,
+        serviceWorkerState: registration.active?.state,
+        messagingConfig: {
+          hasVapidKey: !!tokenConfig.vapidKey,
+          hasRegistration: !!tokenConfig.serviceWorkerRegistration
+        }
+      });
       throw error;
     }
 
+    console.log(`${DEBUG_PREFIX} Updating token in database...`);
     await updateTokenInDatabase(userId, currentToken);
+    console.log(`${DEBUG_PREFIX} Token update complete`);
 
     // Set up periodic token refresh only for web
     if (!isMobileDevice) {
