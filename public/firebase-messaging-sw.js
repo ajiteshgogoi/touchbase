@@ -85,7 +85,8 @@ self.addEventListener('notificationclick', (event) => {
 // Process push events
 async function handlePushEvent(payload) {
   try {
-    const notificationData = payload.notification || payload.data || {};
+    // Only process top-level notification to match foreground behavior
+    const notificationData = payload.notification || {};
     const deviceId = self.deviceId || `device-${Date.now()}`;
     const startTime = Date.now();
 
@@ -94,10 +95,11 @@ async function handlePushEvent(payload) {
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       tag: 'touchbase-notification',
+      requireInteraction: true,
       data: {
         ...payload.data,
         deviceId,
-        url: notificationData.url || '/',
+        url: payload.data?.url || '/',
         timestamp: new Date().toISOString()
       },
       actions: [{ action: 'view', title: 'View' }]
