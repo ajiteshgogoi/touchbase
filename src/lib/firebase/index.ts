@@ -184,10 +184,18 @@ export const initializeTokenRefresh = async (userId: string) => {
         reject(new Error('Service worker initialization timeout'));
       }, 5000);
 
-      messageChannel.port1.onmessage = (event) => {
+      messageChannel.port1.onmessage = async (event) => {
         clearTimeout(timeout);
         const response = event.data as ServiceWorkerInitResponse;
         console.log(`${DEBUG_PREFIX} Received init response:`, response);
+        
+        if (response.success && isMobileDevice) {
+          // Add additional delay for mobile to ensure Firebase is fully initialized
+          console.log(`${DEBUG_PREFIX} Adding mobile initialization delay...`);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          console.log(`${DEBUG_PREFIX} Mobile delay complete, proceeding...`);
+        }
+        
         resolve(response);
       };
 
@@ -205,7 +213,11 @@ export const initializeTokenRefresh = async (userId: string) => {
           deviceId: deviceId,
           isMobile: isMobileDevice
         },
-        vapidKey: fcmSettings.vapidKey
+        vapidKey: fcmSettings.vapidKey,
+        firebase: {
+          ...firebaseConfig,
+          messagingSenderId: firebaseConfig.messagingSenderId
+        }
       }, [messageChannel.port2]);
     });
 
@@ -226,7 +238,23 @@ export const initializeTokenRefresh = async (userId: string) => {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const messaging = getFirebaseMessaging();
+    console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
+    let messaging: Messaging;
+    try {
+      messaging = getFirebaseMessaging();
+      if (!messaging || !messaging.app) {
+        console.log(`${DEBUG_PREFIX} Messaging not properly initialized, retrying...`);
+        messagingInstance = null;
+        messaging = getFirebaseMessaging();
+        if (!messaging || !messaging.app) {
+          throw new Error('Failed to initialize Firebase messaging');
+        }
+      }
+      console.log(`${DEBUG_PREFIX} Firebase messaging initialized successfully`);
+    } catch (error) {
+      console.error(`${DEBUG_PREFIX} Failed to initialize Firebase messaging:`, error);
+      throw error;
+    }
     
     // Ensure we have an authenticated user
     const { data: { user } } = await supabase.auth.getUser();
@@ -247,11 +275,27 @@ export const initializeTokenRefresh = async (userId: string) => {
     // Get current token
     let currentToken: string | null = null;
     try {
-      console.log(`${DEBUG_PREFIX} Starting token generation...`, {
-        deviceType: deviceInfo.deviceType,
-        serviceWorkerState: registration.active?.state,
-        scope: registration.scope
-      });
+      if (isMobileDevice) {
+        // Additional validation for mobile token generation
+        if (!registration.active || registration.active.state !== 'activated') {
+          console.error(`${DEBUG_PREFIX} Service worker not in proper state for mobile token generation`);
+          throw new Error('Service worker not in activated state');
+        }
+        console.log(`${DEBUG_PREFIX} Starting mobile token generation...`, {
+          deviceType: deviceInfo.deviceType,
+          serviceWorkerState: registration.active?.state,
+          scope: registration.scope,
+          hasMessaging: !!messaging?.app
+        });
+        // Add pre-token delay for mobile
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } else {
+        console.log(`${DEBUG_PREFIX} Starting web token generation...`, {
+          deviceType: deviceInfo.deviceType,
+          serviceWorkerState: registration.active?.state,
+          scope: registration.scope
+        });
+      }
 
       currentToken = await getToken(messaging, tokenConfig);
       
@@ -260,11 +304,29 @@ export const initializeTokenRefresh = async (userId: string) => {
         throw new Error('Failed to generate FCM token');
       }
 
+      // Validate token format
+      const isValidToken = currentToken.length >= 50 && /^[A-Za-z0-9\-_=]+$/.test(currentToken);
+      if (!isValidToken) {
+        console.error(`${DEBUG_PREFIX} Invalid token format:`, {
+          tokenLength: currentToken.length,
+          isMobile: isMobileDevice,
+          deviceType: deviceInfo.deviceType
+        });
+        throw new Error('Invalid FCM token format');
+      }
+
       console.log(`${DEBUG_PREFIX} Token generated successfully:`, {
         tokenLength: currentToken.length,
         tokenPrefix: currentToken.substring(0, 8) + '...',
-        deviceType: deviceInfo.deviceType
+        deviceType: deviceInfo.deviceType,
+        isValidFormat: isValidToken
       });
+
+      // Add post-token delay for mobile
+      if (isMobileDevice) {
+        console.log(`${DEBUG_PREFIX} Adding post-token delay for mobile...`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     } catch (error: any) {
       console.error(`${DEBUG_PREFIX} Token generation failed:`, {
         errorCode: error.code,
