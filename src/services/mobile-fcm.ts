@@ -446,6 +446,16 @@ export class MobileFCMService {
         throw new Error('User must be authenticated for FCM token generation');
       }
 
+      // Verify push service is available on mobile
+      console.log(`${DEBUG_PREFIX} Verifying push service availability...`);
+      if (!('PushManager' in window)) {
+        throw new Error('Push messaging is not supported');
+      }
+      
+      // Add delay after service worker activation for mobile
+      console.log(`${DEBUG_PREFIX} Adding delay for push service initialization...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       // Get messaging and token in one step like desktop implementation
       console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
       const messaging = await getFirebaseMessaging();
@@ -455,6 +465,7 @@ export class MobileFCMService {
 
       let token;
       try {
+        console.log(`${DEBUG_PREFIX} Requesting FCM token with service worker state:`, this.registration?.active?.state);
         token = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
           serviceWorkerRegistration: this.registration
