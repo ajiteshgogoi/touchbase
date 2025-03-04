@@ -197,6 +197,8 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
     return;
   }
 
+  const deviceInfo = platform.getDeviceInfo();
+
   // Get subscription state using RPC function
   const { data: subscription } = await supabase
     .rpc('get_device_subscription', {
@@ -205,25 +207,27 @@ const updateTokenInDatabase = async (userId: string, token: string) => {
       p_browser_instance: localStorage.getItem(BROWSER_INSTANCE_KEY)
     });
 
-  // Update token if subscription exists and is enabled
-  if (subscription?.enabled) {
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .update({
-        fcm_token: token,
-        updated_at: new Date().toISOString()
-      })
-      .match({
-        user_id: userId,
-        device_id: deviceId,
-        browser_instance: localStorage.getItem(BROWSER_INSTANCE_KEY)
-      });
+  // If subscription exists, update it. If not, create new one.
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert({
+      user_id: userId,
+      fcm_token: token,
+      device_id: deviceId,
+      device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
+      device_type: deviceInfo.deviceType,
+      enabled: subscription?.enabled ?? true,
+      browser_instance: localStorage.getItem(BROWSER_INSTANCE_KEY),
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id,device_id,browser_instance'
+    });
 
-    if (error) {
-      console.error('Error updating FCM token:', error);
-    } else {
-      console.log('FCM token updated in database');
-    }
+  if (error) {
+    console.error('Error updating FCM token:', error);
+  } else {
+    console.log('FCM token updated in database');
   }
 };
 

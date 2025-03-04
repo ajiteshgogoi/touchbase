@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase/client';
-import { getToken } from "firebase/messaging";
-import { getFirebaseMessaging, initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
+import { initializeTokenRefresh, cleanupMessaging } from '../lib/firebase';
 import { platform } from '../utils/platform';
 import { notificationDiagnostics } from './notification-diagnostics';
 import { mobileFCMService } from './mobile-fcm';
@@ -224,7 +223,7 @@ export class NotificationService {
   }
 
   async subscribeToPushNotifications(
-    userId: string, 
+    userId: string,
     forceResubscribe = false,
     enableNotifications = true
   ): Promise<void> {
@@ -241,83 +240,33 @@ export class NotificationService {
         return;
       }
 
-      // Desktop flow
-      if (!this.registration?.active) {
-        console.log(`${DEBUG_PREFIX} Initializing before subscription...`);
-        await this.initialize();
-      }
-
+      // Request notification permission first
       console.log(`${DEBUG_PREFIX} Requesting notification permission...`);
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
         throw new Error('Notification permission denied');
       }
 
-      // Check existing subscription unless forced
-      if (!forceResubscribe) {
-        const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
-        if (deviceId) {
-          console.log(`${DEBUG_PREFIX} Checking existing subscription...`);
-          const { data: subscription } = await supabase
-            .rpc('get_device_subscription', {
-              p_user_id: userId,
-              p_device_id: deviceId,
-              p_browser_instance: this.browserInstanceId
-            });
-            
-          if (subscription?.fcm_token) {
-            console.log(`${DEBUG_PREFIX} FCM token exists for device, skipping`);
-            return;
-          }
-        }
-      }
-
-      // Generate new token
-      console.log(`${DEBUG_PREFIX} Generating new FCM token...`);
-      const messaging = await getFirebaseMessaging();
-      const currentToken = await getToken(messaging, {
-        vapidKey: (await import('../lib/firebase/config')).fcmSettings.vapidKey,
-        serviceWorkerRegistration: this.registration
-      });
-
-      if (!currentToken) {
-        throw new Error('Failed to get FCM token');
-      }
-
-      console.log(`${DEBUG_PREFIX} FCM token generated successfully`);
-
-      // Get device info and ID
-      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id')) 
+      // Check device limit
+      const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'))
         || platform.generateDeviceId();
 
-      // Store token with device info
-      console.log(`${DEBUG_PREFIX} Storing subscription in database...`);
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .upsert({
-          user_id: userId,
-          fcm_token: currentToken,
-          device_id: deviceId,
-          device_name: `${deviceInfo.deviceBrand} ${deviceInfo.browserInfo}`,
-          device_type: deviceInfo.deviceType,
-          enabled: enableNotifications,
-          browser_instance: this.browserInstanceId,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        }, {
-          onConflict: 'user_id,device_id,browser_instance'
-        });
+      if (!forceResubscribe) {
+        const { data: devices } = await supabase
+          .from('push_subscriptions')
+          .select('device_id')
+          .eq('user_id', userId);
 
-      if (error) {
-        if (error.message?.includes('check_device_limit')) {
+        if (devices && devices.length >= 10 && !devices.find(d => d.device_id === deviceId)) {
           throw new Error('Maximum number of devices (10) reached');
         }
-        throw error;
       }
 
-      // Store device ID in local storage
-      localStorage.setItem(platform.getDeviceStorageKey('device_id'), deviceId);
-      console.log(`${DEBUG_PREFIX} Push notification subscription completed successfully`);
+      // Use the robust token management from firebase/index.ts
+      await this.initialize();
+      await initializeTokenRefresh(userId);
 
+      console.log(`${DEBUG_PREFIX} Push notification subscription completed successfully`);
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Failed to subscribe to push notifications:`, error);
       return notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
