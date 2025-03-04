@@ -474,11 +474,11 @@ export class MobileFCMService {
       }
       console.log(`${DEBUG_PREFIX} Push manager verified`);
       
-      // Add longer delay after service worker activation for mobile ////////////////////
-      console.log(`${DEBUG_PREFIX} Adding delay for push service initialization...`);
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Add longer delay after service worker activation for mobile
+      console.log(`${DEBUG_PREFIX} Adding extended delay for push service initialization...`);
+      await new Promise(resolve => setTimeout(resolve, 10000));
 
-      // Check push subscription state /////////////////////////
+      // Check push subscription state
       console.log(`${DEBUG_PREFIX} Checking push subscription state...`);
       const existingSubscription = await pushManager.getSubscription();
       if (existingSubscription) {
@@ -486,7 +486,14 @@ export class MobileFCMService {
         await existingSubscription.unsubscribe();
       }
 
-      // Get messaging and token in one step like desktop implementation
+      // Create new push subscription with required options
+      console.log(`${DEBUG_PREFIX} Creating new push subscription...`);
+      await pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.applicationServerKey
+      });
+
+      // Get messaging and token
       console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
       const messaging = await getFirebaseMessaging();
       if (!messaging) {
@@ -495,28 +502,15 @@ export class MobileFCMService {
 
       let token;
       try {
-        console.log(`${DEBUG_PREFIX} Requesting FCM token with configuration:`, {
-          serviceWorkerState: this.registration?.active?.state,
-          scope: this.registration?.scope,
-          pushManagerReady: !!pushManager
-        });
+        console.log(`${DEBUG_PREFIX} Requesting FCM token...`);
         token = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
           serviceWorkerRegistration: this.registration
         });
       } catch (error: any) {
-        // Add more detailed logging
-        console.error(`${DEBUG_PREFIX} FCM Token Error Details:`, {
+        console.error(`${DEBUG_PREFIX} FCM Token Error:`, {
           errorCode: error.code,
-          errorMessage: error.message,
-          errorDetails: error.details,
-          errorName: error.name,
-          stack: error.stack,
-          serviceWorkerState: this.registration?.active?.state,
-          messagingConfig: {
-            vapidKeyPresent: !!import.meta.env.VITE_VAPID_PUBLIC_KEY,
-            serviceWorkerPresent: !!this.registration
-          }
+          errorMessage: error.message
         });
         throw error;
       }
