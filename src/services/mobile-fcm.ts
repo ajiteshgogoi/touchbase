@@ -394,13 +394,20 @@ export class MobileFCMService {
     try {
       console.log(`${DEBUG_PREFIX} Starting new subscription attempt...`);
 
-      // Ensure we're properly initialized before subscribing
-      if (!this.registration) {
+      // Verify service worker state first
+      if (!this.registration?.active) {
         console.log(`${DEBUG_PREFIX} Initializing before subscription...`);
         const initSuccess = await this.initialize();
         if (!initSuccess) {
           throw new Error('Failed to initialize before subscription');
         }
+      }
+
+      // Check notification permission early
+      console.log(`${DEBUG_PREFIX} Checking notification permission...`);
+      const hasPermission = await this.requestPermission();
+      if (!hasPermission) {
+        throw new Error('Notification permission denied');
       }
 
       // Initialize VAPID key if not already done
@@ -415,13 +422,6 @@ export class MobileFCMService {
       // Get device identification
       const deviceId = this.getDeviceId();
       const deviceInfo = platform.getDeviceInfo();
-
-      // Check IndexedDB access before proceeding
-      console.log(`${DEBUG_PREFIX} Checking notification permission...`);
-      const hasPermission = await this.requestPermission();
-      if (!hasPermission) {
-        throw new Error('Notification permission denied');
-      }
 
       // Early IndexedDB check before proceeding
       console.log(`${DEBUG_PREFIX} Verifying IndexedDB access...`);
@@ -440,26 +440,19 @@ export class MobileFCMService {
         throw new Error('Browser storage access denied - check privacy settings and third-party cookie settings');
       }
 
-      // Ensure service worker is fully ready first
-      if (!this.registration?.active) {
-        throw new Error('Service worker not active');
-      }
-
-      // Let Firebase messaging SW handle initialization
-      const messaging = await getFirebaseMessaging();
-      if (!messaging) {
-        throw new Error('Firebase messaging not available for token generation');
-      }
-
-      console.log(`${DEBUG_PREFIX} Getting FCM token...`);
-      
       // Get current auth state
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User must be authenticated for FCM token generation');
       }
 
-      // Generate FCM token
+      // Get messaging and token in one step like desktop implementation
+      console.log(`${DEBUG_PREFIX} Initializing messaging and getting FCM token...`);
+      const messaging = await getFirebaseMessaging();
+      if (!messaging) {
+        throw new Error('Firebase messaging not available for token generation');
+      }
+
       let token;
       try {
         token = await getToken(messaging, {
@@ -471,7 +464,7 @@ export class MobileFCMService {
         console.error(`${DEBUG_PREFIX} FCM Token Error Details:`, {
           errorCode: error.code,
           errorMessage: error.message,
-          errorDetails: error.details, // Some Firebase errors have this
+          errorDetails: error.details,
           errorName: error.name,
           stack: error.stack,
           serviceWorkerState: this.registration?.active?.state,
