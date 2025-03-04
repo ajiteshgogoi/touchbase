@@ -11,6 +11,7 @@ import { createQueryClient, setQueryClient } from './utils/queryClient';
 import { paymentService } from './services/payment';
 import { notificationService } from './services/notifications';
 import { platform } from './utils/platform';
+import { contactsService } from './services/contacts';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 // Eagerly load critical components
@@ -123,8 +124,23 @@ setQueryClient(queryClient);
 
 // Add data prefetching for critical queries
 useEffect(() => {
-  queryClient.prefetchQuery({ queryKey: ['contacts', 'recent'], queryFn: () => Promise.resolve() });
-  queryClient.prefetchQuery({ queryKey: ['reminders', 'upcoming'], queryFn: () => Promise.resolve() });
+  // Prefetch contacts
+  queryClient.prefetchQuery({
+    queryKey: ['contacts'],
+    queryFn: contactsService.getContacts
+  });
+  
+  // Prefetch important events
+  queryClient.prefetchQuery({
+    queryKey: ['important-events'],
+    queryFn: () => contactsService.getImportantEvents()
+  });
+  
+  // Prefetch reminders
+  queryClient.prefetchQuery({
+    queryKey: ['reminders'],
+    queryFn: () => contactsService.getReminders()
+  });
 }, []); // Run once on app initialization
 
 const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
