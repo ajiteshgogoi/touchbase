@@ -481,7 +481,15 @@ export class MobileFCMService {
       
       console.log(`${DEBUG_PREFIX} Cleanup completed successfully`);
     } catch (error) {
-      console.error(`${DEBUG_PREFIX} Cleanup failed:`, error);
+      const cleanupError = error as Error;
+      console.error(`${DEBUG_PREFIX} Cleanup failed:`, {
+        errorName: cleanupError.name,
+        errorMessage: cleanupError.message,
+        errorStack: cleanupError.stack,
+        deviceId,
+        browserInstance: this.browserInstanceId,
+        registrationState: this.registration?.active?.state
+      });
       // Even if cleanup fails, ensure all state is cleared
       this.registration = undefined;
       this.applicationServerKey = undefined;
