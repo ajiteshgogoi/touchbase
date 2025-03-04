@@ -76,10 +76,18 @@ async function getMessaging() {
       return null;
     }
 
+    // Wait for service worker to be fully activated
+    debug('Checking service worker state...');
+    if (!self.registration.active) {
+      debug('Service worker not active yet, waiting...');
+      return null;
+    }
+
     if (!messaging) {
       debug('Initializing Firebase...', {
         attempt: initializationAttempts + 1,
-        deviceType: deviceInfo.deviceType || 'unknown'
+        deviceType: deviceInfo.deviceType || 'unknown',
+        serviceWorkerState: self.registration.active.state
       });
       
       try {
