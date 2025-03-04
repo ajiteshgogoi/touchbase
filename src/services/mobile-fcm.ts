@@ -452,10 +452,11 @@ export class MobileFCMService {
 
       // Let shared initialization handle FCM token generation and database updates
       await initializeTokenRefresh(userId);
-      console.log(`${DEBUG_PREFIX} FCM token generation and database update handled by shared initialization`);
+      
+      console.log(`${DEBUG_PREFIX} Push notification subscription completed successfully`);
       return true;
     } catch (error) {
-      console.error(`${DEBUG_PREFIX} Subscribe failed:`, error);
+      console.error(`${DEBUG_PREFIX} Failed to subscribe to push notifications:`, error);
       await notificationDiagnostics.handleFCMError(error, platform.getDeviceInfo());
       return false;
     }
