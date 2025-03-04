@@ -115,10 +115,28 @@ export const ProfileMenu = () => {
           </Suspense>
           <span>Premium</span>
         </div>
-        <Menu.Button className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-gray-600 hover:bg-gray-50/70 hover:text-primary-600 active:bg-gray-100/80 transition-all duration-200" aria-label="Profile menu">
-          <Suspense fallback={<IconFallback />}>
-            <UserCircleIcon className="h-6 w-6" />
-          </Suspense>
+        <Menu.Button className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-gray-600 hover:bg-gray-50/70 hover:text-primary-600 active:bg-gray-100/80 transition-all duration-200 group" aria-label="Profile menu">
+          <div className="relative w-7 h-7 rounded-full border-[1.5px] border-white/90 shadow-[0_0_10px_rgba(0,0,0,0.03)] overflow-hidden bg-primary-50">
+            {user?.user_metadata?.avatar_url ? (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt=""
+                className="w-full h-full object-cover opacity-0 transition-opacity duration-200"
+                onLoad={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.classList.remove('opacity-0');
+                }}
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.remove();
+                }}
+              />
+            ) : (
+              <Suspense fallback={<IconFallback />}>
+                <UserCircleIcon className="h-6 w-6 m-0.5 text-primary-600/90" />
+              </Suspense>
+            )}
+          </div>
           <Suspense fallback={<IconFallback />}>
             <ChevronDownIcon className="h-4 w-4 opacity-60 group-hover:opacity-80" />
           </Suspense>
