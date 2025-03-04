@@ -364,10 +364,28 @@ export class MobileFCMService {
       }
 
       // Generate FCM token
-      const token = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-        serviceWorkerRegistration: this.registration
-      });
+      let token;
+      try {
+        token = await getToken(messaging, {
+          vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+          serviceWorkerRegistration: this.registration
+        });
+      } catch (error: any) {
+        // Add more detailed logging
+        console.error(`${DEBUG_PREFIX} FCM Token Error Details:`, {
+          errorCode: error.code,
+          errorMessage: error.message,
+          errorDetails: error.details, // Some Firebase errors have this
+          errorName: error.name,
+          stack: error.stack,
+          serviceWorkerState: this.registration?.active?.state,
+          messagingConfig: {
+            vapidKeyPresent: !!import.meta.env.VITE_VAPID_PUBLIC_KEY,
+            serviceWorkerPresent: !!this.registration
+          }
+        });
+        throw error;
+      }
 
       // Verify token format
       if (!token || token.length < 50) {
