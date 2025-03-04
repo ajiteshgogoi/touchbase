@@ -165,7 +165,7 @@ export class MobileFCMService {
         try {
           this.registration = await navigator.serviceWorker.register(firebaseSWURL, {
             scope: '/',  // Use root scope
-            updateViaCache: 'none'      // Ensure we always get fresh worker
+            updateViaCache: 'imports'   // Cache imports but check main script
           });
         } catch (error) {
           console.error(`${DEBUG_PREFIX} Service worker registration failed:`, error);

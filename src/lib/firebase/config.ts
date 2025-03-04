@@ -12,6 +12,9 @@ export const firebaseConfig = {
 export const fcmSettings = {
   vapidKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
   android: {
-    gcm_sender_id: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID
+    gcm_sender_id: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    // Add background handling settings
+    priority: 'high',
+    direct_boot_ok: true
   }
 };

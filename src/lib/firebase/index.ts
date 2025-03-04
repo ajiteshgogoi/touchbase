@@ -333,7 +333,8 @@ export const initializeTokenRefresh = async (userId: string) => {
     // Configuration for token generation using fcmSettings
     const tokenConfig = {
       vapidKey: fcmSettings.vapidKey,
-      serviceWorkerRegistration: registration
+      serviceWorkerRegistration: registration,
+      ...((deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') && fcmSettings.android)
     };
     console.log(`${DEBUG_PREFIX} Token config prepared:`, {
       hasVapidKey: !!fcmSettings.vapidKey,
