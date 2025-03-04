@@ -6,13 +6,8 @@ import { notificationDiagnostics } from './notification-diagnostics';
 const DEBUG_PREFIX = '📱 [Mobile FCM]';
 
 // Use localStorage instead of sessionStorage for better isolation across Chrome instances
-const MOBILE_DEVICE_ID_KEY = 'mobile_fcm_device_id';
-// Add a browser instance ID to prevent sync issues
-const BROWSER_INSTANCE_KEY = 'browser_instance_id';
-
 export class MobileFCMService {
   private registration: ServiceWorkerRegistration | undefined = undefined;
-  private browserInstanceId: string;
   private applicationServerKey: Uint8Array | undefined = undefined;
 
   private urlB64ToUint8Array(base64String: string): Uint8Array {
@@ -29,65 +24,18 @@ export class MobileFCMService {
   }
 
   constructor() {
-    // Generate a per-browser-instance ID that won't sync across Chrome instances
-    let instanceId = localStorage.getItem(BROWSER_INSTANCE_KEY);
-    if (!instanceId) {
-      instanceId = `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-      localStorage.setItem(BROWSER_INSTANCE_KEY, instanceId);
-    }
-    this.browserInstanceId = instanceId;
-    
-    console.log(`${DEBUG_PREFIX} Initialized with browser instance ID: ${this.browserInstanceId}`);
-  }
-
-  private generateDeviceId(): string {
-    const deviceInfo = platform.getDeviceInfo();
-    
-    // Include browser instance ID to differentiate between Chrome instances
-    const browserInfo = {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      platform: navigator.platform,
-      vendor: navigator.vendor,
-      instanceId: this.browserInstanceId
-    };
-    
-    // Combine device info and browser characteristics
-    const deviceSignature = JSON.stringify({
-      type: deviceInfo.deviceType,
-      brand: deviceInfo.deviceBrand,
-      browser: deviceInfo.browserInfo,
-      screen: `${window.screen.width}x${window.screen.height}`,
-      devicePixelRatio: window.devicePixelRatio,
-      ...browserInfo
-    });
-
-    // Create a stable but unique ID
-    const devicePrefix = deviceInfo.deviceType;
-    const deviceHash = btoa(deviceSignature).slice(0, 12);
-    const uniqueId = `${devicePrefix}-${deviceHash}-${this.browserInstanceId.slice(0, 8)}`;
-
-    console.log(`${DEBUG_PREFIX} Generated device ID:`, {
-      devicePrefix,
-      deviceHash,
-      browserInstanceId: this.browserInstanceId,
-      uniqueId
-    });
-
-    return uniqueId;
+    console.log(`${DEBUG_PREFIX} Initialized with browser instance ID: ${platform.browserInstanceId}`);
   }
 
   private getDeviceId(): string {
-    // Try to get existing device ID
-    const storageKey = `${MOBILE_DEVICE_ID_KEY}-${this.browserInstanceId}`;
-    let deviceId = localStorage.getItem(storageKey);
+    let deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'));
     
     if (!deviceId) {
-      // Generate and store new device ID
-      deviceId = this.generateDeviceId();
-      localStorage.setItem(storageKey, deviceId);
+      // Use platform's device ID generation
+      deviceId = platform.generateDeviceId();
     }
 
+    console.log(`${DEBUG_PREFIX} Device ID:`, deviceId);
     return deviceId;
   }
 
@@ -531,7 +479,7 @@ export class MobileFCMService {
         .delete()
         .match({
           device_id: deviceId,
-          browser_instance: this.browserInstanceId
+          browser_instance: platform.browserInstanceId
         });
 
       // Clear registration reference
@@ -545,7 +493,7 @@ export class MobileFCMService {
         errorName: cleanupError.name,
         errorMessage: cleanupError.message,
         errorStack: cleanupError.stack,
-        browserInstance: this.browserInstanceId,
+        browserInstance: platform.browserInstanceId,
         registrationState: this.registration?.active?.state
       });
       // Even if cleanup fails, ensure all state is cleared

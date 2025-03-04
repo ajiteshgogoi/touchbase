@@ -27,7 +27,18 @@ declare global {
   }
 }
 
+const BROWSER_INSTANCE_KEY = 'browser_instance_id';
+
 export const platform = {
+  browserInstanceId: (() => {
+    let instanceId = localStorage.getItem(BROWSER_INSTANCE_KEY);
+    if (!instanceId) {
+      instanceId = `browser-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+      localStorage.setItem(BROWSER_INSTANCE_KEY, instanceId);
+    }
+    return instanceId;
+  })(),
+
   isAndroid(): boolean {
     return /Android/i.test(navigator.userAgent);
   },
@@ -200,17 +211,33 @@ export const platform = {
   },
 
   generateDeviceId(): string {
-    const info = this.getDeviceInfo();
-    const prefix = info.isTWA ? 'twa' : info.isPWA ? 'pwa' : 'browser';
-    const deviceType = info.deviceType;
-    const brand = info.deviceBrand.toLowerCase();
-    const browser = info.isTWA ? '' : `-${info.browserInfo.toLowerCase()}`;
+    const deviceInfo = this.getDeviceInfo();
     
-    // Generate deterministic device fingerprint instead of random
-    const fingerprint = this.generateDeviceFingerprint();
+    // Create a comprehensive device signature
+    const deviceSignature = JSON.stringify({
+      type: deviceInfo.deviceType,
+      brand: deviceInfo.deviceBrand,
+      browser: deviceInfo.browserInfo,
+      isTWA: deviceInfo.isTWA,
+      isPWA: deviceInfo.isPWA,
+      screen: `${window.screen.width}x${window.screen.height}`,
+      devicePixelRatio: window.devicePixelRatio,
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform,
+      vendor: navigator.vendor,
+      hardwareConcurrency: navigator.hardwareConcurrency,
+      browserInstanceId: this.browserInstanceId
+    });
+
+    // Create unique hash from device signature
+    const deviceHash = btoa(deviceSignature).slice(0, 12);
+    
+    // Build final device ID
+    const prefix = deviceInfo.isTWA ? 'twa' : deviceInfo.isPWA ? 'pwa' : 'browser';
+    const deviceId = `${prefix}-${deviceInfo.deviceType}-${deviceHash}-${this.browserInstanceId.slice(0, 8)}`;
     
     // Store in namespaced storage
-    const deviceId = `${prefix}-${deviceType}-${brand}${browser}-${fingerprint}`;
     localStorage.setItem(this.getDeviceStorageKey('device_id'), deviceId);
     return deviceId;
   },
