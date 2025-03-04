@@ -222,20 +222,8 @@ export class NotificationService {
     
     try {
       const deviceInfo = platform.getDeviceInfo();
-      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
-        console.log(`${DEBUG_PREFIX} Delegating to mobile subscription...`);
-        await mobileFCMService.subscribeToPushNotifications(userId);
-        return;
-      }
-
-      // Request notification permission first
-      console.log(`${DEBUG_PREFIX} Requesting notification permission...`);
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        throw new Error('Notification permission denied');
-      }
-
-      // Check device limit
+      
+      // Check device limit first before any initialization
       const deviceId = localStorage.getItem(platform.getDeviceStorageKey('device_id'))
         || platform.generateDeviceId();
 
@@ -250,7 +238,20 @@ export class NotificationService {
         }
       }
 
-      // Use the robust token management from firebase/index.ts
+      if (deviceInfo.deviceType === 'android' || deviceInfo.deviceType === 'ios') {
+        console.log(`${DEBUG_PREFIX} Delegating to mobile subscription...`);
+        await mobileFCMService.subscribeToPushNotifications(userId);
+        return;
+      }
+
+      // Request notification permission for desktop
+      console.log(`${DEBUG_PREFIX} Requesting notification permission...`);
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        throw new Error('Notification permission denied');
+      }
+
+      // Desktop initialization and token refresh
       await this.initialize();
       await initializeTokenRefresh(userId);
 
