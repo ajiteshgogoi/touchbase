@@ -56,15 +56,28 @@ export const getFirebaseMessaging = async (): Promise<Messaging> => {
       // Initialize messaging with service worker registration
       messagingInstance = getMessaging(app);
       
-      // Wait a moment for the service worker to be ready
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for messaging to initialize with exponential backoff
+      let retries = 0;
+      const maxRetries = 3;
+      const baseDelay = 500;
 
-      // Verify messaging instance
-      if (!messagingInstance?.app) {
-        throw new Error('Messaging initialization failed');
+      while (retries < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, retries)));
+        
+        // Check if messaging is initialized
+        if (messagingInstance) {
+          try {
+            // Perform a lightweight operation to verify the instance
+            await getToken(messagingInstance, { vapidKey: fcmSettings.vapidKey }).catch(() => null);
+            return messagingInstance;
+          } catch (verifyError) {
+            console.log(`${DEBUG_PREFIX} Verification attempt ${retries + 1} failed:`, verifyError);
+          }
+        }
+        retries++;
       }
 
-      return messagingInstance;
+      throw new Error('Messaging initialization timeout after retries');
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Failed to initialize messaging:`, error);
       messagingInstance = null;
