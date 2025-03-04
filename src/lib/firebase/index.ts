@@ -439,13 +439,12 @@ export const initializeTokenRefresh = async (userId: string) => {
       console.log('Received foreground message:', payload);
 
       const { notification } = payload;
-      if (notification) {
+      if (notification && !isMobileDevice) { // Only show notifications for desktop
         await showNotification(
           notification.title || 'New Message',
           {
             body: notification.body,
             data: payload.data,
-            silent: isMobileDevice, // Silent on mobile to prevent duplicate notifications
             actions: [
               {
                 action: 'view',
