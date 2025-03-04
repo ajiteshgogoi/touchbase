@@ -70,15 +70,19 @@ const MAX_INIT_ATTEMPTS = 3;
 
 async function getMessaging() {
   try {
-    // Don't initialize Firebase until we have a VAPID key and device info
-    const deviceInfo = await getDeviceInfo();
-    const vapidKey = deviceInfo?.vapidKey;
-    if (!vapidKey) {
-      debug('No VAPID key found in device info, waiting for initialization...', {
-        hasDeviceInfo: !!deviceInfo,
-        deviceType: deviceInfo?.deviceType
-      });
-      return null;
+    // First check if we have the VAPID key in service worker scope
+    if (!self.vapidKey) {
+      // Fallback to stored device info
+      const deviceInfo = await getDeviceInfo();
+      if (!deviceInfo?.vapidKey) {
+        debug('No VAPID key available', {
+          inScope: false,
+          inDeviceInfo: false
+        });
+        return null;
+      }
+      // Restore VAPID key to scope if found in storage
+      self.vapidKey = deviceInfo.vapidKey;
     }
 
     // Wait for service worker to be fully activated
@@ -89,10 +93,12 @@ async function getMessaging() {
     }
 
     if (!messaging) {
+      const deviceInfo = await getDeviceInfo();
       debug('Initializing Firebase...', {
         attempt: initializationAttempts + 1,
-        deviceType: deviceInfo.deviceType || 'unknown',
-        serviceWorkerState: self.registration.active.state
+        deviceType: deviceInfo?.deviceType || self.deviceType || 'unknown',
+        serviceWorkerState: self.registration.active.state,
+        hasVapidKey: !!self.vapidKey
       });
       
       try {
@@ -354,7 +360,7 @@ self.addEventListener('message', (event) => {
         const deviceId = deviceInfo.deviceId;
         const isMobile = deviceType === 'mobile';
         
-        // Extract VAPID key from deviceInfo
+        // Extract and validate VAPID key from deviceInfo
         const validVapidKey = deviceInfo.vapidKey;
         if (!validVapidKey) {
           throw new Error('VAPID key not provided in initialization message');
@@ -370,16 +376,14 @@ self.addEventListener('message', (event) => {
           vapidKey: validVapidKey,
           timestamp: Date.now()
         };
+
+        // Ensure we store the key before any initialization
         await saveDeviceInfo(deviceInfoToSave);
         
-        // Ensure Firebase has access to VAPID key
-        if (self && typeof self === 'object') {
-          self.vapidKey = validVapidKey;
-        }
-        
+        // Set service worker scope variables in proper order
+        self.vapidKey = validVapidKey; // Set VAPID key first
         self.deviceType = deviceType;
         self.deviceId = deviceId;
-        self.vapidKey = vapidKey;
         
         debug('Device info set and persisted:', {
           deviceType,
@@ -388,6 +392,17 @@ self.addEventListener('message', (event) => {
           scope: self.registration.scope,
           isMobile
         });
+
+        // Ensure proper initialization state
+        const initState = {
+          vapidKey: self.vapidKey,
+          deviceType: self.deviceType,
+          deviceId: self.deviceId
+        };
+
+        if (!initState.vapidKey || !initState.deviceType || !initState.deviceId) {
+          throw new Error('Missing required initialization state');
+        }
 
         // Mobile-specific initialization sequence
         if (isMobile) {
@@ -405,60 +420,45 @@ self.addEventListener('message', (event) => {
             userVisibleOnly: existingSub?.options?.userVisibleOnly
           });
           
-          // Clean up if subscription is invalid or doesn't have userVisibleOnly
-          if (existingSub && (!existingSub.options?.userVisibleOnly || pushManagerState !== 'granted')) {
-            debug('Cleaning up invalid subscription...');
+          // Clean up existing subscription
+          if (existingSub) {
+            debug('Cleaning up existing subscription...');
             await existingSub.unsubscribe();
-            
-            // Small delay for cleanup
             await new Promise(resolve => setTimeout(resolve, 500));
           }
           
-          // Always create a new subscription for mobile to ensure proper setup
-          if (isMobile) {
-            debug('Creating new mobile push subscription...');
-            // Clean up existing subscription first
-            if (existingSub) {
-              await existingSub.unsubscribe();
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-
-            const subscriptionOptions = {
-              userVisibleOnly: true,
-              applicationServerKey: validVapidKey
-            };
-            
-            const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
-            
-            // Verify subscription was created properly
-            if (!newSubscription.options?.userVisibleOnly) {
-              throw new Error('Failed to create push subscription with userVisibleOnly');
-            }
-            
-            debug('Successfully created new push subscription for mobile');
-          } else if (!existingSub || !existingSub.options?.userVisibleOnly) {
-            // For non-mobile, only create if needed
-            debug('Creating new web push subscription...');
-            const subscriptionOptions = {
-              userVisibleOnly: true,
-              applicationServerKey: validVapidKey
-            };
-            
-            const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
-            
-            // Verify subscription was created properly
-            if (!newSubscription.options?.userVisibleOnly) {
-              throw new Error('Failed to create push subscription with userVisibleOnly');
-            }
-            
-            debug('Successfully created new web push subscription');
+          debug('Creating new push subscription...');
+          const subscriptionOptions = {
+            userVisibleOnly: true,
+            applicationServerKey: initState.vapidKey
+          };
+          
+          const newSubscription = await self.registration.pushManager.subscribe(subscriptionOptions);
+          
+          // Verify subscription was created properly
+          if (!newSubscription?.options?.userVisibleOnly) {
+            throw new Error('Failed to create push subscription with userVisibleOnly');
           }
+          
+          debug('Successfully created new push subscription');
+          
+          // Small delay to ensure subscription is properly registered
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
         
-        // Initialize Firebase
+        // Initialize Firebase with verification
+        debug('Initializing Firebase messaging...');
         const fcm = await getMessaging();
         if (!fcm) {
-          throw new Error('Failed to initialize Firebase messaging');
+          debug('Firebase messaging initialization failed, retrying...');
+          // Clear messaging instance and retry once
+          messaging = null;
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const retryFcm = await getMessaging();
+          if (!retryFcm) {
+            throw new Error('Failed to initialize Firebase messaging after retry');
+          }
+          debug('Firebase messaging initialized successfully on retry');
         }
         
         if (event.ports && event.ports[0]) {
