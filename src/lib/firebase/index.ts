@@ -364,7 +364,7 @@ export const initializeTokenRefresh = async (userId: string) => {
           hasMessaging: !!messaging?.app
         });
         // Add pre-token delay for mobile
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } else {
         console.log(`${DEBUG_PREFIX} Starting web token generation...`, {
           deviceType: deviceInfo.deviceType,
