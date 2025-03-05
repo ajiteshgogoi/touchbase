@@ -95,6 +95,8 @@ const Settings = lazy(() => {
     requestIdleCallback(() => {
       void import('./components/shared/FeedbackModal');
       void import('./components/shared/PaymentMethodModal');
+      void import('./pages/Terms');
+      void import('./pages/Privacy');
     });
   }
   return module.then(m => ({ default: m.Settings }));
@@ -122,6 +124,12 @@ const Reminders = lazy(() => {
 // Other lazy loaded components
 const Help = lazy(() => {
   const module = import('./pages/Help');
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      void import('./pages/Terms');
+      void import('./pages/Privacy');
+    });
+  }
   return module.then(m => ({ default: m.Help }));
 });
 
