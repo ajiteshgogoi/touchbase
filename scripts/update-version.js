@@ -15,20 +15,9 @@ async function updateFiles() {
     // Update service worker cache version
     const swPath = './public/sw.js';
     let swContent = await fs.readFile(swPath, 'utf8');
-    // Update cache version
     swContent = swContent.replace(
       /touchbase-v[\d.]+/g,
       `touchbase-v${APP_VERSION}`
-    );
-    
-    // Update version in debug logs
-    swContent = swContent.replace(
-      /service worker version [\d.]+/,
-      `service worker version ${APP_VERSION}`
-    );
-    swContent = swContent.replace(
-      /PWA Version:.*manifest\.json'\) \? '[\d.]+'/,
-      `PWA Version:' + self.registration.scope.includes('manifest.json') ? '${APP_VERSION}'`
     );
     await fs.writeFile(swPath, swContent);
     console.log(`✓ Updated service worker cache version to ${APP_VERSION}`);

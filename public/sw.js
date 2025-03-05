@@ -56,9 +56,9 @@ self.addEventListener('install', (event) => {
 
 // Activate event - claim clients and keep alive
 self.addEventListener('activate', event => {
-  debug('Activating service worker version 2.5.1...');
+  debug('Activating service worker version 2.4...');
   // Take control of all pages immediately and log version
-  debug('PWA Version:', self.registration.scope.includes('manifest.json') ? '2.5.1' : 'unknown');
+  debug('PWA Version:', self.registration.scope.includes('manifest.json') ? '2.4' : 'unknown');
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
