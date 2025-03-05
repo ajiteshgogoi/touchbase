@@ -15,9 +15,20 @@ async function updateFiles() {
     // Update service worker cache version
     const swPath = './public/sw.js';
     let swContent = await fs.readFile(swPath, 'utf8');
+    // Update cache version
     swContent = swContent.replace(
       /touchbase-v[\d.]+/g,
       `touchbase-v${APP_VERSION}`
+    );
+    
+    // Update debug log versions
+    swContent = swContent.replace(
+      /version [\d.]+\.\.\./g,
+      `version ${APP_VERSION}...`
+    );
+    swContent = swContent.replace(
+      /\? ['"][\d.]+['"] : ['"]unknown['"]/g,
+      `? '${APP_VERSION}' : 'unknown'`
     );
     await fs.writeFile(swPath, swContent);
     console.log(`✓ Updated service worker cache version to ${APP_VERSION}`);

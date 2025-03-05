@@ -56,9 +56,9 @@ self.addEventListener('install', (event) => {
 
 // Activate event - claim clients and keep alive
 self.addEventListener('activate', event => {
-  debug('Activating service worker version 2.4...');
+  debug('Activating service worker version 2.5.5...');
   // Take control of all pages immediately and log version
-  debug('PWA Version:', self.registration.scope.includes('manifest.json') ? '2.4' : 'unknown');
+  debug('PWA Version:', self.registration.scope.includes('manifest.json') ? '2.5.5' : 'unknown');
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
@@ -85,8 +85,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Handle navigation requests differently
-if (event.request.mode === 'navigate') {
-  // Check if running in Instagram browser using request headers
+  if (event.request.mode === 'navigate') {
+    // Check if running in Instagram browser using request headers
   const isInstagram = event.request.headers.get('Sec-Fetch-Dest') === 'document' &&
                      event.request.headers.get('Sec-Fetch-Mode') === 'navigate' &&
                      (event.request.referrer.includes('instagram.com') ||
@@ -135,7 +135,6 @@ if (event.request.mode === 'navigate') {
         }
       })()
     );
-    return;
   }
 
   // For non-navigation requests, use cache first, network fallback strategy
