@@ -60,6 +60,16 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate event - claim clients and cleanup old caches
+// Platform detection helper
+const getPlatformInfo = (request) => {
+  const ua = request?.headers.get('User-Agent') || '';
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || ua.includes('Mac');
+  const isMobile = isAndroid || isIOS;
+  const isInstagram = ua.includes('Instagram') || request?.referrer?.includes('instagram.com');
+  return { isAndroid, isIOS, isMobile, isInstagram };
+};
+
 self.addEventListener('activate', event => {
   debug(`Activating service worker version ${VERSION}...`);
   event.waitUntil(
@@ -80,7 +90,18 @@ self.addEventListener('activate', event => {
             })
         );
 
-        // Claim clients after cleanup
+        // Get platform info from any available client
+        const clients = await self.clients.matchAll();
+        const firstClient = clients[0];
+        const platform = getPlatformInfo(firstClient?.url ? new Request(firstClient.url) : null);
+
+        // On desktop, delay claiming clients to prevent refresh loops
+        if (!platform.isMobile) {
+          debug('Desktop detected, delaying client claim...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        // Claim clients after cleanup and potential delay
         await self.clients.claim();
         initialized = true;
         debug('Service worker activated and clients claimed');
@@ -100,14 +121,10 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Handle navigation requests
+  // Handle navigation requests with platform-specific strategies
   if (event.request.mode === 'navigate') {
-    // Check if running in Instagram browser
-    const isInstagram = event.request.headers.get('Sec-Fetch-Dest') === 'document' &&
-                       event.request.headers.get('Sec-Fetch-Mode') === 'navigate' &&
-                       (event.request.referrer.includes('instagram.com') ||
-                        event.request.headers.get('User-Agent')?.includes('Instagram'));
-
+    const platform = getPlatformInfo(event.request);
+    
     event.respondWith(
       (async () => {
         try {
@@ -117,8 +134,8 @@ self.addEventListener('fetch', (event) => {
             return preloadResponse;
           }
 
-          // For Instagram browser, use network-first strategy
-          if (isInstagram) {
+          // For Instagram browser, maintain special handling
+          if (platform.isInstagram) {
             try {
               const networkResponse = await fetch(event.request);
               if (networkResponse.ok) {
@@ -133,29 +150,66 @@ self.addEventListener('fetch', (event) => {
             return cachedResponse || await fetch('/index.html');
           }
 
-          // For other browsers, try network first with timeout
+          // For mobile devices, use network-first with timeout
+          if (platform.isMobile) {
+            try {
+              const networkResponse = await Promise.race([
+                fetch(event.request),
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Network timeout')), 3000)
+                )
+              ]);
+              
+              if (networkResponse.ok) {
+                const cache = await caches.open(CACHE_NAME);
+                cache.put(event.request, networkResponse.clone());
+                return networkResponse;
+              }
+            } catch (error) {
+              debug('Mobile network fetch failed:', error);
+            }
+
+            // Fall back to cache
+            const cache = await caches.open(CACHE_NAME);
+            const cachedResponse = await cache.match('/index.html');
+            return cachedResponse || await fetch('/index.html');
+          }
+
+          // For desktop browsers, use cache-first to prevent refresh loops
+          const cache = await caches.open(CACHE_NAME);
+          const cachedResponse = await cache.match(event.request);
+          if (cachedResponse) {
+            // Update cache in the background
+            fetch(event.request)
+              .then(networkResponse => {
+                if (networkResponse.ok) {
+                  cache.put(event.request, networkResponse);
+                }
+              })
+              .catch(error => debug('Background fetch failed:', error));
+            
+            return cachedResponse;
+          }
+
+          // If no cache, try network with shorter timeout
           try {
             const networkResponse = await Promise.race([
               fetch(event.request),
               new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Network timeout')), 3000)
+                setTimeout(() => reject(new Error('Network timeout')), 2000)
               )
             ]);
             
-            // Cache successful responses
             if (networkResponse.ok) {
-              const cache = await caches.open(CACHE_NAME);
               cache.put(event.request, networkResponse.clone());
               return networkResponse;
             }
           } catch (error) {
-            debug('Network fetch failed:', error);
+            debug('Desktop network fetch failed:', error);
           }
 
-          // Fall back to cache
-          const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match('/index.html');
-          return cachedResponse || await fetch('/index.html');
+          // Last resort - return cached index.html
+          return cache.match('/index.html') || await fetch('/index.html');
         } catch (error) {
           debug('Navigation fetch handler error:', error);
           return new Response('Navigation error', { status: 500 });
