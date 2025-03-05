@@ -1,5 +1,5 @@
 // Firebase messaging service worker for background notifications
-const SW_VERSION = 'touchbase-v2.5.4';
+const SW_VERSION = 'touchbase-v2.5.5';
 
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
