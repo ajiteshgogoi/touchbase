@@ -251,21 +251,21 @@ export const initializeTokenRefresh = async (userId: string) => {
     const messageChannel = new MessageChannel();
     const initResult = await new Promise<ServiceWorkerInitResponse>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        messageChannel.port1.onmessage = null; // Clean up listener
         reject(new Error('Service worker initialization timeout'));
-      }, 10000); // Increased timeout
+      }, 5000);
 
       messageChannel.port1.onmessage = async (event) => {
+        clearTimeout(timeout);
         const response = event.data as ServiceWorkerInitResponse;
         console.log(`${DEBUG_PREFIX} Received init response:`, response);
-
-        if (!response.success) {
-          clearTimeout(timeout);
-          reject(new Error(response.error || 'Service worker initialization failed'));
-          return;
+        
+        if (response.success && isMobileDevice) {
+          // Add additional delay for mobile to ensure Firebase is fully initialized
+          console.log(`${DEBUG_PREFIX} Adding mobile initialization delay...`);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          console.log(`${DEBUG_PREFIX} Mobile delay complete, proceeding...`);
         }
-
-        clearTimeout(timeout);
+        
         resolve(response);
       };
 

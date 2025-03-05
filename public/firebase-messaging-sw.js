@@ -157,23 +157,31 @@ self.addEventListener('message', (event) => {
         // Add delay before initialization
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // Initialize messaging without retries
-        try {
-          const messaging = getMessaging();
-          
-          // Verify the instance is working
-          if (messaging && firebase.apps.length > 0) {
-            event.ports[0].postMessage({
-              success: true,
-              deviceType: event.data?.deviceInfo?.deviceType || 'web',
-              isMobile: event.data?.deviceInfo?.isMobile || false
-            });
-            return;
+        // Initialize messaging with retries
+        let retries = 0;
+        const maxRetries = 3;
+        while (retries < maxRetries) {
+          try {
+            const messaging = getMessaging();
+            // Add delay after getting messaging instance
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Verify the instance is working
+            if (messaging && firebase.apps.length > 0) {
+              event.ports[0].postMessage({
+                success: true,
+                deviceType: event.data?.deviceInfo?.deviceType || 'web',
+                isMobile: event.data?.deviceInfo?.isMobile || false
+              });
+              return;
+            }
+          } catch (error) {
+            debug(`FCM initialization attempt ${retries + 1} failed:`, error);
           }
-          throw new Error('Messaging initialization failed');
-        } catch (error) {
-          debug('FCM initialization error:', error);
-          throw error;
+          retries++;
+          if (retries < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 300 * Math.pow(2, retries)));
+          }
         }
         throw new Error('Failed to initialize messaging after retries');
       } catch (error) {
