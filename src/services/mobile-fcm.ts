@@ -399,7 +399,8 @@ export class MobileFCMService {
         .delete()
         .match({
           user_id: userId,
-          device_id: deviceId
+          device_id: deviceId,
+          browser_instance: platform.browserInstanceId
         });
 
       console.log(`${DEBUG_PREFIX} Device unsubscribed successfully`);
