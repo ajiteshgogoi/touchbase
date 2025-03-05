@@ -123,14 +123,17 @@ export const cleanupMessaging = async () => {
   // Reset messaging instance
   messagingInstance = null;
 
-  // Clean up only Firebase-specific resources
+  // Remove all service workers except Firebase messaging worker
   try {
-    const registration = await navigator.serviceWorker.ready;
-    if (registration.active?.scriptURL.includes('firebase-messaging-sw.js')) {
-      console.log('Skipping Firebase messaging worker cleanup');
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) {
+      if (reg.active?.scriptURL.includes('firebase-messaging-sw.js')) {
+        continue;
+      }
+      await reg.unregister();
     }
   } catch (error) {
-    console.warn('Error during Firebase cleanup:', error);
+    console.warn('Error unregistering service workers:', error);
   }
 
   console.log('Cleaned up messaging for device:', deviceId);
