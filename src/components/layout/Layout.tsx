@@ -17,7 +17,7 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
       </main>
       <footer className="text-center pt-2 pb-5 text-gray-600 text-sm">
-        © {new Date().getFullYear()} TouchBase
+        © {new Date().getFullYear()} TouchBase Technologies
       </footer>
     </div>
   );
