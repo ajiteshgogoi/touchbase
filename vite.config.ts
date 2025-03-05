@@ -175,12 +175,6 @@ export default defineConfig({
         generatedCode: {
           preset: 'es2015',
           symbols: false
-        },
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-          'firebase-vendor': ['firebase/app', 'firebase/messaging'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'ui-vendor': ['react-hot-toast', '@vercel/speed-insights/react']
         }
       }
     }
