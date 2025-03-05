@@ -1,6 +1,4 @@
 // Firebase messaging service worker for background notifications
-const SW_VERSION = 'touchbase-v2.5.2';
-
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
@@ -48,25 +46,8 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  debug('Activating Firebase messaging service worker...', { version: SW_VERSION });
-  
-  // Clean up old caches and state
-  event.waitUntil(Promise.all([
-    // Clear any old caches
-    caches.keys()
-      .then(cacheNames => {
-        return Promise.all(
-          cacheNames.filter(cacheName => {
-            return cacheName.startsWith('touchbase-') && cacheName !== SW_VERSION;
-          }).map(cacheName => {
-            debug('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          })
-        );
-      }),
-    // Take control of clients
-    self.clients.claim()
-  ]));
+  debug('Activating Firebase messaging service worker...');
+  event.waitUntil(self.clients.claim());
 });
 
 // Handle push notification events
@@ -145,29 +126,13 @@ async function handlePushEvent(payload) {
 // Handle FCM initialization messages
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'INIT_FCM') {
-    debug('FCM initialization message received', { version: SW_VERSION });
+    debug('FCM initialization message received');
     
     // Store device info
     if (event.data?.deviceInfo) {
       deviceType = event.data.deviceInfo.deviceType;
       isMobile = event.data.deviceInfo.isMobile;
-      debug('Device info stored:', { deviceType, isMobile, version: SW_VERSION });
-    }
-
-    // Version mismatch check
-    if (event.data?.version && event.data.version !== SW_VERSION) {
-      debug('Version mismatch detected', {
-        current: SW_VERSION,
-        requested: event.data.version
-      });
-      self.registration.unregister()
-        .then(() => {
-          event.ports[0].postMessage({
-            success: false,
-            error: 'Service worker version mismatch'
-          });
-        });
-      return;
+      debug('Device info stored:', { deviceType, isMobile });
     }
     
     event.waitUntil((async () => {

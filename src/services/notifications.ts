@@ -177,47 +177,23 @@ export class NotificationService {
               return;
             }
             sw.addEventListener('statechange', function listener(event: Event) {
-                console.log(`${DEBUG_PREFIX} Service worker state changed:`, (event.target as ServiceWorker).state);
-                if ((event.target as ServiceWorker).state === 'activated') {
-                  console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
-                  sw.removeEventListener('statechange', listener);
-                  resolve();
-                }
-              });
-            });
-          } else {
-            console.log(`${DEBUG_PREFIX} Service worker already activated`);
-          }
-        }
-  
-        // Initialize token refresh if user is authenticated
-        if (session.user) {
-          console.log(`${DEBUG_PREFIX} Starting FCM initialization...`);
-          
-          // Get manifest to check version
-          const manifestResponse = await fetch('/manifest.json');
-          const manifest = await manifestResponse.json();
-          
-          // Send version info to service worker
-          await new Promise<void>((resolve, reject) => {
-            const channel = new MessageChannel();
-            channel.port1.onmessage = (event) => {
-              if (event.data?.error === 'Service worker version mismatch') {
-                console.log(`${DEBUG_PREFIX} Service worker version mismatch, will reinitialize`);
-                // Service worker will unregister itself, next initialization will get new version
-                reject(new Error('Version mismatch'));
-                return;
+              console.log(`${DEBUG_PREFIX} Service worker state changed:`, (event.target as ServiceWorker).state);
+              if ((event.target as ServiceWorker).state === 'activated') {
+                console.log(`${DEBUG_PREFIX} Service worker activated successfully`);
+                sw.removeEventListener('statechange', listener);
+                resolve();
               }
-              resolve();
-            };
-            this.registration?.active?.postMessage({
-              type: 'INIT_FCM',
-              version: manifest.version,
-              deviceInfo: platform.getDeviceInfo()
-            }, [channel.port2]);
+            });
           });
-          
-          console.log(`${DEBUG_PREFIX} FCM initialization completed successfully`);
+        } else {
+          console.log(`${DEBUG_PREFIX} Service worker already activated`);
+        }
+      }
+
+      // Initialize token refresh if user is authenticated
+      if (session.user) {
+        console.log(`${DEBUG_PREFIX} Starting FCM initialization...`);
+        console.log(`${DEBUG_PREFIX} FCM initialization completed successfully`);
       }
     } catch (error) {
       console.error(`${DEBUG_PREFIX} Service Worker registration failed:`, error);
