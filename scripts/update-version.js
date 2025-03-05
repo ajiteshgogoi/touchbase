@@ -51,6 +51,16 @@ async function updateFiles() {
     await fs.writeFile(packagePath, JSON.stringify(packageJson, null, 2));
     console.log(`✓ Updated package.json to version ${APP_VERSION}.0`);
 
+    // Update src/constants/version.js
+    const constantsVersionPath = './src/constants/version.js';
+    let constantsVersionContent = await fs.readFile(constantsVersionPath, 'utf8');
+    constantsVersionContent = constantsVersionContent.replace(
+      /export const APP_VERSION = ['"][\d.]+['"];/,
+      `export const APP_VERSION = '${APP_VERSION}';`
+    );
+    await fs.writeFile(constantsVersionPath, constantsVersionContent);
+    console.log(`✓ Updated src/constants/version.js to version ${APP_VERSION}`);
+
     console.log('\nVersion update complete! ✨');
   } catch (error) {
     console.error('Error updating version:', error);
