@@ -6,14 +6,11 @@ export function ReloadPrompt() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r) {
-      // Only log non-Firebase service worker registration
-      if (r && !r.active?.scriptURL.includes('firebase-messaging-sw.js')) {
-        console.log('PWA worker registered:', r.scope);
-      }
+      console.log('SW Registered:', r);
     },
     onRegisterError(error) {
-      console.error('PWA worker registration failed:', error);
-    }
+      console.log('SW registration error', error);
+    },
   });
 
   const close = () => {

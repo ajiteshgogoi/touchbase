@@ -8,8 +8,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: null,  // Don't inject automatic registration
+      registerType: 'prompt',
+      injectRegister: 'script',  // Manual registration through ReloadPrompt
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'TouchBase',
