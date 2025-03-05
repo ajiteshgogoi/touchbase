@@ -1,6 +1,4 @@
 // Service Worker for TouchBase PWA
-const VERSION = '__TOUCHBASE_VERSION__'; // This will be replaced by the update script
-const CACHE_NAME = `touchbase-v${VERSION}`;
 let initialized = false;
 
 // Global error handler for service worker
@@ -22,17 +20,16 @@ const debug = (...args) => {
 
 // Listen for message events (useful for debugging)
 self.addEventListener('message', (event) => {
-  debug('Received message:', event.data);
+  console.log('[SW-Message] Received message:', event.data);
   
   if (event.data?.type === 'SW_PING') {
-    debug('Received ping, sending response');
+    console.log('[SW-Message] Received ping, sending response');
     // Ensure we have a client to respond to
     event.source?.postMessage({
       type: 'SW_PING_RESPONSE',
       timestamp: new Date().toISOString(),
       state: {
         initialized,
-        version: VERSION,
         active: self.registration.active?.state,
         scope: self.registration.scope
       }
@@ -42,9 +39,9 @@ self.addEventListener('message', (event) => {
 
 // Installation event
 self.addEventListener('install', (event) => {
-  debug(`Installing version ${VERSION}...`);
+  debug('Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open('touchbase-v2.5.1').then((cache) => {
       debug('Caching app shell...');
       return cache.addAll([
         '/',
@@ -52,43 +49,30 @@ self.addEventListener('install', (event) => {
         '/manifest.json',
         '/icon-192.png',
         '/icon-512.png'
-      ]).then(() => {
-        debug('App shell cached successfully');
-      });
+      ]);
     })
   );
 });
 
-// Activate event - claim clients and cleanup old caches
+// Activate event - claim clients and keep alive
 self.addEventListener('activate', event => {
-  debug(`Activating service worker version ${VERSION}...`);
+  debug('Activating service worker version 2.4...');
+  // Take control of all pages immediately and log version
+  debug('PWA Version:', self.registration.scope.includes('manifest.json') ? '2.4' : 'unknown');
   event.waitUntil(
-    (async () => {
-      try {
-        // Enable navigation preload if supported
-        if (self.registration.navigationPreload) {
-          await self.registration.navigationPreload.enable();
-        }
-
-        // Delete old caches
-        const keys = await caches.keys();
-        await Promise.all(
-          keys.filter(key => key.startsWith('touchbase-') && key !== CACHE_NAME)
-            .map(key => {
-              debug(`Deleting old cache ${key}`);
-              return caches.delete(key);
-            })
-        );
-
-        // Claim clients after cleanup
-        await self.clients.claim();
-        initialized = true;
-        debug('Service worker activated and clients claimed');
-      } catch (error) {
-        debug('Activation error:', error);
-        throw error;
-      }
-    })()
+    Promise.all([
+      self.clients.claim(),
+      // Keep the service worker alive
+      self.registration.navigationPreload?.enable(),
+      // Delete old caches
+      caches.keys().then(keys => Promise.all(
+        keys.filter(key => key.startsWith('touchbase-') && key !== 'touchbase-v2.5.1')
+          .map(key => caches.delete(key))
+      ))
+    ]).then(() => {
+      initialized = true;
+      debug('Activated and claimed clients');
+    })
   );
 });
 
@@ -100,99 +84,81 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Handle navigation requests
-  if (event.request.mode === 'navigate') {
-    // Check if running in Instagram browser
-    const isInstagram = event.request.headers.get('Sec-Fetch-Dest') === 'document' &&
-                       event.request.headers.get('Sec-Fetch-Mode') === 'navigate' &&
-                       (event.request.referrer.includes('instagram.com') ||
-                        event.request.headers.get('User-Agent')?.includes('Instagram'));
+  // Handle navigation requests differently
+if (event.request.mode === 'navigate') {
+  // Check if running in Instagram browser using request headers
+  const isInstagram = event.request.headers.get('Sec-Fetch-Dest') === 'document' &&
+                     event.request.headers.get('Sec-Fetch-Mode') === 'navigate' &&
+                     (event.request.referrer.includes('instagram.com') ||
+                      event.request.headers.get('User-Agent')?.includes('Instagram'));
 
-    event.respondWith(
-      (async () => {
+  event.respondWith(
+    (async () => {
+      if (isInstagram) {
+        // For Instagram browser, always use network-first strategy
+        // This ensures consistent behavior across iOS and Android
         try {
-          // Try navigation preload response first
-          const preloadResponse = await event.preloadResponse;
-          if (preloadResponse) {
-            return preloadResponse;
+          const networkResponse = await fetch(event.request);
+          if (networkResponse.ok) {
+            return networkResponse;
           }
-
-          // For Instagram browser, use network-first strategy
-          if (isInstagram) {
-            try {
-              const networkResponse = await fetch(event.request);
-              if (networkResponse.ok) {
-                return networkResponse;
-              }
-            } catch (error) {
-              debug('Network fetch failed for Instagram browser:', error);
-            }
-            // Fall back to cache
-            const cache = await caches.open(CACHE_NAME);
-            const cachedResponse = await cache.match('/index.html');
-            return cachedResponse || await fetch('/index.html');
-          }
-
-          // For other browsers, try network first with timeout
-          try {
-            const networkResponse = await Promise.race([
-              fetch(event.request),
-              new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Network timeout')), 3000)
-              )
-            ]);
-            
-            // Cache successful responses
-            if (networkResponse.ok) {
-              const cache = await caches.open(CACHE_NAME);
-              cache.put(event.request, networkResponse.clone());
-              return networkResponse;
-            }
-          } catch (error) {
-            debug('Network fetch failed:', error);
-          }
-
-          // Fall back to cache
-          const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match('/index.html');
-          return cachedResponse || await fetch('/index.html');
+          throw new Error('Network response was not ok');
         } catch (error) {
-          debug('Navigation fetch handler error:', error);
-          return new Response('Navigation error', { status: 500 });
+          // If network fails, try to serve cached content
+          const cache = await caches.open('touchbase-v2.5.1');
+          const cachedResponse = await cache.match('/index.html');
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // If no cache, make one last attempt at network
+          return fetch('/index.html');
+        }
+      } else {
+          try {
+            // For all other browsers, use the normal strategy
+            const preloadResponse = await event.preloadResponse;
+            if (preloadResponse) {
+              return preloadResponse;
+            }
+
+            // Otherwise, get from network and cache
+            const networkResponse = await fetch(event.request);
+            const cache = await caches.open('touchbase-v2.5.1');
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          } catch (error) {
+            // If offline, try to serve the cached index.html
+            const cache = await caches.open('touchbase-v2.5.1');
+            const cachedResponse = await cache.match('/index.html');
+            return cachedResponse;
+          }
         }
       })()
     );
+    return;
   }
 
-  // For non-navigation requests, use stale-while-revalidate strategy
+  // For non-navigation requests, use cache first, network fallback strategy
   event.respondWith(
-    (async () => {
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        const cachedResponse = await cache.match(event.request);
-
-        // Start fetching fresh data in the background
-        const fetchPromise = fetch(event.request).then(networkResponse => {
-          if (networkResponse.ok) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(error => {
-          debug('Network fetch failed for asset:', error);
-          throw error;
-        });
-
-        // Return cached response immediately if available
-        return cachedResponse || fetchPromise;
-      } catch (error) {
-        debug('Non-navigation fetch handler error:', error);
-        throw error;
+    caches.match(event.request).then((response) => {
+      if (response) {
+        return response;
       }
-    })()
+      return fetch(event.request).then((networkResponse) => {
+        // Cache successful responses
+        if (networkResponse.ok) {
+          const responseToCache = networkResponse.clone();
+          caches.open('touchbase-v2.5.1').then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      });
+    })
   );
 });
 
-// Handle push notifications with improved error handling
+// Handle push notifications
 self.addEventListener('push', (event) => {
   // Notify all clients about the push event
   self.clients.matchAll().then(clients => {
