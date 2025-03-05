@@ -521,9 +521,9 @@ function App() {
                 path="/contacts/:id/edit"
                 element={
                   <AuthenticatedRoute>
-                    <LazyComponent>
-                      <ContactForm />
-                    </LazyComponent>
+                    <LazyComponent prefetch={true}>
+                          <ContactForm />
+                        </LazyComponent>
                   </AuthenticatedRoute>
                 }
               />
@@ -532,9 +532,9 @@ function App() {
                 path="/contacts/:contactId/interactions"
                 element={
                   <AuthenticatedRoute>
-                    <LazyComponent>
-                      <InteractionHistory />
-                    </LazyComponent>
+                    <LazyComponent prefetch={true}>
+                          <InteractionHistory />
+                        </LazyComponent>
                   </AuthenticatedRoute>
                 }
               />
