@@ -10,8 +10,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: 'script',  // Manual registration through ReloadPrompt
-      strategies: 'generateSW',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'firebase-messaging-sw.js'],
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'TouchBase',
         short_name: 'TouchBase',
@@ -34,24 +36,25 @@ export default defineConfig({
         background_color: '#ffffff'
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        globIgnores: ['**/firebase-messaging-sw.js'],  // Don't let Workbox handle Firebase SW
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//, /firebase-messaging-sw\.js/],  // Don't handle Firebase SW URLs
-        runtimeCaching: [
-          {
-            urlPattern: /manifest\.json$/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'touchbase-v2.5.4-manifest',
-              cacheableResponse: {
-                statuses: [0, 200],
-                headers: {
-                  'content-type': 'application/manifest+json'
-                }
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globIgnores: ['**/firebase-messaging-sw.js', '**/sw.js'],
+        sourcemap: false,
+        cleanupOutdatedCaches: true,
+        clientsClaim: false,
+        skipWaiting: false,
+        runtimeCaching: [{
+          urlPattern: /manifest\.json$/i,
+          handler: 'StaleWhileRevalidate',
+          options: {
+            cacheName: 'touchbase-v2.5.4-manifest',
+            cacheableResponse: {
+              statuses: [0, 200],
+              headers: {
+                'content-type': 'application/manifest+json'
               }
             }
-          },
+          }
+        },
           {
             urlPattern: /^https:\/\/api\.groq\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
@@ -109,8 +112,7 @@ export default defineConfig({
             }
           }
         ],
-        skipWaiting: true,
-        clientsClaim: true
+
       }
     }),
     {

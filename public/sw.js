@@ -37,46 +37,38 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Installation event
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate, CacheFirst } from 'workbox-strategies';
+
+// Use the imported precaching and routing from workbox
+precacheAndRoute(self.__WB_MANIFEST);
+
+// Installation event - only initialize once
 self.addEventListener('install', (event) => {
-  debug('Installing...');
-  event.waitUntil(
-    caches.open('touchbase-v2.5.4').then((cache) => {
-      debug('Caching app shell...');
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.json',
-        '/icon-192.png',
-        '/icon-512.png'
-      ]);
-    })
-  );
+  debug('Installing PWA service worker...');
+  self.skipWaiting();
 });
 
-// Activate event - claim clients and keep alive
+// Activate event - only cleanup caches
 self.addEventListener('activate', event => {
-  debug('Activating service worker version 2.5.4');
-  // Take control of all pages immediately and log version
-  debug('PWA Version:' + self.registration.scope.includes('manifest.json') ? '2.5.4' : 'unknown');
+  debug('Activating PWA service worker version 2.5.4');
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      // Keep the service worker alive
-      self.registration.navigationPreload?.enable(),
-      // Delete old caches
-      caches.keys().then(keys => Promise.all(
+    caches.keys().then(keys =>
+      Promise.all(
         keys.filter(key => key.startsWith('touchbase-') && key !== 'touchbase-v2.5.4')
           .map(key => caches.delete(key))
-      ))
-    ]).then(() => {
-      initialized = true;
-      debug('Activated and claimed clients');
-    })
+      )
+    )
   );
 });
 
+// Only handle non-Firebase fetch events
 self.addEventListener('fetch', (event) => {
+  // Skip Firebase messaging requests
+  if (event.request.url.includes('firebase-messaging-sw.js')) {
+    return;
+  }
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
     return;
