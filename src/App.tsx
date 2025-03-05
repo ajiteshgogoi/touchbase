@@ -18,44 +18,111 @@ import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 
-// Lazy load pages and non-critical components
-// Lazy loading component wrapper with error boundary
-const LazyComponent = ({ children }: { children: React.ReactNode }) => (
-  <ErrorBoundary>
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
-      </div>
-    }>
-      {children}
-    </Suspense>
-  </ErrorBoundary>
-);
+// Lazy loading component wrapper with error boundary and prefetch support
+const LazyComponent = ({ children, prefetch = false }: { children: React.ReactNode, prefetch?: boolean }) => {
+  useEffect(() => {
+    if (prefetch && 'requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        // The component is already being rendered, so it's already loaded
+        // This is just for TypeScript to understand the import
+        void import('./pages/Dashboard');
+        void import('./pages/Contacts');
+        void import('./pages/Settings');
+        void import('./pages/Reminders');
+        void import('./pages/Help');
+        void import('./pages/ImportantEvents');
+        void import('./components/contacts/ContactForm');
+        void import('./components/contacts/QuickInteraction');
+        void import('./components/reminders/QuickReminderModal');
+        void import('./components/layout/ProfileMenu');
+      });
+    }
+  }, [prefetch]);
 
-// Lazy loaded components with async imports
-const Dashboard = lazy(async () => {
-  const module = await import('./pages/Dashboard');
-  return { default: module.Dashboard };
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner />
+        </div>
+      }>
+        {children}
+      </Suspense>
+    </ErrorBoundary>
+  );
+};
+
+// Core components with prefetching
+const Dashboard = lazy(() => {
+  const module = import('./pages/Dashboard');
+  // Prefetch related routes and components while main route loads
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      void import('./pages/Contacts');
+      void import('./pages/Reminders');
+      void import('./pages/Settings');
+      void import('./pages/Help');
+      void import('./pages/ImportantEvents');
+      void import('./pages/InteractionHistory');
+      void import('./components/contacts/QuickInteraction');
+      void import('./components/contacts/ContactForm');
+    });
+  }
+  return module.then(m => ({ default: m.Dashboard }));
 });
 
-const Contacts = lazy(async () => {
-  const module = await import('./pages/Contacts');
-  return { default: module.Contacts };
+const Contacts = lazy(() => {
+  const module = import('./pages/Contacts');
+  // Prefetch contact form, interaction modal and history
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      void import('./components/contacts/ContactForm');
+      void import('./pages/InteractionHistory');
+      // Prefetch contact data while loading component
+      void queryClient.prefetchQuery({
+        queryKey: ['contacts'],
+        queryFn: () => import('./services/contacts').then(m => m.contactsService.getContacts()),
+        staleTime: 1000 * 60 * 5 // 5 minutes
+      });
+    });
+  }
+  return module.then(m => ({ default: m.Contacts }));
 });
 
-const Settings = lazy(async () => {
-  const module = await import('./pages/Settings');
-  return { default: module.Settings };
+const Settings = lazy(() => {
+  const module = import('./pages/Settings');
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      void import('./components/shared/FeedbackModal');
+      void import('./components/shared/PaymentMethodModal');
+    });
+  }
+  return module.then(m => ({ default: m.Settings }));
 });
 
-const Reminders = lazy(async () => {
-  const module = await import('./pages/Reminders');
-  return { default: module.Reminders };
+// Core routes with prefetching
+const Reminders = lazy(() => {
+  const module = import('./pages/Reminders');
+  // Prefetch quick reminder modal, interaction history and data
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      void import('./components/reminders/QuickReminderModal');
+      void import('./pages/InteractionHistory');
+      void queryClient.prefetchQuery({
+        queryKey: ['reminders'],
+        queryFn: () => import('./services/contacts')
+          .then(m => m.contactsService.getReminders()),
+        staleTime: 1000 * 60 * 5 // 5 minutes
+      });
+    });
+  }
+  return module.then(m => ({ default: m.Reminders }));
 });
 
-const Help = lazy(async () => {
-  const module = await import('./pages/Help');
-  return { default: module.Help };
+// Other lazy loaded components
+const Help = lazy(() => {
+  const module = import('./pages/Help');
+  return module.then(m => ({ default: m.Help }));
 });
 
 const Analytics = lazy(async () => {
@@ -93,9 +160,20 @@ const InteractionHistory = lazy(async () => {
   return { default: module.InteractionHistory };
 });
 
-const ImportantEvents = lazy(async () => {
-  const module = await import('./pages/ImportantEvents');
-  return { default: module.ImportantEventsPage };
+const ImportantEvents = lazy(() => {
+  const module = import('./pages/ImportantEvents');
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      // Prefetch important events data
+      void queryClient.prefetchQuery({
+        queryKey: ['important-events'],
+        queryFn: () => import('./services/contacts')
+          .then(m => m.contactsService.getImportantEvents()),
+        staleTime: 1000 * 60 * 5 // 5 minutes
+      });
+    });
+  }
+  return module.then(m => ({ default: m.ImportantEventsPage }));
 });
 
 const queryClient = new QueryClient({
@@ -399,32 +477,32 @@ function App() {
 
               {/* Protected Routes */}
               <Route
-                path="/"
-                element={
-                  <AuthenticatedRoute>
-                    <LazyComponent>
-                      <Dashboard />
-                    </LazyComponent>
-                  </AuthenticatedRoute>
-                }
-              />
+              path="/"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent prefetch={true}>
+                    <Dashboard />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
 
-              <Route
-                path="/contacts"
-                element={
-                  <AuthenticatedRoute>
-                    <LazyComponent>
-                      <Contacts />
-                    </LazyComponent>
-                  </AuthenticatedRoute>
-                }
-              />
+            <Route
+              path="/contacts"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent prefetch={true}>
+                    <Contacts />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
 
               <Route
                 path="/contacts/new"
                 element={
                   <AuthenticatedRoute>
-                    <LazyComponent>
+                    <LazyComponent prefetch={true}>
                       <ContactForm />
                     </LazyComponent>
                   </AuthenticatedRoute>
@@ -468,7 +546,7 @@ function App() {
                 path="/reminders"
                 element={
                   <AuthenticatedRoute>
-                    <LazyComponent>
+                    <LazyComponent prefetch={true}>
                       <Reminders />
                     </LazyComponent>
                   </AuthenticatedRoute>
@@ -478,7 +556,7 @@ function App() {
                 path="/settings"
                 element={
                   <AuthenticatedRoute>
-                    <LazyComponent>
+                    <LazyComponent prefetch={true}>
                       <Settings />
                     </LazyComponent>
                   </AuthenticatedRoute>
@@ -489,9 +567,9 @@ function App() {
                 path="/help"
                 element={
                   <AuthenticatedRoute>
-                    <LazyComponent>
-                      <Help />
-                    </LazyComponent>
+                    <LazyComponent prefetch={true}>
+                          <Help />
+                        </LazyComponent>
                   </AuthenticatedRoute>
                 }
               />
@@ -508,15 +586,39 @@ function App() {
               />
 
               <Route
-                path="/important-events"
-                element={
-                  <AuthenticatedRoute>
-                    <LazyComponent>
-                      <ImportantEvents />
-                    </LazyComponent>
-                  </AuthenticatedRoute>
-                }
-              />
+              path="/important-events"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent prefetch={true}>
+                    <ImportantEvents />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
+
+            <Route
+              path="/quick-interaction/:contactId"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent prefetch={true}>
+                    {/* QuickInteraction will be loaded via modal, but route exists for deep linking */}
+                    <Navigate to="/contacts" replace />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
+
+            <Route
+              path="/quick-reminder"
+              element={
+                <AuthenticatedRoute>
+                  <LazyComponent prefetch={true}>
+                    {/* QuickReminder will be loaded via modal, but route exists for deep linking */}
+                    <Navigate to="/reminders" replace />
+                  </LazyComponent>
+                </AuthenticatedRoute>
+              }
+            />
 
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" />} />
