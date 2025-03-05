@@ -6,10 +6,12 @@ This project uses a centralized version management system to ensure consistent v
 
 The version number is maintained in the following files and automatically synchronized:
 - `version/version.js` - The primary source of version information (with TypeScript declarations)
-- `public/manifest.json` - PWA manifest version
-- `public/sw.js` - Service worker cache version
-- `vite.config.ts` - Cache names in workbox configuration
+- `public/manifest.json` - PWA manifest version (plain version format, e.g., "2.5.2")
+- `public/sw.js` and `public/firebase-messaging-sw.js` - Service worker cache version (using format "touchbase-v{version}")
+- `vite.config.ts` - Cache names in workbox configuration (using format "touchbase-v{version}")
 - `package.json` - NPM package version
+
+The service workers and cache system use the "touchbase-v" prefix (e.g., "touchbase-v2.5.2") for version strings to ensure proper cache invalidation and service worker updates.
 
 ## Updating the Version
 
