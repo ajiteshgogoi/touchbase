@@ -1,5 +1,5 @@
 // Application version management
-export const APP_VERSION = '2.5';
+export const APP_VERSION = '2.5.1';
 
 // Helper to get full version string
 export const getFullVersion = () => {
