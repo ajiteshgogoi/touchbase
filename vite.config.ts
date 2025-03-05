@@ -143,7 +143,7 @@ export default defineConfig({
     },
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false,
         ecma: 2020,
         passes: 3,
         pure_getters: true,
@@ -156,7 +156,6 @@ export default defineConfig({
         inline: 3,
         reduce_vars: true,
         reduce_funcs: true,
-        pure_funcs: ['console.log', 'console.debug', 'console.info'],
         sequences: true
       },
       mangle: {
