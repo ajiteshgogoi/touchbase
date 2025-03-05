@@ -3,7 +3,7 @@
   "name": "TouchBase",
   "short_name": "TouchBase",
   "description": "Stay connected with the people who matter most",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F9FAFB",
