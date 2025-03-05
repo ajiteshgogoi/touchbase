@@ -10,8 +10,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: null,  // Don't inject automatic registration
-
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'firebase-messaging-sw.js'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'TouchBase',
         short_name: 'TouchBase',
@@ -34,29 +33,30 @@ export default defineConfig({
         background_color: '#ffffff'
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        globIgnores: ['**/firebase-messaging-sw.js'],  // Don't let Workbox handle Firebase SW
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//, /firebase-messaging-sw\.js/],  // Don't handle Firebase SW URLs
-        runtimeCaching: [
-          {
-            urlPattern: /manifest\.json$/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'touchbase-v2.5.5-manifest',
-              cacheableResponse: {
-                statuses: [0, 200],
-                headers: {
-                  'content-type': 'application/manifest+json'
-                }
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globIgnores: ['**/firebase-messaging-sw.js', '**/sw.js'],
+        sourcemap: false,
+        cleanupOutdatedCaches: true,
+        clientsClaim: false,
+        skipWaiting: false,
+        runtimeCaching: [{
+          urlPattern: /manifest\.json$/i,
+          handler: 'StaleWhileRevalidate',
+          options: {
+            cacheName: 'touchbase-v2.5.4-manifest',
+            cacheableResponse: {
+              statuses: [0, 200],
+              headers: {
+                'content-type': 'application/manifest+json'
               }
             }
-          },
+          }
+        },
           {
             urlPattern: /^https:\/\/api\.groq\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.5-api',
+              cacheName: 'touchbase-v2.5.4-api',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -70,7 +70,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/[^.]+\.supabase\.co\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.5-api',
+              cacheName: 'touchbase-v2.5.4-api',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -84,7 +84,7 @@ export default defineConfig({
             urlPattern: /\.(js|css)$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'touchbase-v2.5.5-static',
+              cacheName: 'touchbase-v2.5.4-static',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
@@ -95,7 +95,7 @@ export default defineConfig({
             urlPattern: /firebase-messaging-sw\.js/,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.5-fcm',
+              cacheName: 'touchbase-v2.5.4-fcm',
               expiration: {
                 maxAgeSeconds: 24 * 60 * 60 // 24 hours
               },
@@ -109,8 +109,7 @@ export default defineConfig({
             }
           }
         ],
-        skipWaiting: true,
-        clientsClaim: true
+
       }
     }),
     {
@@ -143,7 +142,7 @@ export default defineConfig({
     },
     terserOptions: {
       compress: {
-        drop_console: true,
+        drop_console: false,
         ecma: 2020,
         passes: 3,
         pure_getters: true,
@@ -156,7 +155,6 @@ export default defineConfig({
         inline: 3,
         reduce_vars: true,
         reduce_funcs: true,
-        pure_funcs: ['console.log', 'console.debug', 'console.info'],
         sequences: true
       },
       mangle: {

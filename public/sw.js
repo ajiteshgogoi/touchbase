@@ -52,11 +52,11 @@ self.addEventListener('install', (event) => {
 
 // Activate event - only cleanup caches
 self.addEventListener('activate', event => {
-  debug('Activating PWA service worker version 2.5.5');
+  debug('Activating PWA service worker version 2.5.4');
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(key => key.startsWith('touchbase-') && key !== 'touchbase-v2.5.5')
+        keys.filter(key => key.startsWith('touchbase-') && key !== 'touchbase-v2.5.4')
           .map(key => caches.delete(key))
       )
     )
@@ -97,7 +97,7 @@ if (event.request.mode === 'navigate') {
           throw new Error('Network response was not ok');
         } catch (error) {
           // If network fails, try to serve cached content
-          const cache = await caches.open('touchbase-v2.5.5');
+          const cache = await caches.open('touchbase-v2.5.4');
           const cachedResponse = await cache.match('/index.html');
           if (cachedResponse) {
             return cachedResponse;
@@ -115,12 +115,12 @@ if (event.request.mode === 'navigate') {
 
           // Otherwise, get from network and cache
           const networkResponse = await fetch(event.request);
-          const cache = await caches.open('touchbase-v2.5.5');
+          const cache = await caches.open('touchbase-v2.5.4');
           cache.put(event.request, networkResponse.clone());
           return networkResponse;
         } catch (error) {
           // If offline, try to serve the cached index.html
-          const cache = await caches.open('touchbase-v2.5.5');
+          const cache = await caches.open('touchbase-v2.5.4');
           const cachedResponse = await cache.match('/index.html');
           return cachedResponse;
         }
@@ -139,7 +139,7 @@ if (event.request.mode === 'navigate') {
         // Cache successful responses
         if (networkResponse.ok) {
           const responseToCache = networkResponse.clone();
-          caches.open('touchbase-v2.5.5').then((cache) => {
+          caches.open('touchbase-v2.5.4').then((cache) => {
             cache.put(event.request, responseToCache);
           });
         }
