@@ -2,7 +2,7 @@
   "name": "touchbase",
   "type": "module",
   "private": true,
-  "version": "0.1.0",
+  "version": "2.4.0",
   "scripts": {
     "predev": "node scripts/generate-sw-config.js && node scripts/generate-sitemap.js",
     "dev": "vite",
@@ -11,6 +11,7 @@
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
+    "clean-caches": "node scripts/clean-caches.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",

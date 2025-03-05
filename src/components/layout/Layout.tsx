@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './Navbar';
+import { getFullVersion } from '../../constants/version';
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,7 +18,7 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
       </main>
       <footer className="text-center pt-2 pb-5 text-gray-600 text-sm">
-        © {new Date().getFullYear()} TouchBase Technologies
+        © {new Date().getFullYear()} TouchBase Technologies | {getFullVersion()}
       </footer>
     </div>
   );
