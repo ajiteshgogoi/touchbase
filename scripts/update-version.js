@@ -12,15 +12,24 @@ async function updateFiles() {
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
     console.log(`✓ Updated manifest.json to version ${APP_VERSION}`);
 
-    // Update service worker cache version
+    // Update service worker version and cache names
     const swPath = './public/sw.js';
     let swContent = await fs.readFile(swPath, 'utf8');
+    
+    // Update the VERSION constant
+    swContent = swContent.replace(
+      /__TOUCHBASE_VERSION__/g,
+      APP_VERSION
+    );
+    
+    // Update cache names
     swContent = swContent.replace(
       /touchbase-v[\d.]+/g,
       `touchbase-v${APP_VERSION}`
     );
+    
     await fs.writeFile(swPath, swContent);
-    console.log(`✓ Updated service worker cache version to ${APP_VERSION}`);
+    console.log(`✓ Updated service worker VERSION and cache names to ${APP_VERSION}`);
 
     // Update vite.config.ts cache names
     const vitePath = './vite.config.ts';
