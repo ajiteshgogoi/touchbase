@@ -44,24 +44,11 @@ function getMessaging() {
 // Register service worker event handlers
 self.addEventListener('install', (event) => {
   debug('Installing Firebase messaging service worker...');
-  // Don't skipWaiting to avoid race conditions
-  event.waitUntil(
-    new Promise(resolve => {
-      debug('Waiting for installation to complete...');
-      resolve();
-    })
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   debug('Activating Firebase messaging service worker...', { version: SW_VERSION });
-  // Don't claim clients, let them adopt naturally
-  event.waitUntil(
-    new Promise(resolve => {
-      debug('Firebase messaging service worker activated');
-      resolve();
-    })
-  );
 });
 
 // Handle push notification events
