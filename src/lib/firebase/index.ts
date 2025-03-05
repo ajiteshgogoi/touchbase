@@ -304,7 +304,7 @@ export const initializeTokenRefresh = async (userId: string) => {
     // Add delay after successful initialization for mobile
     if (isMobileDevice) {
       console.log(`${DEBUG_PREFIX} Adding mobile initialization delay...`);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 800));
     }
 
     console.log(`${DEBUG_PREFIX} Initializing Firebase messaging...`);
