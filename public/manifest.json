@@ -2,7 +2,7 @@
   "gcm_sender_id": "468744965191",
   "name": "TouchBase",
   "short_name": "TouchBase",
-  "description": "Stay connected with the people who matter most.",
+  "description": "Stay connected with the people who matter most",
   "version": "2.4",
   "start_url": "/",
   "display": "standalone",
