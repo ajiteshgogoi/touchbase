@@ -192,12 +192,30 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useStore();
   const location = useLocation();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
   
   useEffect(() => {
     if (!isLoading) {
       setIsInitialLoad(false);
     }
+
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (isLoading || isInitialLoad) {
+        console.warn('Auth check timed out after 10 seconds');
+        setHasTimedOut(true);
+        setIsInitialLoad(false);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeoutId);
   }, [isLoading]);
+
+  // Handle timeout case
+  if (hasTimedOut) {
+    localStorage.clear(); // Clear any stale auth state
+    return <Navigate to="/login" state={{ from: location }} />;
+  }
 
   if (isLoading || isInitialLoad) {
     return (
