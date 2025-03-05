@@ -194,12 +194,11 @@ export class NotificationService {
         if (session.user) {
           console.log(`${DEBUG_PREFIX} Starting FCM initialization...`);
           
-          // Get manifest and prepare cache version
+          // Get manifest to check version
           const manifestResponse = await fetch('/manifest.json');
           const manifest = await manifestResponse.json();
-          const cacheVersion = `touchbase-v${manifest.version}`;
           
-          // Send cache version to service worker
+          // Send version info to service worker
           await new Promise<void>((resolve, reject) => {
             const channel = new MessageChannel();
             channel.port1.onmessage = (event) => {
@@ -213,7 +212,7 @@ export class NotificationService {
             };
             this.registration?.active?.postMessage({
               type: 'INIT_FCM',
-              version: cacheVersion,
+              version: manifest.version,
               deviceInfo: platform.getDeviceInfo()
             }, [channel.port2]);
           });
@@ -270,13 +269,8 @@ export class NotificationService {
         throw new Error('Notification permission denied');
       }
 
-      // Desktop initialization
+      // Desktop initialization and token refresh
       await this.initialize();
-      
-      // Pass the initialized registration to token refresh
-      if (!this.registration?.active) {
-        throw new Error('Service worker not properly initialized');
-      }
       await initializeTokenRefresh(userId);
 
       console.log(`${DEBUG_PREFIX} Push notification subscription completed successfully`);

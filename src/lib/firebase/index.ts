@@ -243,9 +243,16 @@ export const initializeTokenRefresh = async (userId: string) => {
       userId: userId.slice(0, 8)
     });
 
-    // Get the service worker registration that was already initialized
-    const registration = await getFirebaseMessaging().then(() => navigator.serviceWorker.ready);
-    console.log(`${DEBUG_PREFIX} Using initialized service worker for token refresh:`, {
+    // Wait for service worker to be ready
+    console.log(`${DEBUG_PREFIX} Waiting for service worker...`);
+    const registration = await navigator.serviceWorker.ready;
+    console.log(`${DEBUG_PREFIX} Service worker ready:`, {
+      state: registration.active?.state,
+      scope: registration.scope
+    });
+
+    // Initialize service worker with device info
+    console.log(`${DEBUG_PREFIX} Preparing service worker initialization...`, {
       deviceType: deviceInfo.deviceType,
       isMobile: isMobileDevice,
       swState: registration.active?.state
