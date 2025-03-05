@@ -49,6 +49,24 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   debug('Activating Firebase messaging service worker...', { version: SW_VERSION });
+  
+  // Clean up old caches and state
+  event.waitUntil(Promise.all([
+    // Clear any old caches
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames.filter(cacheName => {
+            return cacheName.startsWith('touchbase-') && cacheName !== SW_VERSION;
+          }).map(cacheName => {
+            debug('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }),
+    // Take control of clients
+    self.clients.claim()
+  ]));
 });
 
 // Handle push notification events
