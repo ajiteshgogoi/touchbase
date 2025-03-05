@@ -43,7 +43,7 @@ export default defineConfig({
             urlPattern: /manifest\.json$/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.3-manifest',
+              cacheName: 'touchbase-v2.5.4-manifest',
               cacheableResponse: {
                 statuses: [0, 200],
                 headers: {
@@ -56,7 +56,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/api\.groq\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.3-api',
+              cacheName: 'touchbase-v2.5.4-api',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -70,7 +70,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/[^.]+\.supabase\.co\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.3-api',
+              cacheName: 'touchbase-v2.5.4-api',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -84,7 +84,7 @@ export default defineConfig({
             urlPattern: /\.(js|css)$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'touchbase-v2.5.3-static',
+              cacheName: 'touchbase-v2.5.4-static',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
@@ -95,7 +95,7 @@ export default defineConfig({
             urlPattern: /firebase-messaging-sw\.js/,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.3-fcm',
+              cacheName: 'touchbase-v2.5.4-fcm',
               expiration: {
                 maxAgeSeconds: 24 * 60 * 60 // 24 hours
               },
