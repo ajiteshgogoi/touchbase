@@ -21,7 +21,7 @@ npm run bump-version <new_version>
 
 Example:
 ```bash
-npm run bump-version 2.5
+npm run bump-version 2.5.5
 ```
 
 This will:

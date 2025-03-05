@@ -9,8 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',  // Enable automatic registration
-      strategies: 'generateSW',
+      injectRegister: null,  // Don't inject automatic registration
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'firebase-messaging-sw.js'],
       manifest: {
         name: 'TouchBase',
@@ -43,7 +42,7 @@ export default defineConfig({
             urlPattern: /manifest\.json$/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.1-manifest',
+              cacheName: 'touchbase-v2.5.5-manifest',
               cacheableResponse: {
                 statuses: [0, 200],
                 headers: {
@@ -56,7 +55,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/api\.groq\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.1-api',
+              cacheName: 'touchbase-v2.5.5-api',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -70,7 +69,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/[^.]+\.supabase\.co\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.1-api',
+              cacheName: 'touchbase-v2.5.5-api',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 // 24 hours
@@ -84,7 +83,7 @@ export default defineConfig({
             urlPattern: /\.(js|css)$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'touchbase-v2.5.1-static',
+              cacheName: 'touchbase-v2.5.5-static',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 365 * 24 * 60 * 60 // 365 days
@@ -95,7 +94,7 @@ export default defineConfig({
             urlPattern: /firebase-messaging-sw\.js/,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'touchbase-v2.5.1-fcm',
+              cacheName: 'touchbase-v2.5.5-fcm',
               expiration: {
                 maxAgeSeconds: 24 * 60 * 60 // 24 hours
               },
