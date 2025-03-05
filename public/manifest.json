@@ -3,7 +3,7 @@
   "name": "TouchBase",
   "short_name": "TouchBase",
   "description": "Stay connected with the people who matter most",
-  "version": "2.4",
+  "version": "2.5",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F9FAFB",
@@ -29,31 +29,54 @@
       "short_name": "Add Contact",
       "description": "Add a new contact",
       "url": "/contacts/new",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "View Contacts",
       "short_name": "Contacts",
       "description": "View your contacts",
       "url": "/contacts",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "View Reminders",
       "short_name": "Reminders",
       "description": "View your reminders",
       "url": "/reminders",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Conversation Prompts",
       "short_name": "Prompts",
       "description": "Get conversation prompts",
       "url": "/conversation-prompts",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
-  "categories": ["social", "productivity"],
+  "categories": [
+    "social",
+    "productivity"
+  ],
   "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "prefer_related_applications": false,
   "related_applications": [

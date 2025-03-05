@@ -5,7 +5,7 @@ This project uses a centralized version management system to ensure consistent v
 ## Version Files
 
 The version number is maintained in the following files and automatically synchronized:
-- `src/constants/version.ts` - The primary source of version information
+- `version/version.js` - The primary source of version information (with TypeScript declarations)
 - `public/manifest.json` - PWA manifest version
 - `public/sw.js` - Service worker cache version
 - `vite.config.ts` - Cache names in workbox configuration

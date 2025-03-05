@@ -13,7 +13,7 @@ async function bumpVersion(newVersion) {
 
   try {
     // Update version.ts
-    const versionPath = './src/constants/version.ts';
+    const versionPath = './version/version.js';
     let content = await fs.readFile(versionPath, 'utf8');
     content = content.replace(
       /export const APP_VERSION = ['"][\d.]+['"];/,

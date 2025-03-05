@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { APP_VERSION } from '../src/constants/version.js';
+import { APP_VERSION } from '../version/version.js';
 
 async function updateFiles() {
   console.log('Updating version across files...');

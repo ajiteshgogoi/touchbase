@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './Navbar';
-import { getFullVersion } from '../../constants/version';
+import { getFullVersion } from '../../../version/version';
 import { ReloadPrompt } from '../shared/ReloadPrompt';
 
 interface LayoutProps {
