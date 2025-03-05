@@ -8,8 +8,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'auto',  // Enable automatic registration
+      registerType: 'prompt',
+      injectRegister: 'script',  // Manual registration through ReloadPrompt
       strategies: 'generateSW',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'firebase-messaging-sw.js'],
       manifest: {
