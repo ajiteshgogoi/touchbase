@@ -114,27 +114,28 @@ if (event.request.mode === 'navigate') {
           return fetch('/index.html');
         }
       } else {
-        try {
-          // For all other browsers, use the normal strategy
-          const preloadResponse = await event.preloadResponse;
-          if (preloadResponse) {
-            return preloadResponse;
-          }
+          try {
+            // For all other browsers, use the normal strategy
+            const preloadResponse = await event.preloadResponse;
+            if (preloadResponse) {
+              return preloadResponse;
+            }
 
-          // Otherwise, get from network and cache
-          const networkResponse = await fetch(event.request);
-          const cache = await caches.open('touchbase-v2.5.1');
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        } catch (error) {
-          // If offline, try to serve the cached index.html
-          const cache = await caches.open('touchbase-v2.5.1');
-          const cachedResponse = await cache.match('/index.html');
-          return cachedResponse;
+            // Otherwise, get from network and cache
+            const networkResponse = await fetch(event.request);
+            const cache = await caches.open('touchbase-v2.5.1');
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          } catch (error) {
+            // If offline, try to serve the cached index.html
+            const cache = await caches.open('touchbase-v2.5.1');
+            const cachedResponse = await cache.match('/index.html');
+            return cachedResponse;
+          }
         }
-      }
-    })()
-  );
+      })()
+    );
+    return;
   }
 
   // For non-navigation requests, use cache first, network fallback strategy
