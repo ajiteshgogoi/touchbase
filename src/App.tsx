@@ -195,13 +195,13 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const [hasTimedOut, setHasTimedOut] = useState(false);
   
   useEffect(() => {
-    if (!isLoading) {
-      setIsInitialLoad(false);
+    // Only set up timeout during initial load
+    if (!isInitialLoad) {
+      return () => {}; // Return empty cleanup for non-initial loads
     }
 
-    // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
-      if (isLoading || isInitialLoad) {
+      if (isLoading) {
         console.warn('Auth check timed out after 10 seconds');
         setHasTimedOut(true);
         setIsInitialLoad(false);
@@ -209,6 +209,12 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
     }, 10000); // 10 second timeout
 
     return () => clearTimeout(timeoutId);
+  }, [isInitialLoad, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setIsInitialLoad(false);
+    }
   }, [isLoading]);
 
   // Handle timeout case
