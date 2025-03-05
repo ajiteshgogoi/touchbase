@@ -44,12 +44,11 @@ function getMessaging() {
 // Register service worker event handlers
 self.addEventListener('install', (event) => {
   debug('Installing Firebase messaging service worker...');
-  // Let the main service worker control activation
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   debug('Activating Firebase messaging service worker...', { version: SW_VERSION });
-  // Don't claim clients, let the main service worker handle that
 });
 
 // Handle push notification events
@@ -155,12 +154,12 @@ self.addEventListener('message', (event) => {
     
     event.waitUntil((async () => {
       try {
-        // Wait a bit longer for main service worker to initialize
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Add delay before initialization
+        await new Promise(resolve => setTimeout(resolve, 300));
         
-        // Initialize messaging with fewer retries to prevent cascading issues
+        // Initialize messaging with retries
         let retries = 0;
-        const maxRetries = 2;
+        const maxRetries = 3;
         while (retries < maxRetries) {
           try {
             const messaging = getMessaging();
