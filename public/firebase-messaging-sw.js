@@ -137,9 +137,6 @@ self.addEventListener('message', (event) => {
     
     event.waitUntil((async () => {
       try {
-        // Add delay before initialization
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
         // Initialize messaging with retries
         let retries = 0;
         const maxRetries = 3;

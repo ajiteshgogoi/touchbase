@@ -59,7 +59,7 @@ export class MobileFCMService {
   /**
    * Initialize the service but don't register for push yet
    */
-  async initialize(retryDelay = 1000): Promise<boolean> {
+  async initialize(): Promise<boolean> {
     console.log(`${DEBUG_PREFIX} Starting initialization`);
 
     try {
@@ -80,9 +80,6 @@ export class MobileFCMService {
       if (!authToken) {
         throw new Error('No valid auth token available');
       }
-
-      // Add delay to ensure auth token is properly propagated
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
 
       // Check Firebase version compatibility
       const firebase = await import('firebase/app');
@@ -118,8 +115,6 @@ export class MobileFCMService {
             return true;
           }
         }
-        // Wait for cleanup if any workers were unregistered
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       // Initialize VAPID key

@@ -269,13 +269,6 @@ export const initializeTokenRefresh = async (userId: string) => {
         const response = event.data as ServiceWorkerInitResponse;
         console.log(`${DEBUG_PREFIX} Received init response:`, response);
         
-        if (response.success && isMobileDevice) {
-          // Add additional delay for mobile to ensure Firebase is fully initialized
-          console.log(`${DEBUG_PREFIX} Adding mobile initialization delay...`);
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          console.log(`${DEBUG_PREFIX} Mobile delay complete, proceeding...`);
-        }
-        
         resolve(response);
       };
 
@@ -356,9 +349,6 @@ export const initializeTokenRefresh = async (userId: string) => {
           scope: registration.scope,
           hasMessaging: !!messaging?.app
         });
-        // Add pre-token delay for mobile
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } else {
         console.log(`${DEBUG_PREFIX} Starting web token generation...`, {
           deviceType: deviceInfo.deviceType,
           serviceWorkerState: registration.active?.state,
@@ -386,11 +376,6 @@ export const initializeTokenRefresh = async (userId: string) => {
         deviceType: deviceInfo.deviceType
       });
 
-      // Add post-token delay for mobile
-      if (isMobileDevice) {
-        console.log(`${DEBUG_PREFIX} Adding post-token delay for mobile...`);
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
     } catch (error: any) {
       console.error(`${DEBUG_PREFIX} Token generation failed:`, {
         errorCode: error.code,
