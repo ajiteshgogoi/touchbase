@@ -1,5 +1,5 @@
 // Service Worker for TouchBase PWA
-const VERSION = '2.5.2'; // This will be replaced by the update script
+const VERSION = '__TOUCHBASE_VERSION__'; // This will be replaced by the update script
 const CACHE_NAME = `touchbase-v${VERSION}`;
 let initialized = false;
 
