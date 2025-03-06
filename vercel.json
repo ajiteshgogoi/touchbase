@@ -47,7 +47,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*\\b(googlebot|bingbot|yandexbot|duckduckbot|slurp|ahrefs|semrushbot|mj12bot|baiduspider)\\b.*"
+          "value": "(?i).*\\b(AhrefsBot|Googlebot|bingbot|YandexBot|DuckDuckBot|Slurp|SemrushBot|MJ12bot|Baiduspider)\\b.*"
         }
       ],
       "dest": "/$1.html"
@@ -58,7 +58,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*\\b(googlebot|bingbot|yandexbot|duckduckbot|slurp|ahrefs|semrushbot|mj12bot|baiduspider)\\b.*"
+          "value": "(?i).*\\b(AhrefsBot|Googlebot|bingbot|YandexBot|DuckDuckBot|Slurp|SemrushBot|MJ12bot|Baiduspider)\\b.*"
         }
       ],
       "dest": "/login.html"
