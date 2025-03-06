@@ -76,7 +76,11 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocLmUFfLvFE-rDyxuypovzFbTMK47YX5qPXqZH76povqDGbqXA=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocJaZynRlRqNIZ5POFbikI0wJ37lJdAF4VmSuJZAkasXUFwQag=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocKRQPkpAXI0_Sy90AWrSFQLittALtHGg5TyfB58P0aRpVFCww=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocIfUUQzdk0fTgjNBNmAGN76one3yH3OJtuNsdIupsna2cByYQ=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocIfUUQzdk0fTgjNBNmAGN76one3yH3OJtuNsdIupsna2cByYQ=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocIqsBiZ76Udj9WEhUsy7yzGVvlZnPnl4vwRAyyj2SapR2Zgcw=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocKQ2UGcXv5tAyVyLy3uoPTnX08v5M37MddgmCcUM2BVxTtG2Mtc=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJOfGjkCNWO3Ug1Vjbfb3__TOCIp7Sa55Vkm0xFubwbsv2G1N8=s96-c'
+
     ];
 
     // Map users to get their metadata
