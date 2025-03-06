@@ -56,22 +56,31 @@ html, body {
 .text-primary-500\/90 { color: rgba(14, 165, 233, 0.9); }
 .hover\:bg-gray-50\/50:hover { background-color: rgba(249, 250, 251, 0.5); }
 
+/* Text colors */
+.text-white { color: white; }
+.text-primary-500 { color: var(--primary-500); }
+.text-primary-600 { color: var(--primary-600); }
+.hover\:text-primary-600:hover { color: var(--primary-600); }
+
 /* Button styles */
 .h-\[52px\] { height: 52px; }
 .w-full { width: 100%; }
-.text-white { color: white; }
 .bg-primary-500 { background-color: var(--primary-500); }
 .hover\:bg-primary-600:hover { background-color: var(--primary-600); }
 .active\:scale-\[0\.99\]:active { transform: scale(0.99); }
 .rounded-xl { border-radius: 0.75rem; }
 .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
 .hover\:shadow-lg:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-.px-8 { padding-left: 2rem; padding-right: 2rem; }
 
-/* Link styles */
-.text-primary-500 { color: var(--primary-500); }
-.text-primary-600 { color: var(--primary-600); }
-.hover\:text-primary-600:hover { color: var(--primary-600); }
+/* Spacing */
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.mr-3 { margin-right: 0.75rem; }
+.mr-0\.5 { margin-right: 0.125rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-5 { gap: 1.25rem; }
+.-ml-3 { margin-left: -0.75rem; }
+.mt-10 { margin-top: 2.5rem; }
 
 /* Font utilities */
 .tracking-\[-0\.01em\] { letter-spacing: -0.01em; }
@@ -82,6 +91,15 @@ html, body {
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
 .text-base { font-size: 1rem; line-height: 1.5rem; }
+.text-\[14px\] { font-size: 14px; }
+
+/* Icon sizes */
+.h-5 { height: 1.25rem; }
+.w-5 { width: 1.25rem; }
+.h-6 { height: 1.5rem; }
+.w-6 { width: 1.5rem; }
+.h-7 { height: 1.75rem; }
+.w-7 { width: 1.75rem; }
 
 /* Gradient text */
 .bg-gradient-to-r {
@@ -144,16 +162,22 @@ html, body {
   transform: translateY(5px);
 }
 
-/* Responsive utilities */
+/* Display and layout */
 .hidden { display: none; }
 .flex { display: flex; }
+.flex-col { flex-direction: column; }
 .items-center { align-items: center; }
 .justify-center { justify-content: center; }
-.gap-5 { gap: 1.25rem; }
+.text-center { text-align: center; }
 
+/* Responsive utilities */
 @media (min-width: 640px) {
   .sm\:inline { display: inline; }
   .sm\:hidden { display: none; }
+  .sm\:flex-row { flex-direction: row; }
+  .sm\:h-7 { height: 1.75rem; }
+  .sm\:w-7 { width: 1.75rem; }
+  .sm\:gap-2 { gap: 0.5rem; }
 }
 
 @media (min-width: 768px) {
@@ -163,4 +187,6 @@ html, body {
   .md\:-space-x-4 > * + * {
     margin-left: -1rem;
   }
+  .md\:w-12 { width: 3rem; }
+  .md\:h-12 { height: 3rem; }
 }
