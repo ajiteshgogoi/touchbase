@@ -42,27 +42,15 @@
       }
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "^(?!.*(googlebot|bingbot|yandexbot|duckduckbot|slurp|ahrefs|semrushbot|mj12bot|baiduspider)).*$"
-        }
-      ]
-    },
-    {
       "src": "/(login|terms|privacy|support)",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(googlebot|bingbot|yandexbot|duckduckbot|slurp|ahrefs|semrushbot|mj12bot|baiduspider).*"
+          "value": "^(Googlebot|Bingbot|YandexBot|DuckDuckBot|Slurp|AhrefsBot|SemrushBot|MJ12bot|Baiduspider)(/|$)"
         }
       ],
-      "dest": "/$1.html",
-      "continue": false
+      "dest": "/$1.html"
     },
     {
       "src": "^/?$",
@@ -70,15 +58,18 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(googlebot|bingbot|yandexbot|duckduckbot|slurp|ahrefs|semrushbot|mj12bot|baiduspider).*"
+          "value": "^(Googlebot|Bingbot|YandexBot|DuckDuckBot|Slurp|AhrefsBot|SemrushBot|MJ12bot|Baiduspider)(/|$)"
         }
       ],
-      "dest": "/login.html",
-      "continue": false
+      "dest": "/login.html"
     },
     {
       "src": "/(login|terms|privacy|support)\\.html",
       "headers": { "cache-control": "public, max-age=3600" }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
