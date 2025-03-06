@@ -74,7 +74,9 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocKWSafnNZ4dNbK4Ii3RiSOtQF53hyaTQQsv2pXdf9OxkPQD_XcECA=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocIVDi1AUe_mPTpjwHfXMBM9wPWzkyxI7zxTPhwo9DcU6cj-9g=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocLmUFfLvFE-rDyxuypovzFbTMK47YX5qPXqZH76povqDGbqXA=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocJaZynRlRqNIZ5POFbikI0wJ37lJdAF4VmSuJZAkasXUFwQag=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocJaZynRlRqNIZ5POFbikI0wJ37lJdAF4VmSuJZAkasXUFwQag=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocKRQPkpAXI0_Sy90AWrSFQLittALtHGg5TyfB58P0aRpVFCww=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocIfUUQzdk0fTgjNBNmAGN76one3yH3OJtuNsdIupsna2cByYQ=s96-c'
     ];
 
     // Map users to get their metadata
