@@ -55,7 +55,7 @@ serve(async (req) => {
 
     // Get users ordered by most recent first
     const { data: { users }, error: usersError } = await supabaseClient.auth.admin.listUsers({
-      perPage: 15,
+      perPage: 20,
       page: 1,
       sortBy: {
         column: 'created_at',
@@ -80,7 +80,6 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocIqsBiZ76Udj9WEhUsy7yzGVvlZnPnl4vwRAyyj2SapR2Zgcw=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocKQ2UGcXv5tAyVyLy3uoPTnX08v5M37MddgmCcUM2BVxTtG2Mtc=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocJOfGjkCNWO3Ug1Vjbfb3__TOCIp7Sa55Vkm0xFubwbsv2G1N8=s96-c'
-
     ];
 
     // Map users to get their metadata
