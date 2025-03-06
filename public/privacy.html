@@ -7,7 +7,32 @@
     <link rel="canonical" href="https://touchbase.site/privacy" />
     <meta name="theme-color" content="#0EA5E9" />
     <meta name="description" content="Privacy Policy for TouchBase - Learn how we protect your data and personal information" />
-    
+
+    <!-- Tailwind and Custom Styles -->
+    <link href="/src/index.css" rel="stylesheet">
+
+    <style>
+      :root {
+        --primary-50: #f0f9ff;
+        --primary-100: #e0f2fe;
+        --primary-200: #bae6fd;
+        --primary-300: #7dd3fc;
+        --primary-400: #38bdf8;
+        --primary-500: #0ea5e9;
+        --primary-600: #0284c7;
+        --primary-700: #0369a1;
+        --primary-800: #075985;
+        --primary-900: #0c4a6e;
+        --primary-950: #082f49;
+      }
+      .bg-gradient-to-r {
+        background: linear-gradient(to right, var(--primary-600, #0284c7) 90%, var(--primary-400, #38bdf8) 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+    </style>
+
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
@@ -15,44 +40,191 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TouchBase" />
-    
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="TouchBase Privacy Policy" />
     <meta property="og:description" content="Learn how TouchBase protects your data and personal information" />
     <meta property="og:image" content="/og.png" />
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="TouchBase Privacy Policy" />
     <meta name="twitter:description" content="Learn how TouchBase protects your data and personal information" />
     <meta name="twitter:image" content="/og.png" />
-    
+
     <title>Privacy Policy - TouchBase</title>
   </head>
   <body class="bg-gray-50">
     <div id="root">
-      <!-- Pre-rendered content for SEO -->
-      <div class="max-w-4xl mx-auto space-y-8">
-        <div class="flex flex-col items-center w-full">
-          <div class="text-center">
-            <h1 class="text-4xl sm:text-5xl font-bold text-primary-600">Privacy Policy</h1>
-            <p class="mt-1.5 text-[15px] text-gray-600">How we protect your data and respect your privacy</p>
+      <div>
+        <nav class="bg-white/60 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100/50">
+          <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14">
+              <div class="flex-1 flex items-center justify-between">
+                <a
+                  href="/"
+                  class="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200"
+                >
+                  <img
+                    src="/icon.svg"
+                    alt="Blue heart icon"
+                    class="h-7 w-7 mr-0.5 group-hover:scale-105 group-hover:brightness-90 transition-all duration-200 translate-y-[5px]"
+                  />
+                  <span class="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
+                    TouchBase
+                  </span>
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <!-- Basic privacy content for SEO -->
-        <div class="bg-white/60 rounded-xl border border-gray-100/50 shadow-soft">
-          <section class="p-6">
-            <h2 class="text-xl font-semibold text-gray-900">Data Protection</h2>
-            <p class="text-gray-600">
-              TouchBase takes the protection of your personal data seriously. We implement strong security measures 
-              to ensure your information is safe and only used as described in this privacy policy.
-            </p>
-          </section>
-        </div>
+        </nav>
+
+        <main role="main" class="min-h-[80vh] flex flex-col px-4 py-8">
+          <div class="max-w-4xl mx-auto space-y-8 w-full">
+            <div class="flex flex-col items-center w-full">
+              <div class="text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+                  <span>Privacy</span>
+                  <span className="sm:ml-2">Policy</span>
+                </h1>
+                <p class="mt-1.5 text-[15px] text-gray-600/90">
+                  How we protect and handle your data
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft divide-y divide-gray-100/50">
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">1. Our Commitment</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  TouchBase is built on trust. We understand the sensitive nature of relationship data and implement robust security measures to protect your information. This privacy policy explains our practices and your rights regarding your data. For more information about using our service, please see our <a href="/terms" class="text-primary-500 hover:text-primary-600">Terms of Service</a>.
+                </p>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">2. Information We Collect</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">
+                  We collect only the information necessary to provide our relationship management service:
+                </p>
+                <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+                  <li>Account information (name, email address, google profile picture)</li>
+                  <li>Contact details you add to manage your relationships</li>
+                  <li>Interaction history and notes you create</li>
+                  <li>Contact frequency preferences and relationship levels</li>
+                  <li>Usage analytics for service improvement</li>
+                </ul>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">3. Technical Security Measures</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">
+                  We implement multiple layers of security:
+                </p>
+                <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+                  <li>Row-level security ensuring strict data isolation between users</li>
+                  <li>JWT token verification for all authenticated requests</li>
+                  <li>End-to-end encryption for all data transmissions (TLS 1.3)</li>
+                  <li>Rate limiting to prevent abuse</li>
+                  <li>Regular security audits and monitoring</li>
+                  <li>Robust webhook signature verification for payment processing</li>
+                </ul>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">4. AI Features</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">
+                  Our AI-powered features are designed with privacy in mind:
+                </p>
+                <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+                  <li>AI suggestions are generated based on your interaction notes</li>
+                  <li>Your data is processed securely when generating suggestions</li>
+                  <li>We do not use your data to train AI models</li>
+                  <li>You can report any inappropriate suggestions through our built-in reporting system</li>
+                  <li>You can disable AI features in Settings</li>
+                </ul>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">5. Data Storage</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  Your data is stored securely in the EU region using Supabase's infrastructure, which provides:
+                </p>
+                <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+                  <li>Encrypted database backups</li>
+                  <li>UUID-based data tracking for enhanced privacy</li>
+                  <li>Strict access controls and authentication</li>
+                  <li>Automated backup systems</li>
+                  <li>Detailed error logging and monitoring</li>
+                </ul>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">6. User Controls</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  You have complete control over your data:
+                </p>
+                <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+                  <li>Access and modify your personal information</li>
+                  <li>Report inappropriate AI suggestions</li>
+                  <li>Manage notification preferences</li>
+                  <li>Delete your account and data instantly</li>
+                  <li>Control contact frequency settings</li>
+                </ul>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">7. Data Usage</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  We use your information solely to:
+                </p>
+                <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+                  <li>Provide our relationship management services</li>
+                  <li>Send relevant reminders based on your preferences</li>
+                  <li>Generate personalised interaction suggestions</li>
+                  <li>Improve service performance and reliability</li>
+                  <li>Protect against misuse and abuse</li>
+                </ul>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">8. Data Deletion</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  When you delete your account:
+                </p>
+                <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+                  <li>All your data is immediately and permanently deleted</li>
+                  <li>Authentication tokens are revoked</li>
+                </ul>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">9. Children's Privacy</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  Our service is not directed to children under 13. We do not knowingly collect information from children under 13. If you believe we have collected information from a child under 13, please contact us immediately.
+                </p>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">10. Changes to Privacy Policy</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  We may update this privacy policy to reflect changes in our practices or for legal reasons. We will notify you of any material changes via email and/or a prominent notice in our application before the changes become effective.
+                </p>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">11. Contact Us</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  If you have questions about this Privacy Policy or your data, please visit our <a href="/support" class="text-primary-500 hover:text-primary-600">Support page</a>. We aim to respond to all enquiries within 48 hours.
+                </p>
+              </section>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
-    <script type="module" src="/src/index.tsx"></script>
+    <footer class="text-center pt-2 pb-5 text-gray-600 text-sm">
+      © 2025 TouchBase Technologies
+    </footer>
   </body>
 </html>
