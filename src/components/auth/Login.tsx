@@ -3,6 +3,7 @@ import { InstallModal } from './InstallModal';
 import { UsersSocialProof } from './UsersSocialProof';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../stores/useStore';
+import { Helmet } from 'react-helmet-async';
 import type { User } from '@supabase/supabase-js';
 import { initiateGoogleLogin } from '../../lib/auth/google';
 
@@ -55,6 +56,9 @@ export const Login = () => {
 
   return (
     <div>
+      <Helmet>
+        <link rel="canonical" href="https://touchbase.site" />
+      </Helmet>
       <main role="main" className="min-h-[80vh] flex flex-col items-center justify-center space-y-8 px-4 py-16">
       <div className="text-center space-y-5 max-w-xl">
         <h2 className="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em]">

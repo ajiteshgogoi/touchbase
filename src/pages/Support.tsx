@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 export const Support = () => {
   const navigate = useNavigate();
@@ -11,6 +12,9 @@ export const Support = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      <Helmet>
+        <link rel="canonical" href="https://touchbase.site/support" />
+      </Helmet>
       <div className="flex flex-col items-center w-full">
         <div className="flex items-center justify-center w-full mb-8 relative">
           <button

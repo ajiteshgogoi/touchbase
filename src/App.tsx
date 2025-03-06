@@ -3,6 +3,7 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
+import { HelmetProvider } from 'react-helmet-async';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
@@ -452,46 +453,49 @@ function App() {
   }, [setUser, setIsLoading, setIsPremium]);
 
   return (
-    <ErrorBoundary fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white">
-        <div className="text-2xl font-semibold text-gray-900 mb-4">Application Error</div>
-        <div className="text-base text-gray-600 mb-6 text-center max-w-md">
-          An unexpected error occurred while loading the application. This might be due to network issues or a problem with loading required resources.
+    <ErrorBoundary
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white">
+          <div className="text-2xl font-semibold text-gray-900 mb-4">Application Error</div>
+          <div className="text-base text-gray-600 mb-6 text-center max-w-md">
+            An unexpected error occurred while loading the application. This might be due to network issues or a problem with loading required resources.
+          </div>
+          <div className="flex gap-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            >
+              Retry Loading
+            </button>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = '/login';
+              }}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Reset & Login
+            </button>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            Retry Loading
-          </button>
-          <button
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = '/login';
+      }
+    >
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <SpeedInsights />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
             }}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Reset & Login
-          </button>
-        </div>
-      </div>
-    }>
-      <QueryClientProvider client={queryClient}>
-        <SpeedInsights />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#333',
-              color: '#fff',
-            },
-          }}
-        />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Layout>
-            <Routes>
+          />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Layout>
+              <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
@@ -646,10 +650,11 @@ function App() {
 
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </Layout>
-        </BrowserRouter>
-      </QueryClientProvider>
+              </Routes>
+            </Layout>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }
