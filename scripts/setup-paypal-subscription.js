@@ -79,7 +79,7 @@ const createPlan = async (accessToken, productId, isProduction) => {
           total_cycles: 0, // Infinite cycles
           pricing_scheme: {
             fixed_price: {
-              value: '5',
+              value: '3',
               currency_code: 'USD'
             }
           }

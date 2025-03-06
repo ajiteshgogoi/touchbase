@@ -34,7 +34,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: 'premium',
     name: 'premium',
-    price: 5,
+    price: 3,
     contactLimit: Infinity,
     googlePlayProductId: 'touchbase_premium', // Google Play product ID
     features: [
