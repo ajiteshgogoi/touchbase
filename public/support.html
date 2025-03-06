@@ -28,31 +28,120 @@
     <meta name="twitter:description" content="Get help and assistance with your TouchBase account" />
     <meta name="twitter:image" content="/og.png" />
     
+    <style>
+      :root {
+        --primary-50: #f0f9ff;
+        --primary-100: #e0f2fe;
+        --primary-200: #bae6fd;
+        --primary-300: #7dd3fc;
+        --primary-400: #38bdf8;
+        --primary-500: #0ea5e9;
+        --primary-600: #0284c7;
+        --primary-700: #0369a1;
+        --primary-800: #075985;
+        --primary-900: #0c4a6e;
+        --primary-950: #082f49;
+      }
+      .bg-gradient-to-r {
+        background: linear-gradient(to right, var(--primary-600, #0284c7) 90%, var(--primary-400, #38bdf8) 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+    </style>
+    
     <title>Support - TouchBase</title>
   </head>
   <body class="bg-gray-50">
     <div id="root">
       <!-- Pre-rendered content for SEO -->
-      <div class="max-w-4xl mx-auto space-y-8">
-        <div class="flex flex-col items-center w-full">
-          <div class="text-center">
-            <h1 class="text-4xl sm:text-5xl font-bold text-primary-600">Support</h1>
-            <p class="mt-1.5 text-[15px] text-gray-600">Get help with your TouchBase account</p>
+      <nav class="bg-white/60 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100/50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-14">
+            <div class="flex-1 flex items-center justify-between">
+              <a
+                href="/"
+                class="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200"
+              >
+                <img
+                  src="/icon.svg"
+                  alt="Blue heart icon"
+                  class="h-7 w-7 mr-0.5 group-hover:scale-105 group-hover:brightness-90 transition-all duration-200 translate-y-[5px]"
+                />
+                <span class="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
+                  TouchBase
+                </span>
+              </a>
+            </div>
           </div>
         </div>
-        
-        <!-- Basic support content for SEO -->
-        <div class="bg-white/60 rounded-xl border border-gray-100/50 shadow-soft">
+      </nav>
+
+      <div class="p-8 max-w-4xl mx-auto space-y-8">
+        <div class="flex flex-col items-center w-full">
+          <div class="text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+              <span>Support</span>
+            </h1>
+            <p class="mt-1.5 text-[15px] text-gray-600/90">
+              We're here to help you with any questions
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft divide-y divide-gray-100/50">
           <section class="p-6">
-            <h2 class="text-xl font-semibold text-gray-900">Contact Us</h2>
-            <p class="text-gray-600">
-              Need help with TouchBase? Our team is here to assist you. You can reach us at 
-              support@touchbase.site for any questions or concerns.
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Contact Information</h2>
+            <div class="space-y-6">
+              <div class="bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 p-5 space-y-4">
+                <div>
+                  <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Company Address</h3>
+                  <p class="text-[15px] leading-relaxed text-gray-600/90">
+                    TouchBase Technologies<br />
+                    24, Lane 2, Basisthapur<br />
+                    Guwahati, Assam<br />
+                    781028<br />
+                    India
+                  </p>
+                </div>
+
+                <div>
+                  <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Phone</h3>
+                  <p class="text-[15px] leading-relaxed">
+                    <a href="tel:[+91-9395877156]" class="text-primary-500 hover:text-primary-600 font-[500]">+91-9395877156</a>
+                  </p>
+                </div>
+
+                <div>
+                  <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Email</h3>
+                  <p class="text-[15px] leading-relaxed">
+                    <a href="mailto:help@touchbase.site" class="text-primary-500 hover:text-primary-600 font-[500]">help@touchbase.site</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Support Hours</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90">
+              Our support team is available Monday through Friday, 9:00 AM to 6:00 PM IST (Indian Standard Time).
+              We aim to respond to all inquiries within 48 hours.
+            </p>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Additional Resources</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90">
+              Check out our <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" class="text-primary-500 hover:text-primary-600 font-[500]">blog</a> for tips and updates.
             </p>
           </section>
         </div>
       </div>
     </div>
-    <script type="module" src="/src/index.tsx"></script>
+    <footer class="text-center pt-2 pb-5 text-gray-600 text-sm">
+      © 2025 TouchBase Technologies
+    </footer>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
