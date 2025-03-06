@@ -8,25 +8,8 @@
     <meta name="theme-color" content="#0EA5E9" />
     <meta name="description" content="TouchBase Support - Get help and assistance with your TouchBase account" />
     
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="TouchBase" />
-    
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="TouchBase Support" />
-    <meta property="og:description" content="Get help and assistance with your TouchBase account" />
-    <meta property="og:image" content="/og.png" />
-    
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="TouchBase Support" />
-    <meta name="twitter:description" content="Get help and assistance with your TouchBase account" />
-    <meta name="twitter:image" content="/og.png" />
+    <!-- Tailwind and Custom Styles -->
+    <link href="/src/index.css" rel="stylesheet">
     
     <style>
       :root {
@@ -50,93 +33,116 @@
       }
     </style>
     
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TouchBase" />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="TouchBase Support" />
+    <meta property="og:description" content="Get help and assistance with your TouchBase account" />
+    <meta property="og:image" content="/og.png" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TouchBase Support" />
+    <meta name="twitter:description" content="Get help and assistance with your TouchBase account" />
+    <meta name="twitter:image" content="/og.png" />
+    
     <title>Support - TouchBase</title>
   </head>
   <body class="bg-gray-50">
     <div id="root">
-      <!-- Pre-rendered content for SEO -->
-      <nav class="bg-white/60 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100/50">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-14">
-            <div class="flex-1 flex items-center justify-between">
-              <a
-                href="/"
-                class="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200"
-              >
-                <img
-                  src="/icon.svg"
-                  alt="Blue heart icon"
-                  class="h-7 w-7 mr-0.5 group-hover:scale-105 group-hover:brightness-90 transition-all duration-200 translate-y-[5px]"
-                />
-                <span class="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
-                  TouchBase
-                </span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div class="p-8 max-w-4xl mx-auto space-y-8">
-        <div class="flex flex-col items-center w-full">
-          <div class="text-center">
-            <h1 class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
-              <span>Support</span>
-            </h1>
-            <p class="mt-1.5 text-[15px] text-gray-600/90">
-              We're here to help you with any questions
-            </p>
-          </div>
-        </div>
-
-        <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft divide-y divide-gray-100/50">
-          <section class="p-6">
-            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Contact Information</h2>
-            <div class="space-y-6">
-              <div class="bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 p-5 space-y-4">
-                <div>
-                  <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Company Address</h3>
-                  <p class="text-[15px] leading-relaxed text-gray-600/90">
-                    TouchBase Technologies<br />
-                    24, Lane 2, Basisthapur<br />
-                    Guwahati, Assam<br />
-                    781028<br />
-                    India
-                  </p>
-                </div>
-
-                <div>
-                  <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Phone</h3>
-                  <p class="text-[15px] leading-relaxed">
-                    <a href="tel:[+91-9395877156]" class="text-primary-500 hover:text-primary-600 font-[500]">+91-9395877156</a>
-                  </p>
-                </div>
-
-                <div>
-                  <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Email</h3>
-                  <p class="text-[15px] leading-relaxed">
-                    <a href="mailto:help@touchbase.site" class="text-primary-500 hover:text-primary-600 font-[500]">help@touchbase.site</a>
-                  </p>
-                </div>
+      <div>
+        <nav class="bg-white/60 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100/50">
+          <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14">
+              <div class="flex-1 flex items-center justify-between">
+                <a
+                  href="/"
+                  class="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200"
+                >
+                  <img
+                    src="/icon.svg"
+                    alt="Blue heart icon"
+                    class="h-7 w-7 mr-0.5 group-hover:scale-105 group-hover:brightness-90 transition-all duration-200 translate-y-[5px]"
+                  />
+                  <span class="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
+                    TouchBase
+                  </span>
+                </a>
               </div>
             </div>
-          </section>
+          </div>
+        </nav>
 
-          <section class="p-6">
-            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Support Hours</h2>
-            <p class="text-[15px] leading-relaxed text-gray-600/90">
-              Our support team is available Monday through Friday, 9:00 AM to 6:00 PM IST (Indian Standard Time).
-              We aim to respond to all inquiries within 48 hours.
-            </p>
-          </section>
+        <main role="main" class="min-h-[80vh] flex flex-col px-4 py-8">
+          <div class="max-w-4xl mx-auto space-y-8 w-full">
+            <div class="flex flex-col items-center w-full">
+              <div class="text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+                  <span>Support</span>
+                </h1>
+                <p class="mt-1.5 text-[15px] text-gray-600/90">
+                  We're here to help you with any questions
+                </p>
+              </div>
+            </div>
 
-          <section class="p-6">
-            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Additional Resources</h2>
-            <p class="text-[15px] leading-relaxed text-gray-600/90">
-              Check out our <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" class="text-primary-500 hover:text-primary-600 font-[500]">blog</a> for tips and updates.
-            </p>
-          </section>
-        </div>
+            <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft divide-y divide-gray-100/50">
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Contact Information</h2>
+                <div class="space-y-6">
+                  <div class="bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 p-5 space-y-4">
+                    <div>
+                      <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Company Address</h3>
+                      <p class="text-[15px] leading-relaxed text-gray-600/90">
+                        TouchBase Technologies<br />
+                        24, Lane 2, Basisthapur<br />
+                        Guwahati, Assam<br />
+                        781028<br />
+                        India
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Phone</h3>
+                      <p class="text-[15px] leading-relaxed">
+                        <a href="tel:[+91-9395877156]" class="text-primary-500 hover:text-primary-600 font-[500]">+91-9395877156</a>
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 class="text-lg font-[600] text-gray-900/90 mb-2">Email</h3>
+                      <p class="text-[15px] leading-relaxed">
+                        <a href="mailto:help@touchbase.site" class="text-primary-500 hover:text-primary-600 font-[500]">help@touchbase.site</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Support Hours</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  Our support team is available Monday through Friday, 9:00 AM to 6:00 PM IST (Indian Standard Time).
+                  We aim to respond to all inquiries within 48 hours.
+                </p>
+              </section>
+
+              <section class="p-6">
+                <h2 class="text-xl font-[600] text-gray-900/90 mb-4">Additional Resources</h2>
+                <p class="text-[15px] leading-relaxed text-gray-600/90">
+                  Check out our <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" class="text-primary-500 hover:text-primary-600 font-[500]">blog</a> for tips and updates.
+                </p>
+              </section>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
     <footer class="text-center pt-2 pb-5 text-gray-600 text-sm">
