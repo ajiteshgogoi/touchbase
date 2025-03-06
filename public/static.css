@@ -44,3 +44,8 @@ html, body {
   -webkit-background-clip: text;
   color: transparent;
 }
+
+/* Navbar icon alignment */
+.translate-y-\[5px\] {
+  transform: translateY(5px);
+}
