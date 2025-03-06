@@ -42,6 +42,32 @@
       }
     },
     {
+      "src": "/(login|terms|privacy|support)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(googlebot|bingbot|yandexbot|duckduckbot|slurp|ahrefs|semrushbot|mj12bot|baiduspider).*"
+        }
+      ],
+      "dest": "/$1.html"
+    },
+    {
+      "src": "^/?$",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(googlebot|bingbot|yandexbot|duckduckbot|slurp|ahrefs|semrushbot|mj12bot|baiduspider).*"
+        }
+      ],
+      "dest": "/login.html"
+    },
+    {
+      "src": "/(login|terms|privacy|support)\\.html",
+      "headers": { "cache-control": "public, max-age=3600" }
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
