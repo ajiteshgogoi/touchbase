@@ -28,31 +28,184 @@
     <meta name="twitter:description" content="Terms of Service for TouchBase - Your personal relationship management tool" />
     <meta name="twitter:image" content="/og.png" />
     
+    <style>
+      :root {
+        --primary-50: #f0f9ff;
+        --primary-100: #e0f2fe;
+        --primary-200: #bae6fd;
+        --primary-300: #7dd3fc;
+        --primary-400: #38bdf8;
+        --primary-500: #0ea5e9;
+        --primary-600: #0284c7;
+        --primary-700: #0369a1;
+        --primary-800: #075985;
+        --primary-900: #0c4a6e;
+        --primary-950: #082f49;
+      }
+      .bg-gradient-to-r {
+        background: linear-gradient(to right, var(--primary-600, #0284c7) 90%, var(--primary-400, #38bdf8) 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+    </style>
+    
     <title>Terms of Service - TouchBase</title>
   </head>
   <body class="bg-gray-50">
     <div id="root">
-      <!-- Pre-rendered content for SEO -->
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="flex flex-col items-center w-full">
           <div class="text-center">
-            <h1 class="text-4xl sm:text-5xl font-bold text-primary-600">Terms of Service</h1>
-            <p class="mt-1.5 text-[15px] text-gray-600">Please read these terms carefully before using TouchBase</p>
+            <h1 class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+              <span>Terms of</span>
+              <span class="sm:ml-2">Service</span>
+            </h1>
+            <p class="mt-1.5 text-[15px] text-gray-600/90">
+              Please read these terms carefully before using TouchBase
+            </p>
           </div>
         </div>
-        
-        <!-- Basic terms content for SEO -->
-        <div class="bg-white/60 rounded-xl border border-gray-100/50 shadow-soft">
+
+        <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft divide-y divide-gray-100/50">
           <section class="p-6">
-            <h2 class="text-xl font-semibold text-gray-900">Introduction</h2>
-            <p class="text-gray-600">
-              TouchBase is a relationship management tool designed to help you maintain meaningful connections. 
-              By accessing and using TouchBase, you agree to be bound by these Terms of Service and our Privacy Policy.
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">1. Introduction</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90">
+              TouchBase is a relationship management tool designed to help you maintain meaningful connections. By accessing and using TouchBase, you agree to be bound by these Terms of Service and our <a href="/privacy" class="text-primary-500 hover:text-primary-600">Privacy Policy</a>. If you do not agree with any of these terms, please do not use the service.
+            </p>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">2. Use License</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-4">
+              Subject to your compliance with these Terms, TouchBase grants you a personal, non-exclusive, non-transferable license to use our service for managing your personal relationships. This license is for personal, non-commercial use only.
+            </p>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">You agree not to:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>Use the service for commercial purposes</li>
+              <li>Attempt to access other users' data</li>
+              <li>Reverse engineer or modify the application</li>
+              <li>Use automated systems to access the service</li>
+              <li>Circumvent security measures</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">3. User Account Security</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">As a TouchBase user, you are responsible for:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>Maintaining the confidentiality of your account credentials</li>
+              <li>All activities occurring under your account</li>
+              <li>Using strong, unique passwords</li>
+              <li>Reporting any unauthorized access immediately</li>
+              <li>Ensuring secure access to the service</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">4. Contact Information</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">When managing contacts in TouchBase:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>You confirm you have the right to store their information</li>
+              <li>You will maintain data accuracy and update as needed</li>
+              <li>You will promptly remove information when no longer needed</li>
+              <li>You will not use contact information for marketing or spam</li>
+              <li>You accept responsibility for appropriate data handling</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">5. AI Features</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">Regarding our AI-powered features:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>AI suggestions are for assistance only, not professional advice</li>
+              <li>Suggestions are based on your interaction notes and patterns</li>
+              <li>You can report inappropriate suggestions using the built-in reporting system</li>
+              <li>You can disable AI features in Settings</li>
+              <li>We review all reported suggestions to improve the service</li>
+              <li>TouchBase is not liable for AI suggestion outcomes</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">6. Data Security</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">Your responsibilities regarding data security:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>Use the service on secure devices and networks</li>
+              <li>Keep your access credentials confidential</li>
+              <li>Report security concerns promptly</li>
+              <li>Log out from shared devices</li>
+              <li>Enable two-factor authentication when available</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">7. Service Reliability</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">TouchBase implements several measures to ensure service reliability:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>Regular system maintenance and updates</li>
+              <li>Performance monitoring and optimization</li>
+              <li>Automated backup systems</li>
+              <li>Rate limiting to prevent abuse</li>
+              <li>Error tracking and resolution</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">8. Service Modifications</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">TouchBase reserves the right to:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>Modify or discontinue features with notice</li>
+              <li>Update the service to improve security</li>
+              <li>Change pricing with 30 days notice</li>
+              <li>Limit service access for policy violations</li>
+              <li>Implement new security measures</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">9. Cancellation and Refund Policy</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">When you cancel your subscription:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>You will continue to have access to all subscription benefits until the end of your current billing period</li>
+              <li>Your subscription will not auto-renew for the next billing period</li>
+              <li>No partial refunds will be provided for the remaining subscription period</li>
+              <li>Refunds are only considered under exceptional circumstances, at TouchBase's sole discretion</li>
+              <li>All refund decisions made by TouchBase are final</li>
+            </ul>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">10. Account Termination</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90 mb-2">TouchBase may terminate accounts that:</p>
+            <ul class="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
+              <li>Violate these Terms of Service</li>
+              <li>Misuse contact information</li>
+              <li>Engage in prohibited activities</li>
+              <li>Create security risks</li>
+              <li>Attempt to circumvent limitations</li>
+            </ul>
+            <p class="mt-4 text-[15px] leading-relaxed text-gray-600/90">
+              Upon account deletion, all your data is immediately and permanently removed from our systems.
+            </p>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">11. Changes to Terms</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90">
+              We may update these Terms of Service to reflect changes in our practices or for legal reasons. We will notify you of any material changes via email and/or a prominent notice in our application before the changes become effective.
+            </p>
+          </section>
+
+          <section class="p-6">
+            <h2 class="text-xl font-[600] text-gray-900/90 mb-4">12. Contact Information</h2>
+            <p class="text-[15px] leading-relaxed text-gray-600/90">
+              For questions about these Terms of Service or to report violations, please visit our <a href="/support" class="text-primary-500 hover:text-primary-600">Support page</a>. We aim to respond to all enquiries within 48 hours.
             </p>
           </section>
         </div>
       </div>
     </div>
-    <script type="module" src="/src/index.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
