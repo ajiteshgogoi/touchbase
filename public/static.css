@@ -9,6 +9,7 @@
 /* Ensure consistent scrollbar width */
 :root {
   --scrollbar-width: 0px;
+  /* Primary colors */
   --primary-50: #f0f9ff;
   --primary-100: #e0f2fe;
   --primary-200: #bae6fd;
@@ -20,7 +21,21 @@
   --primary-800: #075985;
   --primary-900: #0c4a6e;
   --primary-950: #082f49;
+  /* Gray colors */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-900: #111827;
 }
+
+/* Custom opacity classes */
+.bg-white\/60 { background-color: rgba(255, 255, 255, 0.6); }
+.bg-gray-50\/80 { background-color: rgba(249, 250, 251, 0.8); }
+.border-gray-100\/50 { border-color: rgba(243, 244, 246, 0.5); }
+.text-gray-600\/90 { color: rgba(75, 85, 99, 0.9); }
+.text-gray-900\/90 { color: rgba(17, 24, 39, 0.9); }
+.hover\:bg-gray-50\/50:hover { background-color: rgba(249, 250, 251, 0.5); }
 
 /* Prevent layout shifts */
 html, body {
