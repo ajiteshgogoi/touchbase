@@ -1,14 +1,6 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-
-function addCorsHeaders(headers: Headers = new Headers()) {
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  return headers;
-}
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 interface CheckDuplicateRequest {
   name: string;
@@ -23,7 +15,7 @@ serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     console.log('Handling OPTIONS request:', { requestId });
-    return new Response('ok', { headers: addCorsHeaders() });
+    return handleOptions();
   }
 
   try {
@@ -34,12 +26,9 @@ serve(async (req) => {
     // Input validation
     if (!name || !user_id) {
       console.log('Invalid request - missing required fields:', { requestId, name: !!name, userId: !!user_id });
-      return new Response(
-        JSON.stringify({ error: 'Name and user_id are required' }),
-        {
-          status: 400,
-          headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-        }
+      return createResponse(
+        { error: 'Name and user_id are required' },
+        { status: 400 }
       );
     }
 
@@ -78,12 +67,9 @@ serve(async (req) => {
         details: error.details,
         hint: error.hint
       });
-      return new Response(
-        JSON.stringify({ error: 'Error checking for duplicates' }),
-        {
-          status: 500,
-          headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-        }
+      return createResponse(
+        { error: 'Error checking for duplicates' },
+        { status: 500 }
       );
     }
 
@@ -95,15 +81,10 @@ serve(async (req) => {
       duplicates: existingContacts.map(c => ({ id: c.id, name: c.name }))
     });
 
-    return new Response(
-      JSON.stringify({
-        hasDuplicate: existingContacts.length > 0,
-        duplicates: existingContacts
-      }),
-      {
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-      }
-    );
+    return createResponse({
+      hasDuplicate: existingContacts.length > 0,
+      duplicates: existingContacts
+    });
 
   } catch (error) {
     console.error('Duplicate check error:', {
@@ -112,12 +93,9 @@ serve(async (req) => {
       stack: error.stack,
       type: error.name
     });
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-      }
+    return createResponse(
+      { error: error.message },
+      { status: 500 }
     );
   }
 });
