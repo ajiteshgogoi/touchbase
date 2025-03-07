@@ -11,6 +11,7 @@ import {
   HeartIcon,
   StarIcon
 } from '@heroicons/react/24/outline/esm/index.js';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { contactsService } from '../../services/contacts';
 import { contentReportsService } from '../../services/content-reports';
 import { useStore } from '../../stores/useStore';
@@ -48,24 +49,15 @@ export const RecentContacts = () => {
     return acc;
   }, {} as Record<string, ImportantEvent[]>) || {};
 
+  const [deletingContactId, setDeletingContactId] = useState<string | null>(null);
+
   const handleDeleteContact = async (contactId: string) => {
     if (confirm('Are you sure you want to delete this contact?')) {
       try {
+        setDeletingContactId(contactId);
         await contactsService.deleteContact(contactId);
         
-        // Optimistically update the contacts list
-        queryClient.setQueryData(['contacts'], (old: Contact[] | undefined) =>
-          old ? old.filter(contact => contact.id !== contactId) : []
-        );
-        
-        // Optimistically update the total count for free users
-        if (!isPremium && !isOnTrial) {
-          queryClient.setQueryData(['contactsCount'], (old: number | undefined) =>
-            old !== undefined ? old - 1 : undefined
-          );
-        }
-        
-        // Then trigger background refetch to ensure data consistency
+        // Directly invalidate queries to fetch fresh data
         await Promise.all([
           queryClient.invalidateQueries({
             queryKey: ['contacts'],
@@ -82,17 +74,8 @@ export const RecentContacts = () => {
         ]);
       } catch (error) {
         console.error('Error deleting contact:', error);
-        // Refetch on error to restore correct state
-        await Promise.all([
-          queryClient.invalidateQueries({
-            queryKey: ['contacts'],
-            exact: true
-          }),
-          queryClient.invalidateQueries({
-            queryKey: ['contactsCount'],
-            exact: true
-          })
-        ]);
+      } finally {
+        setDeletingContactId(null);
       }
     }
   };
@@ -186,10 +169,23 @@ export const RecentContacts = () => {
                               </Link>
                               <button
                                 onClick={() => handleDeleteContact(contact.id)}
-                                className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete contact"
+                                disabled={deletingContactId === contact.id}
+                                className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
+                                  deletingContactId === contact.id
+                                  ? 'text-gray-400 bg-gray-100'
+                                  : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                                }`}
+                                title={deletingContactId === contact.id ? 'Deleting contact...' : 'Delete contact'}
                               >
-                                <TrashIcon className="h-4 w-4" />
+                                {deletingContactId === contact.id ? (
+                                  <div className="h-4 w-4 flex items-center justify-center">
+                                    <div className="transform scale-50 -m-2">
+                                      <LoadingSpinner />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <TrashIcon className="h-4 w-4" />
+                                )}
                               </button>
                             </div>
                           </div>
