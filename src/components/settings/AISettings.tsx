@@ -31,7 +31,7 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
               Advanced AI Suggestions
             </label>
             <p className={`text-sm mt-1 ${canUseAIFeatures ? 'text-gray-600/90' : 'text-gray-400'}`}>
-              Get AI-powered suggestions for future interactions
+              Get personalised suggestions for future interactions
             </p>
           </div>
           <label className={`relative inline-flex items-center ${canUseAIFeatures ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
