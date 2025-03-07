@@ -3,13 +3,21 @@
  * Combines CORS and security headers consistently across all functions
  */
 
-/** Add CORS headers to provided Headers object or create new one */
-export function addCorsHeaders(headers: Headers = new Headers()): Headers {
+/** Add CORS headers based on function requirements */
+export function addCorsHeaders(headers: Headers = new Headers(), type: 'default' | 'users' = 'default'): Headers {
   headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
+
+  if (type === 'users') {
+    // Users function specific CORS
+    headers.set('Access-Control-Allow-Methods', 'GET, POST');
+    headers.set('Access-Control-Allow-Headers', 'Authorization');
+  } else {
+    // Default CORS (for push-notifications etc)
+    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
+    headers.set('Access-Control-Max-Age', '86400');
+    headers.set('Access-Control-Allow-Credentials', 'true');
+  }
   return headers;
 }
 
@@ -27,14 +35,23 @@ export function addSecurityHeaders(headers: Headers = new Headers()): Headers {
 }
 
 /** Create standard response with all headers */
-export function createResponse(body: unknown, init: ResponseInit = {}): Response {
+export function createResponse(
+  body: unknown,
+  init: ResponseInit = {},
+  type: 'default' | 'users' = 'default'
+): Response {
   const headers = new Headers(init.headers);
-  addCorsHeaders(headers);
-  addSecurityHeaders(headers);
-  
+  addCorsHeaders(headers, type);
+
+  // Always add content-type for json responses
   if (typeof body === 'object') {
     headers.set('Content-Type', 'application/json');
     body = JSON.stringify(body);
+  }
+
+  // Add security headers for non-users endpoints
+  if (type === 'default') {
+    addSecurityHeaders(headers);
   }
 
   return new Response(body as BodyInit, {
