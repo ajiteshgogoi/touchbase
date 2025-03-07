@@ -89,8 +89,6 @@ serve(async (req) => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST',
         'Access-Control-Allow-Headers': 'Authorization',
-        'X-Frame-Options': 'SAMEORIGIN',
-        'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
       },
     });
   }
@@ -107,11 +105,7 @@ serve(async (req) => {
         JSON.stringify({ error: 'Missing batch ID' }),
         { 
           status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Frame-Options': 'SAMEORIGIN',
-            'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
-          }
+          headers: { 'Content-Type': 'application/json' }
         }
       );
     }
@@ -146,13 +140,7 @@ serve(async (req) => {
           hasMore: false,
           message: 'Batch already processed'
         }),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Frame-Options': 'SAMEORIGIN',
-            'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
-          }
-        }
+        { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -168,13 +156,7 @@ serve(async (req) => {
     if (!subscribedUsers?.length) {
       return new Response(
         JSON.stringify({ data: [], hasMore: false }),
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Frame-Options': 'SAMEORIGIN',
-            'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
-          }
-        }
+        { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -370,12 +352,10 @@ serve(async (req) => {
         batchId
       }),
       { 
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'X-Frame-Options': 'SAMEORIGIN',
-          'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
-        }
+          'Access-Control-Allow-Origin': '*'
+        } 
       }
     );
 
@@ -395,11 +375,9 @@ serve(async (req) => {
       }),
       { 
         status: 500,
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'X-Frame-Options': 'SAMEORIGIN',
-          'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
+          'Access-Control-Allow-Origin': '*'
         }
       }
     );

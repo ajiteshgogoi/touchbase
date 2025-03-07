@@ -231,8 +231,6 @@ serve(async (req) => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST',
         'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-        'X-Frame-Options': 'SAMEORIGIN',
-        'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
       },
     });
   }
@@ -246,12 +244,10 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ status: 'healthy' }),
         { 
-          headers: {
+          headers: { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'X-Frame-Options': 'SAMEORIGIN',
-            'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
-          }
+            'Access-Control-Allow-Origin': '*'
+          } 
         }
       );
     }
@@ -283,12 +279,10 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ message: 'Ignored: Not an auth.users event' }),
         { 
-          headers: {
+          headers: { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'X-Frame-Options': 'SAMEORIGIN',
-            'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
-          }
+            'Access-Control-Allow-Origin': '*'
+          } 
         }
       );
     }
@@ -315,9 +309,7 @@ serve(async (req) => {
         { 
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'X-Frame-Options': 'SAMEORIGIN',
-            'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
+            'Access-Control-Allow-Origin': '*'
           }
         }
       );
@@ -338,9 +330,7 @@ serve(async (req) => {
         { 
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'X-Frame-Options': 'SAMEORIGIN',
-            'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
+            'Access-Control-Allow-Origin': '*'
           }
         }
       );
@@ -349,12 +339,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ message: `Ignored: ${payload.type} operation` }),
       { 
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'X-Frame-Options': 'SAMEORIGIN',
-          'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
-        }
+          'Access-Control-Allow-Origin': '*'
+        } 
       }
     );
 
