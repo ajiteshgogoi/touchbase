@@ -182,7 +182,7 @@ export default defineConfig({
     host: true,
     headers: {
       'X-Frame-Options': 'SAMEORIGIN',
-      'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
+      'Content-Security-Policy': "frame-ancestors 'self'"
     }
   },
   preview: {
