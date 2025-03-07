@@ -29,7 +29,6 @@ export function addSecurityHeaders(headers: Headers = new Headers()): Headers {
   headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   return headers;
 }
 

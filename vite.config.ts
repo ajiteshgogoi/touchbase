@@ -186,8 +186,7 @@ export default defineConfig({
       'Permissions-Policy': "vibrate=*, notifications=*, geolocation=self, payment=*, digital-goods=(self \"https://play.google.com\"), camera=self, microphone=self, magnetometer=self, accelerometer=self, gyroscope=self",
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Cross-Origin-Opener-Policy': 'same-origin'
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
     }
   },
   preview: {
@@ -199,8 +198,7 @@ export default defineConfig({
       'Permissions-Policy': "vibrate=*, notifications=*, geolocation=self, payment=*, digital-goods=(self \"https://play.google.com\"), camera=self, microphone=self, magnetometer=self, accelerometer=self, gyroscope=self",
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Cross-Origin-Opener-Policy': 'same-origin'
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
     }
   }
 });
