@@ -187,8 +187,7 @@ export default defineConfig({
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp'
+      'Cross-Origin-Opener-Policy': 'same-origin'
     }
   },
   preview: {
@@ -201,8 +200,7 @@ export default defineConfig({
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp'
+      'Cross-Origin-Opener-Policy': 'same-origin'
     }
   }
 });
