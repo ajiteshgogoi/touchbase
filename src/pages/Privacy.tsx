@@ -40,7 +40,7 @@ export const Privacy = () => {
         <section className="p-6">
           <h2 className="text-xl font-[600] text-gray-900/90 mb-4">1. Our Commitment</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90">
-            TouchBase is built on trust. We understand the sensitive nature of relationship data and implement robust security measures to protect your information. This privacy policy explains our practices and your rights regarding your data. For more information about using our service, please see our <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>.
+            TouchBase is a personal CRM built on trust. We understand the sensitive nature of relationship data and implement robust security measures to protect your information. This privacy policy explains our practices and your rights regarding your data. For more information about using our service, please see our <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>.
           </p>
         </section>
 
@@ -107,11 +107,9 @@ export const Privacy = () => {
             You have complete control over your data:
           </p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
-            <li>Access and modify your personal information</li>
+            <li>Access and modify your stored data</li>
             <li>Report inappropriate AI suggestions</li>
-            <li>Manage notification preferences</li>
             <li>Delete your account and data instantly</li>
-            <li>Control contact frequency settings</li>
           </ul>
         </section>
 
