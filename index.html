@@ -5,7 +5,7 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- Instagram Browser Handling -->
-    <script nonce="<%- nonce %>">
+    <script>
       (function() {
         // Initial setup with fallbacks
         window.__TB = { ready: false };
@@ -135,7 +135,7 @@
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     
     <!-- Schema.org markup -->
-    <script type="application/ld+json" nonce="<%- nonce %>">
+    <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
@@ -211,6 +211,6 @@
       <!-- Fallback content for SEO -->
       <h1 class="sr-only">TouchBase — Stay connected with the people who matter most</h1>
     </div>
-    <script type="module" src="/src/index.tsx" nonce="<%- nonce %>"></script>
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

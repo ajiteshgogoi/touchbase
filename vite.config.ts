@@ -1,7 +1,4 @@
 import { defineConfig } from 'vite';
-import crypto from 'crypto';
-import type { Connect } from 'vite';
-import type { ServerResponse, IncomingMessage } from 'http';
 import react from '@vitejs/plugin-react-swc';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
@@ -118,83 +115,13 @@ export default defineConfig({
     {
       name: 'configure-service-worker',
       configureServer(server) {
-        // Store nonces in a Map with request ID as key
-        const nonces = new Map<string, string>();
-        
         server.middlewares.use((req, res, next) => {
-          // Generate request ID and nonce
-          const requestId = crypto.randomBytes(16).toString('hex');
-          const nonce = crypto.randomBytes(16).toString('base64');
-          nonces.set(requestId, nonce);
-
-          // Set request ID in header for client reference
-          res.setHeader('X-Request-ID', requestId);
-
           if (req.url?.endsWith('firebase-messaging-sw.js')) {
             res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
           }
           if (req.url?.endsWith('manifest.json')) {
             res.setHeader('Content-Type', 'application/manifest+json');
           }
-          
-          // Update CSP header with nonce
-          const cspHeader = server.config.server?.headers?.['Content-Security-Policy'] as string;
-          if (cspHeader) {
-            res.setHeader('Content-Security-Policy',
-              cspHeader.replace('${nonce}', nonce)
-            );
-          }
-
-          // Clean up nonce after response
-          res.on('finish', () => {
-            nonces.delete(requestId);
-          });
-
-          next();
-        });
-
-        // Transform HTML to inject nonces
-        server.middlewares.use((req, res, next) => {
-          const originalWrite = res.write;
-          const originalEnd = res.end;
-          const chunks: Buffer[] = [];
-
-          // Capture the response
-          res.write = function(chunk: any) {
-            chunks.push(Buffer.from(chunk));
-            return true;
-          };
-
-          res.end = function(
-            this: ServerResponse,
-            chunk?: any,
-            encoding?: BufferEncoding | (() => void),
-            cb?: () => void
-          ): ServerResponse {
-            if (chunk) {
-              chunks.push(Buffer.from(chunk));
-            }
-
-            const requestId = res.getHeader('X-Request-ID')?.toString();
-            const nonce = requestId ? nonces.get(requestId) : undefined;
-
-            if (nonce && req.url?.endsWith('.html')) {
-              const content = Buffer.concat(chunks).toString('utf8');
-              const injectedContent = content.replace(/nonce="<%- nonce %>"/g, `nonce="${nonce}"`);
-              originalWrite.call(res, injectedContent);
-            } else {
-              chunks.forEach(chunk => originalWrite.call(res, chunk));
-            }
-
-            if (typeof encoding === 'function') {
-              cb = encoding;
-              encoding = undefined;
-            }
-
-            originalEnd.call(res, undefined, encoding as BufferEncoding, cb);
-            return res;
-          };
-
           next();
         });
       }
@@ -255,7 +182,7 @@ export default defineConfig({
     host: true,
     headers: {
       'X-Frame-Options': 'SAMEORIGIN',
-      'Content-Security-Policy': "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.groq.com https://*.brevo.com https://api.brevo.com https://api.openai.com https://api.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseapp.com https://*.appspot.com https://analytics.google.com https://iid-keyserver.googleapis.com https://*.paypal.com https://api-m.paypal.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://play.google.com https://www.gstatic.com/firebasejs/ wss://*.firebaseio.com https://fcmregistrations.googleapis.com ws://localhost:* ws://127.0.0.1:* https://oauth2.googleapis.com https://androidpublisher.googleapis.com https://fcm.googleapis.com https://deno.land https://esm.sh https://cdn.esm.sh; script-src 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://* blob:; font-src 'self' data:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; frame-src https://*.paypal.com https://api-m.paypal.com https://*.firebaseapp.com https://play.google.com; worker-src 'self' blob: https://www.gstatic.com/firebasejs/; child-src 'self' blob:; manifest-src 'self'; media-src 'self'",
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.groq.com https://*.brevo.com https://api.brevo.com https://api.openai.com https://api.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseapp.com https://*.appspot.com https://analytics.google.com https://iid-keyserver.googleapis.com https://*.paypal.com https://api-m.paypal.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://play.google.com https://www.gstatic.com/firebasejs/ wss://*.firebaseio.com https://fcmregistrations.googleapis.com ws://localhost:* ws://127.0.0.1:* https://oauth2.googleapis.com https://androidpublisher.googleapis.com https://fcm.googleapis.com https://deno.land https://esm.sh https://cdn.esm.sh; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://va.vercel-scripts.com https://*.firebaseapp.com https://*.googleapis.com https://www.gstatic.com https://play.google.com https://www.gstatic.com/firebasejs/ https://deno.land https://esm.sh https://cdn.esm.sh; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://* blob:; font-src 'self' data:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; frame-src https://*.paypal.com https://api-m.paypal.com https://*.firebaseapp.com https://play.google.com; worker-src 'self' blob: https://www.gstatic.com/firebasejs/; child-src 'self' blob:; manifest-src 'self'; media-src 'self'",
       'Permissions-Policy': "geolocation=self, payment=*, camera=self, microphone=self, magnetometer=self, accelerometer=self, gyroscope=self",
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
@@ -267,7 +194,7 @@ export default defineConfig({
     host: true,
     headers: {
       'X-Frame-Options': 'SAMEORIGIN',
-      'Content-Security-Policy': "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.groq.com https://*.brevo.com https://api.brevo.com https://api.openai.com https://api.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseapp.com https://*.appspot.com https://analytics.google.com https://iid-keyserver.googleapis.com https://*.paypal.com https://api-m.paypal.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://play.google.com https://www.gstatic.com/firebasejs/ wss://*.firebaseio.com https://fcmregistrations.googleapis.com https://oauth2.googleapis.com https://androidpublisher.googleapis.com https://fcm.googleapis.com https://deno.land https://esm.sh https://cdn.esm.sh; script-src 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://* blob:; font-src 'self' data:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; frame-src https://*.paypal.com https://api-m.paypal.com https://*.firebaseapp.com https://play.google.com; worker-src 'self' blob: https://www.gstatic.com/firebasejs/; child-src 'self' blob:; manifest-src 'self'; media-src 'self'",
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.groq.com https://*.brevo.com https://api.brevo.com https://api.openai.com https://api.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseapp.com https://*.appspot.com https://analytics.google.com https://iid-keyserver.googleapis.com https://*.paypal.com https://api-m.paypal.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://play.google.com https://www.gstatic.com/firebasejs/ wss://*.firebaseio.com https://fcmregistrations.googleapis.com https://oauth2.googleapis.com https://androidpublisher.googleapis.com https://fcm.googleapis.com https://deno.land https://esm.sh https://cdn.esm.sh; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://va.vercel-scripts.com https://*.firebaseapp.com https://*.googleapis.com https://www.gstatic.com https://play.google.com https://www.gstatic.com/firebasejs/ https://deno.land https://esm.sh https://cdn.esm.sh; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://* blob:; font-src 'self' data:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; frame-src https://*.paypal.com https://api-m.paypal.com https://*.firebaseapp.com https://play.google.com; worker-src 'self' blob: https://www.gstatic.com/firebasejs/; child-src 'self' blob:; manifest-src 'self'; media-src 'self'",
       'Permissions-Policy': "geolocation=self, payment=*, camera=self, microphone=self, magnetometer=self, accelerometer=self, gyroscope=self",
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
