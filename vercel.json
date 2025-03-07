@@ -4,6 +4,14 @@
   "outputDirectory": "dist",
   "routes": [
     {
+      "src": "/(.*)",
+      "headers": {
+        "X-Frame-Options": "SAMEORIGIN",
+        "Content-Security-Policy": "frame-ancestors 'self'"
+      },
+      "continue": true
+    },
+    {
       "src": "/manifest\\.json",
       "dest": "/manifest.json",
       "headers": {

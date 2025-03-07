@@ -7,6 +7,8 @@ function addCorsHeaders(headers: Headers = new Headers()) {
   headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
   headers.set('Access-Control-Max-Age', '86400');
   headers.set('Access-Control-Allow-Credentials', 'true');
+  headers.set('X-Frame-Options', 'SAMEORIGIN');
+  headers.set('Content-Security-Policy', "frame-ancestors 'self'");
   return headers;
 }
 

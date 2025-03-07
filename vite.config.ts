@@ -179,7 +179,11 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    host: true,
+    headers: {
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Content-Security-Policy': "frame-ancestors 'self'"
+    }
   },
   preview: {
     port: 3000,
