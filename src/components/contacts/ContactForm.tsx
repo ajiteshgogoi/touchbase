@@ -261,7 +261,7 @@ export const ContactForm = () => {
               {isEditMode ? 'Edit Contact' : 'Add Contact'}
             </h1>
             <p className="mt-1.5 text-[15px] text-gray-600/90">
-              {isEditMode ? 'Update contact information' : 'Add someone you truly want to stay connected with'}
+              {isEditMode ? 'Update contact information' : 'Add someone you want to stay connected with'}
             </p>
           </div>
         </div>
