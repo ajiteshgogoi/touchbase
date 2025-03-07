@@ -77,7 +77,12 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocJbukYoPGchbu29ch6848ocLU5UOjB3V_Xs7qBuPP3mjc8anA=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocLAAdWL4Oan1KG0J0ueR3UuWT15nQ5_kwdySVtov9adOojV1g=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocLuYJgHr3XXbfSCdnyEvQFO1GZuGaHvpd9LSiYT2wFHR7yjneo=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocKWOZcgvnzlIWG_YL7z23XsZOSCW5VgU00DUYmFuX47AILgzdw=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocKWOZcgvnzlIWG_YL7z23XsZOSCW5VgU00DUYmFuX47AILgzdw=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocLg8xckEclzFUwQL8Z06J4Tj8aOCJWcICzEflxaACp6VgYQXg=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocIEDpcnYPI2asuuQCzurwCaZoUN6E_Pox2yB_Fg8A30izZFVg=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocKHNZCZJ6qtGFXxwq210kKox_gggm6xneaMDC4FqdtVoofi0hQ=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJHM2mmFk7DvpI99AU35Bq9zQJAUOxkFu9zdFKkDps_MfTM5Q=s96-c'
+
     ];
 
     // Map users to get their metadata
