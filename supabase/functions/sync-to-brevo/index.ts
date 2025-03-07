@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -226,13 +227,7 @@ serve(async (req) => {
   });
 
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST',
-        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-      },
-    });
+    return handleOptions();
   }
 
   try {
@@ -241,15 +236,7 @@ serve(async (req) => {
     }
 
     if (req.method === 'GET') {
-      return new Response(
-        JSON.stringify({ status: 'healthy' }),
-        { 
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          } 
-        }
-      );
+      return createResponse({ status: 'healthy' });
     }
 
     const rawBody = await req.text();
@@ -276,15 +263,7 @@ serve(async (req) => {
 
     if (payload.schema !== 'auth' || payload.table !== 'users') {
       console.log('Ignoring webhook - not an auth.users event');
-      return new Response(
-        JSON.stringify({ message: 'Ignored: Not an auth.users event' }),
-        { 
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          } 
-        }
-      );
+      return createResponse({ message: 'Ignored: Not an auth.users event' });
     }
 
     if (payload.type === 'INSERT') {
@@ -299,20 +278,13 @@ serve(async (req) => {
 
       const result = await addContactToBrevo(payload.record);
 
-      return new Response(
-        JSON.stringify({ 
-          message: 'User successfully added to active list in Brevo',
-          userId: payload.record.id,
-          brevoId: result.id,
-          list: ACTIVE_USERS_LIST
-        }),
-        { 
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        }
-      );
+      return createResponse({ 
+        message: 'User successfully added to active list in Brevo',
+        userId: payload.record.id,
+        brevoId: result.id,
+        list: ACTIVE_USERS_LIST
+      });
+
     } else if (payload.type === 'DELETE' && payload.old_record) {
       console.log('Processing user deletion:', {
         userId: payload.old_record.id,
@@ -321,30 +293,14 @@ serve(async (req) => {
 
       await unsubscribeContactFromBrevo(payload.old_record.email);
 
-      return new Response(
-        JSON.stringify({ 
-          message: 'User successfully moved to deleted list in Brevo',
-          email: payload.old_record.email,
-          list: DELETED_USERS_LIST
-        }),
-        { 
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        }
-      );
+      return createResponse({ 
+        message: 'User successfully moved to deleted list in Brevo',
+        email: payload.old_record.email,
+        list: DELETED_USERS_LIST
+      });
     }
 
-    return new Response(
-      JSON.stringify({ message: `Ignored: ${payload.type} operation` }),
-      { 
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        } 
-      }
-    );
+    return createResponse({ message: `Ignored: ${payload.type} operation` });
 
   } catch (error) {
     console.error('Error in sync-to-brevo function:', {
@@ -352,18 +308,12 @@ serve(async (req) => {
       stack: error.stack
     });
 
-    return new Response(
-      JSON.stringify({ 
+    return createResponse(
+      { 
         error: error.message,
         details: error.stack
-      }),
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      }
+      },
+      { status: 500 }
     );
   }
 });
