@@ -182,7 +182,7 @@ export default defineConfig({
     host: true,
     headers: {
       'X-Frame-Options': 'SAMEORIGIN',
-      'Content-Security-Policy': "frame-ancestors 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; require-trusted-types-for 'script'"
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.groq.com https://*.brevo.com https://api.openai.com https://firebase.googleapis.com https://fcm.googleapis.com https://oauth2.googleapis.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://* blob:; font-src 'self' data:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
     }
   },
   preview: {
