@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verify } from "https://deno.land/x/djwt@v2.8/mod.ts";
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 interface PayPalWebhookEvent {
   id: string;
@@ -51,14 +52,6 @@ function getSubscriptionId(event: PayPalWebhookEvent): string {
   return subscriptionId;
 }
 
-function addCorsHeaders(headers: Headers = new Headers()) {
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', '*');
-  headers.set('Access-Control-Allow-Headers', '*');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  return headers;
-}
 
 async function verifyPayPalWebhookSignature(
   transmissionId: string | null,
@@ -229,14 +222,14 @@ serve(async (req) => {
   try {
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
-      return new Response('ok', { headers: addCorsHeaders() });
+      return handleOptions();
     }
 
     if (req.method !== 'POST') {
       console.log('[PayPal Webhook] Invalid method:', req.method);
-      return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { status: 405, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      return createResponse(
+        { error: 'Method not allowed' },
+        { status: 405 }
       );
     }
 
@@ -253,9 +246,9 @@ serve(async (req) => {
     if (!webhookId) {
       const error = new Error('PAYPAL_WEBHOOK_ID not configured');
       console.error('[PayPal Webhook] Missing PAYPAL_WEBHOOK_ID environment variable');
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 500, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      return createResponse(
+        { error: error.message },
+        { status: 500 }
       );
     }
 
@@ -276,9 +269,9 @@ serve(async (req) => {
     if (missingHeaders.length > 0) {
       const error = new Error(`Missing required PayPal headers: ${missingHeaders.join(', ')}`);
       console.error('[PayPal Webhook] Missing headers:', { missingHeaders });
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 400, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      return createResponse(
+        { error: error.message },
+        { status: 400 }
       );
     }
     const event: PayPalWebhookEvent = JSON.parse(rawBody);
@@ -310,9 +303,9 @@ serve(async (req) => {
 
     if (!isValid) {
       console.error('[PayPal Webhook] Invalid signature');
-      return new Response(
-        JSON.stringify({ error: 'Invalid webhook signature' }),
-        { status: 401, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      return createResponse(
+        { error: 'Invalid webhook signature' },
+        { status: 401 }
       );
     }
 
@@ -328,9 +321,9 @@ serve(async (req) => {
         hasUrl: !!supabaseUrl,
         hasKey: !!supabaseKey
       });
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 500, headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+      return createResponse(
+        { error: error.message },
+        { status: 500 }
       );
     }
 
@@ -549,9 +542,9 @@ serve(async (req) => {
 
     console.log('[PayPal Webhook] Successfully processed event:', event.id);
 
-    return new Response(
-      JSON.stringify({ received: true }),
-      { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
+    return createResponse(
+      { received: true },
+      {}
     );
   } catch (error) {
     // Get detailed error information
@@ -587,17 +580,14 @@ serve(async (req) => {
       headers: Object.fromEntries(req.headers.entries())
     });
     
-    return new Response(
-      JSON.stringify({
+    return createResponse(
+      {
         error: error.message,
         timestamp: new Date().toISOString(),
         requestId: req.headers.get('paypal-transmission-id') || 'unknown',
         status
-      }),
-      {
-        status,
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-      }
+      },
+      { status }
     );
   }
 });
