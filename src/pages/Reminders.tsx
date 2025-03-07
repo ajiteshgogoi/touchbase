@@ -137,7 +137,7 @@ const [quickReminder, setQuickReminder] = useState<{
                 <div>
                   <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Reminders</h1>
                   <p className="mt-1.5 text-[15px] text-gray-600/90">
-                    A little effort keeps relationships strong. See who's due for a check-in.
+                    See who's due for a check-in
                   </p>
                 </div>
               </div>
