@@ -16,6 +16,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -84,13 +85,7 @@ const BATCH_SIZE = 50;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST',
-        'Access-Control-Allow-Headers': 'Authorization',
-      },
-    });
+    return handleOptions();
   }
 
   try {
@@ -100,16 +95,14 @@ serve(async (req) => {
     const isRetry = params.isRetry || false;
     const startIndex = page * BATCH_SIZE;
     
+    
     if (!batchId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing batch ID' }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }
+      return createResponse(
+        { error: 'Missing batch ID' },
+        { status: 400 },
+        'users'
       );
     }
-
     console.log('Starting notification eligibility check', {
       page,
       batchSize: BATCH_SIZE,
@@ -134,13 +127,14 @@ serve(async (req) => {
 
     if (existingNotifications?.length > 0) {
       console.log('Batch already processed:', { batchId });
-      return new Response(
-        JSON.stringify({ 
+      return createResponse(
+        {
           data: [],
           hasMore: false,
           message: 'Batch already processed'
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
+        },
+        {},
+        'users'
       );
     }
 
@@ -154,9 +148,10 @@ serve(async (req) => {
 
     if (subsError) throw subsError;
     if (!subscribedUsers?.length) {
-      return new Response(
-        JSON.stringify({ data: [], hasMore: false }),
-        { headers: { 'Content-Type': 'application/json' } }
+      return createResponse(
+        { data: [], hasMore: false },
+        {},
+        'users'
       );
     }
 
@@ -345,20 +340,16 @@ serve(async (req) => {
       hasMore: subscribedUsers.length === BATCH_SIZE
     });
 
-    return new Response(
-      JSON.stringify({
-        data: eligibleUsers,
-        hasMore: subscribedUsers.length === BATCH_SIZE,
-        batchId
-      }),
-      { 
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        } 
-      }
-    );
-
+    
+        return createResponse(
+          {
+            data: eligibleUsers,
+            hasMore: subscribedUsers.length === BATCH_SIZE,
+            batchId
+          },
+          {},
+          'users'
+        );
   } catch (error) {
     const params = req.method === 'POST' ? await req.json() : {};
     const batchId = params.batchId;
@@ -367,19 +358,16 @@ serve(async (req) => {
       error: error.message,
       stack: error.stack
     });
-    return new Response(
-      JSON.stringify({ 
+    return createResponse(
+      {
         error: error.message,
         details: error.stack,
-        batchId 
-      }),
-      { 
+        batchId
+      },
+      {
         status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      }
+      },
+      'users'
     );
   }
 });
