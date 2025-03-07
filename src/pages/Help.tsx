@@ -52,7 +52,7 @@ export const Help = () => {
       id: 'interactions',
       title: 'Logging Interactions',
       icon: ChatBubbleLeftRightIcon,
-      description: 'Keep track of your conversations and meetings',
+      description: 'Keep track of your conversations',
       content: (
         <>
           <ol className="list-decimal list-inside space-y-2 ml-4">
@@ -218,7 +218,7 @@ export const Help = () => {
               How to Use TouchBase
             </h1>
             <p className="mt-1.5 text-[15px] text-gray-600/90">
-              Learn how to manage your relationships effectively with our comprehensive guide
+              A simple guide to staying connected and nurturing your relationships
             </p>
           </div>
         </div>
