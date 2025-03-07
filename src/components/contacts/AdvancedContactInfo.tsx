@@ -384,7 +384,7 @@ export const AdvancedContactInfo = ({
             onChange={(e) => onChange({ notes: e.target.value.slice(0, 500) })}
             maxLength={500}
             className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-            placeholder="E.g., Friend from school. Loves hiking and photography. Recently started a new job in tech."
+            placeholder="E.g., Friend from school. Loves hiking and photography. We always have the best workouts together."
           />
           <div className="mt-2 flex justify-end">
             <span className="text-sm text-gray-500">
