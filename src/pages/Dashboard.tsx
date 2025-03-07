@@ -53,7 +53,7 @@ export const Dashboard = () => {
           <h1 className="text-2xl font-[650] text-gray-900 tracking-[-0.01em]">
             Welcome back, <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400">{user?.user_metadata?.name?.split(' ')[0] || 'Friend'}</span>
           </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-gray-600/90 font-[450]">
+          <p className="mt-2 text-[15px] text-gray-600/90">
             Here's what's happening with your relationships
           </p>
         </div>
