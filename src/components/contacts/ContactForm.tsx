@@ -261,7 +261,7 @@ export const ContactForm = () => {
               {isEditMode ? 'Edit Contact' : 'Add Contact'}
             </h1>
             <p className="mt-1.5 text-[15px] text-gray-600/90">
-              {isEditMode ? 'Update contact information' : 'Add a new contact to your connections'}
+              {isEditMode ? 'Update contact information' : 'Add someone you truly want to stay connected with'}
             </p>
           </div>
         </div>
@@ -288,9 +288,9 @@ export const ContactForm = () => {
           </div>
           <div>
             <label htmlFor="showAdvanced" className="text-sm font-medium text-gray-700 hover:cursor-pointer">
-              Add detailed information
+              Add more information (optional)
             </label>
-            <p className="text-xs text-gray-500">Optional details to help you remember more about your relationship</p>
+            <p className="text-xs text-gray-500">Add details only if it helps improve your relationship</p>
           </div>
         </div>
 

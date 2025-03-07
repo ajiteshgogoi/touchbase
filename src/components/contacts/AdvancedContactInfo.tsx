@@ -354,21 +354,20 @@ export const AdvancedContactInfo = ({
           {(isPremium || isOnTrial) ? (
             <div className="mb-4 p-4 bg-primary-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-2">
-                Add details that can help maintain the relationship.
+                Add details that can help maintain the connection.
                 Examples:
               </p>
               <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
                 <li>Your relationship with them</li> 
                 <li>Their interests and hobbies</li>              
-                <li>Recent life events or achievements</li>
-                <li>Conversation preferences (topics they enjoy)</li>
+                <li>Conversation topics they enjoy</li>
                 <li>Shared memories or inside jokes</li>
               </ul>
             </div>
           ) : (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-2">
-                Add details that can help maintain the relationship.
+                Add details that can help maintain the connection.
                 <span className="block mt-2">
                   ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">
                     Upgrade to Premium
