@@ -30,7 +30,7 @@ export const Help = () => {
       id: 'contacts',
       title: 'Adding Contacts',
       icon: UserPlusIcon,
-      description: 'Create and manage your contacts effectively',
+      description: 'Create and manage your relationships effectively',
       content: (
         <ol className="list-decimal list-inside space-y-2 ml-4">
           <li>Click the 'Add Contact' button on the dashboard</li>
@@ -174,8 +174,9 @@ export const Help = () => {
       content: (
         <>
           <ul className="list-disc list-inside space-y-2 ml-4">
+            <li>Avoid overwhelm by only adding contacts you truly want to stay connected with</li>
             <li>Set realistic contact frequencies based on your relationship with each person</li>
-            <li>Use the notes section to record important details about your contacts</li>
+            <li>Use the notes section to record important details about your relationships</li>
             <li>Log interactions right after they happen for better tracking</li>
             <li>Check your dashboard regularly to see who you need to connect with</li>
             <li>Add personal context in your notes to make future interactions meaningful</li>
@@ -192,7 +193,7 @@ export const Help = () => {
               </div>
             </div>
             <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-              <strong className="text-primary-700">Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your relationships.
+              <strong className="text-primary-700">Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your most important relationships.
             </div>
           </div>
         </>
