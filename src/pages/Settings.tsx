@@ -366,7 +366,7 @@ export const Settings = () => {
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent leading-tight pb-1">Settings</h1>
             <p className="mt-1 text-[15px] text-gray-600/90">
-              Manage your account preferences and subscription
+              Manage your subscription and account preferences
             </p>
           </div>
         </div>
