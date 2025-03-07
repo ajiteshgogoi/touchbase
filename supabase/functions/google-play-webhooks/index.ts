@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { encode as base64url } from "https://deno.land/std@0.168.0/encoding/base64url.ts";
 import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 // Google Play RTDN notification types
 enum NotificationType {
@@ -246,17 +247,11 @@ serve(async (req) => {
   try {
     // Verify request method
     if (req.method === 'OPTIONS') {
-      return new Response('ok', {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST',
-          'Access-Control-Allow-Headers': 'authorization, content-type',
-        }
-      });
+      return handleOptions();
     }
     
     if (req.method !== 'POST') {
-      return new Response('Method not allowed', { status: 405 });
+      return createResponse({ error: 'Method not allowed' }, { status: 405 });
     }
 
     // Verify the Pub/Sub JWT token
@@ -264,7 +259,7 @@ serve(async (req) => {
       await verifyPubSubJWT(req.headers.get('Authorization'));
     } catch (error) {
       console.error('JWT verification failed:', error);
-      return new Response(`Unauthorized: ${error.message}`, { status: 401 });
+      return createResponse({ error: `Unauthorized: ${error.message}` }, { status: 401 });
     }
 
     // Initialize Supabase client
@@ -275,57 +270,57 @@ serve(async (req) => {
     }
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-   // Get the raw body and parse the Pub/Sub message
-   const rawBody = await req.text();
-   console.log('[Google Play Webhook] Received request:', {
-     timestamp: new Date().toISOString(),
-     bodyLength: rawBody.length,
-     headers: Object.fromEntries(req.headers.entries())
-   });
+    // Get the raw body and parse the Pub/Sub message
+    const rawBody = await req.text();
+    console.log('[Google Play Webhook] Received request:', {
+      timestamp: new Date().toISOString(),
+      bodyLength: rawBody.length,
+      headers: Object.fromEntries(req.headers.entries())
+    });
 
-   let notification: GooglePlayNotification;
-   try {
-     // Parse the Pub/Sub message wrapper
-     const pubSubMessage = JSON.parse(rawBody) as PubSubMessage;
-     console.log('[Google Play Webhook] Parsed Pub/Sub message:', {
-       messageId: pubSubMessage.message.messageId,
-       publishTime: pubSubMessage.message.publishTime,
-       subscription: pubSubMessage.subscription
-     });
+    let notification: GooglePlayNotification;
+    try {
+      // Parse the Pub/Sub message wrapper
+      const pubSubMessage = JSON.parse(rawBody) as PubSubMessage;
+      console.log('[Google Play Webhook] Parsed Pub/Sub message:', {
+        messageId: pubSubMessage.message.messageId,
+        publishTime: pubSubMessage.message.publishTime,
+        subscription: pubSubMessage.subscription
+      });
 
-     if (!pubSubMessage.message?.data) {
-       throw new Error('Invalid Pub/Sub message format');
-     }
+      if (!pubSubMessage.message?.data) {
+        throw new Error('Invalid Pub/Sub message format');
+      }
 
-     // Decode the base64-encoded data
-     const decodedData = atob(pubSubMessage.message.data);
-     
-     // Parse the actual notification
-     notification = JSON.parse(decodedData);
-     console.log('[Google Play Webhook] Parsed notification:', {
-       version: notification.version,
-       packageName: notification.packageName,
-       eventTime: new Date(parseInt(notification.eventTimeMillis)).toISOString(),
-       notificationType: notification.subscriptionNotification?.notificationType,
-       subscriptionId: notification.subscriptionNotification?.subscriptionId
-     });
-   } catch (error) {
-     console.error('[Google Play Webhook] Error parsing message:', {
-       error: error.message,
-       stack: error.stack,
-       timestamp: new Date().toISOString()
-     });
-     return new Response('Invalid message format', { status: 400 });
-   }
+      // Decode the base64-encoded data
+      const decodedData = atob(pubSubMessage.message.data);
+      
+      // Parse the actual notification
+      notification = JSON.parse(decodedData);
+      console.log('[Google Play Webhook] Parsed notification:', {
+        version: notification.version,
+        packageName: notification.packageName,
+        eventTime: new Date(parseInt(notification.eventTimeMillis)).toISOString(),
+        notificationType: notification.subscriptionNotification?.notificationType,
+        subscriptionId: notification.subscriptionNotification?.subscriptionId
+      });
+    } catch (error) {
+      console.error('[Google Play Webhook] Error parsing message:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
+      return createResponse({ error: 'Invalid message format' }, { status: 400 });
+    }
 
-   if (!notification.subscriptionNotification) {
-     console.log('[Google Play Webhook] Ignoring non-subscription notification:', {
-       version: notification.version,
-       packageName: notification.packageName,
-       eventTime: new Date(parseInt(notification.eventTimeMillis)).toISOString()
-     });
-     return new Response('Not a subscription notification', { status: 400 });
-   }
+    if (!notification.subscriptionNotification) {
+      console.log('[Google Play Webhook] Ignoring non-subscription notification:', {
+        version: notification.version,
+        packageName: notification.packageName,
+        eventTime: new Date(parseInt(notification.eventTimeMillis)).toISOString()
+      });
+      return createResponse({ error: 'Not a subscription notification' }, { status: 400 });
+    }
 
     // Get subscription details from Google Play
     const accessToken = await getGoogleAccessToken();
@@ -345,7 +340,7 @@ serve(async (req) => {
 
     if (!subscription) {
       console.error('No subscription found for purchase token:', notification.subscriptionNotification.purchaseToken);
-      return new Response('Subscription not found', { status: 404 });
+      return createResponse({ error: 'Subscription not found' }, { status: 404 });
     }
 
     // Update subscription status based on notification type
@@ -453,7 +448,7 @@ serve(async (req) => {
       newStatus: status,
       tokenNullified: shouldNullifyToken,
       validUntilChanged: 'valid_until' in updateData,
-      validUntil: updateData.valid_until || subscription.valid_until, // Log current valid_until
+      validUntil: updateData.valid_until || subscription.valid_until,
       notificationType: notification.subscriptionNotification.notificationType
     });
 
@@ -465,7 +460,7 @@ serve(async (req) => {
     });
 
     // Acknowledge the message by returning a success response
-    return new Response('OK', { status: 200 });
+    return createResponse({ message: 'OK' });
   } catch (error) {
     // Get detailed error information
     const errorDetails = {
@@ -497,18 +492,13 @@ serve(async (req) => {
       headers: Object.fromEntries(req.headers.entries())
     });
     
-    return new Response(
-      JSON.stringify({
+    return createResponse(
+      {
         error: error.message,
         timestamp: new Date().toISOString(),
         status
-      }),
-      {
-        status,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+      },
+      { status }
     );
   }
 });
