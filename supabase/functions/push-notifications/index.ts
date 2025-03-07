@@ -12,6 +12,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -459,7 +460,7 @@ serve(async (req) => {
   let requestData;
   try {
     if (req.method === 'OPTIONS') {
-      return new Response('ok', { headers: addCorsHeaders() });
+      return handleOptions();
     }
 
     const url = new URL(req.url);
@@ -467,12 +468,9 @@ serve(async (req) => {
 
     // Validate batch ID (required for base endpoint only)
     if (url.pathname === '/push-notifications' && !requestData.batchId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing batch ID' }),
-        {
-          status: 400,
-          headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-        }
+      return createResponse(
+        { error: 'Missing batch ID' },
+        { status: 400 }
       );
     }
 
@@ -484,12 +482,9 @@ serve(async (req) => {
       console.log('Processing test notification:', { userId, testBatchId });
 
       if (!userId) {
-        return new Response(
-          JSON.stringify({ error: 'Missing user ID' }),
-          {
-            status: 400,
-            headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-          }
+        return createResponse(
+          { error: 'Missing user ID' },
+          { status: 400 }
         );
       }
 
@@ -506,13 +501,10 @@ serve(async (req) => {
       );
 
       console.log('Test notification completed:', { userId, testBatchId });
-      return new Response(
-        JSON.stringify({
-          message: 'Test notification sent successfully',
-          batchId: testBatchId
-        }),
-        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
-      );
+      return createResponse({
+        message: 'Test notification sent successfully',
+        batchId: testBatchId
+      });
     }
 
     // Handle FCM token verification
@@ -521,21 +513,17 @@ serve(async (req) => {
       console.log('Verifying FCM token:', { userId });
 
       if (!userId) {
-        return new Response(
-          JSON.stringify({ error: 'Missing user ID' }),
-          {
-            status: 400,
-            headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-          }
+        return createResponse(
+          { error: 'Missing user ID' },
+          { status: 400 }
         );
       }
 
       await getUserData(userId);
 
-      return new Response(
-        JSON.stringify({ message: 'FCM token verified successfully' }),
-        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
-      );
+      return createResponse({
+        message: 'FCM token verified successfully'
+      });
     }
 
     // Handle regular notifications (base endpoint)
@@ -544,12 +532,9 @@ serve(async (req) => {
       console.log('Processing notification:', { userId, windowType, batchId });
 
       if (!userId || !windowType) {
-        return new Response(
-          JSON.stringify({ error: 'Missing user ID or window type' }),
-          {
-            status: 400,
-            headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-          }
+        return createResponse(
+          { error: 'Missing user ID or window type' },
+          { status: 400 }
         );
       }
 
@@ -574,22 +559,16 @@ serve(async (req) => {
       );
 
       console.log('Notification processing completed:', { userId, windowType, batchId });
-      return new Response(
-        JSON.stringify({
-          message: 'Notification sent successfully',
-          batchId,
-          window: windowType
-        }),
-        { headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })) }
-      );
+      return createResponse({
+        message: 'Notification sent successfully',
+        batchId,
+        window: windowType
+      });
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Invalid request' }),
-      {
-        status: 400,
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-      }
+    return createResponse(
+      { error: 'Invalid request' },
+      { status: 400 }
     );
 
   } catch (error) {
@@ -598,25 +577,13 @@ serve(async (req) => {
       stack: error.stack
     });
 
-    return new Response(
-      JSON.stringify({
+    return createResponse(
+      {
         error: error.message,
         name: error.name,
         batchId: requestData?.batchId
-      }),
-      {
-        status: 500,
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' }))
-      }
+      },
+      { status: 500 }
     );
   }
 });
-
-function addCorsHeaders(headers: Headers = new Headers()) {
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  return headers;
-}

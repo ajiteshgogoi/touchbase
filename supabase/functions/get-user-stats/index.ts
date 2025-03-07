@@ -1,14 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-
-function addCorsHeaders(headers: Headers = new Headers()) {
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  return headers;
-}
+import { createResponse, handleOptions } from '../_shared/headers.ts'
 
 function isLikelyDefaultAvatar(picture: string, name: string): boolean {
   if (!picture?.includes('googleusercontent.com')) return false;
@@ -43,7 +35,7 @@ function isLikelyDefaultAvatar(picture: string, name: string): boolean {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: addCorsHeaders() });
+    return handleOptions();
   }
 
   try {
@@ -131,27 +123,19 @@ serve(async (req) => {
 
     if (countError) throw countError;
 
-    // Return the response with CORS headers
-    return new Response(
-      JSON.stringify({
-        recentUsers,
-        totalCount: total || 0
-      }),
-      {
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
-        status: 200,
-      }
-    )
+    // Return the response with headers
+    return createResponse({
+      recentUsers,
+      totalCount: total || 0
+    });
+
   } catch (error) {
     console.error('Error:', error.message)
     
-    // Return error response with CORS headers
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
-        status: 500,
-      }
-    )
+    // Return error response with headers
+    return createResponse(
+      { error: error.message },
+      { status: 500 }
+    );
   }
-})
+});
