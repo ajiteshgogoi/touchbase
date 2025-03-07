@@ -2,15 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { encode as base64url } from "https://deno.land/std@0.168.0/encoding/base64url.ts";
 import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
-
-function addCorsHeaders(headers: Headers = new Headers()) {
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  return headers;
-}
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 async function createGoogleJWT(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
@@ -101,7 +93,7 @@ async function getGoogleAccessToken(): Promise<string> {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: addCorsHeaders() })
+    return handleOptions();
   }
 
   try {
@@ -215,10 +207,7 @@ serve(async (req) => {
       throw updateError;
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
-      status: 200,
-    })
+    return createResponse({ success: true });
   } catch (error) {
     console.error('Cancellation error:', {
       message: error.message,
@@ -226,15 +215,12 @@ serve(async (req) => {
       name: error.name
     });
 
-    return new Response(
-      JSON.stringify({ 
+    return createResponse(
+      { 
         error: error.message,
         details: error.stack || 'No stack trace available'
-      }),
-      {
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
-        status: 400,
-      }
-    )
+      },
+      { status: 400 }
+    );
   }
-})
+});
