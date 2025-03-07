@@ -1,14 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-function addCorsHeaders(headers: Headers = new Headers()) {
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  return headers;
-}
+import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 serve(async (req) => {
   console.log('Received request:', {
@@ -17,7 +9,7 @@ serve(async (req) => {
   });
 
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: addCorsHeaders() })
+    return handleOptions();
   }
 
   try {
@@ -233,20 +225,11 @@ serve(async (req) => {
       throw new Error('Failed to verify subscription storage');
     }
     
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
-        status: 200
-      }
-    )
+    return createResponse({ success: true });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: addCorsHeaders(new Headers({ 'Content-Type': 'application/json' })),
-        status: 400
-      }
-    )
+    return createResponse(
+      { error: error.message },
+      { status: 400 }
+    );
   }
-})
+});
