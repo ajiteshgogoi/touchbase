@@ -37,7 +37,9 @@
       "src": "/.well-known/(.*)",
       "headers": {
         "content-type": "application/json",
-        "cache-control": "public, max-age=0, must-revalidate"
+        "cache-control": "public, max-age=0, must-revalidate",
+        "Cross-Origin-Resource-Policy": "same-site",
+        "X-Content-Type-Options": "nosniff"
       },
       "continue": true
     },
