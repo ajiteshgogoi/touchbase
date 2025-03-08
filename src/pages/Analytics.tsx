@@ -92,9 +92,12 @@ export const Analytics = () => {
           className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200"
         >
           <div className="flex flex-col">
-            <h4 className="text-xl font-semibold text-primary-500 tracking-[-0.01em] mb-3">
+            <Link
+              to={`/contacts#${contact.contactId}`}
+              className="block text-xl font-semibold text-primary-500 tracking-[-0.01em] mb-3 hover:text-primary-600 transition-colors"
+            >
               {contact.contactName}
-            </h4>
+            </Link>
             {contact.aiAnalysis ? (
               <div className="space-y-4">
                 {formatAnalysis(contact.aiAnalysis).map((section, index) => (
@@ -192,29 +195,36 @@ export const Analytics = () => {
             </div>
           </div>
         </div>
-        <button
-          onClick={handleGenerateAnalytics}
-          disabled={!canGenerate || isGenerating}
-          className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 min-w-[225px] ${
-            canGenerate && !isGenerating
-              ? 'bg-primary-500 hover:bg-primary-600'
-              : 'bg-gray-400 cursor-not-allowed'
-          }`}
-        >
-          <span className="inline-flex items-center justify-center">
-            {isGenerating ? (
-              <>
-                <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-                Generate New Analysis
-              </>
-            )}
-          </span>
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={handleGenerateAnalytics}
+            disabled={!canGenerate || isGenerating}
+            className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 min-w-[225px] ${
+              canGenerate && !isGenerating
+                ? 'bg-primary-500 hover:bg-primary-600'
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
+          >
+            <span className="inline-flex items-center justify-center">
+              {isGenerating ? (
+                <>
+                  <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+                  Generate New Analysis
+                </>
+              )}
+            </span>
+          </button>
+          {analytics && !canGenerate && (
+            <p className="text-[15px] text-primary-500 font-[500] text-center sm:text-right">
+              Next analysis available {dayjs(analytics.nextGenerationAllowed).fromNow()}
+            </p>
+          )}
+        </div>
       </div>
 
       {!analytics?.hasEnoughData ? (
@@ -254,7 +264,12 @@ export const Analytics = () => {
                   {analytics?.topEngaged.map(contact => (
                     <div key={contact.contactId} className="flex items-center justify-between">
                       <div>
-                        <p className="font-[600] text-gray-900">{contact.contactName}</p>
+                        <Link
+                          to={`/contacts#${contact.contactId}`}
+                          className="font-[600] text-primary-500 hover:text-primary-600 transition-colors"
+                        >
+                          {contact.contactName}
+                        </Link>
                         <p className="text-[15px] text-gray-600/90">
                           {contact.interactionCount} interactions
                           {contact.lastInteraction && ` • Last: ${dayjs(contact.lastInteraction).fromNow()}`}
@@ -310,11 +325,6 @@ export const Analytics = () => {
         </>
       )}
 
-      {analytics && !canGenerate && (
-        <p className="text-[15px] text-gray-600/90 text-center">
-          Next analysis available {dayjs(analytics.nextGenerationAllowed).fromNow()}
-        </p>
-      )}
     </div>
   );
 };
