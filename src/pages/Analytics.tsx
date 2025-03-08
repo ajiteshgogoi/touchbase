@@ -55,17 +55,22 @@ export const Analytics = () => {
   const renderContactTopics = useCallback(() => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {analytics?.contactTopics.map(contact => (
-        <div key={contact.contactId} className="space-y-2">
-          <h4 className="font-[600] text-gray-900">{contact.contactName}</h4>
-          {contact.aiAnalysis ? (
-            <div className="text-[15px] text-gray-600/90 whitespace-pre-line">
-              {contact.aiAnalysis}
+        <div
+          key={contact.contactId}
+          className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200"
+        >
+          <div className="flex flex-col">
+            <h4 className="text-xl font-semibold text-primary-500 tracking-[-0.01em] mb-3">
+              {contact.contactName}
+            </h4>
+            <div className="bg-gray-50 rounded-lg overflow-hidden">
+              <div className="px-3 py-2">
+                <div className="text-[15px] text-gray-700/90 whitespace-pre-line leading-relaxed">
+                  {contact.aiAnalysis || 'Analysis not available'}
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-[15px] text-gray-600/90">
-              Common topics: {contact.topics.join(', ')}
-            </div>
-          )}
+          </div>
         </div>
       ))}
     </div>

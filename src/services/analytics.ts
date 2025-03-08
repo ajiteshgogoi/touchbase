@@ -47,22 +47,31 @@ const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions'; // Set LLM
 
 export const analyticsService = {
   async getLastAnalytics(): Promise<AnalyticsData | null> {
-    const { data, error } = await supabase
-      .from('contact_analytics')
-      .select('*')
-      .order('generated_at', { ascending: false })
-      .limit(1)
-      .single();
+  const { data, error } = await supabase
+    .from('contact_analytics')
+    .select('*')
+    .order('generated_at', { ascending: false })
+    .limit(1)
+    .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') return null; // No analytics found
-      throw error;
-    }
+  if (error) {
+    if (error.code === 'PGRST116') return null; // No analytics found
+    throw error;
+  }
 
-    return data;
+  // Return the data field which contains the actual analytics
+  return data?.data as AnalyticsData || null;
   },
 
   async generateAnalytics(): Promise<AnalyticsData> {
+    // Clear existing analytics first
+    const { error: deleteError } = await supabase
+      .from('contact_analytics')
+      .delete()
+      .neq('id', '0'); // dummy condition to delete all
+    
+    if (deleteError) throw deleteError;
+
     // Get all contacts and their interactions
     const { data: contacts, error: contactsError } = await supabase
       .from('contacts')
@@ -121,6 +130,13 @@ export const analyticsService = {
     };
 
     // Store the analytics
+    // Ensure we have the right data structure and that hasEnoughData is properly set
+    const hasEnoughData = typedContacts.some(c => (c.interactions || []).length >= MIN_INTERACTIONS_FOR_ANALYSIS);
+    const finalAnalytics = {
+      ...analytics,
+      hasEnoughData,
+    };
+
     // Include user_id when inserting analytics
     const { data: user } = await supabase.auth.getUser();
     if (!user?.user) throw new Error('No authenticated user');
@@ -128,7 +144,7 @@ export const analyticsService = {
     const { error: saveError } = await supabase
       .from('contact_analytics')
       .insert({
-        data: analytics,
+        data: finalAnalytics,
         generated_at: analytics.generated,
         user_id: user.user.id
       });
@@ -195,30 +211,23 @@ export const analyticsService = {
           }
         );
 
-        // Extract topics from notes for fallback
-        const notesWords = interactions
-          .flatMap((i: Interaction) => i.notes?.toLowerCase().split(/\W+/) || [])
-          .filter((word: string) => word.length > 3);
-
-        const wordFreq = new Map<string, number>();
-        notesWords.forEach((word: string) => {
-          wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
-        });
-
-        const commonTopics = Array.from(wordFreq.entries())
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([topic]) => topic);
+        // Extract topics from AI response
+        const aiResponse = response.data.choices[0].message.content;
+        const topicsSection = aiResponse.split('1. Most discussed topics')[1]?.split('2. Communication patterns')[0] || '';
+        const aiTopics = topicsSection
+          .split('\n')
+          .filter((line: string) => line.trim().startsWith('-') || line.trim().startsWith('•'))
+          .map((line: string) => line.trim().replace(/^[-•]\s*/, ''));
 
         topics.push({
           contactId: contact.id,
           contactName: contact.name,
-          topics: commonTopics,
-          aiAnalysis: response.data.choices[0].message.content
+          topics: aiTopics,
+          aiAnalysis: aiResponse
         });
       } catch (error) {
         console.error('Error analyzing contact:', error);
-        // Still include the contact with basic topic analysis
+        // If AI analysis fails, include contact without topics
         topics.push({
           contactId: contact.id,
           contactName: contact.name,
