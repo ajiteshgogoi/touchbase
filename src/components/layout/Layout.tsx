@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './Navbar';
 import { getFullVersion } from '../../../version/version';
+import { RatingPrompt } from '../shared/RatingPrompt';
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export const Layout = ({ children }: LayoutProps) => {
           {children}
         </div>
       </main>
+      <RatingPrompt />
       <footer className="text-center pt-2 pb-5 text-gray-600 text-sm">
         © {new Date().getFullYear()} TouchBase Technologies | {getFullVersion()}
       </footer>
