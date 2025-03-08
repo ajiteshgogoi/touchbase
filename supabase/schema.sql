@@ -83,6 +83,9 @@ create table public.user_preferences (
     theme text check (theme in ('light', 'dark', 'system')) default 'system',
     timezone text default 'UTC',
     ai_suggestions_enabled boolean default true,
+    has_rated_app boolean default false,
+    last_rating_prompt timestamp with time zone,
+    install_time timestamp with time zone default now(),
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
@@ -193,6 +196,14 @@ create table public.contact_analytics (
     generated_at timestamp with time zone not null,
     created_at timestamp with time zone default now() not null
 );
+
+-- Add comments for rating columns in user_preferences
+comment on column public.user_preferences.has_rated_app is 'Whether the user has rated the app';
+comment on column public.user_preferences.last_rating_prompt is 'When the user was last prompted to rate the app';
+comment on column public.user_preferences.install_time is 'When the user first installed the app';
+
+-- Add index for install_time
+create index idx_user_preferences_install_time on public.user_preferences(install_time);
 
 create table public.prompt_generation_logs (
     id uuid primary key default uuid_generate_v4(),
