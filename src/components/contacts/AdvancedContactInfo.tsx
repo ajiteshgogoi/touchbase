@@ -359,7 +359,8 @@ export const AdvancedContactInfo = ({
               </p>
               <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
                 <li>Your relationship with them</li> 
-                <li>Their interests and hobbies</li>              
+                <li>Their interests and hobbies</li>   
+                <li>Details about their family</li>            
                 <li>Conversation topics they enjoy</li>
                 <li>Shared memories or inside jokes</li>
               </ul>
