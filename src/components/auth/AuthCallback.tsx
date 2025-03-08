@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../stores/useStore';
 import { handleCallback } from '../../lib/auth/google';
+import { useRatingSettings } from '../../hooks/useRatingSettings';
 
 export const AuthCallback = () => {
   const navigate = useNavigate();
   const { setUser, setIsLoading } = useStore();
+  const { initializeInstallTime } = useRatingSettings();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -36,8 +38,9 @@ export const AuthCallback = () => {
         console.log('Got session:', session);
 
         if (session?.user) {
-          console.log('Setting user and navigating to dashboard...');
+          console.log('Setting user and initializing preferences...');
           setUser(session.user);
+          await initializeInstallTime(session.user.id);
           navigate('/', { replace: true });
         } else {
           console.error('No user in session:', session);
