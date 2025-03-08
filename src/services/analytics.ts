@@ -78,7 +78,8 @@ export const analyticsService = {
     if (contactsError) throw contactsError;
 
     const typedContacts = contacts as Contact[] | null;
-    if (!typedContacts || typedContacts.length === 0 || !typedContacts.some(c => (c.interactions || []).length > 0)) {
+    // Check if we have any contacts with minimum required interactions
+    if (!typedContacts || typedContacts.length === 0 || !typedContacts.some(c => (c.interactions || []).length >= MIN_INTERACTIONS_FOR_ANALYSIS)) {
       return {
         generated: new Date().toISOString(),
         nextGenerationAllowed: dayjs().add(GENERATION_COOLDOWN_DAYS, 'days').toISOString(),
@@ -115,15 +116,21 @@ export const analyticsService = {
       interactionHeatmap: heatmap,
       contactTopics: topics,
       recentProgress: progress,
-      hasEnoughData: true
+      // Only set hasEnoughData true if we have at least one contact with minimum required interactions
+      hasEnoughData: typedContacts.some(c => (c.interactions || []).length >= MIN_INTERACTIONS_FOR_ANALYSIS)
     };
 
     // Store the analytics
+    // Include user_id when inserting analytics
+    const { data: user } = await supabase.auth.getUser();
+    if (!user?.user) throw new Error('No authenticated user');
+
     const { error: saveError } = await supabase
       .from('contact_analytics')
       .insert({
         data: analytics,
-        generated_at: analytics.generated
+        generated_at: analytics.generated,
+        user_id: user.user.id
       });
     if (saveError) throw saveError;
 
