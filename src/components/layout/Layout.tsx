@@ -2,12 +2,17 @@ import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Navbar } from './Navbar';
 import { getFullVersion } from '../../../version/version';
+import { RatingPrompt } from '../shared/RatingPrompt';
+import type { User } from '@supabase/supabase-js';
+import type { NotificationSettings } from '../../types/settings';
 
 interface LayoutProps {
   children: ReactNode;
+  user?: User | null;
+  settings?: NotificationSettings;
 }
 
-export const Layout = ({ children }: LayoutProps) => {
+export const Layout = ({ children, user, settings }: LayoutProps) => {
   return (
     <div className="min-h-screen min-w-[320px] bg-gradient-to-br from-primary-50 to-white flex flex-col">
       <Analytics />
@@ -17,6 +22,7 @@ export const Layout = ({ children }: LayoutProps) => {
           {children}
         </div>
       </main>
+      <RatingPrompt user={user} settings={settings} />
       <footer className="text-center pt-2 pb-5 text-gray-600 text-sm">
         © {new Date().getFullYear()} TouchBase Technologies | {getFullVersion()}
       </footer>
