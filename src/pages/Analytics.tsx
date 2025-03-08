@@ -237,7 +237,7 @@ export const Analytics = () => {
               Not Enough Data Yet
             </h3>
             <p className="text-[15px] text-gray-600/90">
-              Add more contacts and log your interactions regularly to generate detailed analysis.
+              Log your interactions regularly to generate detailed analysis.
             </p>
           </div>
         </div>
