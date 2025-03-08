@@ -20,30 +20,24 @@ interface RatingPromptProps {
 
 export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
   const [showPrompt, setShowPrompt] = useState(false);
-  const { updateRatingStatus, updateLastPromptTime, initializeInstallTime } = useRatingSettings();
+  const { updateRatingStatus, updateLastPromptTime } = useRatingSettings();
 
   useEffect(() => {
     // Only show for authenticated users in TWA
     if (!platform.isTWA() || !user || !settings) return;
 
-    // Initialize install time if not set
-    if (!settings.install_time) {
-      initializeInstallTime();
-      return;
-    }
-
     // Don't show if already rated
     if (settings.has_rated_app) return;
 
     const now = Date.now();
-    const installDate = new Date(settings.install_time).getTime();
+    const installDate = new Date(settings.install_time || Date.now()).getTime();
     const lastPrompt = settings.last_rating_prompt ? new Date(settings.last_rating_prompt).getTime() : null;
 
     // First time check: Wait 10 days after installation
     if (!lastPrompt) {
       if (now - installDate >= INITIAL_WAIT_PERIOD) {
         setShowPrompt(true);
-        updateLastPromptTime();
+        updateLastPromptTime(user.id);
       }
       return;
     }
@@ -51,16 +45,16 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
     // Subsequent checks: Show every 30 days if dismissed
     if (now - lastPrompt >= REPEAT_INTERVAL) {
       setShowPrompt(true);
-      updateLastPromptTime();
+      updateLastPromptTime(user.id);
     }
-  }, [user, settings, initializeInstallTime, updateLastPromptTime]);
+  }, [user, settings, updateLastPromptTime]);
 
   const handleRate = async () => {
     const packageName = 'app.touchbase.site.twa';
     
     // Update rating status in database
     if (user) {
-      await updateRatingStatus();
+      await updateRatingStatus(user.id);
     }
 
     setShowPrompt(false);
