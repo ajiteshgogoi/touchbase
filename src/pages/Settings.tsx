@@ -317,7 +317,8 @@ export const Settings = () => {
           notification_enabled: newSettings.notification_enabled,
           theme: newSettings.theme,
           timezone: newSettings.timezone,
-          ai_suggestions_enabled: newSettings.ai_suggestions_enabled
+          ai_suggestions_enabled: newSettings.ai_suggestions_enabled,
+          has_rated_app: newSettings.has_rated_app
         });
       
       if (error) {
