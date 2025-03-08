@@ -6,12 +6,12 @@ import { useRatingSettings } from '../../hooks/useRatingSettings';
 import type { User } from '@supabase/supabase-js';
 import type { NotificationSettings } from '../../types';
 
-// const INITIAL_WAIT_PERIOD = 10 * 24 * 60 * 60 * 1000; // 10 days
-// const REPEAT_INTERVAL = 30 * 24 * 60 * 60 * 1000; // 30 days
+const INITIAL_WAIT_PERIOD = 10 * 24 * 60 * 60 * 1000; // 10 days
+const REPEAT_INTERVAL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // For testing, uncomment these
-const INITIAL_WAIT_PERIOD = 30 * 1000; // 30 seconds
-const REPEAT_INTERVAL = 30 * 1000; // 30 seconds
+// const INITIAL_WAIT_PERIOD = 30 * 1000; // 30 seconds
+// const REPEAT_INTERVAL = 30 * 1000; // 30 seconds
 
 interface RatingPromptProps {
   user?: User | null;
