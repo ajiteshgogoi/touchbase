@@ -35,7 +35,8 @@ export const Settings = () => {
     notification_enabled: false,
     theme: 'light',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    ai_suggestions_enabled: false
+    ai_suggestions_enabled: false,
+    has_rated_app: false
   });
 
   // Get subscription details
@@ -99,7 +100,8 @@ export const Settings = () => {
             notification_enabled: false,
             theme: 'light',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            ai_suggestions_enabled: true
+            ai_suggestions_enabled: true,
+            has_rated_app: false
           };
 
           const { data: newPrefs, error: insertError } = await supabase
@@ -126,7 +128,8 @@ export const Settings = () => {
         notification_enabled: preferences.notification_enabled,
         theme: preferences.theme,
         timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ai_suggestions_enabled: preferences.ai_suggestions_enabled
+        ai_suggestions_enabled: preferences.ai_suggestions_enabled,
+        has_rated_app: preferences.has_rated_app
       };
 
       setNotificationSettings(newSettings);
@@ -334,7 +337,8 @@ export const Settings = () => {
           notification_enabled: preferences.notification_enabled,
           theme: preferences.theme,
           timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-          ai_suggestions_enabled: preferences.ai_suggestions_enabled
+          ai_suggestions_enabled: preferences.ai_suggestions_enabled,
+          has_rated_app: preferences.has_rated_app
         });
       }
     }
