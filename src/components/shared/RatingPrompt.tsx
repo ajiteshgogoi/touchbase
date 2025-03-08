@@ -58,7 +58,12 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
     }
 
     setShowPrompt(false);
-    window.location.href = `market://details?id=${packageName}`;
+    
+    try {
+      window.location.href = `market://details?id=${packageName}`;
+    } catch (e) {
+      window.location.href = `https://play.google.com/store/apps/details?id=${packageName}`;
+    }
   };
 
   const handleLater = () => {
