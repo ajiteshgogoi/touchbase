@@ -52,6 +52,38 @@ export const Analytics = () => {
     return dayjs().isAfter(dayjs(analytics.nextGenerationAllowed));
   }, [analytics]);
 
+  const formatAnalysis = (text: string): { title: string; content: string }[] => {
+    if (!text) return [];
+
+    // Remove the introductory line
+    const cleanedText = text.replace(/^Here's an analysis of .+\n/, '');
+
+    // Split into sections and format each
+    const sections = cleanedText.split(/\d+\.\s+\*\*([^:]+):\*\*/);
+    sections.shift(); // Remove empty first element
+    
+    const formattedSections = [];
+    for (let i = 0; i < sections.length; i += 2) {
+      const sectionTitle = sections[i];
+      const sectionContent = sections[i + 1];
+      
+      if (sectionTitle && sectionContent) {
+        formattedSections.push({
+          title: sectionTitle.trim(),
+          content: sectionContent
+            .trim()
+            // Format bullet points
+            .replace(/^\s*\*\s+\*\*([^:]+):\*\*/gm, '• $1:')
+            .replace(/^\s*\*\s+/gm, '• ')
+            // Clean up remaining markdown
+            .replace(/\*\*/g, '')
+        });
+      }
+    }
+    
+    return formattedSections;
+  };
+
   const renderContactTopics = useCallback(() => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {analytics?.contactTopics.map(contact => (
@@ -63,13 +95,34 @@ export const Analytics = () => {
             <h4 className="text-xl font-semibold text-primary-500 tracking-[-0.01em] mb-3">
               {contact.contactName}
             </h4>
-            <div className="bg-gray-50 rounded-lg overflow-hidden">
-              <div className="px-3 py-2">
-                <div className="text-[15px] text-gray-700/90 whitespace-pre-line leading-relaxed">
-                  {contact.aiAnalysis || 'Analysis not available'}
+            {contact.aiAnalysis ? (
+              <div className="space-y-4">
+                {formatAnalysis(contact.aiAnalysis).map((section, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
+                    <div className="px-3 py-2 bg-gray-100">
+                      <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">
+                        {section.title}
+                      </span>
+                    </div>
+                    <div className="px-3 py-2">
+                      <div className="text-[15px] text-gray-700/90 leading-relaxed">
+                        {section.content.split('\n').map((line, i) => (
+                          <div key={i} className="py-0.5">{line}</div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg overflow-hidden">
+                <div className="px-3 py-2">
+                  <div className="text-[15px] text-gray-600/90">
+                    Analysis not available
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       ))}
