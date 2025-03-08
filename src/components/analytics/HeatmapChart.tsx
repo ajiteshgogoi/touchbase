@@ -6,55 +6,112 @@ interface HeatmapProps {
 }
 
 export const HeatmapChart = ({ data }: HeatmapProps) => {
-  // Group by month for labels
-  const months = useMemo(() => {
-    const monthGroups = new Map<string, { total: number; days: number }>();
-    data.forEach(({ date, count }) => {
-      const month = date.substring(0, 7); // YYYY-MM
-      const curr = monthGroups.get(month) || { total: 0, days: 0 };
-      monthGroups.set(month, {
-        total: curr.total + count,
-        days: curr.days + 1
-      });
-    });
-    return Array.from(monthGroups.entries()).map(([month, stats]) => ({
-      month,
-      average: stats.total / stats.days
-    }));
-  }, [data]);
+  // Calculate start and end dates
+  const endDate = dayjs();
+  const startDate = endDate.subtract(6, 'months').startOf('week');
+  const totalWeeks = Math.ceil(endDate.diff(startDate, 'week', true));
+
+  // Calculate month label positions
+  const monthLabels = useMemo(() => {
+    const labels = [];
+    let currentDate = startDate.clone();
+    
+    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'month')) {
+      if (currentDate.date() <= 7) { // Only add label if we're in the first week of the month
+        labels.push({
+          text: currentDate.format('MMM'),
+          weekIndex: Math.floor(currentDate.diff(startDate, 'week', true))
+        });
+      }
+      currentDate = currentDate.add(1, 'month');
+    }
+    return labels;
+  }, [startDate, endDate]);
 
   // Calculate color intensity based on count
   const maxCount = useMemo(() => Math.max(...data.map(d => d.count)), [data]);
   
   const getColor = useMemo(() => (count: number) => {
-    if (count === 0) return 'bg-gray-100/90 hover:bg-gray-200/90';
-    const intensity = Math.min(0.9, (count / maxCount) * 0.9);
+    if (count === 0) return 'bg-gray-100 hover:bg-gray-200';
+    
+    // Use 4 intensity levels (like GitHub)
+    let level;
+    const ratio = count / maxCount;
+    if (ratio <= 0.25) level = 1;
+    else if (ratio <= 0.5) level = 2;
+    else if (ratio <= 0.75) level = 3;
+    else level = 4;
+
+    // Map levels to appropriate intensities
+    const intensityMap = {
+      1: '200',
+      2: '300',
+      3: '400',
+      4: '500'
+    };
+
     const baseColor = 'bg-primary';
-    const opacity = '/90';
-    const hoverClass = intensity > 0.5 
-      ? ` hover:bg-primary-${Math.round((intensity + 0.1) * 500)}${opacity}`
-      : ` hover:bg-primary-${Math.round((intensity + 0.2) * 500)}${opacity}`;
-    return `${baseColor}-${Math.round(intensity * 500)}${opacity}${hoverClass}`;
+    const intensity = intensityMap[level as 1 | 2 | 3 | 4];
+    const hoverIntensity = intensityMap[Math.min(4, level + 1) as 1 | 2 | 3 | 4];
+    
+    return `${baseColor}-${intensity} hover:${baseColor}-${hoverIntensity}`;
   }, [maxCount]);
 
   return (
     <div className="overflow-x-auto pb-4">
-      <div className="min-w-[600px]">
-        <div className="flex justify-between mb-3">
-          {months.map(({ month }) => (
-            <div key={month} className="text-[13px] font-[450] text-gray-600/90">
-              {dayjs(month).format('MMM')}
-            </div>
-          ))}
+      <div className="min-w-[800px]">
+        {/* Month labels */}
+        <div className="flex mb-2 ml-8">
+          <div className="relative w-full h-5">
+            {monthLabels.map(({ text, weekIndex }, i) => (
+              <div
+                key={i}
+                className="absolute text-[13px] font-[450] text-gray-600/90 -translate-x-1/2"
+                style={{
+                  left: `${((weekIndex + 0.5) / totalWeeks) * 100}%`,
+                  paddingLeft: i === 0 ? '0' : '8px' // Add spacing between months
+                }}
+              >
+                {text}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-[repeat(180,1fr)] gap-1">
-          {data.map(({ date, count }) => (
-            <div
-              key={date}
-              className={`w-3.5 h-3.5 rounded-lg transition-colors duration-200 cursor-default ${getColor(count)}`}
-              title={`${dayjs(date).format('MMM D, YYYY')}: ${count} interaction${count !== 1 ? 's' : ''}`}
-            />
-          ))}
+        
+        {/* Grid with day labels */}
+        <div className="flex gap-3">
+          {/* Day labels */}
+          <div className="flex flex-col justify-between pt-2">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+              <div key={day} className="text-[11px] font-[450] text-gray-500/90 h-[10px] leading-[10px] pr-2">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          {/* Heatmap grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${totalWeeks}, 1fr)`,
+            gridTemplateRows: 'repeat(7, 1fr)',
+            gap: '3px'
+          }}>
+            {Array.from({ length: totalWeeks * 7 }).map((_, index) => {
+              const currentDate = startDate.add(Math.floor(index / 7), 'week').add(index % 7, 'day');
+              const dataPoint = data.find(d => d.date === currentDate.format('YYYY-MM-DD'));
+              
+              return (
+                <div
+                  key={index}
+                  className={`w-[10px] h-[10px] rounded-sm transition-colors duration-200 cursor-default ${getColor(dataPoint?.count || 0)}`}
+                  title={dataPoint
+                    ? `${dayjs(dataPoint.date).format('MMM D, YYYY')}: ${dataPoint.count} interaction${dataPoint.count !== 1 ? 's' : ''}`
+                    : `${currentDate.format('MMM D, YYYY')}: 0 interactions`
+                  }
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
