@@ -27,13 +27,16 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
   }, [maxCount]);
 
   return (
-    <div className="overflow-x-auto pb-4 pt-8">
-      <div className="min-w-[800px] pt-1">
+    <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft px-8 py-10">
+      <h3 className="text-xl font-[600] text-gray-900 mb-4">
+        {data.reduce((sum, item) => sum + item.count, 0).toLocaleString()} interactions in the last year
+      </h3>
+      <div className="overflow-x-auto min-w-[800px] pt-8 pb-2 px-2">
         <div className="flex">
           {/* Day labels */}
           <div className="flex flex-col h-[94px] pr-4">
             <div className="h-[32px]" /> {/* Spacer for month labels */}
-            <div className="grid h-[94px]" style={{ gridTemplateRows: 'repeat(7, 10px)', gap: '4px' }}>
+            <div className="grid" style={{ gridTemplateRows: 'repeat(7, 10px)', gap: '4px', alignContent: 'space-between' }}>
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
                 <div key={day} className="text-[11px] font-[450] text-gray-500/90 h-[10px] leading-[10px]">
                   {day}
@@ -47,7 +50,7 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
             {Array.from({ length: 12 }).map((_, monthIndex) => {
               const monthStart = endDate.subtract(11 - monthIndex, 'month').startOf('month');
               const monthEnd = monthStart.endOf('month');
-              const weekStart = monthStart.startOf('week');
+              const weekStart = monthStart.startOf('week').subtract(1, 'day');
               const weeksInMonth = Math.ceil(monthEnd.diff(weekStart, 'week', true));
 
               return (
@@ -63,7 +66,8 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
                       display: 'grid',
                       gridTemplateColumns: `repeat(${weeksInMonth}, 13px)`,
                       gridTemplateRows: 'repeat(7, 10px)',
-                      gap: '4px'
+                      gap: '4px',
+                      height: '82px'
                     }}
                   >
                     {Array.from({ length: weeksInMonth * 7 }).map((_, dayIndex) => {

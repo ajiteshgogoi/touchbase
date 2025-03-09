@@ -243,16 +243,9 @@ export const Analytics = () => {
         </div>
       ) : (
         <>
-          <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
-            <div className="p-6">
-              <h3 className="text-xl font-[600] text-gray-900 mb-4">
-                {analytics?.interactionHeatmap?.reduce((sum, item) => sum + item.count, 0).toLocaleString()} interactions in the last year
-              </h3>
-              {analytics?.interactionHeatmap && (
-                <HeatmapChart data={analytics.interactionHeatmap} />
-              )}
-            </div>
-          </div>
+          {analytics?.interactionHeatmap && (
+            <HeatmapChart data={analytics.interactionHeatmap} />
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
