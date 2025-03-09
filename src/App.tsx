@@ -117,7 +117,6 @@ const Help = lazy(() => {
 
 const Analytics = lazy(() => {
   const module = import('./pages/Analytics');
-  // Prefetch contacts page and related components
   if ('requestIdleCallback' in window) {
     requestIdleCallback(() => {
       void import('./pages/Contacts');
