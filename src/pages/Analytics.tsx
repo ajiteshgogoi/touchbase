@@ -182,7 +182,7 @@ export const Analytics = () => {
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent leading-tight pb-1">
             Relationship Insights
           </h1>
         </div>
@@ -225,7 +225,7 @@ export const Analytics = () => {
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent leading-tight pb-1">
                 Relationship Insights
               </h1>
               <p className="mt-1.5 text-[15px] text-gray-600/90">
