@@ -64,11 +64,14 @@ export const analyticsService = {
   },
 
   async generateAnalytics(): Promise<AnalyticsData> {
-    // Clear existing analytics first
+    // Clear existing analytics for the current user
+    const { data: user } = await supabase.auth.getUser();
+    if (!user?.user) throw new Error('No authenticated user');
+
     const { error: deleteError } = await supabase
       .from('contact_analytics')
       .delete()
-      .neq('id', '0'); // dummy condition to delete all
+      .eq('user_id', user.user.id);
     
     if (deleteError) throw deleteError;
 
@@ -136,10 +139,6 @@ export const analyticsService = {
       ...analytics,
       hasEnoughData,
     };
-
-    // Include user_id when inserting analytics
-    const { data: user } = await supabase.auth.getUser();
-    if (!user?.user) throw new Error('No authenticated user');
 
     const { error: saveError } = await supabase
       .from('contact_analytics')
@@ -244,8 +243,8 @@ export const analyticsService = {
     const heatmap: { date: string; count: number }[] = [];
     const counts = new Map<string, number>();
 
-    // Get last 6 months of data
-    const startDate = dayjs().subtract(6, 'month');
+    // Get last 12 months of data (similar to GitHub's contribution graph)
+    const startDate = dayjs().subtract(12, 'month');
     const endDate = dayjs();
 
     interactions
