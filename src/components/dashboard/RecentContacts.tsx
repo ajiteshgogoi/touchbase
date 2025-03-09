@@ -87,8 +87,10 @@ export const RecentContacts = () => {
           contactId,
           contentType: 'suggestion'
         });
+        alert('Thank you for reporting. We will review this suggestion.');
       } catch (error) {
         console.error('Error reporting content:', error);
+        alert('Failed to report content. Please try again.');
       }
     }
   };
