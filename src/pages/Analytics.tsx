@@ -253,41 +253,41 @@ export const Analytics = () => {
                 <h3 className="text-xl font-[600] text-gray-900 tracking-[-0.01em] mb-4">
                   Top Engaged Contacts
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {analytics?.topEngaged.map(contact => (
                     <div
                       key={contact.contactId}
-                      className="bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-50/80 transition-all duration-200"
+                      className="bg-gray-50/90 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-gray-50/80 transition-all duration-200 shadow-sm"
                     >
-                      <div className="px-4 py-3.5">
-                        <div className="flex flex-col gap-3">
-                            <Link
-                              to={`/contacts#${contact.contactId}`}
-                              className="block text-[16px] font-semibold text-primary-500 hover:text-primary-600 transition-colors tracking-[-0.01em]"
-                            >
-                              {contact.contactName}
-                            </Link>
-                            <div className="grid gap-2">
-                              <div className="flex items-center gap-2 text-[14px] text-gray-600/90">
-                                <span className="inline-flex items-center px-2.5 py-1 bg-white rounded-md shadow-sm">
-                                  <span className="font-[450]">{contact.interactionCount} interactions</span>
+                      <div className="px-4 py-4">
+                        <div className="flex flex-col gap-3.5">
+                          <Link
+                            to={`/contacts#${contact.contactId}`}
+                            className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 transition-colors tracking-[-0.01em]"
+                          >
+                            {contact.contactName}
+                          </Link>
+                          <div className="grid gap-2.5">
+                            <div className="flex flex-wrap items-center gap-2 text-[14px] text-gray-600/90">
+                              <span className="inline-flex items-center px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+                                <span className="font-[450]">{contact.interactionCount} interactions</span>
+                              </span>
+                              {contact.lastInteraction && (
+                                <span className="inline-flex items-center px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+                                  Last: {dayjs(contact.lastInteraction).fromNow()}
                                 </span>
-                                {contact.lastInteraction && (
-                                  <span className="inline-flex items-center px-2.5 py-1 bg-white rounded-md shadow-sm">
-                                    Last: {dayjs(contact.lastInteraction).fromNow()}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="inline-flex items-center px-2.5 py-1 bg-white rounded-md shadow-sm">
-                                <span className="text-[14px] text-gray-600/90">
-                                  Every{' '}
-                                  <span className="font-semibold text-gray-900">
-                                    {contact.averageFrequency}
-                                  </span>{' '}
-                                  days avg.
-                                </span>
-                              </div>
+                              )}
                             </div>
+                            <div className="inline-flex items-center px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+                              <span className="text-[14px] text-gray-600/90">
+                                Every{' '}
+                                <span className="font-[500] text-gray-800">
+                                  {contact.averageFrequency}
+                                </span>{' '}
+                                days avg.
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
