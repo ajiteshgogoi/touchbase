@@ -115,9 +115,15 @@ const Help = lazy(() => {
   return module.then(m => ({ default: m.Help }));
 });
 
-const Analytics = lazy(async () => {
-  const module = await import('./pages/Analytics');
-  return { default: module.Analytics };
+const Analytics = lazy(() => {
+  const module = import('./pages/Analytics');
+  // Prefetch contacts page and related components
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      void import('./pages/Contacts');
+    });
+  }
+  return module.then(m => ({ default: m.Analytics }));
 });
 
 const ConversationPrompts = lazy(async () => {
