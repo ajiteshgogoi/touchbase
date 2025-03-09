@@ -34,6 +34,13 @@ export const Analytics = () => {
     enabled: !isLoading, // Only run query after initialization
   });
 
+  // Check if we have enough data for analysis
+  const { data: hasEnoughDataForAnalysis } = useQuery({
+    queryKey: ['hasEnoughDataForAnalysis'],
+    queryFn: analyticsService.checkHasEnoughData,
+    enabled: !isLoading && (!analytics || !analytics.hasEnoughData),
+  });
+
   const handleGenerateAnalytics = useCallback(async () => {
     if (!isPremium && !isOnTrial) return;
     setIsGenerating(true);
@@ -144,7 +151,7 @@ export const Analytics = () => {
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-            Relationship Analytics (beta)
+            Relationship Analytics
           </h1>
         </div>
 
@@ -158,7 +165,7 @@ export const Analytics = () => {
             </h2>
             <p className="text-[15px] text-gray-600/90 mb-6 max-w-lg">
             Discover the story behind your relationships. See who you've been missing, 
-            and get thoughtful suggestions to nurture the bonds that matter most.
+            and get thoughtful insights to nurture the bonds that matter most.
             </p>
             <Link
               to="/settings"
@@ -187,7 +194,7 @@ export const Analytics = () => {
             </button>
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-                Relationship Analytics (beta)
+                Relationship Analytics
               </h1>
               <p className="mt-1.5 text-[15px] text-gray-600/90">
                 Deeper understanding of your connections and interaction patterns
@@ -227,18 +234,31 @@ export const Analytics = () => {
         </div>
       </div>
 
-      {!analytics?.hasEnoughData ? (
+      {(!analytics || !analytics.hasEnoughData) ? (
         <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
           <div className="flex flex-col items-center justify-center text-center p-8">
             <div className="p-3 bg-gray-50/90 rounded-xl mb-4">
               <ChartPieIcon className="w-12 h-12 text-gray-400/90" />
             </div>
-            <h3 className="text-xl font-[600] text-gray-900 mb-2">
-              Not Enough Data Yet
-            </h3>
-            <p className="text-[15px] text-gray-600/90">
-              Log your interactions regularly to generate detailed analysis.
-            </p>
+            {hasEnoughDataForAnalysis ? (
+              <>
+                <h3 className="text-xl font-[600] text-gray-900 mb-2">
+                  Ready for Analysis
+                </h3>
+                <p className="text-[15px] text-gray-600/90 mb-4">
+                  You have sufficient data to generate relationship insights. Click the 'Generate New Analysis' button above to begin.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl font-[600] text-gray-900 mb-2">
+                  Not Enough Data Yet
+                </h3>
+                <p className="text-[15px] text-gray-600/90">
+                  Log your interactions regularly to generate detailed analysis.
+                </p>
+              </>
+            )}
           </div>
         </div>
       ) : (

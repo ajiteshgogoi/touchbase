@@ -326,6 +326,25 @@ export const analyticsService = {
     });
   },
 
+  async checkHasEnoughData(): Promise<boolean> {
+   // Get all contacts with their interaction counts
+   const { data: contacts, error: contactsError } = await supabase
+     .from('contacts')
+     .select(`
+       id,
+       interactions (
+         id
+       )
+     `);
+   
+   if (contactsError) throw contactsError;
+   
+   // Check if we have any contacts with minimum required interactions
+   return contacts?.some(contact =>
+     (contact.interactions?.length || 0) >= MIN_INTERACTIONS_FOR_ANALYSIS
+   ) || false;
+  },
+
   calculateProgress(contacts: Contact[]): WeeklyMonthlyProgress {
     const now = dayjs();
     const weekStart = now.subtract(7, 'day');
