@@ -30,5 +30,5 @@ Disallow: /*.json$
 # Crawl delay to prevent overwhelming the server
 Crawl-delay: 10
 
-# Sitemap location
-Sitemap: https://touchbase.site/sitemap.xml
+# Sitemap index location
+Sitemap: https://touchbase.site/sitemap-index.xml
