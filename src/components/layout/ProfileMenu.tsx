@@ -179,12 +179,19 @@ export const ProfileMenu = () => {
               </Suspense>
               Settings
             </MenuItem>
-            <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" className={menuStyles.base + " " + menuStyles.inactive}>
-              <Suspense fallback={<IconFallback />}>
-                <NewspaperIcon className="h-5 w-5 mr-2 text-primary-500" />
-              </Suspense>
-              Blog
-            </a>
+            <Menu.Item>
+              {({ active }) => (
+                <a href="https://blog.touchbase.site/"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className={`${menuStyles.base} ${active ? menuStyles.active : menuStyles.inactive}`}>
+                  <Suspense fallback={<IconFallback />}>
+                    <NewspaperIcon className="h-5 w-5 mr-2 text-primary-500" />
+                  </Suspense>
+                  Blog
+                </a>
+              )}
+            </Menu.Item>
           </div>
           <div className="px-1 py-1">
             <MenuItem onClick={handleSignOut}>
