@@ -47,7 +47,7 @@ serve(async (req) => {
 
     // Get users ordered by most recent first
     const { data: { users }, error: usersError } = await supabaseClient.auth.admin.listUsers({
-      perPage: 20,
+      perPage: 25,
       page: 1,
       sortBy: {
         column: 'created_at',
@@ -83,7 +83,9 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocKHNZCZJ6qtGFXxwq210kKox_gggm6xneaMDC4FqdtVoofi0hQ=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocJHM2mmFk7DvpI99AU35Bq9zQJAUOxkFu9zdFKkDps_MfTM5Q=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocKzI7lnOmbUz_AEVGk5w1bqB837LLaxPhqPKDkRuQ98qv3yjQc=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocLqYKRvPVmjbuw4EMc04KJw_iLobVNBf2Zi89d-9UWEGSDXObM=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocLqYKRvPVmjbuw4EMc04KJw_iLobVNBf2Zi89d-9UWEGSDXObM=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJ4GP65DkFdo_NMyNefrPf9TGQ6boGdVHM-d5-KNoFHk_DAuB1A=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocLc-0SVpspwXvABceA1g-pN4NPxA2DSlwaNdPxzLoIJtdhLUXw=s96-c'
 
     ];
 
