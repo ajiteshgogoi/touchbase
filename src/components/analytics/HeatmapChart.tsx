@@ -31,14 +31,14 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
       <h3 className="text-xl font-[600] text-gray-900 mb-4">
         {data.reduce((sum, item) => sum + item.count, 0).toLocaleString()} interactions in the last year
       </h3>
-      <div className="overflow-x-auto min-w-[800px] pt-8 pb-2 px-2">
-        <div className="flex">
+      <div className="overflow-x-auto pt-8 pb-2 px-2">
+        <div className="flex min-w-fit">
           {/* Day labels */}
-          <div className="flex flex-col h-[94px] pr-4">
+          <div className="flex flex-col h-[94px] pr-2 sm:pr-4">
             <div className="h-[32px]" /> {/* Spacer for month labels */}
-            <div className="grid" style={{ gridTemplateRows: 'repeat(7, 10px)', gap: '4px', alignContent: 'space-between' }}>
+            <div className="grid" style={{ gridTemplateRows: 'repeat(7, min(8px, 2vw))', gap: '3px', alignContent: 'space-between' }}>
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                <div key={day} className="text-[11px] font-[450] text-gray-500/90 h-[10px] leading-[10px]">
+                <div key={day} className="text-[10px] sm:text-[11px] font-[450] text-gray-500/90 flex items-center" style={{ height: 'min(8px, 2vw)' }}>
                   {day}
                 </div>
               ))}
