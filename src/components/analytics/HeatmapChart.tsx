@@ -27,17 +27,19 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
   }, [maxCount]);
 
   return (
-    <div className="overflow-x-auto pb-4 pt-4">
+    <div className="overflow-x-auto pb-4 pt-8">
       <div className="min-w-[800px] pt-1">
         <div className="flex">
           {/* Day labels */}
-          <div className="flex flex-col justify-between h-[100px] pr-4">
-            <div className="h-[20px]" /> {/* Spacer for month labels */}
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-              <div key={day} className="text-[11px] font-[450] text-gray-500/90 h-[10px] leading-[10px]">
-                {day}
-              </div>
-            ))}
+          <div className="flex flex-col h-[94px] pr-4">
+            <div className="h-[32px]" /> {/* Spacer for month labels */}
+            <div className="grid h-[94px]" style={{ gridTemplateRows: 'repeat(7, 10px)', gap: '4px' }}>
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                <div key={day} className="text-[11px] font-[450] text-gray-500/90 h-[10px] leading-[10px]">
+                  {day}
+                </div>
+              ))}
+            </div>
           </div>
           
           {/* Heatmap grid with month labels */}
@@ -51,7 +53,7 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
               return (
                 <div key={monthIndex} className="relative">
                   {/* Month label */}
-                  <div className="absolute -top-[20px] text-[13px] font-[450] text-gray-600/90">
+                  <div className="absolute -top-[32px] text-[13px] font-[450] text-gray-600/90">
                     {monthStart.format('MMM')}
                   </div>
                   
