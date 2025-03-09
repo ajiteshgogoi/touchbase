@@ -124,13 +124,21 @@
     },
     {
       "src": "/assets/6.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Detailed relationship insights"
+    }, 
+    {
+      "src": "/assets/7.png",
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "wide",
       "label": "Dashboard with key metrics"
     },
+    
     {
-      "src": "/assets/7.png",
+      "src": "/assets/8.png",
       "sizes": "2048x1536",
       "type": "image/png",
       "platform": "wide",
