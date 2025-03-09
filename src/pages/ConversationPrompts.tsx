@@ -26,8 +26,10 @@ const ConversationPrompts: React.FC = () => {
         await contentReportsService.reportContent(question, {
           contentType: 'conversation-prompt'
         });
+        alert('Thank you for reporting. We will review this question.');
       } catch (error) {
         console.error('Error reporting content:', error);
+        alert('Failed to report content. Please try again.');
       }
     }
   };
