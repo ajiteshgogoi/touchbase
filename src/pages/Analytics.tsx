@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsService } from '../services/analytics';
+import { contentReportsService } from '../services/content-reports';
 import { useStore } from '../stores/useStore';
 import { Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs/esm';
@@ -14,6 +15,7 @@ import ChevronRightIcon from '@heroicons/react/24/outline/ChevronRightIcon';
 import SparklesIcon from '@heroicons/react/24/outline/SparklesIcon';
 import ArrowLeftIcon from '@heroicons/react/24/outline/ArrowLeftIcon';
 import ChartBarIcon from '@heroicons/react/24/outline/ChartBarIcon';
+import FlagIcon from '@heroicons/react/24/outline/FlagIcon';
 
 dayjs.extend(relativeTime);
 
@@ -64,6 +66,21 @@ export const Analytics = () => {
     if (!analytics) return true;
     return dayjs().isAfter(dayjs(analytics.nextGenerationAllowed));
   }, [analytics]);
+
+  const handleReportContent = async (contactId: string, content: string) => {
+    if (confirm('Report this AI insight as inappropriate?')) {
+      try {
+        await contentReportsService.reportContent(content, {
+          contactId,
+          contentType: 'suggestion'
+        });
+        alert('Thank you for reporting. We will review this insight.');
+      } catch (error) {
+        console.error('Error reporting content:', error);
+        alert('Failed to report content. Please try again.');
+      }
+    }
+  };
 
   const formatAnalysis = (text: string): { title: string; content: string }[] => {
     if (!text) return [];
@@ -121,10 +138,19 @@ export const Analytics = () => {
                       </span>
                     </div>
                     <div className="px-3 py-2">
-                      <div className="text-[15px] text-gray-700/90 leading-relaxed">
-                        {section.content.split('\n').map((line, i) => (
-                          <div key={i} className="py-0.5">{line}</div>
-                        ))}
+                      <div className="group flex items-start gap-2">
+                        <div className="flex-1 text-[15px] text-gray-700/90 leading-relaxed">
+                          {section.content.split('\n').map((line, i) => (
+                            <div key={i} className="py-0.5">{line}</div>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => handleReportContent(contact.contactId, section.content)}
+                          className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                          title="Report inappropriate insight"
+                        >
+                          <FlagIcon className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
                   </div>
