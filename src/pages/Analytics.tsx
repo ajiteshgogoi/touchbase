@@ -5,11 +5,13 @@ import { useStore } from '../stores/useStore';
 import { Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs/esm';
 import relativeTime from 'dayjs/esm/plugin/relativeTime';
+// Import components
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+
 // Import only needed icons
 import ChartPieIcon from '@heroicons/react/24/outline/ChartPieIcon';
 import ChevronRightIcon from '@heroicons/react/24/outline/ChevronRightIcon';
 import SparklesIcon from '@heroicons/react/24/outline/SparklesIcon';
-import ArrowPathIcon from '@heroicons/react/24/outline/ArrowPathIcon';
 import ArrowLeftIcon from '@heroicons/react/24/outline/ArrowLeftIcon';
 import ChartBarIcon from '@heroicons/react/24/outline/ChartBarIcon';
 
@@ -219,7 +221,11 @@ export const Analytics = () => {
             <span className="inline-flex items-center justify-center">
               {isGenerating ? (
                 <>
-                  <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
+                  <div className="h-4 w-4 mr-2 flex items-center justify-center">
+                    <div className="transform scale-50 -m-2">
+                      <LoadingSpinner />
+                    </div>
+                  </div>
                   Generating...
                 </>
               ) : (
