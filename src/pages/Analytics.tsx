@@ -174,10 +174,10 @@ export const Analytics = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-4">
+    <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-start gap-3">
             <button
               onClick={() => navigate('/')}
               className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
@@ -247,7 +247,7 @@ export const Analytics = () => {
             <HeatmapChart data={analytics.interactionHeatmap} />
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
               <div className="p-6">
                 <h3 className="text-xl font-[600] text-gray-900 mb-4">
