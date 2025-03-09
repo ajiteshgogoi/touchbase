@@ -31,7 +31,7 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
       <h3 className="text-xl font-[600] text-gray-900 mb-4">
         {data.reduce((sum, item) => sum + item.count, 0).toLocaleString()} interactions in the last year
       </h3>
-      <div className="overflow-x-auto min-w-[800px] pt-8 pb-2 px-2">
+      <div className="overflow-x-auto pt-8 pb-2 px-2">
         <div className="flex">
           {/* Day labels */}
           <div className="flex flex-col h-[94px] pr-4">
