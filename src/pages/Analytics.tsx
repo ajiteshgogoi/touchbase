@@ -188,7 +188,7 @@ export const Analytics = () => {
     <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1">
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/')}
               className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
