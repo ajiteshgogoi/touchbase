@@ -298,21 +298,47 @@ export const Analytics = () => {
 
             <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
               <div className="p-6">
-                <h3 className="text-xl font-[600] text-gray-900 mb-4">
-                  Recent Progress ({analytics?.recentProgress.period})
+                <h3 className="text-xl font-[600] text-gray-900 tracking-[-0.01em] mb-4">
+                  Relationship Health
                 </h3>
                 <div className="space-y-4">
-                  {analytics?.recentProgress && (
+                  {analytics && (
                     <>
-                      <ProgressMetric
-                        label="Engaged Contacts"
-                        value={analytics.recentProgress.engagedContacts}
-                        total={analytics.recentProgress.engagedContacts + analytics.recentProgress.neglectedContacts}
-                      />
-                      <div className="flex justify-between text-[15px] text-gray-600/90">
-                        <span>Total Interactions: {analytics.recentProgress.totalInteractions}</span>
-                        <span>{analytics.recentProgress.neglectedContacts} contacts need attention</span>
+                      <div className="bg-gray-50 rounded-lg overflow-hidden">
+                        <div className="px-3 py-2 bg-gray-100">
+                          <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Overall Status</span>
+                        </div>
+                        <div className="p-3">
+                          <ProgressMetric
+                            label="On Track"
+                            value={analytics.topEngaged.length}
+                            total={analytics.topEngaged.length + analytics.neglectedContacts.length}
+                          />
+                          <div className="mt-2 flex justify-between text-[13px] sm:text-sm font-[450] text-gray-600/90">
+                            <span>Active Contacts: {analytics.topEngaged.length + analytics.neglectedContacts.length}</span>
+                            <span>{analytics.neglectedContacts.length} need attention</span>
+                          </div>
+                        </div>
                       </div>
+                      
+                      {analytics.neglectedContacts.length > 0 && (
+                        <div className="bg-gray-50 rounded-lg overflow-hidden">
+                          <div className="px-3 py-2 bg-gray-100">
+                            <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Needs Attention</span>
+                          </div>
+                          <div className="px-3 py-2 space-y-2">
+                            {analytics.neglectedContacts.map(contact => (
+                              <Link
+                                key={contact.id}
+                                to={`/contacts#${contact.id}`}
+                                className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 transition-colors"
+                              >
+                                {contact.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
