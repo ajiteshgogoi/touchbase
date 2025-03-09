@@ -28,17 +28,21 @@ export const Analytics = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Get existing analytics if any
   const { data: analytics, refetch: refetchAnalytics } = useQuery({
     queryKey: ['analytics'],
     queryFn: analyticsService.getLastAnalytics,
     enabled: !isLoading, // Only run query after initialization
   });
 
-  // Check if we have enough data for analysis
+  // Always check if we have enough data for analysis
   const { data: hasEnoughDataForAnalysis } = useQuery({
     queryKey: ['hasEnoughDataForAnalysis'],
     queryFn: analyticsService.checkHasEnoughData,
-    enabled: !isLoading && (!analytics || !analytics.hasEnoughData),
+    enabled: !isLoading,
+    // Don't cache this query so we always get fresh data
+    gcTime: 0,
+    staleTime: 0
   });
 
   const handleGenerateAnalytics = useCallback(async () => {
@@ -234,13 +238,13 @@ export const Analytics = () => {
         </div>
       </div>
 
-      {(!analytics || !analytics.hasEnoughData) ? (
+      {!analytics?.hasEnoughData ? (
         <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
           <div className="flex flex-col items-center justify-center text-center p-8">
             <div className="p-3 bg-gray-50/90 rounded-xl mb-4">
               <ChartPieIcon className="w-12 h-12 text-gray-400/90" />
             </div>
-            {hasEnoughDataForAnalysis ? (
+            {hasEnoughDataForAnalysis === true ? (
               <>
                 <h3 className="text-xl font-[600] text-gray-900 mb-2">
                   Ready for Analysis

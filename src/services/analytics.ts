@@ -47,12 +47,16 @@ const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions'; // Set LLM
 
 export const analyticsService = {
   async getLastAnalytics(): Promise<AnalyticsData | null> {
-  const { data, error } = await supabase
-    .from('contact_analytics')
-    .select('*')
-    .order('generated_at', { ascending: false })
-    .limit(1)
-    .single();
+   const { data: user } = await supabase.auth.getUser();
+   if (!user?.user) return null;
+
+   const { data, error } = await supabase
+     .from('contact_analytics')
+     .select('*')
+     .eq('user_id', user.user.id)
+     .order('generated_at', { ascending: false })
+     .limit(1)
+     .single();
 
   if (error) {
     if (error.code === 'PGRST116') return null; // No analytics found
