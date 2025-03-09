@@ -164,7 +164,7 @@ export const ProfileMenu = () => {
               <Suspense fallback={<IconFallback />}>
                 <ChartBarIcon className="h-5 w-5 mr-2 text-primary-500" />
               </Suspense>
-              Detailed Analytics
+              Detailed Insights
             </MenuItem>
             <MenuItem to="/help">
               <Suspense fallback={<IconFallback />}>

@@ -160,7 +160,7 @@ export const Analytics = () => {
               <div className="bg-gray-50 rounded-lg overflow-hidden">
                 <div className="px-3 py-2">
                   <div className="text-[15px] text-gray-600/90">
-                    Analysis not available
+                    Insights not available
                   </div>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export const Analytics = () => {
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-            Relationship Analytics
+            Relationship Insights
           </h1>
         </div>
 
@@ -193,7 +193,7 @@ export const Analytics = () => {
               <SparklesIcon className="w-12 h-12 text-primary-500/90" />
             </div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent mb-2">
-              Upgrade to Access Analytics
+              Upgrade to Access Insights
             </h2>
             <p className="text-[15px] text-gray-600/90 mb-6 max-w-lg">
             Discover the story behind your relationships. See who you've been missing, 
@@ -226,7 +226,7 @@ export const Analytics = () => {
             </button>
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-                Relationship Analytics
+                Relationship Insights
               </h1>
               <p className="mt-1.5 text-[15px] text-gray-600/90">
                 Deeper understanding of your connections and interaction patterns
@@ -257,14 +257,14 @@ export const Analytics = () => {
               ) : (
                 <>
                   <ChartBarIcon className="h-5 w-5 mr-2 flex-shrink-0" />
-                  Generate New Analysis
+                  Generate New Insights
                 </>
               )}
             </span>
           </button>
           {analytics && !canGenerate && (
             <p className="text-[15px] text-primary-500 font-[500] text-center sm:text-right">
-              Next analysis available {dayjs(analytics.nextGenerationAllowed).fromNow()}
+              New insights available {dayjs(analytics.nextGenerationAllowed).fromNow()}
             </p>
           )}
         </div>
@@ -282,7 +282,7 @@ export const Analytics = () => {
                   Ready for Analysis
                 </h3>
                 <p className="text-[15px] text-gray-600/90 mb-4">
-                  You have sufficient data to generate relationship insights. Click the 'Generate New Analysis' button above to begin.
+                  You have sufficient data to generate relationship insights. Click the 'Generate New Insights' button above to begin.
                 </p>
               </>
             ) : (
@@ -291,7 +291,7 @@ export const Analytics = () => {
                   Not Enough Data Yet
                 </h3>
                 <p className="text-[15px] text-gray-600/90">
-                  Log your interactions regularly to generate detailed analysis.
+                  Log your interactions regularly to generate detailed insights.
                 </p>
               </>
             )}
@@ -404,7 +404,7 @@ export const Analytics = () => {
             <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft md:col-span-2">
               <div className="p-6">
                 <h3 className="text-xl font-[600] text-gray-900 mb-4">
-                  Relationship Insights
+                  Detailed Insights
                 </h3>
                 {renderContactTopics()}
               </div>
