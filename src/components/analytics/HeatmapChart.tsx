@@ -6,26 +6,23 @@ interface HeatmapProps {
 }
 
 export const HeatmapChart = ({ data }: HeatmapProps) => {
-  // Calculate start and end dates
   const endDate = dayjs();
-  const startDate = endDate.subtract(6, 'months').startOf('week');
-  const totalWeeks = Math.ceil(endDate.diff(startDate, 'week', true));
+  const startDate = endDate.subtract(12, 'month');
 
-  // Calculate month label positions
-  const monthLabels = useMemo(() => {
-    const labels = [];
-    let currentDate = startDate.clone();
-    
-    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'month')) {
-      if (currentDate.date() <= 7) { // Only add label if we're in the first week of the month
-        labels.push({
-          text: currentDate.format('MMM'),
-          weekIndex: Math.floor(currentDate.diff(startDate, 'week', true))
-        });
-      }
-      currentDate = currentDate.add(1, 'month');
+  const monthsData = useMemo(() => {
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const monthStart = endDate.subtract(i, 'month').startOf('month');
+      const weekStart = monthStart.startOf('week');
+      const weeksInMonth = Math.ceil(monthStart.endOf('month').diff(weekStart, 'week', true));
+      
+      months.push({
+        text: monthStart.format('MMM'),
+        weeksInMonth,
+        startDate: weekStart
+      });
     }
-    return labels;
+    return months;
   }, [startDate, endDate]);
 
   // Calculate color intensity based on count
@@ -60,17 +57,17 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
   return (
     <div className="overflow-x-auto pb-4">
       <div className="min-w-[800px]">
-        {/* Month labels */}
+        {/* Month labels with fixed positioning */}
         <div className="flex mb-2 ml-8">
-          <div className="relative w-full h-5">
-            {monthLabels.map(({ text, weekIndex }, i) => (
+          <div className="flex w-full">
+            {monthsData.map(({ text, weeksInMonth }, index) => (
               <div
-                key={i}
-                className="absolute text-[13px] font-[450] text-gray-600/90 -translate-x-1/2"
+                key={index}
                 style={{
-                  left: `${((weekIndex + 0.5) / totalWeeks) * 100}%`,
-                  paddingLeft: i === 0 ? '0' : '8px' // Add spacing between months
+                  width: `${weeksInMonth * 13}px`,
+                  minWidth: `${weeksInMonth * 13}px`
                 }}
+                className="text-[13px] font-[450] text-gray-600/90 pl-2"
               >
                 {text}
               </div>
@@ -89,26 +86,42 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
             ))}
           </div>
           
-          {/* Heatmap grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${totalWeeks}, 1fr)`,
-            gridTemplateRows: 'repeat(7, 1fr)',
-            gap: '3px'
-          }}>
-            {Array.from({ length: totalWeeks * 7 }).map((_, index) => {
-              const currentDate = startDate.add(Math.floor(index / 7), 'week').add(index % 7, 'day');
-              const dataPoint = data.find(d => d.date === currentDate.format('YYYY-MM-DD'));
-              
+          {/* Heatmap grid organized by months */}
+          <div className="flex gap-1">
+            {Array.from({ length: 12 }).map((_, monthIndex) => {
+              const monthStart = endDate.subtract(11 - monthIndex, 'month').startOf('month');
+              const monthEnd = monthStart.endOf('month');
+              const weekStart = monthStart.startOf('week');
+              const weeksInMonth = Math.ceil(monthEnd.diff(weekStart, 'week', true));
+
               return (
                 <div
-                  key={index}
-                  className={`w-[10px] h-[10px] rounded-sm transition-colors duration-200 cursor-default ${getColor(dataPoint?.count || 0)}`}
-                  title={dataPoint
-                    ? `${dayjs(dataPoint.date).format('MMM D, YYYY')}: ${dataPoint.count} interaction${dataPoint.count !== 1 ? 's' : ''}`
-                    : `${currentDate.format('MMM D, YYYY')}: 0 interactions`
-                  }
-                />
+                  key={monthIndex}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: `repeat(${weeksInMonth}, 1fr)`,
+                    gridTemplateRows: 'repeat(7, 1fr)',
+                    gap: '3px'
+                  }}
+                >
+                  {Array.from({ length: weeksInMonth * 7 }).map((_, dayIndex) => {
+                    const currentDate = weekStart.add(Math.floor(dayIndex / 7), 'week').add(dayIndex % 7, 'day');
+                    const isWithinMonth = currentDate.month() === monthStart.month();
+                    const dataPoint = data.find(d => d.date === currentDate.format('YYYY-MM-DD'));
+
+                    return (
+                      <div
+                        key={dayIndex}
+                        className={`w-[10px] h-[10px] rounded-sm transition-colors duration-200 cursor-default
+                          ${!isWithinMonth ? 'invisible' : getColor(dataPoint?.count || 0)}`}
+                        title={dataPoint && isWithinMonth
+                          ? `${currentDate.format('MMM D, YYYY')}: ${dataPoint.count} interaction${dataPoint.count !== 1 ? 's' : ''}`
+                          : isWithinMonth ? `${currentDate.format('MMM D, YYYY')}: 0 interactions` : ''
+                        }
+                      />
+                    );
+                  })}
+                </div>
               );
             })}
           </div>

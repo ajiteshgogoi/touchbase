@@ -244,7 +244,7 @@ export const analyticsService = {
     const counts = new Map<string, number>();
 
     // Get last 12 months of data (similar to GitHub's contribution graph)
-    const startDate = dayjs().subtract(12, 'month');
+    const startDate = dayjs().subtract(12, 'month').startOf('day');
     const endDate = dayjs();
 
     interactions
