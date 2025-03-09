@@ -29,29 +29,18 @@ export const HeatmapChart = ({ data }: HeatmapProps) => {
   const maxCount = useMemo(() => Math.max(...data.map(d => d.count)), [data]);
   
   const getColor = useMemo(() => (count: number) => {
-    if (count === 0) return 'bg-gray-100 hover:bg-gray-200';
+    if (count === 0) return 'bg-primary-50 hover:bg-primary-100';
     
-    // Use 4 intensity levels (like GitHub)
-    let level;
     const ratio = count / maxCount;
-    if (ratio <= 0.25) level = 1;
-    else if (ratio <= 0.5) level = 2;
-    else if (ratio <= 0.75) level = 3;
-    else level = 4;
-
-    // Map levels to appropriate intensities
-    const intensityMap = {
-      1: '200',
-      2: '300',
-      3: '400',
-      4: '500'
-    };
-
-    const baseColor = 'bg-primary';
-    const intensity = intensityMap[level as 1 | 2 | 3 | 4];
-    const hoverIntensity = intensityMap[Math.min(4, level + 1) as 1 | 2 | 3 | 4];
-    
-    return `${baseColor}-${intensity} hover:${baseColor}-${hoverIntensity}`;
+    if (ratio <= 0.25) {
+      return 'bg-primary-200 hover:bg-primary-300';
+    } else if (ratio <= 0.5) {
+      return 'bg-primary-400 hover:bg-primary-500';
+    } else if (ratio <= 0.75) {
+      return 'bg-primary-500 hover:bg-primary-600';
+    } else {
+      return 'bg-primary-600 hover:bg-primary-700';
+    }
   }, [maxCount]);
 
   return (
