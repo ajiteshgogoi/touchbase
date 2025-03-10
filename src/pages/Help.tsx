@@ -49,6 +49,25 @@ export const Help = () => {
       )
     },
     {
+      id: 'categorisation',
+      title: 'Contact Categories',
+      icon: ChatBubbleLeftRightIcon,
+      description: 'Organise contacts using hashtags',
+      content: (
+        <>
+          <ol className="list-decimal list-inside space-y-2 ml-4">
+            <li>In any contact's notes, use hashtags to categorise them (e.g., #family, #friend, #work)</li>
+            <li>Type '#' to see suggestions from existing categories</li>
+            <li>On the contacts page, use category filters to find specific groups</li>
+            <li>Multiple categories can be assigned to a single contact</li>
+          </ol>
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+            <strong className="text-primary-700">Pro Tip:</strong> Create consistent categories across contacts to make filtering more effective. Common categories include #family, #friend, #work, #client, #school, etc.
+          </div>
+        </>
+      )
+    },
+    {
       id: 'interactions',
       title: 'Logging Interactions',
       icon: ChatBubbleLeftRightIcon,
