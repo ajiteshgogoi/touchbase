@@ -301,9 +301,21 @@ export const filterHashtagSuggestions = (input: string, existingTags: string[]):
   const lastWord = input.split(' ').pop() || '';
   if (!lastWord.startsWith('#')) return [];
   
+  // Get the current partial hashtag without the # symbol
   const search = lastWord.slice(1).toLowerCase();
-  return existingTags.filter(tag =>
-    tag.slice(1).toLowerCase().includes(search) &&
-    tag.toLowerCase() !== lastWord.toLowerCase()
-  );
+  
+  // Extract already used hashtags from the current input
+  const usedTags = extractHashtags(input);
+  
+  return existingTags.filter(tag => {
+    const tagText = tag.slice(1).toLowerCase();
+    return (
+      // Only show tags that start with what user is typing
+      tagText.startsWith(search) &&
+      // Don't show the exact partial tag being typed
+      tag.toLowerCase() !== lastWord.toLowerCase() &&
+      // Don't show tags that are already used in the notes
+      !usedTags.includes(tag.toLowerCase())
+    );
+  });
 };
