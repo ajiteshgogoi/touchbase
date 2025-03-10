@@ -9,6 +9,11 @@ const publicPages = [
     priority: 1.0
   },
   {
+    url: '/login',
+    changefreq: 'weekly',
+    priority: 1.0
+  },
+  {
     url: '/privacy',
     changefreq: 'monthly',
     priority: 0.8

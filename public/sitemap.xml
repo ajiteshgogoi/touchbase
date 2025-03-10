@@ -7,6 +7,12 @@
     <priority>1</priority>
   </url>
   <url>
+    <loc>https://touchbase.site/login</loc>
+    <lastmod>2025-03-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1</priority>
+  </url>
+  <url>
     <loc>https://touchbase.site/privacy</loc>
     <lastmod>2025-03-03</lastmod>
     <changefreq>monthly</changefreq>
