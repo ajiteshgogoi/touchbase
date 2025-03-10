@@ -206,7 +206,7 @@ export const Help = () => {
       content: (
         <>
           <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Avoid overwhelm by only adding contacts you truly want to stay connected with</li>
+            <li>Avoid overwhelm by only adding contacts you want to stay connected with</li>
             <li>Set realistic contact frequencies based on your relationship with each person</li>
             <li>Use the notes section to record important details about your relationships</li>
             <li>Log interactions right after they happen for better tracking</li>
