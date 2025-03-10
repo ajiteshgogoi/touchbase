@@ -188,19 +188,19 @@ const [quickReminder, setQuickReminder] = useState<{
 
                   return (
                     <div
-                      key={reminder.id}
-                      className={`bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200 ${
-                        reminder.name ? 'border-l-4 border-primary-500' : ''
-                      }${
-                        events.length > 0 ? ` ring-2 ${
-                          events[0]?.type === 'birthday' ? 'ring-pink-300/90' :
-                          events[0]?.type === 'anniversary' ? 'ring-rose-300/90' :
-                          'ring-purple-300/90'
-                        }` : ''
-                      }`}
-                    >
-                      <div className="flex flex-col divide-y divide-gray-100">
-                        <div className="min-w-0 pb-4">
+                                          key={reminder.id}
+                                          className={`bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 hover:shadow-md transition-all duration-200 ${
+                                            reminder.name ? 'border-l-4 border-primary-500' : ''
+                                          }${
+                                            events.length > 0 ? ` ring-2 ${
+                                              events[0]?.type === 'birthday' ? 'ring-pink-300/90' :
+                                              events[0]?.type === 'anniversary' ? 'ring-rose-300/90' :
+                                              'ring-purple-300/90'
+                                            }` : ''
+                                          }`}
+                                        >
+                      <div className="flex flex-col">
+                        <div className="min-w-0 pb-4 p-4">
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <div className="space-y-1.5">
@@ -386,7 +386,7 @@ const [quickReminder, setQuickReminder] = useState<{
                   return (
                     <div
                       key={reminder.id}
-                      className={`bg-white rounded-lg shadow-soft p-4 hover:shadow-md transition-shadow ${
+                      className={`bg-white rounded-lg shadow-soft hover:shadow-md transition-shadow ${
                         reminder.name ? 'border-l-4 border-primary-500 ' : ''
                       }${
                         events.length > 0 ? `ring-2 ${
@@ -396,8 +396,8 @@ const [quickReminder, setQuickReminder] = useState<{
                         }` : ''
                       }`}
                     >
-                      <div className="flex flex-col divide-y divide-gray-100">
-                        <div className="min-w-0 pb-4">
+                      <div className="flex flex-col">
+                        <div className="min-w-0 pb-4 p-4">
                           <div className="space-y-4">
                             <div className="space-y-2">
                               <div className="space-y-1.5">
