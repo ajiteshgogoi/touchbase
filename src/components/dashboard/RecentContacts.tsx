@@ -16,7 +16,7 @@ import { contactsService } from '../../services/contacts';
 import { contentReportsService } from '../../services/content-reports';
 import { useStore } from '../../stores/useStore';
 import type { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
-import { getEventTypeDisplay, formatEventDate, sortEventsByType } from '../../components/contacts/utils';
+import { getEventTypeDisplay, formatEventDate, sortEventsByType, extractHashtags, formatHashtagForDisplay } from '../../components/contacts/utils';
 import dayjs from 'dayjs';
 import { lazy, Suspense } from 'react';
 
@@ -256,6 +256,27 @@ export const RecentContacts = () => {
                                 </div>
                               </div>
                             </div>
+
+                            {/* Categories/Hashtags section */}
+                            {contact.notes && extractHashtags(contact.notes).length > 0 && (
+                              <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</span>
+                                </div>
+                                <div className="px-3 py-2">
+                                  <div className="flex flex-wrap gap-2">
+                                    {extractHashtags(contact.notes).map((tag, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-primary-50 text-primary-700 border border-primary-100"
+                                      >
+                                        {formatHashtagForDisplay(tag)}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
 
                             {/* AI Suggestions section */}
                             <div className="bg-gray-50 rounded-lg overflow-hidden">
