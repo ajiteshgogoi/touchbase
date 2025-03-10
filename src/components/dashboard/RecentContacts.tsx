@@ -150,14 +150,14 @@ export const RecentContacts = () => {
                   .map((contact: Contact) => (
                     <div
                       key={contact.id}
-                      className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 hover:shadow-md transition-all duration-200"
+                      className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft"
                     >
                       {/* Compact Header */}
                       <div className="flex items-center justify-between p-4">
                         {/* Left side: Status indicator and name */}
                         <div
                           onClick={() => toggleContactExpanded(contact.id)}
-                          className="flex items-center flex-1 min-w-0 cursor-pointer hover:bg-gray-50/50 rounded-lg p-1 -m-1 transition-colors"
+                          className="flex items-center flex-1 min-w-0 cursor-pointer rounded-lg p-1 -m-1"
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => e.key === 'Enter' && toggleContactExpanded(contact.id)}
