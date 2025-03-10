@@ -315,6 +315,18 @@ export const RecentContacts = () => {
                               </div>
                             )}
 
+                            {/* Personal Notes section */}
+                            {contact.notes && (
+                              <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                                <div className="px-3 py-2 bg-gray-100">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Notes</span>
+                                </div>
+                                <div className="px-3 py-2">
+                                  <span className="text-sm text-gray-700 whitespace-pre-line">{contact.notes}</span>
+                                </div>
+                              </div>
+                            )}
+
                             {/* AI Suggestions section */}
                             <div className="bg-gray-50 rounded-lg overflow-hidden">
                               <div className="px-3 py-2 bg-gray-100">
