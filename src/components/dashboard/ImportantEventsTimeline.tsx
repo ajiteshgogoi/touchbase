@@ -36,7 +36,7 @@ export const ImportantEventsTimeline = () => {
     }))
     .filter(event => event.nextOccurrence >= new Date())
     .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime())
-    .slice(0, 8); // Show only next 8 events
+    .slice(0, 6); // Show only next 6 events
 
   // Group events by month using next occurrence date
   const groupedEvents = upcomingEvents?.reduce((groups, event) => {
