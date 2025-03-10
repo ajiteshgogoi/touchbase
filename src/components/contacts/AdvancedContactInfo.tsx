@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { HashtagHighlighter } from './HashtagHighlighter';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
 import {
@@ -462,6 +463,10 @@ export const AdvancedContactInfo = ({
               maxLength={500}
               className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
               placeholder="E.g., #friend from school. Loves hiking and photography. #sports enthusiast"
+            />
+            <HashtagHighlighter
+              text={formData.notes}
+              textarea={textareaRef.current}
             />
             <HashtagSuggestions
               suggestions={hashtagSuggestions}
