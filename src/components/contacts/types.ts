@@ -57,6 +57,8 @@ export interface FormErrors {
   important_events: string[];
   /** Contact frequency validation error message */
   frequency: string;
+  /** Notes validation error message */
+  notes?: string;
 }
 
 /**

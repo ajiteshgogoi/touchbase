@@ -12,7 +12,8 @@ import {
   formatEventToUTC,
   sortEventsByType,
   filterHashtagSuggestions,
-  getAllUniqueHashtags
+  getAllUniqueHashtags,
+  exceedsMaxHashtags
 } from './utils';
 import { HashtagSuggestions } from './HashtagSuggestions';
 import dayjs from 'dayjs';
@@ -65,17 +66,27 @@ export const AdvancedContactInfo = ({
   // Update hashtag suggestions when typing
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
-    onChange({ notes: value.slice(0, 500) });
+    const truncatedValue = value.slice(0, 500);
+    
+    // Check if exceeding max hashtags
+    if (exceedsMaxHashtags(truncatedValue, 5)) {
+      onError({ notes: 'Maximum 5 hashtags allowed per contact' });
+      return;
+    } else {
+      onError({ notes: '' });
+    }
+
+    onChange({ notes: truncatedValue });
 
     // Handle hashtag suggestions
-    const suggestions = filterHashtagSuggestions(value, allHashtags);
+    const suggestions = filterHashtagSuggestions(truncatedValue, allHashtags);
     setHashtagSuggestions(suggestions);
     
     if (suggestions.length > 0) {
       const textarea = textareaRef.current;
       if (textarea) {
         const cursorPosition = textarea.selectionEnd;
-        const textBeforeCursor = value.substring(0, cursorPosition);
+        const textBeforeCursor = truncatedValue.substring(0, cursorPosition);
         const lines = textBeforeCursor.split('\n');
         const currentLineNumber = lines.length - 1;
         
@@ -475,10 +486,15 @@ export const AdvancedContactInfo = ({
               visible={showHashtagSuggestions}
             />
           </div>
-          <div className="mt-2 flex justify-end">
-            <span className="text-sm text-gray-500">
-              {formData.notes.length}/500 characters
-            </span>
+          <div className="mt-2">
+            <div className="flex justify-end">
+              <span className="text-sm text-gray-500">
+                {formData.notes.length}/500 characters
+              </span>
+            </div>
+            {errors.notes && (
+              <p className="text-sm text-red-600 mt-1">{errors.notes}</p>
+            )}
           </div>
         </div>
       </div>

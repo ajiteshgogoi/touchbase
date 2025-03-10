@@ -244,15 +244,30 @@ export const getEventTypeDisplay = (type: string, customName?: string | null): s
 /**
  * Extract hashtags from text
  * @param text - Text to extract hashtags from
+ * @param maxTags - Optional maximum number of hashtags allowed (default: no limit)
  * @returns Array of unique hashtags (lowercase)
  */
-export const extractHashtags = (text: string): string[] => {
+export const extractHashtags = (text: string, maxTags?: number): string[] => {
   const matches = text.match(/#[a-zA-Z]\w*/g) || [];
   // Filter out hashtags that don't meet length requirements (2-15 characters, not counting #)
-  return [...new Set(matches
+  const validTags = [...new Set(matches
     .filter(tag => tag.length >= 2 && tag.length <= 16) // Include # in length check
     .map(tag => tag.toLowerCase())
   )];
+  
+  // If maxTags is specified, limit the number of tags
+  return maxTags ? validTags.slice(0, maxTags) : validTags;
+};
+
+/**
+ * Check if text exceeds maximum number of hashtags
+ * @param text - Text to check
+ * @param maxTags - Maximum number of hashtags allowed
+ * @returns boolean indicating if text exceeds max hashtags
+ */
+export const exceedsMaxHashtags = (text: string, maxTags: number): boolean => {
+  const hashtags = extractHashtags(text);
+  return hashtags.length > maxTags;
 };
 
 /**
