@@ -230,25 +230,27 @@ export const RecentContacts = () => {
                       {expandedContacts[contact.id] && (
                         <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
                           {/* Contact details section */}
-                          <div className="mt-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
-                              {contact.phone && (
-                                <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                                  <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
-                                  <span className="truncate leading-5 font-[450]">{contact.phone}</span>
-                                </div>
-                              )}
-                              {contact.social_media_handle && (
-                                <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                                  <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
-                                  <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
-                                </div>
-                              )}
-                            </div>
+                          <div className="mt-4 space-y-4">
+                            {(contact.phone || contact.social_media_handle) && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
+                                {contact.phone && (
+                                  <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                                    <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
+                                    <span className="truncate leading-5 font-[450]">{contact.phone}</span>
+                                  </div>
+                                )}
+                                {contact.social_media_handle && (
+                                  <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                                    <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
+                                    <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             {/* Events section */}
                             {(eventsMap[contact.id] || []).length > 0 && (
-                              <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
                                 <div className="px-3 py-2 bg-gray-100">
                                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
                                 </div>
@@ -273,7 +275,7 @@ export const RecentContacts = () => {
                             )}
 
                             {/* Contact status section */}
-                            <div className="mb-4">
+                            <div>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                 <div className="bg-gray-50 rounded-lg overflow-hidden">
                                   <div className="px-3 py-2 bg-gray-100">
@@ -296,7 +298,7 @@ export const RecentContacts = () => {
 
                             {/* Categories/Hashtags section */}
                             {contact.notes && extractHashtags(contact.notes).length > 0 && (
-                              <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
                                 <div className="px-3 py-2 bg-gray-100">
                                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</span>
                                 </div>
@@ -317,7 +319,7 @@ export const RecentContacts = () => {
 
                             {/* Personal Notes section */}
                             {contact.notes && (
-                              <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
+                              <div className="bg-gray-50 rounded-lg overflow-hidden">
                                 <div className="px-3 py-2 bg-gray-100">
                                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Notes</span>
                                 </div>
