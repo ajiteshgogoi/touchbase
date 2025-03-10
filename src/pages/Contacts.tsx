@@ -500,7 +500,7 @@ export const Contacts = () => {
                       {contact.notes && extractHashtags(contact.notes).length > 0 && (
                         <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
                           <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Categories</span>
+                            <span className="text-xs font-medium text-gray-500/90 uppercase tracking-wider">Categories</span>
                           </div>
                           <div className="px-3 py-2">
                             <div className="flex flex-wrap gap-2">
@@ -525,7 +525,7 @@ export const Contacts = () => {
                         <div className="px-3 py-2">
                           {!contact.ai_last_suggestion ? (
                             <div className="flex items-start gap-2">
-                              <span className="flex-1 text-[15px] text-gray-600/90 font-[450]">
+                              <span className="flex-1 text-sm text-gray-600/90">
                                 No suggestions available
                               </span>
                             </div>
@@ -537,7 +537,7 @@ export const Contacts = () => {
                             </div>
                           ) : (
                             <div className="group flex items-start gap-2">
-                              <span className="flex-1 text-sm text-gray-600/90 whitespace-pre-line">
+                              <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
                                 {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
                               </span>
                               {contact.ai_last_suggestion && (
