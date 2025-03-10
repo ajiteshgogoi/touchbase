@@ -57,7 +57,7 @@ export const Help = () => {
       content: (
         <>
           <ol className="list-decimal list-inside space-y-2 ml-4">
-            <li>In any contact's notes, use hashtags to categorise them (e.g., #family, #friend, #work)</li>
+            <li>In any contact's notes, use hashtags to categorise them (e.g., #family, #friend, #colleague)</li>
             <li>Type '#' to see suggestions from existing categories</li>
             <li>On the contacts page, use category filters to find specific groups</li>
             <li>Multiple categories can be assigned to a single contact</li>
