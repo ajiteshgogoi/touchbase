@@ -64,7 +64,7 @@ export const Help = () => {
           </ol>
           <div className="mt-4 space-y-4">
             <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-              <strong className="text-primary-700">Pro Tip:</strong> Create consistent categories across contacts to make filtering more effective. Common categories include #family, #friend, #work, #client, #school, etc.
+              <strong className="text-primary-700">Pro Tip:</strong> Create consistent categories across contacts to make filtering more effective. Common categories include #family, #friend, #colleague, #client, etc.
             </div>
             <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
               <strong className="text-gray-700">Hashtag Rules:</strong>
