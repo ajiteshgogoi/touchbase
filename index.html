@@ -1,9 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+      <meta charset="UTF-8" />
+      <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+      <!-- Critical CSS for login page -->
+      <style>
+        /* Essential styles for immediate render */
+        .min-h-\[80vh\] { min-height: 80vh; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem; }
+        .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-16 { padding-top: 4rem; padding-bottom: 4rem; }
+        .text-center { text-align: center; }
+        .max-w-xl { max-width: 36rem; }
+        .max-w-4xl { max-width: 56rem; }
+        .w-full { width: 100%; }
+        .bg-gray-50 { background-color: rgb(249 250 251); }
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-stops)); }
+        .from-primary-600\/90 { --tw-gradient-from: rgb(2 132 199 / 0.9); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(2 132 199 / 0)); }
+        .to-primary-400\/90 { --tw-gradient-to: rgb(56 189 248 / 0.9); }
+        .bg-clip-text { -webkit-background-clip: text; background-clip: text; }
+        .text-transparent { color: transparent; }
+        .backdrop-blur-md { backdrop-filter: blur(12px); }
+        .transition-all { transition-property: all; }
+        .duration-300 { transition-duration: 300ms; }
+      </style>
+      <!-- Dynamic CSS loading -->
+      <script>
+        // Find and load main CSS file dynamically
+        (function() {
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              mutation.addedNodes.forEach((node) => {
+                if (node.tagName === 'LINK' && node.href && node.href.includes('/assets/index-') && node.href.endsWith('.css')) {
+                  // Found the main CSS file, preload it
+                  const preloadLink = document.createElement('link');
+                  preloadLink.rel = 'preload';
+                  preloadLink.as = 'style';
+                  preloadLink.href = node.href;
+                  document.head.appendChild(preloadLink);
+                  
+                  // Set media print and swap on load
+                  node.media = 'print';
+                  node.onload = function() {
+                    this.media = 'all';
+                  };
+                  
+                  // Cleanup observer once we've handled the CSS
+                  observer.disconnect();
+                }
+              });
+            });
+          });
+          
+          observer.observe(document.head, {
+            childList: true,
+            subtree: true
+          });
+        })();
+      </script>
     <!-- Instagram Browser Handling -->
     <script>
       (function() {
