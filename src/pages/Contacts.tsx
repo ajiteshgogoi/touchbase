@@ -477,7 +477,7 @@ export const Contacts = () => {
                               {extractHashtags(contact.notes).map((tag, idx) => (
                                 <span
                                   key={idx}
-                                  className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-primary-50 text-primary-700 border border-primary-100"
+                                  className="inline-flex items-center px-3 py-1.5 rounded-xl text-sm bg-primary-50 text-primary-700 border border-primary-100"
                                 >
                                   {formatHashtagForDisplay(tag)}
                                 </span>
