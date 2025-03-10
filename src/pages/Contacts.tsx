@@ -17,7 +17,9 @@ import {
   AtSymbolIcon,
   CakeIcon,
   HeartIcon,
-  StarIcon
+  StarIcon,
+  ChevronDownIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline/esm/index.js';
 import type { Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
 import {
@@ -45,12 +47,20 @@ export const Contacts = () => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
     contactId: string;
     type: Interaction['type'];
     contactName: string;
   } | null>(null);
+
+  const toggleContactExpanded = (contactId: string) => {
+    setExpandedContacts(prev => ({
+      ...prev,
+      [contactId]: !prev[contactId]
+    }));
+  };
 
   const refetchContacts = useCallback(() => {
     void queryClient.invalidateQueries({
@@ -149,7 +159,7 @@ export const Contacts = () => {
       try {
         setDeletingContactId(contactId);
         await contactsService.deleteContact(contactId);
-        
+
         // Directly invalidate queries to fetch fresh data
         await Promise.all([
           queryClient.invalidateQueries({
@@ -295,11 +305,10 @@ export const Contacts = () => {
                     <button
                       key={index}
                       onClick={() => handleCategoryChange(tag)}
-                      className={`px-3 py-1.5 rounded-xl text-sm ${
-                        selectedCategories.includes(tag)
+                      className={`px-3 py-1.5 rounded-xl text-sm ${selectedCategories.includes(tag)
                           ? 'bg-primary-100 text-primary-700 border-primary-200 shadow-sm'
                           : 'bg-white/60 backdrop-blur-sm text-gray-600 hover:bg-white/70 border-gray-200'
-                      } border transition-all`}
+                        } border transition-all`}
                     >
                       {formatHashtagForDisplay(tag)}
                     </button>
@@ -343,66 +352,82 @@ export const Contacts = () => {
               <div
                 key={contact.id}
                 id={contact.id}
-                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-3 sm:p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200 scroll-mt-6"
+                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 hover:shadow-md transition-all duration-200 scroll-mt-6 overflow-hidden"
               >
-                <div className="flex flex-col gap-4 divide-y divide-gray-100">
-                  <div className="min-w-0 pb-3">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1.5">
-                        <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">
-                          {contact.name}
-                        </h3>
-                        {/* Inline status indicator */}
-                        <div className="flex items-center text-[13px] sm:text-sm text-gray-500/90">
-                          <div className={`w-2 h-2 rounded-full mr-2 transition-colors ${
-                            contact.missed_interactions > 3 ? 'bg-red-400/90' :
-                            contact.missed_interactions > 2 ? 'bg-orange-400/90' :
-                            contact.missed_interactions > 1 ? 'bg-yellow-400/90' :
+                {/* Compact Header */}
+                <div className="flex items-center justify-between p-4">
+                  {/* Left side: Status indicator and name */}
+                  <div className="flex items-center flex-1 min-w-0">
+                    <button
+                      onClick={() => toggleContactExpanded(contact.id)}
+                      className="flex items-center py-1 -ml-2 text-gray-500 hover:text-primary-500 rounded-lg transition-colors focus:outline-none"
+                      aria-label={expandedContacts[contact.id] ? "Collapse contact details" : "Expand contact details"}
+                    >
+                      {expandedContacts[contact.id] ? (
+                        <ChevronDownIcon className="h-5 w-5 text-primary-500" />
+                      ) : (
+                        <ChevronRightIcon className="h-5 w-5" />
+                      )}
+                    </button>
+
+                    <div className={`w-2.5 h-2.5 rounded-full ml-1 mr-3 transition-colors ${contact.missed_interactions > 3 ? 'bg-red-400/90' :
+                        contact.missed_interactions > 2 ? 'bg-orange-400/90' :
+                          contact.missed_interactions > 1 ? 'bg-yellow-400/90' :
                             contact.missed_interactions > 0 ? 'bg-lime-400/90' :
-                            'bg-green-400/90'
-                          }`} title={`${contact.missed_interactions} missed interactions`}></div>
-                          {contact.contact_frequency && (
-                            <span className="font-[450]">
-                              {contact.contact_frequency === 'every_three_days'
-                                ? 'Bi-weekly contact'
-                                : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Link
-                          to={`/contacts/${contact.id}/edit`}
-                          state={{ from: '/contacts' }}
-                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                          title="Edit contact"
-                        >
-                          <PencilSquareIcon className="h-4 w-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteContact(contact.id)}
-                          disabled={deletingContactId === contact.id}
-                          className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
-                            deletingContactId === contact.id
-                            ? 'text-gray-400 bg-gray-100'
-                            : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
-                          }`}
-                          title={deletingContactId === contact.id ? 'Deleting contact...' : 'Delete contact'}
-                        >
-                          {deletingContactId === contact.id ? (
-                            <div className="h-4 w-4 flex items-center justify-center">
-                              <div className="transform scale-50 -m-2">
-                                <LoadingSpinner />
-                              </div>
-                            </div>
-                          ) : (
-                            <TrashIcon className="h-4 w-4" />
-                          )}
-                        </button>
-                      </div>
+                              'bg-green-400/90'
+                      }`} title={`${contact.missed_interactions} missed interactions`}></div>
+
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-semibold text-primary-500 truncate">
+                        {contact.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 truncate">
+                        {contact.contact_frequency && (
+                          contact.contact_frequency === 'every_three_days'
+                            ? 'Bi-weekly contact'
+                            : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'
+                        )}
+                      </p>
                     </div>
+                  </div>
+
+                  {/* Right side: Action buttons */}
+                  <div className="flex ml-4 space-x-2">
+                    <Link
+                      to={`/contacts/${contact.id}/edit`}
+                      state={{ from: '/contacts' }}
+                      className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                      title="Edit contact"
+                    >
+                      <PencilSquareIcon className="h-4 w-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteContact(contact.id)}
+                      disabled={deletingContactId === contact.id}
+                      className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${deletingContactId === contact.id
+                          ? 'text-gray-400 bg-gray-100'
+                          : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                        }`}
+                      title={deletingContactId === contact.id ? 'Deleting contact...' : 'Delete contact'}
+                    >
+                      {deletingContactId === contact.id ? (
+                        <div className="h-4 w-4 flex items-center justify-center">
+                          <div className="transform scale-50 -m-2">
+                            <LoadingSpinner />
+                          </div>
+                        </div>
+                      ) : (
+                        <TrashIcon className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Collapsible Details Section */}
+                {expandedContacts[contact.id] && (
+                  <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/40">
+                    {/* Contact details section */}
                     <div className="mt-4">
-                      {/* Contact details section */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
                         {contact.phone && (
                           <div className="flex items-center px-3 py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 hover:bg-white/70 transition-colors duration-200">
@@ -417,7 +442,7 @@ export const Contacts = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Events section */}
                       {(eventsMap[contact.id] || []).length > 0 && (
                         <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
@@ -443,7 +468,7 @@ export const Contacts = () => {
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Contact status section */}
                       <div className="mb-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -523,58 +548,60 @@ export const Contacts = () => {
                           )}
                         </div>
                       </div>
-                      </div>
-                    </div>
-                    <div className="pt-3">
-                      <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
-                        <button
-                          onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
-                          className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                          title="Log an interaction"
-                        >
-                          Log Interaction
-                        </button>
-                        {(isPremium || isOnTrial) ? (
-                          <Link
-                            to={`/contacts/${contact.id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                            title="View interaction history"
-                          >
-                            View History
-                          </Link>
-                        ) : (
-                          <Link
-                            to={`/contacts/${contact.id}/interactions`}
-                            className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                            title="Upgrade to view interaction history"
-                          >
-                            View History
-                          </Link>
-                        )}
-                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-        {quickInteraction && (
-          <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
-            <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
-          </div>}>
-            <QuickInteraction
-              isOpen={quickInteraction.isOpen}
-              onClose={() => setQuickInteraction(null)}
-              contactId={quickInteraction.contactId}
-              contactName={quickInteraction.contactName}
-              defaultType={quickInteraction.type}
-              onSuccess={refetchContacts}
-            />
-          </Suspense>
-        )}
-      </div>
-    );
-  };
+                )}
 
-  export default Contacts;
+                {/* Action Buttons - Always Visible */}
+                <div className="p-4 border-t border-gray-100/50 bg-white/30">
+                  <div className="flex flex-wrap items-center justify-start gap-2 w-full">
+                    <button
+                      onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
+                      className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                      title="Log an interaction"
+                    >
+                      Log Interaction
+                    </button>
+                    {(isPremium || isOnTrial) ? (
+                      <Link
+                        to={`/contacts/${contact.id}/interactions`}
+                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                        title="View interaction history"
+                      >
+                        View History
+                      </Link>
+                    ) : (
+                      <Link
+                        to={`/contacts/${contact.id}/interactions`}
+                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                        title="Upgrade to view interaction history"
+                      >
+                        View History
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+      {quickInteraction && (
+        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
+          <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
+        </div>}>
+          <QuickInteraction
+            isOpen={quickInteraction.isOpen}
+            onClose={() => setQuickInteraction(null)}
+            contactId={quickInteraction.contactId}
+            contactName={quickInteraction.contactName}
+            defaultType={quickInteraction.type}
+            onSuccess={refetchContacts}
+          />
+        </Suspense>
+      )}
+    </div>
+  );
+};
+
+export default Contacts;
