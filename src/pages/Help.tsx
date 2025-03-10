@@ -8,7 +8,8 @@ import {
   DevicePhoneMobileIcon,
   CalendarIcon,
   ChevronDownIcon,
-  QuestionMarkCircleIcon
+  QuestionMarkCircleIcon,
+  HashtagIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -51,7 +52,7 @@ export const Help = () => {
     {
       id: 'categorisation',
       title: 'Contact Categories',
-      icon: ChatBubbleLeftRightIcon,
+      icon: HashtagIcon,
       description: 'Organise contacts using hashtags',
       content: (
         <>
