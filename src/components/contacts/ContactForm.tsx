@@ -34,10 +34,18 @@ export const ContactForm = () => {
   const isEditMode = Boolean(id);
 
   // Fetch contact and events data in edit mode
+  // Fetch current contact data in edit mode
   const { data: contactData, isLoading: isLoadingContact } = useQuery({
     queryKey: ['contact-with-events', id],
     queryFn: () => contactsService.getContactWithEvents(id!),
     enabled: isEditMode,
+  });
+
+  // Fetch all contacts for hashtag suggestions
+  const { data: allContacts = [] } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: () => contactsService.getContacts(),
+    enabled: !!user?.id,
   });
 
   // Update form data when contact and events are loaded
@@ -303,6 +311,10 @@ export const ContactForm = () => {
             isPremium={isPremium}
             isOnTrial={isOnTrial}
             isEditMode={isEditMode}
+            contacts={allContacts.map(contact => ({
+              ...contact,
+              notes: contact.notes || ''
+            }))}
           />
         )}
 

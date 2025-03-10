@@ -20,7 +20,13 @@ import {
   StarIcon
 } from '@heroicons/react/24/outline/esm/index.js';
 import type { Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
-import { getEventTypeDisplay, formatEventDate, sortEventsByType } from '../components/contacts/utils';
+import {
+  getEventTypeDisplay,
+  formatEventDate,
+  sortEventsByType,
+  extractHashtags,
+  formatHashtagForDisplay
+} from '../components/contacts/utils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
@@ -38,6 +44,7 @@ export const Contacts = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
     contactId: string;
@@ -86,6 +93,21 @@ export const Contacts = () => {
   }, {} as Record<string, ImportantEvent[]>) || {};
 
   const isLoading = contactsLoading || countLoading;
+
+  // Calculate all unique hashtags from contacts
+  const allHashtags = contacts?.reduce((tags: string[], contact) => {
+    const contactTags = extractHashtags(contact.notes || '');
+    return [...new Set([...tags, ...contactTags])];
+  }, []) || [];
+
+  const handleCategoryChange = (hashtag: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(hashtag)) {
+        return prev.filter(h => h !== hashtag);
+      }
+      return [...prev, hashtag];
+    });
+  };
 
   useEffect(() => {
     // If there's no hash, scroll to top when component mounts
@@ -152,11 +174,21 @@ export const Contacts = () => {
   };
 
   const filteredContacts = contacts
-    ?.filter(contact =>
-      contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.social_media_handle?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    ?.filter(contact => {
+      // Search query filter
+      const matchesSearch =
+        contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.social_media_handle?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Category filter
+      const matchesCategories = selectedCategories.length === 0 ||
+        selectedCategories.every(category =>
+          extractHashtags(contact.notes || '').includes(category.toLowerCase())
+        );
+
+      return matchesSearch && matchesCategories;
+    })
     .sort((a, b) => {
       if (sortField === 'name') {
         return sortOrder === 'asc'
@@ -252,6 +284,26 @@ export const Contacts = () => {
               </button>
             </div>
           </div>
+          {allHashtags.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-4">
+              <div className="w-full">
+                <span className="text-xs font-[500] text-gray-500 uppercase tracking-wider">Filter by Category:</span>
+              </div>
+              {allHashtags.map((tag, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleCategoryChange(tag)}
+                  className={`px-3 py-1.5 rounded-full text-sm ${
+                    selectedCategories.includes(tag)
+                      ? 'bg-primary-100 text-primary-700 border-primary-200'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-100'
+                  } border transition-colors`}
+                >
+                  {formatHashtagForDisplay(tag)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="p-4 space-y-4">

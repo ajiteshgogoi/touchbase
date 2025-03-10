@@ -1,8 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline';
 import { ContactFormProps } from './types';
-import { isValidPhoneNumber, isValidSocialHandle, isValidEventName, formatEventDate, getEventTypeDisplay, formatEventToUTC, sortEventsByType } from './utils';
+import {
+  isValidPhoneNumber,
+  isValidSocialHandle,
+  isValidEventName,
+  formatEventDate,
+  getEventTypeDisplay,
+  formatEventToUTC,
+  sortEventsByType,
+  filterHashtagSuggestions,
+  formatHashtagForDisplay,
+  getAllUniqueHashtags
+} from './utils';
+import { HashtagSuggestions } from './HashtagSuggestions';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -24,6 +36,12 @@ const getEventIcon = (type: string) => {
 /**
  * Component for additional contact information fields
  */
+interface AdvancedContactInfoProps extends ContactFormProps {
+  isPremium?: boolean;
+  isOnTrial?: boolean;
+  contacts?: Array<{ notes: string }>;
+}
+
 export const AdvancedContactInfo = ({
   formData,
   errors,
@@ -31,15 +49,81 @@ export const AdvancedContactInfo = ({
   onError,
   isPremium,
   isOnTrial,
-}: ContactFormProps & {
-  isPremium?: boolean;
-  isOnTrial?: boolean;
-}) => {
+  contacts = []
+}: AdvancedContactInfoProps) => {
   const [showNewEventForm, setShowNewEventForm] = useState(false);
   const [selectedEventType, setSelectedEventType] = useState<'birthday' | 'anniversary' | 'custom'>(
     formData.important_events.some(event => event.type === 'birthday') ? 'custom' : 'birthday'
   );
   const [eventNameLength, setEventNameLength] = useState(0);
+  const [hashtagSuggestions, setHashtagSuggestions] = useState<string[]>([]);
+  const [showHashtagSuggestions, setShowHashtagSuggestions] = useState(false);
+  const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const allHashtags = getAllUniqueHashtags(contacts);
+
+  // Update hashtag suggestions when typing
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    onChange({ notes: value.slice(0, 500) });
+
+    // Handle hashtag suggestions
+    const suggestions = filterHashtagSuggestions(value, allHashtags);
+    setHashtagSuggestions(suggestions);
+    
+    if (suggestions.length > 0) {
+      const textarea = textareaRef.current;
+      if (textarea) {
+        const cursorPosition = textarea.selectionEnd;
+        const textBeforeCursor = value.substring(0, cursorPosition);
+        const lines = textBeforeCursor.split('\n');
+        const currentLineNumber = lines.length - 1;
+        
+        // Calculate position for suggestions
+        const lineHeight = 24; // Approximate line height
+        const position = {
+          top: textarea.offsetTop + (currentLineNumber + 1) * lineHeight,
+          left: textarea.offsetLeft + 10
+        };
+        setSuggestionPosition(position);
+        setShowHashtagSuggestions(true);
+      }
+    } else {
+      setShowHashtagSuggestions(false);
+    }
+  };
+
+  // Handle hashtag selection from suggestions
+  const handleHashtagSelect = (hashtag: string) => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      const cursorPosition = textarea.selectionEnd;
+      const text = textarea.value;
+      
+      // Find the last word before cursor
+      const textBeforeCursor = text.substring(0, cursorPosition);
+      const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
+      const start = lastSpaceIndex === -1 ? 0 : lastSpaceIndex + 1;
+      
+      // Replace the partial hashtag with the selected one
+      const newText = text.substring(0, start) + hashtag + text.substring(cursorPosition);
+      onChange({ notes: newText });
+      
+      // Hide suggestions
+      setShowHashtagSuggestions(false);
+    }
+  };
+
+  // Handle category filter changes
+  const handleCategoryChange = (hashtag: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(hashtag)) {
+        return prev.filter(h => h !== hashtag);
+      }
+      return [...prev, hashtag];
+    });
+  };
 
   const handleAddEvent = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -348,7 +432,24 @@ export const AdvancedContactInfo = ({
 
       {/* Personal Notes */}
       <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6 hover:bg-white/70 hover:shadow-md transition-all duration-200">
-        <h3 className="text-lg font-[600] text-gray-900/90 mb-6">Personal Notes</h3>
+        <div className="flex justify-between items-start mb-6">
+          <h3 className="text-lg font-[600] text-gray-900/90">Personal Notes</h3>
+          <div className="flex flex-wrap gap-2">
+            {allHashtags.length > 0 && allHashtags.map((tag, index) => (
+              <button
+                key={index}
+                onClick={() => handleCategoryChange(tag)}
+                className={`px-2.5 py-1 rounded-full text-sm ${
+                  selectedCategories.includes(tag)
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                } transition-colors`}
+              >
+                {formatHashtagForDisplay(tag)}
+              </button>
+            ))}
+          </div>
+        </div>
         <div>
           {/* Premium/Trial Feature Info */}
           {(isPremium || isOnTrial) ? (
@@ -358,11 +459,12 @@ export const AdvancedContactInfo = ({
                 Examples:
               </p>
               <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-                <li>Your relationship with them</li> 
-                <li>Their interests and hobbies</li>   
-                <li>Details about their family</li>            
+                <li>Your relationship with them (use #family, #friend, #colleague)</li>
+                <li>Their interests and hobbies (e.g., #sports, #music, #art)</li>
+                <li>Details about their family</li>
                 <li>Conversation topics they enjoy</li>
                 <li>Shared memories or inside jokes</li>
+                <li>Use hashtags to easily filter and find contacts later</li>
               </ul>
             </div>
           ) : (
@@ -378,16 +480,28 @@ export const AdvancedContactInfo = ({
             </div>
           )}
 
-          <textarea
-            id="notes"
-            rows={4}
-            value={formData.notes}
-            onChange={(e) => onChange({ notes: e.target.value.slice(0, 500) })}
-            maxLength={500}
-            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-            placeholder="E.g., Friend from school. Loves hiking and photography. We always have the best workouts together."
-          />
-          <div className="mt-2 flex justify-end">
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              id="notes"
+              rows={4}
+              value={formData.notes}
+              onChange={handleNotesChange}
+              maxLength={500}
+              className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+              placeholder="E.g., #friend from school. Loves hiking and photography. #sports enthusiast"
+            />
+            <HashtagSuggestions
+              suggestions={hashtagSuggestions}
+              onSelect={handleHashtagSelect}
+              position={suggestionPosition}
+              visible={showHashtagSuggestions}
+            />
+          </div>
+          <div className="mt-2 flex justify-between items-center">
+            <p className="text-xs text-gray-500">
+              Tip: Use hashtags (e.g., #family, #friend) to categorize contacts
+            </p>
             <span className="text-sm text-gray-500">
               {formData.notes.length}/500 characters
             </span>

@@ -240,3 +240,51 @@ export const getEventTypeDisplay = (type: string, customName?: string | null): s
   }
   return type === 'birthday' ? 'Birthday' : type === 'anniversary' ? 'Anniversary' : '';
 };
+
+/**
+ * Extract hashtags from text
+ * @param text - Text to extract hashtags from
+ * @returns Array of unique hashtags (lowercase)
+ */
+export const extractHashtags = (text: string): string[] => {
+  const matches = text.match(/#[a-zA-Z]\w*/g) || [];
+  return [...new Set(matches.map(tag => tag.toLowerCase()))];
+};
+
+/**
+ * Format hashtag for display (capitalize first letter)
+ * @param hashtag - Hashtag to format (including # symbol)
+ * @returns Formatted hashtag
+ */
+export const formatHashtagForDisplay = (hashtag: string): string => {
+  if (!hashtag.startsWith('#')) return hashtag;
+  const word = hashtag.slice(1); // Remove # symbol
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+};
+
+/**
+ * Get all unique hashtags from contacts
+ * @param contacts - Array of contacts
+ * @returns Array of unique hashtags
+ */
+export const getAllUniqueHashtags = (contacts: Array<{ notes: string }>): string[] => {
+  const allTags = contacts.flatMap(contact => extractHashtags(contact.notes || ''));
+  return [...new Set(allTags)];
+};
+
+/**
+ * Filter hashtag suggestions based on input
+ * @param input - Current input text
+ * @param existingTags - Array of all existing hashtags
+ * @returns Filtered hashtag suggestions
+ */
+export const filterHashtagSuggestions = (input: string, existingTags: string[]): string[] => {
+  const lastWord = input.split(' ').pop() || '';
+  if (!lastWord.startsWith('#')) return [];
+  
+  const search = lastWord.slice(1).toLowerCase();
+  return existingTags.filter(tag =>
+    tag.slice(1).toLowerCase().includes(search) &&
+    tag.toLowerCase() !== lastWord.toLowerCase()
+  );
+};
