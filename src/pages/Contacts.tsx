@@ -357,18 +357,22 @@ export const Contacts = () => {
                 {/* Compact Header */}
                 <div className="flex items-center justify-between p-4">
                   {/* Left side: Status indicator and name */}
-                  <div className="flex items-center flex-1 min-w-0">
-                    <button
-                      onClick={() => toggleContactExpanded(contact.id)}
-                      className="flex items-center py-1 -ml-2 text-gray-500 hover:text-primary-500 rounded-lg transition-colors focus:outline-none"
-                      aria-label={expandedContacts[contact.id] ? "Collapse contact details" : "Expand contact details"}
-                    >
+                  <div
+                    onClick={() => toggleContactExpanded(contact.id)}
+                    className="flex items-center flex-1 min-w-0 cursor-pointer hover:bg-gray-50/50 rounded-lg p-1 -m-1 transition-colors"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && toggleContactExpanded(contact.id)}
+                    aria-expanded={expandedContacts[contact.id]}
+                    aria-label={expandedContacts[contact.id] ? "Collapse contact details" : "Expand contact details"}
+                  >
+                    <div className="flex items-center py-1 -ml-2 text-gray-500">
                       {expandedContacts[contact.id] ? (
                         <ChevronDownIcon className="h-5 w-5 text-primary-500" />
                       ) : (
                         <ChevronRightIcon className="h-5 w-5" />
                       )}
-                    </button>
+                    </div>
                     <div className="min-w-0">
                       <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] truncate">
                         {contact.name}
