@@ -369,25 +369,26 @@ export const Contacts = () => {
                         <ChevronRightIcon className="h-5 w-5" />
                       )}
                     </button>
-
-                    <div className={`w-2.5 h-2.5 rounded-full ml-1 mr-3 transition-colors ${contact.missed_interactions > 3 ? 'bg-red-400/90' :
-                        contact.missed_interactions > 2 ? 'bg-orange-400/90' :
-                          contact.missed_interactions > 1 ? 'bg-yellow-400/90' :
-                            contact.missed_interactions > 0 ? 'bg-lime-400/90' :
-                              'bg-green-400/90'
-                      }`} title={`${contact.missed_interactions} missed interactions`}></div>
-
                     <div className="min-w-0">
                       <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] truncate">
                         {contact.name}
                       </h3>
-                      <p className="text-xs text-gray-500 truncate">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <div className={`w-2 h-2 rounded-full mr-2 ${
+                          contact.missed_interactions > 3 ? 'bg-red-400' :
+                          contact.missed_interactions > 2 ? 'bg-orange-400' :
+                          contact.missed_interactions > 1 ? 'bg-yellow-400' :
+                          contact.missed_interactions > 0 ? 'bg-lime-400' :
+                          'bg-green-400'
+                        }`} title={`${contact.missed_interactions} missed interactions`}></div>
                         {contact.contact_frequency && (
-                          contact.contact_frequency === 'every_three_days'
-                            ? 'Bi-weekly contact'
-                            : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'
+                          <span>
+                            {contact.contact_frequency === 'every_three_days'
+                              ? 'Bi-weekly contact'
+                              : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'}
+                          </span>
                         )}
-                      </p>
+                      </div>
                     </div>
                   </div>
 
