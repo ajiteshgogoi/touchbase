@@ -11,15 +11,30 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
   useEffect(() => {
     if (!textarea || !highlighterRef.current) return;
 
-    // Update scroll position when textarea scrolls
+    // Update scroll position and dimensions when textarea scrolls or resizes
     const handleScroll = () => {
       if (highlighterRef.current && textarea) {
         highlighterRef.current.scrollTop = textarea.scrollTop;
       }
     };
 
+    const handleResize = () => {
+      if (highlighterRef.current && textarea) {
+        highlighterRef.current.style.width = `${textarea.offsetWidth}px`;
+        highlighterRef.current.style.height = `${textarea.offsetHeight}px`;
+      }
+    };
+
+    // Create ResizeObserver to watch for textarea size changes
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(textarea);
+
     textarea.addEventListener('scroll', handleScroll);
-    return () => textarea.removeEventListener('scroll', handleScroll);
+    
+    return () => {
+      textarea.removeEventListener('scroll', handleScroll);
+      resizeObserver.disconnect();
+    };
   }, [textarea]);
 
   useEffect(() => {
