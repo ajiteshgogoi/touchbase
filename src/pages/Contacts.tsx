@@ -376,7 +376,7 @@ export const Contacts = () => {
                     <div className="min-w-0">
                       <div className="space-y-1">
                         <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
-                        <div className="flex items-center text-sm text-gray-500">
+                        <div className="flex items-center text-[13px] sm:text-sm text-gray-500">
                           <div className={`w-2 h-2 rounded-full mr-2 ${
                             contact.missed_interactions > 3 ? 'bg-red-400' :
                             contact.missed_interactions > 2 ? 'bg-orange-400' :
@@ -433,7 +433,7 @@ export const Contacts = () => {
                   <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
                     {/* Contact details section */}
                     <div className="mt-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600 mb-4">
                         {contact.phone && (
                           <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
                             <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
@@ -525,7 +525,7 @@ export const Contacts = () => {
                         <div className="px-3 py-2">
                           {!contact.ai_last_suggestion ? (
                             <div className="flex items-start gap-2">
-                              <span className="flex-1 text-sm text-gray-700 font-[450]">
+                              <span className="flex-1 text-[15px] text-gray-600/90">
                                 No suggestions available
                               </span>
                             </div>
@@ -537,7 +537,7 @@ export const Contacts = () => {
                             </div>
                           ) : (
                             <div className="group flex items-start gap-2">
-                              <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                              <span className="flex-1 text-sm text-gray-600/90 whitespace-pre-line">
                                 {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
                               </span>
                               {contact.ai_last_suggestion && (
