@@ -446,7 +446,7 @@ export const AdvancedContactInfo = ({
                 Examples:
               </p>
               <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-                <li>Your relationship with them (use #family, #friend, #colleague)</li>
+                <li>Your relationship with them (e.g., #family, #friend, #colleague)</li>
                 <li>Their interests and hobbies (e.g., #sports, #music, #art)</li>
                 <li>Details about their family</li>
                 <li>Conversation topics they enjoy</li>
