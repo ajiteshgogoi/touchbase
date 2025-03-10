@@ -378,7 +378,7 @@ export const Contacts = () => {
                       }`} title={`${contact.missed_interactions} missed interactions`}></div>
 
                     <div className="min-w-0">
-                      <h3 className="text-lg font-semibold text-primary-500 truncate">
+                      <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] truncate">
                         {contact.name}
                       </h3>
                       <p className="text-xs text-gray-500 truncate">
@@ -430,13 +430,13 @@ export const Contacts = () => {
                     <div className="mt-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
                         {contact.phone && (
-                          <div className="flex items-center px-3 py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 hover:bg-white/70 transition-colors duration-200">
+                          <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
                             <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
                             <span className="truncate leading-5 font-[450]">{contact.phone}</span>
                           </div>
                         )}
                         {contact.social_media_handle && (
-                          <div className="flex items-center px-3 py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-gray-100/50 hover:bg-white/70 transition-colors duration-200">
+                          <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
                             <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
                             <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
                           </div>
@@ -477,7 +477,7 @@ export const Contacts = () => {
                               <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Last Contacted</span>
                             </div>
                             <div className="px-3 py-2">
-                              <span className="text-[13px] sm:text-sm font-[450] text-gray-700/90">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                              <span className="text-[13px] sm:text-sm font-[450] text-gray-600/90">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -485,7 +485,7 @@ export const Contacts = () => {
                               <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Next Contact Due</span>
                             </div>
                             <div className="px-3 py-2">
-                              <span className="text-[13px] sm:text-sm font-[450] text-gray-700/90">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                              <span className="text-[13px] sm:text-sm font-[450] text-gray-600/90">{contactsService.formatDueDate(contact.next_contact_due)}</span>
                             </div>
                           </div>
                         </div>
@@ -557,7 +557,7 @@ export const Contacts = () => {
                   <div className="flex flex-wrap items-center justify-start gap-2 w-full">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
-                      className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                      className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-soft hover:shadow-md transition-all duration-200"
                       title="Log an interaction"
                     >
                       Log Interaction
@@ -565,7 +565,7 @@ export const Contacts = () => {
                     {(isPremium || isOnTrial) ? (
                       <Link
                         to={`/contacts/${contact.id}/interactions`}
-                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-soft hover:shadow-md transition-all duration-200"
                         title="View interaction history"
                       >
                         View History
@@ -573,7 +573,7 @@ export const Contacts = () => {
                     ) : (
                       <Link
                         to={`/contacts/${contact.id}/interactions`}
-                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-soft hover:shadow-md transition-all duration-200"
                         title="Upgrade to view interaction history"
                       >
                         View History
