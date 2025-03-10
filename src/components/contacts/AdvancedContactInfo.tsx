@@ -89,17 +89,49 @@ export const AdvancedContactInfo = ({
     if (suggestions.length > 0 && potentialHashtags <= 5) {
       const textarea = textareaRef.current;
       if (textarea) {
+        // Create a temporary div to measure text width
+        const div = document.createElement('div');
+        div.style.cssText = window.getComputedStyle(textarea).cssText;
+        div.style.height = 'auto';
+        div.style.position = 'absolute';
+        div.style.visibility = 'hidden';
+        div.style.whiteSpace = 'pre-wrap';
+        div.style.wordWrap = 'break-word';
+        document.body.appendChild(div);
+
         const cursorPosition = textarea.selectionEnd;
         const textBeforeCursor = truncatedValue.substring(0, cursorPosition);
-        const lines = textBeforeCursor.split('\n');
-        const currentLineNumber = lines.length - 1;
         
-        // Calculate position for suggestions
-        const lineHeight = 24; // Approximate line height
+        // Replace spaces and newlines with corresponding HTML
+        const textWithBreaks = textBeforeCursor
+          .replace(/\n/g, '<br>')
+          .replace(/ /g, '&nbsp;');
+        
+        div.innerHTML = textWithBreaks;
+        
+        // Get textarea position and dimensions
+        const textareaRect = textarea.getBoundingClientRect();
+        const scrollTop = textarea.scrollTop;
+        
+        // Calculate cursor position
+        const textHeight = div.clientHeight;
+        const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight);
+        const currentLine = Math.floor(textHeight / lineHeight);
+        
+        // Calculate position relative to textarea
         const position = {
-          top: textarea.offsetTop + (currentLineNumber + 1) * lineHeight,
-          left: textarea.offsetLeft + 10
+          top: Math.min(
+            currentLine * lineHeight - scrollTop + lineHeight,
+            textareaRect.height - 30 // Keep suggestions within textarea, with some padding
+          ),
+          left: Math.min(
+            (div.clientWidth % textareaRect.width) + 4, // Add small offset for padding
+            textareaRect.width - 160 // 150px minWidth + 10px safety margin
+          )
         };
+        
+        // Clean up
+        document.body.removeChild(div);
         setSuggestionPosition(position);
         setShowHashtagSuggestions(true);
       }
@@ -468,7 +500,7 @@ export const AdvancedContactInfo = ({
             </div>
           )}
 
-          <div className="relative">
+          <div className="relative overflow-visible">
             <textarea
               ref={textareaRef}
               id="notes"
