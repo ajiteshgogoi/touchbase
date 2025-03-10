@@ -73,7 +73,7 @@ export const AdvancedContactInfo = ({
     
     // Show error when typing 6th hashtag (complete or just #)
     if (completeHashtags > 5 || potentialHashtags > 5) {
-      onError({ notes: 'Maximum 5 hashtags allowed per contact' });
+      onError({ notes: 'Max 5 hashtags allowed' });
       setShowHashtagSuggestions(false);
       return;
     } else {
@@ -451,7 +451,7 @@ export const AdvancedContactInfo = ({
                 <li>Details about their family</li>
                 <li>Conversation topics they enjoy</li>
                 <li>Shared memories or inside jokes</li>
-                <li>Use hashtags to easily filter and find contacts later</li>
+                <li>Use upto 5 hashtags to easily filter and find contacts later</li>
                 <li>Start hashtags with # followed by a letter. Max 15 characters, letters/numbers/underscore only.</li>
               </ul>
             </div>
@@ -491,14 +491,14 @@ export const AdvancedContactInfo = ({
             />
           </div>
           <div className="mt-2">
-            <div className="flex justify-end">
-              <span className="text-sm text-gray-500">
+            <div className="flex justify-between items-center h-5">
+              {errors.notes && (
+                <span className="text-sm text-red-600 truncate max-w-[70%]">{errors.notes}</span>
+              )}
+              <span className="text-sm text-gray-500 ml-auto shrink-0">
                 {formData.notes.length}/500 characters
               </span>
             </div>
-            {errors.notes && (
-              <p className="text-sm text-red-600 mt-1">{errors.notes}</p>
-            )}
           </div>
         </div>
       </div>
