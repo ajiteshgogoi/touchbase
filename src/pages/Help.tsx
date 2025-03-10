@@ -59,7 +59,7 @@ export const Help = () => {
           <ol className="list-decimal list-inside space-y-2 ml-4">
             <li>In any contact's notes, use hashtags to categorise them (e.g., #family, #friend, #colleague)</li>
             <li>Type '#' to see suggestions from existing categories</li>
-            <li>On the contacts page, use category filters to find specific groups</li>
+            <li>On the contacts page, use category filters to find contacts</li>
             <li>Multiple categories can be assigned to a single contact</li>
           </ol>
           <div className="mt-4 space-y-4">
@@ -73,6 +73,7 @@ export const Help = () => {
                 <li>Maximum length of 15 characters</li>
                 <li>Can contain letters, numbers and underscores</li>
                 <li>Cannot contain spaces or special characters</li>
+                <li>Maximum 5 hashtags per contact</li>
               </ul>
             </div>
           </div>
