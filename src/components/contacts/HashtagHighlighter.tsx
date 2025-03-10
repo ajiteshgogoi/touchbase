@@ -13,23 +13,35 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
 
     // Update scroll position and dimensions when textarea scrolls or resizes
     const handleScroll = () => {
-      if (highlighterRef.current && textarea) {
-        highlighterRef.current.scrollTop = textarea.scrollTop;
-      }
+      requestAnimationFrame(() => {
+        if (highlighterRef.current && textarea) {
+          highlighterRef.current.scrollTop = textarea.scrollTop;
+        }
+      });
     };
 
     const handleResize = () => {
-      if (highlighterRef.current && textarea) {
-        highlighterRef.current.style.width = `${textarea.offsetWidth}px`;
-        highlighterRef.current.style.height = `${textarea.offsetHeight}px`;
-      }
+      requestAnimationFrame(() => {
+        if (highlighterRef.current && textarea) {
+          const styles = window.getComputedStyle(textarea);
+          highlighterRef.current.style.width = styles.width;
+          highlighterRef.current.style.height = styles.height;
+          highlighterRef.current.style.fontSize = styles.fontSize;
+          highlighterRef.current.style.lineHeight = styles.lineHeight;
+        }
+      });
     };
 
     // Create ResizeObserver to watch for textarea size changes
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(textarea);
 
-    textarea.addEventListener('scroll', handleScroll);
+    // Use passive scroll listener for better performance
+    textarea.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Initial sync
+    handleResize();
+    handleScroll();
     
     return () => {
       textarea.removeEventListener('scroll', handleScroll);
@@ -56,11 +68,11 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
   return (
     <div
       ref={highlighterRef}
-      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-transparent bg-transparent px-4 py-2.5 z-10"
+      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words overflow-hidden text-transparent px-4 py-2.5"
       style={{
-        fontSize: '1rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        lineHeight: '1.5rem',
+        fontSize: textarea ? window.getComputedStyle(textarea).fontSize : '1rem',
+        fontFamily: textarea ? window.getComputedStyle(textarea).fontFamily : 'system-ui, -apple-system, sans-serif',
+        lineHeight: textarea ? window.getComputedStyle(textarea).lineHeight : '1.5rem',
         width: textarea?.offsetWidth + 'px',
         height: textarea?.offsetHeight + 'px'
       }}

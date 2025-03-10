@@ -66,7 +66,7 @@ export const HashtagSuggestions = ({
   return (
     <div
       ref={suggestionsRef}
-      className="absolute z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 max-h-48 overflow-y-auto transition-all duration-200"
+      className="absolute z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 max-h-32 overflow-y-auto transition-all duration-200 mobile:max-h-28"
       style={{
         top: position.top,
         left: position.left,

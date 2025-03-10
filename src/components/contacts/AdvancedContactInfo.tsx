@@ -124,15 +124,23 @@ export const AdvancedContactInfo = ({
 
         document.body.removeChild(div);
         
-        // Calculate position
+        // Get textarea dimensions
         const textareaRect = textarea.getBoundingClientRect();
+        const textareaBottom = textareaRect.height - 40; // Keep space for suggestions
+        
+        // Calculate vertical position
+        let suggestTop = currentLineNumber * lineHeight - scrollTop + paddingTop;
+        
+        // If we're too close to the bottom, show above the text
+        if (suggestTop > textareaBottom - lineHeight) {
+          suggestTop = Math.max(currentLineNumber * lineHeight - scrollTop - 120, 0); // 120px for suggestion box
+        }
+        
+        // Calculate horizontal position, keeping close to cursor
         const position = {
-          top: Math.min(
-            currentLineNumber * lineHeight - scrollTop + paddingTop,
-            textareaRect.height - 40 // Keep suggestions within textarea
-          ),
+          top: Math.min(suggestTop, textareaBottom),
           left: Math.min(
-            lastLineWidth + paddingLeft,
+            Math.max(lastLineWidth - 20, paddingLeft), // Closer to cursor, but not too far left
             textareaRect.width - 170 // Account for suggestion width
           )
         };
@@ -504,7 +512,7 @@ export const AdvancedContactInfo = ({
             </div>
           )}
 
-          <div className="relative overflow-visible">
+          <div className="relative">
             <textarea
               ref={textareaRef}
               id="notes"
