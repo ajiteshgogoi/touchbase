@@ -490,7 +490,7 @@ export const Contacts = () => {
                               <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Contact Due</span>
                             </div>
                             <div className="px-3 py-2">
-                              <span className="text-[13px] sm:text-sm font-[450] text-gray-600/90">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                              <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
                             </div>
                           </div>
                         </div>
@@ -525,14 +525,14 @@ export const Contacts = () => {
                         <div className="px-3 py-2">
                           {!contact.ai_last_suggestion ? (
                             <div className="flex items-start gap-2">
-                              <span className="flex-1 text-[15px] text-gray-600/90">
+                              <span className="flex-1 text-[15px] text-gray-600/90 font-[450]">
                                 No suggestions available
                               </span>
                             </div>
                           ) : contact.ai_last_suggestion === 'Upgrade to Premium to get personalised suggestions!' ? (
                             <div className="flex items-center gap-2">
-                              <span className="text-[13px] sm:text-sm text-gray-600/90">
-                                ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 font-[500]">Upgrade to Premium</Link> to get personalised suggestions!
+                              <span className="text-sm text-gray-600">
+                                ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get personalised suggestions!
                               </span>
                             </div>
                           ) : (
