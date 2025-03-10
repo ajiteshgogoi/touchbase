@@ -436,6 +436,7 @@ export const AdvancedContactInfo = ({
                 <li>Conversation topics they enjoy</li>
                 <li>Shared memories or inside jokes</li>
                 <li>Use hashtags to easily filter and find contacts later</li>
+                <li>Start hashtags with # followed by a letter. Max 15 characters, letters/numbers/underscore only.</li>
               </ul>
             </div>
           ) : (
@@ -469,11 +470,8 @@ export const AdvancedContactInfo = ({
               visible={showHashtagSuggestions}
             />
           </div>
-          <div className="mt-2 flex flex-col sm:flex-row sm:justify-between gap-2 sm:items-center">
-            <p className="text-xs text-gray-500">
-              Tip: Use hashtags (e.g., #family, #friend) to categorise contacts
-            </p>
-            <span className="text-xs text-gray-500">
+          <div className="mt-2 flex justify-end">
+            <span className="text-sm text-gray-500">
               {formData.notes.length}/500 characters
             </span>
           </div>

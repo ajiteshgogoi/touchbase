@@ -248,7 +248,11 @@ export const getEventTypeDisplay = (type: string, customName?: string | null): s
  */
 export const extractHashtags = (text: string): string[] => {
   const matches = text.match(/#[a-zA-Z]\w*/g) || [];
-  return [...new Set(matches.map(tag => tag.toLowerCase()))];
+  // Filter out hashtags that don't meet length requirements (2-15 characters, not counting #)
+  return [...new Set(matches
+    .filter(tag => tag.length >= 2 && tag.length <= 16) // Include # in length check
+    .map(tag => tag.toLowerCase())
+  )];
 };
 
 /**

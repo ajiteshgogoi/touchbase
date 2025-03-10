@@ -62,8 +62,19 @@ export const Help = () => {
             <li>On the contacts page, use category filters to find specific groups</li>
             <li>Multiple categories can be assigned to a single contact</li>
           </ol>
-          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Create consistent categories across contacts to make filtering more effective. Common categories include #family, #friend, #work, #client, #school, etc.
+          <div className="mt-4 space-y-4">
+            <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+              <strong className="text-primary-700">Pro Tip:</strong> Create consistent categories across contacts to make filtering more effective. Common categories include #family, #friend, #work, #client, #school, etc.
+            </div>
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
+              <strong className="text-gray-700">Hashtag Rules:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Must start with # followed by a letter</li>
+                <li>Maximum length of 15 characters</li>
+                <li>Can contain letters, numbers and underscores</li>
+                <li>Cannot contain spaces or special characters</li>
+              </ul>
+            </div>
           </div>
         </>
       )
