@@ -12,8 +12,7 @@ import {
   formatEventToUTC,
   sortEventsByType,
   filterHashtagSuggestions,
-  getAllUniqueHashtags,
-  exceedsMaxHashtags
+  getAllUniqueHashtags
 } from './utils';
 import { HashtagSuggestions } from './HashtagSuggestions';
 import dayjs from 'dayjs';
@@ -68,12 +67,14 @@ export const AdvancedContactInfo = ({
     const value = e.target.value;
     const truncatedValue = value.slice(0, 500);
     
-    // Count complete hashtags (# followed by at least one letter)
+    // Count complete and potential hashtags
     const completeHashtags = (truncatedValue.match(/#[a-zA-Z]\w*/g) || []).length;
+    const potentialHashtags = (truncatedValue.match(/#/g) || []).length;
     
-    // Show error only when attempting to type a complete 6th hashtag
-    if (completeHashtags > 5) {
+    // Show error when typing 6th hashtag (complete or just #)
+    if (completeHashtags > 5 || potentialHashtags > 5) {
       onError({ notes: 'Maximum 5 hashtags allowed per contact' });
+      setShowHashtagSuggestions(false);
       return;
     } else {
       onError({ notes: '' });
@@ -81,11 +82,11 @@ export const AdvancedContactInfo = ({
 
     onChange({ notes: truncatedValue });
 
-    // Handle hashtag suggestions
+    // Handle hashtag suggestions only if we haven't reached max hashtags (including potential ones)
     const suggestions = filterHashtagSuggestions(truncatedValue, allHashtags);
     setHashtagSuggestions(suggestions);
     
-    if (suggestions.length > 0) {
+    if (suggestions.length > 0 && potentialHashtags <= 5) {
       const textarea = textareaRef.current;
       if (textarea) {
         const cursorPosition = textarea.selectionEnd;
