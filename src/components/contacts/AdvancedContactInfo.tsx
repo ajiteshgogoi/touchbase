@@ -486,18 +486,16 @@ export const AdvancedContactInfo = ({
           {(isPremium || isOnTrial) ? (
             <div className="mb-4 p-4 bg-primary-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-2">
-                Add details that can help maintain the connection.
-                Examples:
+                Add meaningful details to help maintain your connection:
               </p>
               <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-                <li>Your relationship with them (e.g., #family, #friend, #colleague)</li>
-                <li>Their interests and hobbies (e.g., #sports, #music, #art)</li>
-                <li>Details about their family</li>
-                <li>Conversation topics they enjoy</li>
-                <li>Shared memories or inside jokes</li>
-                <li>Hashtags act as contact categories. You can use upto 5 hashtags.</li>
-                <li>Start hashtags with # followed by a letter (max 15 characters, letters/numbers/underscore only)</li>
+                <li>Use hashtags to categorise (#family, #friend, #colleague) — max 5 tags</li>
+                <li>Include their interests (#sports, #music) and conversation topics</li>
+                <li>Add personal context like family details or shared memories</li>
               </ul>
+              <p className="text-xs text-gray-500 mt-2">
+                Hashtag format: # followed by letter. Only letters/numbers/underscores. Max 15 characters.
+              </p>
             </div>
           ) : (
             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
