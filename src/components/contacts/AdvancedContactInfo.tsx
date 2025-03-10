@@ -469,11 +469,11 @@ export const AdvancedContactInfo = ({
               visible={showHashtagSuggestions}
             />
           </div>
-          <div className="mt-2 flex justify-between items-center">
+          <div className="mt-2 flex flex-col sm:flex-row sm:justify-between gap-2 sm:items-center">
             <p className="text-xs text-gray-500">
-              Tip: Use hashtags (e.g., #family, #friend) to categorize contacts
+              Tip: Use hashtags (e.g., #family, #friend) to categorise contacts
             </p>
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-500">
               {formData.notes.length}/500 characters
             </span>
           </div>
