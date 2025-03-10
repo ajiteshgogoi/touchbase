@@ -306,8 +306,8 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="pt-3">
-                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
+                        <div className="p-4 border-t border-gray-100/50 bg-white/30">
+                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
                             {reminder.name ? (
                               <button
                               onClick={async () => {
@@ -503,8 +503,8 @@ const [quickReminder, setQuickReminder] = useState<{
                             )}
                           </div>
                         </div>
-                        <div className="pt-3">
-                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 rounded-lg border border-gray-100/50">
+                        <div className="p-4 border-t border-gray-100/50 bg-white/30">
+                          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
                             {reminder.name ? (
                             <button
                               onClick={async () => {
