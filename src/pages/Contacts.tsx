@@ -375,8 +375,8 @@ export const Contacts = () => {
                     </div>
                     <div className="min-w-0">
                       <div className="space-y-1">
-                        <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
-                        <div className="flex items-center text-[13px] sm:text-sm text-gray-500">
+                       <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
+                       <div className="flex items-center text-sm text-gray-500">
                           <div className={`w-2 h-2 rounded-full mr-2 ${
                             contact.missed_interactions > 3 ? 'bg-red-400' :
                             contact.missed_interactions > 2 ? 'bg-orange-400' :
