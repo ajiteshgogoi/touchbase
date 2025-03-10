@@ -68,8 +68,11 @@ export const AdvancedContactInfo = ({
     const value = e.target.value;
     const truncatedValue = value.slice(0, 500);
     
-    // Check if exceeding max hashtags
-    if (exceedsMaxHashtags(truncatedValue, 5)) {
+    // Count complete hashtags (# followed by at least one letter)
+    const completeHashtags = (truncatedValue.match(/#[a-zA-Z]\w*/g) || []).length;
+    
+    // Show error only when attempting to type a complete 6th hashtag
+    if (completeHashtags > 5) {
       onError({ notes: 'Maximum 5 hashtags allowed per contact' });
       return;
     } else {
