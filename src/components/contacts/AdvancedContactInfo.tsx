@@ -11,7 +11,6 @@ import {
   formatEventToUTC,
   sortEventsByType,
   filterHashtagSuggestions,
-  formatHashtagForDisplay,
   getAllUniqueHashtags
 } from './utils';
 import { HashtagSuggestions } from './HashtagSuggestions';
@@ -59,7 +58,6 @@ export const AdvancedContactInfo = ({
   const [hashtagSuggestions, setHashtagSuggestions] = useState<string[]>([]);
   const [showHashtagSuggestions, setShowHashtagSuggestions] = useState(false);
   const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const allHashtags = getAllUniqueHashtags(contacts);
 
@@ -113,16 +111,6 @@ export const AdvancedContactInfo = ({
       // Hide suggestions
       setShowHashtagSuggestions(false);
     }
-  };
-
-  // Handle category filter changes
-  const handleCategoryChange = (hashtag: string) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(hashtag)) {
-        return prev.filter(h => h !== hashtag);
-      }
-      return [...prev, hashtag];
-    });
   };
 
   const handleAddEvent = (e: React.MouseEvent) => {
@@ -432,24 +420,7 @@ export const AdvancedContactInfo = ({
 
       {/* Personal Notes */}
       <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6 hover:bg-white/70 hover:shadow-md transition-all duration-200">
-        <div className="flex justify-between items-start mb-6">
-          <h3 className="text-lg font-[600] text-gray-900/90">Personal Notes</h3>
-          <div className="flex flex-wrap gap-2">
-            {allHashtags.length > 0 && allHashtags.map((tag, index) => (
-              <button
-                key={index}
-                onClick={() => handleCategoryChange(tag)}
-                className={`px-2.5 py-1 rounded-full text-sm ${
-                  selectedCategories.includes(tag)
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                } transition-colors`}
-              >
-                {formatHashtagForDisplay(tag)}
-              </button>
-            ))}
-          </div>
-        </div>
+        <h3 className="text-lg font-[600] text-gray-900/90 mb-6">Personal Notes</h3>
         <div>
           {/* Premium/Trial Feature Info */}
           {(isPremium || isOnTrial) ? (
