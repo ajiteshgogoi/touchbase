@@ -430,7 +430,7 @@ export const Contacts = () => {
 
                 {/* Collapsible Details Section */}
                 {expandedContacts[contact.id] && (
-                  <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/40">
+                  <div className="px-4 pb-3 space-y-4 border-t border-gray-100/70 bg-white/40">
                     {/* Contact details section */}
                     <div className="mt-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
@@ -452,7 +452,7 @@ export const Contacts = () => {
                       {(eventsMap[contact.id] || []).length > 0 && (
                         <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
                           <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Important Dates</span>
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
                           </div>
                           <div className="px-3 py-2">
                             <div className="flex flex-wrap gap-2.5 text-sm min-w-0">
@@ -479,15 +479,15 @@ export const Contacts = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
                             <div className="px-3 py-2 bg-gray-100">
-                              <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Last Contacted</span>
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted</span>
                             </div>
                             <div className="px-3 py-2">
-                              <span className="text-[13px] sm:text-sm font-[450] text-gray-600/90">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                              <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg overflow-hidden">
                             <div className="px-3 py-2 bg-gray-100">
-                              <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Next Contact Due</span>
+                              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Contact Due</span>
                             </div>
                             <div className="px-3 py-2">
                               <span className="text-[13px] sm:text-sm font-[450] text-gray-600/90">{contactsService.formatDueDate(contact.next_contact_due)}</span>
@@ -520,7 +520,7 @@ export const Contacts = () => {
                       {/* AI Suggestions section */}
                       <div className="bg-gray-50 rounded-lg overflow-hidden">
                         <div className="px-3 py-2 bg-gray-100">
-                          <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Suggestions</span>
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
                         </div>
                         <div className="px-3 py-2">
                           {!contact.ai_last_suggestion ? (
@@ -537,7 +537,7 @@ export const Contacts = () => {
                             </div>
                           ) : (
                             <div className="group flex items-start gap-2">
-                              <span className="flex-1 text-[13px] sm:text-sm text-gray-700/90 whitespace-pre-line font-[450] leading-relaxed">
+                              <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
                                 {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
                               </span>
                               {contact.ai_last_suggestion && (
@@ -562,7 +562,7 @@ export const Contacts = () => {
                   <div className="flex flex-wrap items-center justify-start gap-2 w-full">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
-                      className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-soft hover:shadow-md transition-all duration-200"
+                      className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                       title="Log an interaction"
                     >
                       Log Interaction
@@ -570,7 +570,7 @@ export const Contacts = () => {
                     {(isPremium || isOnTrial) ? (
                       <Link
                         to={`/contacts/${contact.id}/interactions`}
-                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-soft hover:shadow-md transition-all duration-200"
+                        className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                         title="View interaction history"
                       >
                         View History
