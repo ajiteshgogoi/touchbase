@@ -433,7 +433,7 @@ export const Contacts = () => {
                   <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
                     {/* Contact details section */}
                     <div className="mt-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90 mb-4">
                         {contact.phone && (
                           <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
                             <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
@@ -500,7 +500,7 @@ export const Contacts = () => {
                       {contact.notes && extractHashtags(contact.notes).length > 0 && (
                         <div className="mb-4 bg-gray-50 rounded-lg overflow-hidden">
                           <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-medium text-gray-500/90 uppercase tracking-wider">Categories</span>
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</span>
                           </div>
                           <div className="px-3 py-2">
                             <div className="flex flex-wrap gap-2">
