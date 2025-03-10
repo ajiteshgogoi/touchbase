@@ -495,7 +495,7 @@ export const AdvancedContactInfo = ({
                 <li>Details about their family</li>
                 <li>Conversation topics they enjoy</li>
                 <li>Shared memories or inside jokes</li>
-                <li>Use upto 5 hashtags to filter and find contacts later</li>
+                <li>Hashtags act as contact categories. You can use upto 5 hashtags.</li>
                 <li>Start hashtags with # followed by a letter (max 15 characters, letters/numbers/underscore only)</li>
               </ul>
             </div>
