@@ -249,61 +249,65 @@ export const Contacts = () => {
 
       <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
         <div className="p-6 border-b border-gray-100">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search contacts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors"
-                />
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex flex-1 flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search contacts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors bg-white/60 backdrop-blur-sm"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2 sm:w-auto">
-              <div className="flex-1">
-                <select
-                  value={sortField}
-                  onChange={(e) => setSortField(e.target.value as SortField)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors appearance-none bg-white text-sm"
-                  aria-label="Sort contacts by"
-                >
-                  <option value="name">Sort by Name</option>
-                  <option value="last_contacted">Sort by Last Contacted</option>
-                  <option value="missed_interactions">Sort by Missed Interactions</option>
-                </select>
-              </div>
-              <button
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="flex-shrink-0 p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors"
-                aria-label={sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'}
-              >
-                <ChevronUpDownIcon className="h-5 w-5 text-gray-500" />
-              </button>
-            </div>
-          </div>
-          {allHashtags.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-4">
-              <div className="w-full">
-                <span className="text-xs font-[500] text-gray-500 uppercase tracking-wider">Filter by Category:</span>
-              </div>
-              {allHashtags.map((tag, index) => (
+              <div className="flex items-center gap-2 sm:w-auto">
+                <div className="flex-1">
+                  <select
+                    value={sortField}
+                    onChange={(e) => setSortField(e.target.value as SortField)}
+                    className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors appearance-none bg-white/60 backdrop-blur-sm text-sm"
+                    aria-label="Sort contacts by"
+                  >
+                    <option value="name">Sort by Name</option>
+                    <option value="last_contacted">Sort by Last Contacted</option>
+                    <option value="missed_interactions">Sort by Missed Interactions</option>
+                  </select>
+                </div>
                 <button
-                  key={index}
-                  onClick={() => handleCategoryChange(tag)}
-                  className={`px-3 py-1.5 rounded-full text-sm ${
-                    selectedCategories.includes(tag)
-                      ? 'bg-primary-100 text-primary-700 border-primary-200'
-                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-100'
-                  } border transition-colors`}
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  className="flex-shrink-0 p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors"
+                  aria-label={sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'}
                 >
-                  {formatHashtagForDisplay(tag)}
+                  <ChevronUpDownIcon className="h-5 w-5 text-gray-500" />
                 </button>
-              ))}
+              </div>
             </div>
-          )}
+            {allHashtags.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 lg:border-l lg:pl-4">
+                <div className="hidden lg:block">
+                  <span className="text-xs font-[500] text-gray-500 uppercase tracking-wider">Categories</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allHashtags.map((tag, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleCategoryChange(tag)}
+                      className={`px-3 py-1.5 rounded-xl text-sm ${
+                        selectedCategories.includes(tag)
+                          ? 'bg-primary-100 text-primary-700 border-primary-200 shadow-sm'
+                          : 'bg-white/60 backdrop-blur-sm text-gray-600 hover:bg-white/70 border-gray-200'
+                      } border transition-all`}
+                    >
+                      {formatHashtagForDisplay(tag)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="p-4 space-y-4">
