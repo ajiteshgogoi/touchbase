@@ -90,48 +90,52 @@ export const AdvancedContactInfo = ({
       const textarea = textareaRef.current;
       if (textarea) {
         // Create a temporary div to measure text width
+        const { scrollTop, selectionEnd } = textarea;
+        const textareaStyles = window.getComputedStyle(textarea);
+        const lineHeight = parseInt(textareaStyles.lineHeight);
+        const paddingTop = parseInt(textareaStyles.paddingTop);
+        const paddingLeft = parseInt(textareaStyles.paddingLeft);
+        
+        // Create measurement div
         const div = document.createElement('div');
-        div.style.cssText = window.getComputedStyle(textarea).cssText;
+        div.style.cssText = textareaStyles.cssText || '';
         div.style.height = 'auto';
+        div.style.width = `${textarea.clientWidth}px`;
         div.style.position = 'absolute';
         div.style.visibility = 'hidden';
         div.style.whiteSpace = 'pre-wrap';
         div.style.wordWrap = 'break-word';
+        div.style.overflowWrap = 'break-word';
+        div.style.overflow = 'hidden';
         document.body.appendChild(div);
 
-        const cursorPosition = textarea.selectionEnd;
-        const textBeforeCursor = truncatedValue.substring(0, cursorPosition);
+        // Get text before cursor and measure
+        const textBeforeCursor = truncatedValue.substring(0, selectionEnd);
+        const lines = textBeforeCursor.split('\n');
+        const lastLine = lines[lines.length - 1];
         
-        // Replace spaces and newlines with corresponding HTML
-        const textWithBreaks = textBeforeCursor
-          .replace(/\n/g, '<br>')
-          .replace(/ /g, '&nbsp;');
+        div.textContent = textBeforeCursor || '';
+        const textHeight = div.scrollHeight;
+        const currentLineNumber = Math.floor(textHeight / lineHeight);
+
+        // Measure last line width
+        div.textContent = lastLine || '';
+        const lastLineWidth = Math.min(div.scrollWidth, textarea.clientWidth - paddingLeft * 2);
+
+        document.body.removeChild(div);
         
-        div.innerHTML = textWithBreaks;
-        
-        // Get textarea position and dimensions
+        // Calculate position
         const textareaRect = textarea.getBoundingClientRect();
-        const scrollTop = textarea.scrollTop;
-        
-        // Calculate cursor position
-        const textHeight = div.clientHeight;
-        const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight);
-        const currentLine = Math.floor(textHeight / lineHeight);
-        
-        // Calculate position relative to textarea
         const position = {
           top: Math.min(
-            currentLine * lineHeight - scrollTop + lineHeight,
-            textareaRect.height - 30 // Keep suggestions within textarea, with some padding
+            currentLineNumber * lineHeight - scrollTop + paddingTop,
+            textareaRect.height - 40 // Keep suggestions within textarea
           ),
           left: Math.min(
-            (div.clientWidth % textareaRect.width) + 4, // Add small offset for padding
-            textareaRect.width - 160 // 150px minWidth + 10px safety margin
+            lastLineWidth + paddingLeft,
+            textareaRect.width - 170 // Account for suggestion width
           )
         };
-        
-        // Clean up
-        document.body.removeChild(div);
         setSuggestionPosition(position);
         setShowHashtagSuggestions(true);
       }
