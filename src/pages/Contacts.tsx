@@ -559,7 +559,7 @@ export const Contacts = () => {
 
                 {/* Action Buttons - Always Visible */}
                 <div className="p-4 border-t border-gray-100/50 bg-white/30">
-                  <div className="flex flex-wrap items-center justify-start gap-2 w-full">
+                  <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
                     <button
                       onClick={() => setQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
                       className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
