@@ -259,7 +259,7 @@ export const Contacts = () => {
 
       <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
         <div className="p-6 border-b border-gray-100">
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-1 flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <div className="relative">
@@ -296,10 +296,7 @@ export const Contacts = () => {
               </div>
             </div>
             {allHashtags.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 lg:border-l lg:pl-4">
-                <div className="hidden lg:block">
-                  <span className="text-xs font-[500] text-gray-500 uppercase tracking-wider">Categories</span>
-                </div>
+              <div>
                 <div className="flex flex-wrap gap-2">
                   {allHashtags.map((tag, index) => (
                     <button
