@@ -54,63 +54,40 @@ export function useContactsQuery({
         )
       `);
 
-    // Apply search filter
+    // Apply search filter if provided
     if (searchQuery) {
       query = query.or(
-        'name.ilike.%' + searchQuery + '%,' +
-        'phone.ilike.%' + searchQuery + '%,' +
-        'social_media_handle.ilike.%' + searchQuery + '%'
+        `name.ilike.%${searchQuery}%,` +
+        `phone.ilike.%${searchQuery}%,` +
+        `social_media_handle.ilike.%${searchQuery}%`
       );
     }
 
-    // Apply hashtag filtering
+    // Apply hashtag filtering using Postgres text pattern matching
     if (selectedCategories.length > 0) {
-      const hashtagFilters = selectedCategories
-        .map(category => {
-          const hashtag = category.startsWith('#') ? category : `#${category}`;
-          return `notes.ilike.%${hashtag}%`;
-        })
-        .join(',');
-      
-      // If we have a search query, we need to ensure both conditions are met
-      if (searchQuery) {
-        query = query.or(hashtagFilters).not('id', 'is', null);
-      } else {
-        query = query.or(hashtagFilters);
-      }
+      // Build an OR condition for the hashtags
+      const hashtagConditions = selectedCategories.map(category => {
+        const hashtag = category.startsWith('#') ? category : `#${category}`;
+        return `notes.ilike.%${hashtag}%`;
+      });
+      query = query.or(hashtagConditions.join(','));
     }
 
     // For free tier users, always return first 15 contacts
     if (!isPremium && !isOnTrial) {
-      return query
+      query = query
         .order('created_at', { ascending: false })
         .limit(15);
+
+      return query;
     }
 
     // Add sorting
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
-    // Add cursor-based pagination
+    // Add cursor pagination
     if (cursor) {
-      const [value, id] = cursor.split('::');
-      
-      // When sorting by id, use simple pagination
-      if (sortBy === 'id') {
-        query = sortOrder === 'asc'
-          ? query.gt('id', id)
-          : query.lt('id', id);
-      } else {
-        // For other fields, ensure consistent ordering with compound conditions
-        if (sortOrder === 'asc') {
-          query = query
-            .gt(sortBy, value)
-            .or(`and(${sortBy}.eq.${value},id.gt.${id})`);
-        } else {
-          query = query
-            .lt(sortBy, value)
-            .or(`and(${sortBy}.eq.${value},id.lt.${id})`);
-        }
-      }
+      query = query.gt('id', cursor);
     }
 
     // Get one extra item to determine if there are more pages
@@ -134,11 +111,7 @@ export function useContactsQuery({
     const contacts = items.slice(0, PAGE_SIZE);
     const hasMore = items.length > PAGE_SIZE;
     const lastContact = contacts[contacts.length - 1];
-    
-    // Generate cursor that combines the sort field value and id for consistent ordering
-    const nextCursor = hasMore && lastContact
-      ? `${lastContact[sortBy]}::${lastContact.id}`
-      : null;
+    const nextCursor = hasMore && lastContact ? lastContact.id : null;
 
     return {
       contacts,
