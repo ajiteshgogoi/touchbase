@@ -73,8 +73,13 @@ const Row = memo(({ index, style, data }: RowProps) => {
   // Update height when card expands/collapses or content loads
   useEffect(() => {
     if (cardRef.current && expandedIndices.has(index)) {
-      const height = cardRef.current.offsetHeight + 16; // Account for 8px padding top and bottom
-      updateHeight(index, height);
+      // Use requestAnimationFrame to make the height update non-blocking
+      requestAnimationFrame(() => {
+        if (cardRef.current) {  // Re-check ref in case component unmounted
+          const height = cardRef.current.offsetHeight + 16; // Account for 8px padding top and bottom
+          updateHeight(index, height);
+        }
+      });
     }
   }, [expandedIndices, index, loadingStates, updateHeight]);
 
@@ -149,27 +154,30 @@ export const VirtualizedContactList = ({
   
   // Callback to update height of an expanded card
   const updateHeight = useCallback((index: number, height: number, isLoading?: boolean) => {
-    if (isLoading) {
-      setLoadingStates(prev => {
-        const next = new Set(prev);
-        next.add(index);
-        return next;
-      });
-    } else {
-      setLoadingStates(prev => {
-        const next = new Set(prev);
-        next.delete(index);
-        return next;
-      });
-      setHeightMap(prev => {
-        if (prev[index] === height) return prev;
-        return { ...prev, [index]: height };
-      });
-    }
-    
-    if (listRef.current) {
-      listRef.current.resetAfterIndex(index);
-    }
+    // Use requestAnimationFrame to make the height update non-blocking
+    requestAnimationFrame(() => {
+      if (isLoading) {
+        setLoadingStates(prev => {
+          const next = new Set(prev);
+          next.add(index);
+          return next;
+        });
+      } else {
+        setLoadingStates(prev => {
+          const next = new Set(prev);
+          next.delete(index);
+          return next;
+        });
+        setHeightMap(prev => {
+          if (prev[index] === height) return prev;
+          return { ...prev, [index]: height };
+        });
+      }
+      
+      if (listRef.current) {
+        listRef.current.resetAfterIndex(index);
+      }
+    });
   }, []);
   
   const getItemKey = useCallback((index: number) => {
