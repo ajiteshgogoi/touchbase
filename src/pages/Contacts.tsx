@@ -349,7 +349,7 @@ export const Contacts = () => {
               <div
                 key={contact.id}
                 id={contact.id}
-                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 hover:shadow-md transition-all duration-200 scroll-mt-6"
+                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:shadow-md transition-all duration-200 scroll-mt-6"
               >
                 {/* Compact Header */}
                 <div className="flex items-center justify-between p-4">
