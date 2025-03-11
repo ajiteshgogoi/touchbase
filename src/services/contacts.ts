@@ -29,7 +29,29 @@ export const contactsService = {
 
     let query = supabase
       .from('contacts')
-      .select('*');
+      .select(`
+        id,
+        user_id,
+        name,
+        phone,
+        social_media_handle,
+        last_contacted,
+        next_contact_due,
+        preferred_contact_method,
+        notes,
+        contact_frequency,
+        ai_last_suggestion,
+        ai_last_suggestion_date,
+        missed_interactions,
+        created_at,
+        updated_at,
+        important_events (
+          id,
+          type,
+          name,
+          date
+        )
+      `);
 
     // For free tier users, we show the 15 most recent contacts
     // This ensures users have access to their newest and most relevant contacts
@@ -50,32 +72,66 @@ export const contactsService = {
   },
 
   async getContactWithEvents(id: string): Promise<{contact: Contact | null, events: ImportantEvent[]}> {
-    const [contactResult, eventsResult] = await Promise.all([
-      supabase
-        .from('contacts')
-        .select('*')
-        .eq('id', id)
-        .single(),
-      supabase
-        .from('important_events')
-        .select('*')
-        .eq('contact_id', id)
-        .order('date')
-    ]);
+    const { data, error } = await supabase
+      .from('contacts')
+      .select(`
+        id,
+        user_id,
+        name,
+        phone,
+        social_media_handle,
+        last_contacted,
+        next_contact_due,
+        preferred_contact_method,
+        notes,
+        contact_frequency,
+        ai_last_suggestion,
+        ai_last_suggestion_date,
+        missed_interactions,
+        created_at,
+        updated_at,
+        important_events (
+          id,
+          contact_id,
+          user_id,
+          type,
+          name,
+          date,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('id', id)
+      .single();
     
-    if (contactResult.error) throw contactResult.error;
-    if (eventsResult.error) throw eventsResult.error;
+    if (error) throw error;
     
     return {
-      contact: contactResult.data,
-      events: eventsResult.data || []
+      contact: data,
+      events: data?.important_events || []
     };
   },
 
   async getContact(id: string): Promise<Contact | null> {
     const { data, error } = await supabase
       .from('contacts')
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        name,
+        phone,
+        social_media_handle,
+        last_contacted,
+        next_contact_due,
+        preferred_contact_method,
+        notes,
+        contact_frequency,
+        ai_last_suggestion,
+        ai_last_suggestion_date,
+        missed_interactions,
+        created_at,
+        updated_at
+      `)
       .eq('id', id)
       .single();
     
@@ -145,7 +201,16 @@ export const contactsService = {
   async getImportantEvents(contactId?: string): Promise<ImportantEvent[]> {
     let query = supabase
       .from('important_events')
-      .select('*')
+      .select(`
+        id,
+        contact_id,
+        user_id,
+        type,
+        name,
+        date,
+        created_at,
+        updated_at
+      `)
       .order('date');
 
     if (contactId) {
@@ -403,7 +468,16 @@ export const contactsService = {
   async getInteractions(contactId: string): Promise<Interaction[]> {
     const { data, error } = await supabase
       .from('interactions')
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        contact_id,
+        type,
+        date,
+        notes,
+        sentiment,
+        created_at
+      `)
       .eq('contact_id', contactId)
       .order('date', { ascending: false });
     
@@ -457,7 +531,16 @@ export const contactsService = {
 
     let query = supabase
       .from('reminders')
-      .select('*')
+      .select(`
+        id,
+        contact_id,
+        user_id,
+        type,
+        name,
+        due_date,
+        completed,
+        created_at
+      `)
       .order('due_date');
     
     if (contactId) {
