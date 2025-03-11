@@ -63,41 +63,41 @@ export const VirtualizedContactsList = ({
       const contact = contacts[index];
       if (!contact) return 0;
       
-      // Base height for the compact header with 16px padding top/bottom
-      let height = 96; // Header height (48px content + 32px padding)
+      // Base height for the compact header
+      let height = 88; // Header height
       
       // Additional height for expanded state
       if (expandedContacts[contact.id]) {
         // Base expanded content height
-        height += 56; // Padding and spacing (32px padding + 24px spacing)
+        height += 48; // Padding and spacing
         
         // Add height for contact details
         if (contact.phone || contact.social_media_handle) {
-          height += 72; // Increased from 64px to account for consistent spacing
+          height += 64;
         }
         
         // Add height for events section
         const events = eventsMap[contact.id] || [];
         if (events.length > 0) {
-          height += 96; // Increased from 88px to account for consistent padding
+          height += 88;
         }
         
         // Add height for status section
-        height += 96; // Increased from 88px to account for consistent padding
+        height += 88;
         
         // Add height for notes if present
         if (contact.notes) {
-          height += Math.min(128, contact.notes.split('\n').length * 24 + 56); // Adjusted for consistent spacing
+          height += Math.min(120, contact.notes.split('\n').length * 24 + 48);
         }
         
         // Add height for AI suggestions
-        height += 96; // Increased from 88px to account for consistent padding
+        height += 88;
         
         // Add height for action buttons
-        height += 80; // Increased from 72px to account for consistent padding
+        height += 72;
       } else {
         // Add height for action buttons when collapsed
-        height += 80; // Increased from 72px to account for consistent padding
+        height += 72;
       }
       
       return height;
@@ -130,13 +130,13 @@ export const VirtualizedContactsList = ({
               if (!contact) return null;
               
               return (
-                <div style={{...style, padding: '8px 16px'}}>
-              <div
-                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft"
+                <div style={style}>
+                  <div
+                    className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft mx-3 sm:mx-4"
                     id={contact.id}
                   >
                     {/* Compact Header */}
-                    <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center justify-between p-3 sm:p-4">
                       {/* Left side: Status indicator and name */}
                       <div
                         onClick={() => onToggleExpand(contact.id)}
@@ -212,7 +212,7 @@ export const VirtualizedContactsList = ({
 
                     {/* Expanded Content */}
                     {expandedContacts[contact.id] && (
-                      <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
+                      <div className="px-3 sm:px-4 pb-3 space-y-3 sm:space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
                         {/* Contact details section */}
                         <div className="mt-4 space-y-4">
                           {(contact.phone || contact.social_media_handle) && (
@@ -346,7 +346,7 @@ export const VirtualizedContactsList = ({
                     )}
 
                     {/* Action Buttons - Always Visible */}
-                    <div className="p-4 border-t border-gray-100/50 bg-white/30">
+                    <div className="p-3 sm:p-4 border-t border-gray-100/50 bg-white/30">
                       <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
                         <button
                           onClick={() => onQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
