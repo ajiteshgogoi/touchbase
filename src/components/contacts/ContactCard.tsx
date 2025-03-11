@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
+import { BasicContact, Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
+import { contactsPaginationService } from '../../services/pagination';
 import { contactsService } from '../../services/contacts';
 import { contentReportsService } from '../../services/content-reports';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
@@ -26,7 +27,7 @@ import {
 import dayjs from 'dayjs';
 
 interface ContactCardProps {
-  contact: Contact;
+  contact: BasicContact;
   eventsMap: Record<string, ImportantEvent[]>;
   isPremium: boolean;
   isOnTrial: boolean;
@@ -47,6 +48,27 @@ export const ContactCard = ({
   onExpandChange
 }: ContactCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [expandedDetails, setExpandedDetails] = useState<Contact | null>(null);
+
+  useEffect(() => {
+    async function loadExpandedDetails() {
+      if (isExpanded && !expandedDetails) {
+        setIsLoading(true);
+        try {
+          const details = await contactsPaginationService.getExpandedContactDetails(contact.id);
+          setExpandedDetails(details);
+        } catch (error) {
+          console.error('Error loading expanded contact details:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadExpandedDetails();
+  }, [isExpanded, contact.id, expandedDetails]);
+
 
   const handleDeleteContact = async () => {
     if (confirm('Are you sure you want to delete this contact?')) {
@@ -159,26 +181,30 @@ export const ContactCard = ({
       {/* Collapsible Details Section */}
       {isExpanded && (
         <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
-          {/* Contact details section */}
-          <div className="mt-4 space-y-4">
-            {(contact.phone || contact.social_media_handle) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
-                {contact.phone && (
-                  <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                    <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
-                    <span className="truncate leading-5 font-[450]">{contact.phone}</span>
-                  </div>
-                )}
-                {contact.social_media_handle && (
-                  <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                    <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
-                    <span className="truncate leading-5 font-[450]">{contact.social_media_handle}</span>
-                  </div>
-                )}
-              </div>
-            )}
+          {isLoading ? (
+            <div className="py-8 flex justify-center">
+              <LoadingSpinner />
+            </div>
+          ) : expandedDetails && (
+            <div className="mt-4 space-y-4">
+              {(expandedDetails.phone || expandedDetails.social_media_handle) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
+                  {expandedDetails.phone && (
+                    <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                      <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
+                      <span className="truncate leading-5 font-[450]">{expandedDetails.phone}</span>
+                    </div>
+                  )}
+                  {expandedDetails.social_media_handle && (
+                    <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
+                      <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
+                      <span className="truncate leading-5 font-[450]">{expandedDetails.social_media_handle}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {/* Events section */}
+              {/* Events section */}
             {(eventsMap[contact.id] || []).length > 0 && (
               <div className="bg-gray-50 rounded-lg overflow-hidden">
                 <div className="px-3 py-2 bg-gray-100">
@@ -226,15 +252,15 @@ export const ContactCard = ({
               </div>
             </div>
 
-            {/* Categories/Hashtags section */}
-            {contact.notes && extractHashtags(contact.notes).length > 0 && (
-              <div className="bg-gray-50 rounded-lg overflow-hidden">
-                <div className="px-3 py-2 bg-gray-100">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</span>
-                </div>
-                <div className="px-3 py-2">
-                  <div className="flex flex-wrap gap-2">
-                    {extractHashtags(contact.notes).map((tag, idx) => (
+              {/* Categories/Hashtags section */}
+              {expandedDetails.notes && extractHashtags(expandedDetails.notes).length > 0 && (
+                <div className="bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="px-3 py-2 bg-gray-100">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</span>
+                  </div>
+                  <div className="px-3 py-2">
+                    <div className="flex flex-wrap gap-2">
+                      {extractHashtags(expandedDetails.notes).map((tag, idx) => (
                       <span
                         key={idx}
                         className="inline-flex items-center px-3 py-1.5 rounded-xl text-sm bg-primary-50 text-primary-700 border border-primary-100"
@@ -247,55 +273,56 @@ export const ContactCard = ({
               </div>
             )}
 
-            {/* Personal Notes section */}
-            {contact.notes && (
+              {/* Personal Notes section */}
+              {expandedDetails.notes && (
+                <div className="bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="px-3 py-2 bg-gray-100">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Notes</span>
+                  </div>
+                  <div className="px-3 py-2">
+                    <span className="text-sm text-gray-700 whitespace-pre-line">{expandedDetails.notes}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* AI Suggestions section */}
               <div className="bg-gray-50 rounded-lg overflow-hidden">
                 <div className="px-3 py-2 bg-gray-100">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Notes</span>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
                 </div>
                 <div className="px-3 py-2">
-                  <span className="text-sm text-gray-700 whitespace-pre-line">{contact.notes}</span>
+                  {!expandedDetails.ai_last_suggestion ? (
+                    <div className="flex items-start gap-2">
+                      <span className="flex-1 text-sm text-gray-600/90">
+                        No suggestions available
+                      </span>
+                    </div>
+                  ) : expandedDetails.ai_last_suggestion === 'Upgrade to Premium to get personalised suggestions!' ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get personalised suggestions!
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="group flex items-start gap-2">
+                      <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                        {expandedDetails.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
+                      </span>
+                      {expandedDetails.ai_last_suggestion && (
+                        <button
+                          onClick={() => handleReportContent(expandedDetails.ai_last_suggestion!)}
+                          className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                          title="Report inappropriate suggestion"
+                        >
+                          <FlagIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-
-            {/* AI Suggestions section */}
-            <div className="bg-gray-50 rounded-lg overflow-hidden">
-              <div className="px-3 py-2 bg-gray-100">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
-              </div>
-              <div className="px-3 py-2">
-                {!contact.ai_last_suggestion ? (
-                  <div className="flex items-start gap-2">
-                    <span className="flex-1 text-sm text-gray-600/90">
-                      No suggestions available
-                    </span>
-                  </div>
-                ) : contact.ai_last_suggestion === 'Upgrade to Premium to get personalised suggestions!' ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">
-                      ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get personalised suggestions!
-                    </span>
-                  </div>
-                ) : (
-                  <div className="group flex items-start gap-2">
-                    <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
-                      {contact.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
-                    </span>
-                    {contact.ai_last_suggestion && (
-                      <button
-                        onClick={() => handleReportContent(contact.ai_last_suggestion!)}
-                        className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
-                        title="Report inappropriate suggestion"
-                      >
-                        <FlagIcon className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
