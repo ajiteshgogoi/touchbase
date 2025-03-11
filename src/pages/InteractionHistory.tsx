@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
@@ -83,36 +83,38 @@ export const InteractionHistory = () => {
     }
   };
 
-  const sortedInteractions = [...(interactions || [])].sort((a, b) => {
-    if (sortField === 'date') {
-      return sortOrder === 'asc'
-        ? new Date(a.date).getTime() - new Date(b.date).getTime()
-        : new Date(b.date).getTime() - new Date(a.date).getTime();
-    }
-    if (sortField === 'type') {
-      return sortOrder === 'asc'
-        ? a.type.localeCompare(b.type)
-        : b.type.localeCompare(a.type);
-    }
-    // sentiment
-    const sentimentOrder = { positive: 3, neutral: 2, negative: 1, null: 0 };
-    const aValue = sentimentOrder[a.sentiment || 'null'];
-    const bValue = sentimentOrder[b.sentiment || 'null'];
-    return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
-  });
+  const sortedInteractions = useMemo(() => {
+    return [...(interactions || [])].sort((a, b) => {
+      if (sortField === 'date') {
+        return sortOrder === 'asc'
+          ? new Date(a.date).getTime() - new Date(b.date).getTime()
+          : new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+      if (sortField === 'type') {
+        return sortOrder === 'asc'
+          ? a.type.localeCompare(b.type)
+          : b.type.localeCompare(a.type);
+      }
+      // sentiment
+      const sentimentOrder = { positive: 3, neutral: 2, negative: 1, null: 0 };
+      const aValue = sentimentOrder[a.sentiment || 'null'];
+      const bValue = sentimentOrder[b.sentiment || 'null'];
+      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+  }, [interactions, sortField, sortOrder]);
 
-  const getSentimentColor = (sentiment: Interaction['sentiment']) => {
-    switch (sentiment) {
-      case 'positive':
-        return 'bg-green-100 text-green-800';
-      case 'negative':
-        return 'bg-red-100 text-red-800';
-      case 'neutral':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-600';
-    }
-  };
+  const getSentimentColor = useMemo(() => {
+    const colorMap = {
+      positive: 'bg-green-100 text-green-800',
+      negative: 'bg-red-100 text-red-800',
+      neutral: 'bg-gray-100 text-gray-800',
+      default: 'bg-gray-100 text-gray-600'
+    };
+    
+    return (sentiment: Interaction['sentiment']) => {
+      return colorMap[sentiment || 'default'];
+    };
+  }, []);
 
   if (isLoadingContact || isLoadingInteractions) {
     return (
