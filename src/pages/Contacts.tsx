@@ -104,11 +104,17 @@ export const Contacts = () => {
     return acc;
   }, {});
 
-  // Get all unique hashtags from contacts
-  const allHashtags = contacts?.reduce((tags: string[], contact) => {
-    const contactTags = extractHashtags(contact.notes || '');
-    return [...new Set([...tags, ...contactTags])];
-  }, []) || [];
+  // Get all unique hashtags from all contacts
+  const { data: allHashtags = [] } = useQuery({
+    queryKey: ['contact-hashtags'],
+    queryFn: async () => {
+      const contacts = await contactsService.getContacts();
+      return [...new Set(contacts.flatMap(contact =>
+        extractHashtags(contact.notes || '')
+      ))];
+    },
+    staleTime: 5 * 60 * 1000
+  });
 
   const handleCategoryChange = (hashtag: string) => {
     setSelectedCategories(prev => {
