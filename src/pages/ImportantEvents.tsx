@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import dayjs from 'dayjs';
 import { useEffect } from 'react';
 import { contactsService } from '../services/contacts';
-import { formatEventDate, getEventTypeDisplay, getNextOccurrence } from '../components/contacts/utils';
+import { getNextOccurrence } from '../components/contacts/utils';
 import type { Contact, ImportantEvent } from '../lib/supabase/types';
+import { ImportantEventCard } from '../components/contacts/ImportantEventCard';
 
 export const ImportantEventsPage = () => {
   const navigate = useNavigate();
@@ -57,18 +58,6 @@ export const ImportantEventsPage = () => {
     return groups;
   }, {} as Record<string, ImportantEvent[]>);
 
-  // Get emoji for event type
-  const getEventEmoji = (type: string): string => {
-    switch (type) {
-      case 'birthday':
-        return '🎂';
-      case 'anniversary':
-        return '❤️';
-      default:
-        return '📅';
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -118,32 +107,11 @@ export const ImportantEventsPage = () => {
                     const contactName = getContactName(event.contact_id);
                     
                     return (
-                      <div
+                      <ImportantEventCard
                         key={event.id}
-                        className="flex items-center gap-4 px-3 py-2.5 bg-gray-50/90 rounded-lg hover:bg-gray-100/90 transition-all duration-200"
-                      >
-                        <div
-                          className="text-2xl"
-                          role="img"
-                          aria-label={event.type}
-                        >
-                          {getEventEmoji(event.type)}
-                        </div>
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <Link
-                            to={`/contacts#${event.contact_id}`}
-                            className="block text-base font-semibold text-primary-500 tracking-[-0.01em] hover:text-primary-600 transition-colors"
-                          >
-                            {contactName}
-                          </Link>
-                          <p className="text-sm text-gray-500">
-                            {event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}
-                          </p>
-                          <p className="text-[13px] text-gray-500/90 font-[450]">
-                            {formatEventDate(event.date)}
-                          </p>
-                        </div>
-                      </div>
+                        event={event}
+                        contactName={contactName}
+                      />
                     );
                   })}
                 </div>
