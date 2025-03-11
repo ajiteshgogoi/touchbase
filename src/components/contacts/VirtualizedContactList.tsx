@@ -32,11 +32,12 @@ interface RowProps {
     loadMore: () => void;
     expandedIndex: number | null;
     setExpandedIndex: (index: number | null) => void;
+    updateHeight: (index: number, height: number) => void;
   };
 }
 
 const Row = memo(({ index, style, data }: RowProps) => {
-  const { 
+  const {
     contacts,
     eventsMap,
     isPremium,
@@ -46,8 +47,11 @@ const Row = memo(({ index, style, data }: RowProps) => {
     hasNextPage,
     loadMore,
     expandedIndex,
-    setExpandedIndex
+    setExpandedIndex,
+    updateHeight
   } = data;
+
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // If we're at the last item and there's more to load, trigger loading more
   if (index === contacts.length - 1 && hasNextPage) {
@@ -57,18 +61,28 @@ const Row = memo(({ index, style, data }: RowProps) => {
   const contact = contacts[index];
   if (!contact) return null;
 
+  // Update height when card expands/collapses
+  useEffect(() => {
+    if (cardRef.current && expandedIndex === index) {
+      const height = cardRef.current.offsetHeight;
+      updateHeight(index, height);
+    }
+  }, [expandedIndex, index, updateHeight]);
+
   return (
     <div style={{...style, padding: '8px 0'}}>
-      <ContactCard
-        contact={contact}
-        eventsMap={eventsMap}
-        isPremium={isPremium}
-        isOnTrial={isOnTrial}
-        onDelete={onDelete}
-        onQuickInteraction={onQuickInteraction}
-        isExpanded={expandedIndex === index}
-        onExpandChange={(expanded) => setExpandedIndex(expanded ? index : null)}
-      />
+      <div ref={cardRef}>
+        <ContactCard
+          contact={contact}
+          eventsMap={eventsMap}
+          isPremium={isPremium}
+          isOnTrial={isOnTrial}
+          onDelete={onDelete}
+          onQuickInteraction={onQuickInteraction}
+          isExpanded={expandedIndex === index}
+          onExpandChange={(expanded) => setExpandedIndex(expanded ? index : null)}
+        />
+      </div>
     </div>
   );
 });
@@ -86,12 +100,28 @@ export const VirtualizedContactList = ({
   loadMore
 }: VirtualizedContactListProps) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [heightMap, setHeightMap] = useState<Record<number, number>>({});
+  
+  // Default height for collapsed cards
+  const COLLAPSED_HEIGHT = 216;
   
   const getItemSize = (index: number) => {
-    return expandedIndex === index ? 600 : 216; // Expanded cards get more space
+    return expandedIndex === index ? (heightMap[index] || COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
   };
   
   const listRef = useRef<VariableSizeList>(null);
+  
+  // Callback to update height of an expanded card
+  const updateHeight = useCallback((index: number, height: number) => {
+    setHeightMap(prev => {
+      if (prev[index] === height) return prev;
+      return { ...prev, [index]: height };
+    });
+    
+    if (listRef.current) {
+      listRef.current.resetAfterIndex(index);
+    }
+  }, []);
   
   const getItemKey = useCallback((index: number) => {
     const contact = contacts[index];
@@ -123,7 +153,8 @@ export const VirtualizedContactList = ({
         hasNextPage,
         loadMore,
         expandedIndex,
-        setExpandedIndex
+        setExpandedIndex,
+        updateHeight
       }}
     >
       {Row}
