@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase/client';
-import type { Contact } from '../lib/supabase/types';
+import type { BasicContact, Contact } from '../lib/supabase/types';
 import { paymentService } from './payment';
 
 const PAGE_SIZE = 20;
@@ -15,6 +15,32 @@ export type FilterConfig = {
 };
 
 export const contactsPaginationService = {
+  async getExpandedContactDetails(contactId: string): Promise<Contact | null> {
+    const { data, error } = await supabase
+      .from('contacts')
+      .select(`
+        id,
+        user_id,
+        phone,
+        social_media_handle,
+        preferred_contact_method,
+        notes,
+        ai_last_suggestion,
+        ai_last_suggestion_date,
+        created_at,
+        updated_at
+      `)
+      .eq('id', contactId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching expanded contact details:', error);
+      return null;
+    }
+
+    return data as Contact;
+  },
+
   async getUniqueHashtags(): Promise<string[]> {
     const { data, error } = await supabase
       .from('contacts')
@@ -37,14 +63,22 @@ export const contactsPaginationService = {
     page: number,
     sort: SortConfig,
     filters: FilterConfig
-  ): Promise<{ contacts: Contact[]; hasMore: boolean; total: number }> {
+  ): Promise<{ contacts: BasicContact[]; hasMore: boolean; total: number }> {
     const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
     const offset = page * PAGE_SIZE;
 
     // Start building the query
+    // Only select essential fields for the initial view
     let query = supabase
       .from('contacts')
-      .select('*', { count: 'exact' });
+      .select(`
+        id,
+        name,
+        last_contacted,
+        missed_interactions,
+        contact_frequency,
+        next_contact_due
+      `, { count: 'exact' });
 
     // Apply search filter if provided
     if (filters.search) {

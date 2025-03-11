@@ -1,4 +1,13 @@
-export interface Contact {
+export interface BasicContact {
+  id: string;
+  name: string;
+  last_contacted: string | null;
+  next_contact_due: string | null;
+  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
+  missed_interactions: number;
+}
+
+export interface Contact extends BasicContact {
   id: string;
   user_id: string;
   name: string;
