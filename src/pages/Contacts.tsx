@@ -115,24 +115,14 @@ export const Contacts = () => {
   const handleDeleteContact = async (contactId: string) => {
     try {
       await contactsService.deleteContact(contactId);
-
-      // Directly invalidate queries to fetch fresh data
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ['contacts'],
-          exact: true
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ['contactsCount'],
-          exact: true
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ['reminders'],
-          exact: true
-        })
+        queryClient.invalidateQueries({ queryKey: ['contacts'], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ['contactsCount'], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ['reminders'], exact: true })
       ]);
     } catch (error) {
       console.error('Error deleting contact:', error);
+      throw error; // Propagate error to ContactCard for error handling
     }
   };
 
