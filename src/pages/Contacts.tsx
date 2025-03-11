@@ -98,15 +98,13 @@ export const Contacts = () => {
 
   const isLoading = status === 'pending' || countLoading;
 
-  // Efficiently memoize hashtags calculation with intermediate memoization
-  const contactNotes = useMemo(() =>
-    paginatedContacts.map(contact => contact.notes || '')
-  , [paginatedContacts]);
-
+  // Memoize hashtags calculation
   const allHashtags = useMemo(() => {
-    const allTags = contactNotes.flatMap(notes => extractHashtags(notes));
-    return [...new Set(allTags)];
-  }, [contactNotes]);
+    return paginatedContacts.reduce((tags: string[], contact: Contact) => {
+      const contactTags = extractHashtags(contact.notes || '');
+      return [...new Set([...tags, ...contactTags])];
+    }, []);
+  }, [paginatedContacts]);
 
   const handleCategoryChange = (hashtag: string) => {
     setSelectedCategories(prev => {
