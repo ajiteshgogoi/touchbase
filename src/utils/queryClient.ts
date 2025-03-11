@@ -1,15 +1,11 @@
 import { QueryClient } from '@tanstack/react-query';
 
-const CACHE_TIME = 1000 * 60 * 60 * 24; // 24 hours
-
 const queryClientConfig = {
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 3,
-      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10000),
-      gcTime: CACHE_TIME,
-      cacheTime: CACHE_TIME,
+      retry: 3, // Increased from 1 to 3 retries
+      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
     },
   },
 };
@@ -17,19 +13,7 @@ const queryClientConfig = {
 let queryClient: QueryClient;
 
 export const createQueryClient = () => {
-  const client = new QueryClient({
-    ...queryClientConfig,
-    defaultOptions: {
-      queries: {
-        ...queryClientConfig.defaultOptions.queries,
-        structuralSharing: false,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-      },
-    },
-  });
-  return client;
+  return new QueryClient(queryClientConfig);
 };
 
 export const setQueryClient = (client: QueryClient) => {
