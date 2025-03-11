@@ -5,6 +5,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { contactsPaginationService } from '../services/pagination';
 import { useStore } from '../stores/useStore';
+import { VirtualizedContactList } from '../components/contacts/VirtualizedContactList';
 import {
   UserPlusIcon,
   MagnifyingGlassIcon,
@@ -13,11 +14,8 @@ import {
 } from '@heroicons/react/24/outline/esm/index.js';
 import type { Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
 import { formatHashtagForDisplay } from '../components/contacts/utils';
-import { ContactCard } from '../components/contacts/ContactCard';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { useInView } from 'react-intersection-observer';
-
 // Lazy load QuickInteraction
 const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
 
@@ -25,6 +23,11 @@ dayjs.extend(relativeTime);
 
 type SortField = 'name' | 'last_contacted' | 'missed_interactions';
 type SortOrder = 'asc' | 'desc';
+type QuickInteractionParams = {
+  contactId: string;
+  type: Interaction['type'];
+  contactName: string;
+};
 
 export const Contacts = () => {
   const navigate = useNavigate();
@@ -39,9 +42,6 @@ export const Contacts = () => {
     type: Interaction['type'];
     contactName: string;
   } | null>(null);
-
-  // Ref for loading indicator
-  const { ref } = useInView();
 
   const { isPremium, isOnTrial } = useStore();
 
@@ -75,23 +75,6 @@ export const Contacts = () => {
     },
     staleTime: 5 * 60 * 1000
   });
-
-  // Load more contacts when scrolling to 75% of the page and prefetch next page
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + window.innerHeight;
-      const pageHeight = document.documentElement.scrollHeight;
-      const scrollThreshold = pageHeight * 0.75;
-
-      if (scrollPosition >= scrollThreshold && hasNextPage) {
-        // Trigger prefetch for next page
-        void fetchNextPage({ cancelRefetch: false });
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [fetchNextPage, hasNextPage]);
 
   // Memoize contacts array to prevent unnecessary flattening on each render
   const contacts = useMemo(() =>
@@ -290,34 +273,22 @@ export const Contacts = () => {
             </div>
           ) : (
             <>
-              {contacts.map((contact) => (
-                <ContactCard
-                  key={contact.id}
-                  contact={contact}
-                  eventsMap={eventsMap}
-                  isPremium={isPremium}
-                  isOnTrial={isOnTrial}
-                  onDelete={handleDeleteContact}
-                  onQuickInteraction={({ contactId, type, contactName }) =>
-                    setQuickInteraction({
-                      isOpen: true,
-                      contactId,
-                      type,
-                      contactName
-                    })}
-                />
-              ))}
-              {hasNextPage && (
-                <div ref={ref} className="py-4 text-center">
-                  <div className="inline-flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span className="text-sm text-gray-500">Loading more...</span>
-                  </div>
-                </div>
-              )}
+              <VirtualizedContactList
+                contacts={contacts}
+                eventsMap={eventsMap}
+                isPremium={isPremium}
+                isOnTrial={isOnTrial}
+                onDelete={handleDeleteContact}
+                onQuickInteraction={(params: QuickInteractionParams) =>
+                  setQuickInteraction({
+                    isOpen: true,
+                    contactId: params.contactId,
+                    type: params.type,
+                    contactName: params.contactName
+                  })}
+                hasNextPage={hasNextPage}
+                loadMore={() => fetchNextPage()}
+              />
             </>
           )}
         </div>
