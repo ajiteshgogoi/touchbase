@@ -150,7 +150,7 @@ export const RecentContacts = () => {
                   .map((contact: Contact) => (
                     <div
                       key={contact.id}
-                      className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft"
+                      className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:shadow-md transition-all duration-200"
                     >
                       {/* Compact Header */}
                       <div className="flex items-center justify-between p-4">
