@@ -137,7 +137,7 @@ export const VirtualizedContactsList = ({
               return (
                 <div style={{...style, padding: '8px 16px'}}>
               <div
-                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft"
+                className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-md"
                     id={contact.id}
                   >
                     {/* Compact Header */}
