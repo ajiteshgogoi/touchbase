@@ -3,7 +3,6 @@ import { useCallback } from 'react';
 import { Contact } from '../lib/supabase/types';
 import { supabase } from '../lib/supabase/client';
 import { useStore } from '../stores/useStore';
-import { extractHashtags } from '../components/contacts/utils';
 
 export const PAGE_SIZE = 20;
 
@@ -155,13 +154,12 @@ export function useContactsPagination({
   // Filter by categories if needed (client-side for now)
   const filteredContacts = selectedCategories.length > 0
     ? contacts.filter((contact: Contact) => {
-        const contactTags = extractHashtags(contact.notes || '');
-        const normalizedContactTags = contactTags.map(tag => tag.slice(1).toLowerCase());
-        const normalizedCategories = selectedCategories.map(category =>
-          category.startsWith('#') ? category.slice(1).toLowerCase() : category.toLowerCase()
-        );
-        return normalizedCategories.every(category =>
-          normalizedContactTags.includes(category)
+        const contactCategories = (contact.notes || '')
+          .split(' ')
+          .filter((word: string) => word.startsWith('#'))
+          .map((tag: string) => tag.slice(1).toLowerCase());
+        return selectedCategories.every(category =>
+          contactCategories.includes(category.toLowerCase())
         );
       })
     : contacts;
