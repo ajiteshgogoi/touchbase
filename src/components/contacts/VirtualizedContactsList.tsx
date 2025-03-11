@@ -85,13 +85,8 @@ export const VirtualizedContactsList = ({
         // Add height for status section
         height += 96; // Increased from 88px to account for consistent padding
         
-        // Add height for Categories/Hashtags section if notes have hashtags
-        if (contact.notes && extractHashtags(contact.notes).length > 0) {
-          height += 96; // Standard section height
-        }
-
-        // Add height for Personal Notes section if notes exist and don't only contain hashtags
-        if (contact.notes && contact.notes.replace(/#[a-zA-Z0-9_]+/g, '').trim()) {
+        // Add height for notes if present
+        if (contact.notes) {
           height += Math.min(128, contact.notes.split('\n').length * 24 + 56); // Adjusted for consistent spacing
         }
         
@@ -306,18 +301,6 @@ export const VirtualizedContactsList = ({
                                     </span>
                                   ))}
                                 </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Personal Notes section */}
-                          {contact.notes && (
-                            <div className="bg-gray-50 rounded-lg overflow-hidden">
-                              <div className="px-3 py-2 bg-gray-100">
-                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Notes</span>
-                              </div>
-                              <div className="px-3 py-2">
-                                <span className="text-sm text-gray-700 whitespace-pre-line">{contact.notes}</span>
                               </div>
                             </div>
                           )}
