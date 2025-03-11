@@ -386,7 +386,7 @@ const [quickReminder, setQuickReminder] = useState<{
                   return (
                     <div
                       key={reminder.id}
-                      className={`bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 hover:shadow-md transition-all duration-200 ${
+                      className={`bg-white rounded-lg shadow-soft hover:shadow-md transition-shadow ${
                         reminder.name ? 'border-l-4 border-primary-500 ' : ''
                       }${
                         events.length > 0 ? `ring-2 ${
