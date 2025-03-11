@@ -46,7 +46,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Intelligent rescheduling for missed interactions',
       'Contact interaction history',      
       'Advanced AI suggestions',
-      'Relationship Insights',
+      'Relationship insights',
       'Priority support'
     ]
   }
