@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
-import { useContactsQuery } from '../hooks/useContactsQuery';
+import { useContactsPagination } from '../hooks/useContactsPagination';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import {
   UserPlusIcon,
@@ -50,14 +50,14 @@ export const Contacts = () => {
   }, [queryClient]);
   const { isPremium, isOnTrial } = useStore();
 
-  // Setup contacts query with server-side filtering
+  // Setup paginated contacts query
   const {
-    contacts,
+    contacts: paginatedContacts,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     status
-  } = useContactsQuery({
+  } = useContactsPagination({
     sortBy: sortField,
     sortOrder,
     searchQuery: debouncedSearchQuery,
@@ -100,8 +100,8 @@ export const Contacts = () => {
 
   // Efficiently memoize hashtags calculation with intermediate memoization
   const contactNotes = useMemo(() =>
-    contacts.map((contact: Contact) => contact.notes || '')
-  , [contacts]);
+    paginatedContacts.map(contact => contact.notes || '')
+  , [paginatedContacts]);
 
   const allHashtags = useMemo(() => {
     const allTags = contactNotes.flatMap(notes => extractHashtags(notes));
@@ -150,7 +150,7 @@ export const Contacts = () => {
   };
 
   const contactLimit = isPremium || isOnTrial ? Infinity : 15;
-  const canAddMore = contacts.length < contactLimit;
+  const canAddMore = paginatedContacts.length < contactLimit;
 
   return (
     <div className="space-y-6">
@@ -273,13 +273,13 @@ export const Contacts = () => {
                 <span className="text-base font-medium text-gray-600">Loading contacts...</span>
               </div>
             </div>
-          ) : contacts.length === 0 ? (
+          ) : paginatedContacts.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
               No contacts found
             </div>
           ) : (
             <div className="space-y-4">
-              {contacts.map((contact: Contact) => (
+              {paginatedContacts.map((contact: Contact) => (
                 <ContactCard
                   key={contact.id}
                   contact={contact}
