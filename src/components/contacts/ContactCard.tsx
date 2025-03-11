@@ -35,6 +35,7 @@ interface ContactCardProps {
   onQuickInteraction: (params: { contactId: string; type: Interaction['type']; contactName: string }) => void;
   isExpanded: boolean;
   onExpandChange: (expanded: boolean) => void;
+  onLoadingChange?: (isLoading: boolean) => void;
 }
 
 export const ContactCard = ({
@@ -45,11 +46,17 @@ export const ContactCard = ({
   onDelete,
   onQuickInteraction,
   isExpanded,
-  onExpandChange
+  onExpandChange,
+  onLoadingChange
 }: ContactCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState<Contact | null>(null);
+
+  // Notify parent about loading state changes
+  useEffect(() => {
+    onLoadingChange?.(isLoading);
+  }, [isLoading, onLoadingChange]);
 
   useEffect(() => {
     async function loadExpandedDetails() {

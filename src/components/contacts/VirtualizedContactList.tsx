@@ -3,6 +3,11 @@ import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
 
+// Default heights for cards
+const COLLAPSED_HEIGHT = 216;
+const LOADING_HEIGHT = 300;    // Height when showing loading spinner
+const EXPANDED_HEIGHT = 600;   // Initial height for expanded state before measurement
+
 interface VirtualizedContactListProps {
   contacts: Contact[];
   eventsMap: Record<string, ImportantEvent[]>;
@@ -32,7 +37,9 @@ interface RowProps {
     loadMore: () => void;
     expandedIndices: Set<number>;
     setExpandedIndices: Dispatch<SetStateAction<Set<number>>>;
-    updateHeight: (index: number, height: number) => void;
+    updateHeight: (index: number, height: number, isLoading?: boolean) => void;
+    loadingStates: Set<number>;
+    setLoadingStates: Dispatch<SetStateAction<Set<number>>>;
   };
 }
 
@@ -48,7 +55,9 @@ const Row = memo(({ index, style, data }: RowProps) => {
     loadMore,
     expandedIndices,
     setExpandedIndices,
-    updateHeight
+    updateHeight,
+    loadingStates,
+    setLoadingStates
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -61,14 +70,13 @@ const Row = memo(({ index, style, data }: RowProps) => {
   const contact = contacts[index];
   if (!contact) return null;
 
-  // Update height when card expands/collapses
+  // Update height when card expands/collapses or content loads
   useEffect(() => {
     if (cardRef.current && expandedIndices.has(index)) {
-      // Add padding to maintain consistent gap
       const height = cardRef.current.offsetHeight + 16; // Account for 8px padding top and bottom
       updateHeight(index, height);
     }
-  }, [expandedIndices, index, updateHeight]);
+  }, [expandedIndices, index, loadingStates, updateHeight]);
 
   return (
     <div style={{ ...style, padding: '8px 0' }}>
@@ -86,11 +94,28 @@ const Row = memo(({ index, style, data }: RowProps) => {
               const next = new Set(prev);
               if (expanded) {
                 next.add(index);
+                // When expanding, immediately mark as loading and update height
+                updateHeight(index, LOADING_HEIGHT, true);
               } else {
                 next.delete(index);
+                // When collapsing, clear loading state
+                setLoadingStates(prev => {
+                  const next = new Set(prev);
+                  next.delete(index);
+                  return next;
+                });
               }
               return next;
             });
+          }}
+          onLoadingChange={(isLoading) => {
+            if (!expandedIndices.has(index)) return;
+            if (isLoading) {
+              updateHeight(index, LOADING_HEIGHT, true);
+            } else if (cardRef.current) {
+              const height = cardRef.current.offsetHeight + 16;
+              updateHeight(index, height, false);
+            }
           }}
         />
       </div>
@@ -111,24 +136,36 @@ export const VirtualizedContactList = ({
   loadMore
 }: VirtualizedContactListProps) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
+  const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
-  
-  // Default height for collapsed cards
-  const COLLAPSED_HEIGHT = 216;
-  const EXPANDED_HEIGHT = 216;
-  
+    
   const getItemSize = (index: number) => {
-    return expandedIndices.has(index) ? (heightMap[index] || EXPANDED_HEIGHT) : COLLAPSED_HEIGHT;
+    if (!expandedIndices.has(index)) return COLLAPSED_HEIGHT;
+    if (loadingStates.has(index)) return LOADING_HEIGHT;
+    return heightMap[index] || EXPANDED_HEIGHT;
   };
   
   const listRef = useRef<VariableSizeList>(null);
   
   // Callback to update height of an expanded card
-  const updateHeight = useCallback((index: number, height: number) => {
-    setHeightMap(prev => {
-      if (prev[index] === height) return prev;
-      return { ...prev, [index]: height };
-    });
+  const updateHeight = useCallback((index: number, height: number, isLoading?: boolean) => {
+    if (isLoading) {
+      setLoadingStates(prev => {
+        const next = new Set(prev);
+        next.add(index);
+        return next;
+      });
+    } else {
+      setLoadingStates(prev => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+      setHeightMap(prev => {
+        if (prev[index] === height) return prev;
+        return { ...prev, [index]: height };
+      });
+    }
     
     if (listRef.current) {
       listRef.current.resetAfterIndex(index);
@@ -166,7 +203,9 @@ export const VirtualizedContactList = ({
         loadMore,
         expandedIndices,
         setExpandedIndices,
-        updateHeight
+        updateHeight,
+        loadingStates,
+        setLoadingStates
       }}
     >
       {Row}
