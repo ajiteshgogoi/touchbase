@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
+import { useContactsPagination } from '../hooks/useContactsPagination';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import {
   UserPlusIcon,
   MagnifyingGlassIcon,
@@ -48,81 +50,61 @@ export const Contacts = () => {
   }, [queryClient]);
   const { isPremium, isOnTrial } = useStore();
 
-  const { data: contacts, isLoading: contactsLoading } = useQuery<Contact[]>({
-    queryKey: ['contacts'],
-    queryFn: contactsService.getContacts,
-    staleTime: 5 * 60 * 1000
+  // Setup paginated contacts query
+  const {
+    contacts: paginatedContacts,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status
+  } = useContactsPagination({
+    sortBy: sortField,
+    sortOrder,
+    searchQuery: debouncedSearchQuery,
+    selectedCategories
   });
 
-  const { data: totalCount, isLoading: countLoading } = useQuery<number>({
+  // Setup infinite scroll
+  const loadMoreRef = useInfiniteScroll({
+    enabled: hasNextPage,
+    onLoadMore: () => void fetchNextPage(),
+    hasNextPage
+  });
+
+  // Query for total count (free users only)
+  const { data: totalCount = 0, isLoading: countLoading } = useQuery<number, Error>({
     queryKey: ['contactsCount'],
     queryFn: contactsService.getTotalContactCount,
-    // Only fetch total count for free users
     enabled: !isPremium && !isOnTrial
   });
 
-  const { data: importantEvents } = useQuery<ImportantEvent[]>({
-    queryKey: ['important-events'],
+  // Query for important events
+  const { data: importantEvents } = useQuery<ImportantEvent[], Error>({
+    queryKey: ['important-events'] as const,
     queryFn: () => contactsService.getImportantEvents(),
     staleTime: 5 * 60 * 1000
   });
 
-  // Map of contact ID to their events
-  const eventsMap = importantEvents?.reduce((acc, event) => {
-    if (event) {
-      const contactId = event.contact_id as string;
-      if (!acc[contactId]) {
-        acc[contactId] = [];
+// Map of contact ID to their events
+  const eventsMap = useMemo<Record<string, ImportantEvent[]>>(() => {
+    const events: ImportantEvent[] = importantEvents || [];
+    return events.reduce((acc: Record<string, ImportantEvent[]>, event: ImportantEvent) => {
+      if (event.contact_id) {
+        (acc[event.contact_id] = acc[event.contact_id] || []).push(event);
       }
-      acc[contactId].push(event);
-    }
-    return acc;
-  }, {} as Record<string, ImportantEvent[]>) || {};
+      return acc;
+    }, {});
+  }, [importantEvents]);
 
-  const isLoading = contactsLoading || countLoading;
+  const isLoading = status === 'pending' || countLoading;
 
   // Memoize hashtags calculation
   const allHashtags = useMemo(() => {
-    return contacts?.reduce((tags: string[], contact) => {
+    return paginatedContacts.reduce((tags: string[], contact: Contact) => {
       const contactTags = extractHashtags(contact.notes || '');
       return [...new Set([...tags, ...contactTags])];
-    }, []) || [];
-  }, [contacts]);
-
-  // Memoize filtered and sorted contacts
-  const filteredContacts = useMemo(() => {
-    return contacts
-      ?.filter(contact => {
-        // Search query filter
-        const matchesSearch =
-          contact.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-          contact.phone?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-          contact.social_media_handle?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
-
-        // Category filter
-        const matchesCategories = selectedCategories.length === 0 ||
-          selectedCategories.every(category =>
-            extractHashtags(contact.notes || '').includes(category.toLowerCase())
-          );
-
-        return matchesSearch && matchesCategories;
-      })
-      .sort((a, b) => {
-        if (sortField === 'name') {
-          return sortOrder === 'asc'
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name);
-        }
-        if (sortField === 'last_contacted') {
-          const dateA = a.last_contacted ? new Date(a.last_contacted).getTime() : 0;
-          const dateB = b.last_contacted ? new Date(b.last_contacted).getTime() : 0;
-          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-        }
-        return sortOrder === 'asc'
-          ? (a[sortField] || 0) - (b[sortField] || 0)
-          : (b[sortField] || 0) - (a[sortField] || 0);
-      });
-  }, [contacts, debouncedSearchQuery, selectedCategories, sortField, sortOrder]);
+    }, []);
+  }, [paginatedContacts]);
 
   const handleCategoryChange = (hashtag: string) => {
     setSelectedCategories(prev => {
@@ -166,7 +148,7 @@ export const Contacts = () => {
   };
 
   const contactLimit = isPremium || isOnTrial ? Infinity : 15;
-  const canAddMore = (contacts?.length || 0) < contactLimit;
+  const canAddMore = paginatedContacts.length < contactLimit;
 
   return (
     <div className="space-y-6">
@@ -289,29 +271,48 @@ export const Contacts = () => {
                 <span className="text-base font-medium text-gray-600">Loading contacts...</span>
               </div>
             </div>
-          ) : filteredContacts?.length === 0 ? (
+          ) : paginatedContacts.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
               No contacts found
             </div>
           ) : (
-            // For free users, only show first 15 contacts after filtering
-            (isPremium || isOnTrial ? filteredContacts : filteredContacts?.slice(0, 15))?.map((contact) => (
-              <ContactCard
-                key={contact.id}
-                contact={contact}
-                eventsMap={eventsMap}
-                isPremium={isPremium}
-                isOnTrial={isOnTrial}
-                onDelete={handleDeleteContact}
-                onQuickInteraction={({ contactId, type, contactName }) =>
-                  setQuickInteraction({
-                    isOpen: true,
-                    contactId,
-                    type,
-                    contactName
-                  })}
-              />
-            ))
+            <div className="space-y-4">
+              {paginatedContacts.map((contact: Contact) => (
+                <ContactCard
+                  key={contact.id}
+                  contact={contact}
+                  eventsMap={eventsMap}
+                  isPremium={isPremium}
+                  isOnTrial={isOnTrial}
+                  onDelete={handleDeleteContact}
+                  onQuickInteraction={({ contactId, type, contactName }) =>
+                    setQuickInteraction({
+                      isOpen: true,
+                      contactId,
+                      type,
+                      contactName
+                    })}
+                />
+              ))}
+
+              {/* Infinite scroll trigger */}
+              {hasNextPage && (
+                <div
+                  ref={loadMoreRef}
+                  className="py-4 text-center"
+                >
+                  {isFetchingNextPage ? (
+                    <div className="flex justify-center items-center gap-2">
+                      <svg className="animate-spin h-5 w-5 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-sm text-gray-600">Loading more...</span>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
