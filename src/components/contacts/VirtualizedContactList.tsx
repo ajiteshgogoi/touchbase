@@ -64,7 +64,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
   // Update height when card expands/collapses
   useEffect(() => {
     if (cardRef.current && expandedIndex === index) {
-      const height = cardRef.current.offsetHeight;
+      // Add padding to maintain consistent gap
+      const height = cardRef.current.offsetHeight + 16; // Account for 8px padding top and bottom
       updateHeight(index, height);
     }
   }, [expandedIndex, index, updateHeight]);
