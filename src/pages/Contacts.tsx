@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
@@ -93,8 +93,11 @@ export const Contacts = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [fetchNextPage, hasNextPage]);
 
-  // Extract all contacts from paginated results
-  const contacts = contactsData?.pages.flatMap(page => page.contacts) || [];
+  // Memoize contacts array to prevent unnecessary flattening on each render
+  const contacts = useMemo(() =>
+    contactsData?.pages.flatMap(page => page.contacts) || [],
+    [contactsData?.pages]
+  );
   const totalCount = contactsData?.pages[0]?.total || 0;
 
   // Get important events
@@ -104,15 +107,17 @@ export const Contacts = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  // Map of contact ID to their events
-  const eventsMap = (importantEvents || []).reduce((acc: Record<string, ImportantEvent[]>, event) => {
-    const contactId = event.contact_id as string;
-    if (!acc[contactId]) {
-      acc[contactId] = [];
-    }
-    acc[contactId].push(event);
-    return acc;
-  }, {});
+  // Memoize events map to prevent rebuilding on every render
+  const eventsMap = useMemo(() => {
+    return (importantEvents || []).reduce((acc: Record<string, ImportantEvent[]>, event) => {
+      const contactId = event.contact_id as string;
+      if (!acc[contactId]) {
+        acc[contactId] = [];
+      }
+      acc[contactId].push(event);
+      return acc;
+    }, {});
+  }, [importantEvents]);
 
   // Get all unique hashtags from all contacts
   const { data: allHashtags = [] } = useQuery({
