@@ -11,6 +11,7 @@ const QuickInteraction = lazy(() => import('../contacts/QuickInteraction'));
 export const RecentContacts = () => {
   const queryClient = useQueryClient();
   const { isPremium, isOnTrial } = useStore();
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts,
@@ -98,6 +99,18 @@ export const RecentContacts = () => {
                       isPremium={isPremium}
                       isOnTrial={isOnTrial}
                       onDelete={handleDeleteContact}
+                      isExpanded={expandedIds.has(contact.id)}
+                      onExpandChange={(expanded) => {
+                        setExpandedIds(prev => {
+                          const next = new Set(prev);
+                          if (expanded) {
+                            next.add(contact.id);
+                          } else {
+                            next.delete(contact.id);
+                          }
+                          return next;
+                        });
+                      }}
                       onQuickInteraction={({ contactId, type, contactName }) =>
                         setQuickInteraction({
                           isOpen: true,
