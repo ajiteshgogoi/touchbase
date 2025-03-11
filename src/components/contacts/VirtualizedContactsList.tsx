@@ -54,65 +54,37 @@ export const VirtualizedContactsList = ({
   // Reference to the List component
   const listRef = useRef<VariableSizeList>(null);
   
-  // Cache of row heights
-  const rowHeights = useRef<{ [key: number]: number }>({});
+  // Reference to store content measurements
+  const contentRefs = useRef<{ [key: string]: HTMLDivElement }>({});
   
+  // Function to measure content height
+  const measureContentHeight = useCallback((id: string) => {
+    const element = contentRefs.current[id];
+    return element ? element.getBoundingClientRect().height : 0;
+  }, []);
+
   // Function to get the height of a row
   const getRowHeight = useCallback(
     (index: number) => {
       const contact = contacts[index];
       if (!contact) return 0;
-      
-      // Base height for the compact header with 16px padding top/bottom
-      let height = 96; // Header height (48px content + 32px padding)
-      
-      // Additional height for expanded state
-      if (expandedContacts[contact.id]) {
-        // Base expanded content height
-        height += 56; // Padding and spacing (32px padding + 24px spacing)
-        
-        // Add height for contact details
-        if (contact.phone || contact.social_media_handle) {
-          height += 72; // Increased from 64px to account for consistent spacing
-        }
-        
-        // Add height for events section
-        const events = eventsMap[contact.id] || [];
-        if (events.length > 0) {
-          height += 96; // Increased from 88px to account for consistent padding
-        }
-        
-        // Add height for status section
-        height += 96; // Increased from 88px to account for consistent padding
-        
-        // Add height for Categories/Hashtags section if notes have hashtags
-        if (contact.notes && extractHashtags(contact.notes).length > 0) {
-          height += 96; // Standard section height
-        }
 
-        // Add height for Personal Notes section if notes exist and don't only contain hashtags
-        if (contact.notes && contact.notes.replace(/#[a-zA-Z0-9_]+/g, '').trim()) {
-          height += Math.min(128, contact.notes.split('\n').length * 24 + 56); // Adjusted for consistent spacing
-        }
-        
-        // Add height for AI suggestions
-        height += 96; // Increased from 88px to account for consistent padding
-        
-        // Add height for action buttons
-        height += 80; // Increased from 72px to account for consistent padding
-      } else {
-        // Add height for action buttons when collapsed
-        height += 80; // Increased from 72px to account for consistent padding
+      // Base height for the compact header + action buttons
+      let height = 176; // 96px header + 80px action buttons
+
+      if (expandedContacts[contact.id]) {
+        // Get measured content height or estimate if not yet measured
+        const contentHeight = measureContentHeight(contact.id);
+        height += contentHeight || 0;
       }
-      
+
       return height;
     },
-    [expandedContacts, eventsMap]
+    [contacts, expandedContacts, measureContentHeight]
   );
-  
-  // Reset cache when data changes
+
+  // Effect to reset measurements when needed
   useEffect(() => {
-    rowHeights.current = {};
     if (listRef.current) {
       listRef.current.resetAfterIndex(0);
     }
@@ -217,7 +189,10 @@ export const VirtualizedContactsList = ({
 
                     {/* Expanded Content */}
                     {expandedContacts[contact.id] && (
-                      <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
+                      <div
+                        ref={el => { if (el) contentRefs.current[contact.id] = el; }}
+                        className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm"
+                      >
                         {/* Contact details section */}
                         <div className="mt-4 space-y-4">
                           {(contact.phone || contact.social_media_handle) && (
