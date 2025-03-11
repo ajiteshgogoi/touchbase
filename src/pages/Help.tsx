@@ -122,20 +122,20 @@ export const Help = () => {
     },
     {
       id: 'analytics',
-      title: 'Detailed Analytics',
+      title: 'Relationship Insights',
       icon: ChartBarIcon,
-      description: 'Get insights into your relationships',
+      description: 'Gain deeper understanding about your connections',
       content: (
         <>
           <ol className="list-decimal list-inside space-y-2 ml-4">
-            <li>Click 'Get Detailed Analytics' on the dashboard</li>
+            <li>Click 'Detailed Insights' from the Profile Menu</li>
             <li>View your interaction patterns through the heatmap visualisation</li>
             <li>See your top engaged contacts and their interaction frequencies</li>
             <li>Identify relationships that need attention</li>
             <li>Get personalised insights about your interactions and suggestions for improvement</li>
           </ol>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Analytics are generated on demand and saved for you to revisit anytime. The insights help you understand your relationship patterns and make meaningful improvements.
+            <strong className="text-primary-700">Pro Tip:</strong> Insights are generated on demand and saved for you to revisit anytime. They help you understand your relationship patterns and make meaningful improvements.
           </div>
         </>
       )
