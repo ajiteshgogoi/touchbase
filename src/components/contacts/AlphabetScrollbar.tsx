@@ -44,9 +44,8 @@ export const AlphabetScrollbar: React.FC<AlphabetScrollbarProps> = ({
   }, []);
 
   return (
-    <div
-      className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col justify-center z-50 h-full max-h-full"
-      style={{ maxHeight: 'calc(100vh - 200px)' }}
+    <div 
+      className="fixed right-1 top-1/2 -translate-y-1/2 flex flex-col justify-center z-50"
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
