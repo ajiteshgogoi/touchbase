@@ -40,8 +40,8 @@ export const Contacts = () => {
     contactName: string;
   } | null>(null);
 
-  // Ref for infinite scroll
-  const { ref, inView } = useInView();
+  // Ref for loading indicator
+  const { ref } = useInView();
 
   const { isPremium, isOnTrial } = useStore();
 
@@ -76,12 +76,22 @@ export const Contacts = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  // Load more contacts when scrolling to bottom
+  // Load more contacts when scrolling to 75% of the page and prefetch next page
   useEffect(() => {
-    if (inView && hasNextPage) {
-      fetchNextPage();
-    }
-  }, [inView, fetchNextPage, hasNextPage]);
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const pageHeight = document.documentElement.scrollHeight;
+      const scrollThreshold = pageHeight * 0.75;
+
+      if (scrollPosition >= scrollThreshold && hasNextPage) {
+        // Trigger prefetch for next page
+        void fetchNextPage({ cancelRefetch: false });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [fetchNextPage, hasNextPage]);
 
   // Extract all contacts from paginated results
   const contacts = contactsData?.pages.flatMap(page => page.contacts) || [];
