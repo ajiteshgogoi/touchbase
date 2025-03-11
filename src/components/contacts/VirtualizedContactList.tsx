@@ -114,7 +114,7 @@ export const VirtualizedContactList = ({
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
   
   // Default height for collapsed cards
-  const COLLAPSED_HEIGHT = 175;
+  const COLLAPSED_HEIGHT = 216;
   const EXPANDED_HEIGHT = 216;
   
   const getItemSize = (index: number) => {
