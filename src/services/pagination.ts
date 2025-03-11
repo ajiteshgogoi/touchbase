@@ -15,6 +15,24 @@ export type FilterConfig = {
 };
 
 export const contactsPaginationService = {
+  async getUniqueHashtags(): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('notes')
+      .not('notes', 'is', null);
+
+    if (error) throw error;
+    
+    // Extract and deduplicate hashtags on server side
+    const hashtagSet = new Set<string>();
+    data?.forEach(contact => {
+      const matches = (contact.notes || '').match(/#[a-zA-Z0-9_]+/g) || [];
+      matches.forEach((tag: string) => hashtagSet.add(tag.toLowerCase()));
+    });
+
+    return Array.from(hashtagSet);
+  },
+
   async getFilteredContacts(
     page: number,
     sort: SortConfig,

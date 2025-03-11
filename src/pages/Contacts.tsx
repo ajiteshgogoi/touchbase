@@ -12,7 +12,7 @@ import {
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline/esm/index.js';
 import type { Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
-import { extractHashtags, formatHashtagForDisplay } from '../components/contacts/utils';
+import { formatHashtagForDisplay } from '../components/contacts/utils';
 import { ContactCard } from '../components/contacts/ContactCard';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -107,12 +107,7 @@ export const Contacts = () => {
   // Get all unique hashtags from all contacts
   const { data: allHashtags = [] } = useQuery({
     queryKey: ['contact-hashtags'],
-    queryFn: async () => {
-      const contacts = await contactsService.getContacts();
-      return [...new Set(contacts.flatMap(contact =>
-        extractHashtags(contact.notes || '')
-      ))];
-    },
+    queryFn: () => contactsPaginationService.getUniqueHashtags(),
     staleTime: 5 * 60 * 1000
   });
 
