@@ -3,7 +3,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
-import { contactsPaginationService } from '../services/contacts-pagination';
+import { contactsPaginationService } from '../services/pagination';
 import { useStore } from '../stores/useStore';
 import {
   UserPlusIcon,

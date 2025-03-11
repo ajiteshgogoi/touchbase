@@ -34,11 +34,16 @@ export const contactsPaginationService = {
     }
 
     // Apply category filters if provided
-    // Match all categories (AND condition)
+    // Match any of the selected categories (OR condition)
     if (filters.categories && filters.categories.length > 0) {
-      filters.categories.forEach(category => {
-        query = query.ilike('notes', `%#${category}%`);
-      });
+      const categoryConditions = filters.categories
+        .map(category => {
+          // Ensure hashtag has # prefix and is lowercase to match storage format
+          const hashtagQuery = category.startsWith('#') ? category : `#${category}`;
+          return `notes.ilike.%${hashtagQuery.toLowerCase()}%`;
+        })
+        .join(',');
+      query = query.or(categoryConditions);
     }
 
     // Apply sorting
