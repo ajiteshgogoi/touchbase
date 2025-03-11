@@ -173,7 +173,7 @@ export const RecentContacts = () => {
                           </div>
                           <div className="min-w-0">
                             <div className="space-y-1">
-                              <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em]">{contact.name}</h3>
+                              <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 hover:text-primary-600 transition-colors tracking-[-0.01em]">{contact.name}</h3>
                               <div className="flex items-center text-sm text-gray-500">
                                 <div className={`w-2 h-2 rounded-full mr-2 ${
                                   contact.missed_interactions > 3 ? 'bg-red-400' :
