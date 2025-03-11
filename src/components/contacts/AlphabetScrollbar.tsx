@@ -60,10 +60,11 @@ export const AlphabetScrollbar: React.FC<AlphabetScrollbarProps> = ({
             key={letter}
             data-letter={letter}
             onTouchStart={() => handleTouchStart(letter)}
-            className={`w-6 h-4 flex items-center justify-center rounded-sm text-xs font-medium
-              ${activeSection === letter 
-                ? 'text-primary-600 scale-110' 
-                : 'text-gray-500'} 
+            onClick={() => onLetterSelect(letter)}
+            className={`w-6 h-4 flex items-center justify-center rounded-sm text-xs font-medium cursor-pointer
+              ${activeSection === letter
+                ? 'text-primary-600 scale-110'
+                : 'text-gray-500 hover:text-primary-600'}
               ${isActive ? 'touch-none' : 'touch-pan-y'}
               transition-transform duration-150`}
           >
