@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense, useMemo } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
@@ -27,6 +28,7 @@ export const Contacts = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -79,11 +81,48 @@ export const Contacts = () => {
 
   const isLoading = contactsLoading || countLoading;
 
-  // Calculate all unique hashtags from contacts
-  const allHashtags = contacts?.reduce((tags: string[], contact) => {
-    const contactTags = extractHashtags(contact.notes || '');
-    return [...new Set([...tags, ...contactTags])];
-  }, []) || [];
+  // Memoize hashtags calculation
+  const allHashtags = useMemo(() => {
+    return contacts?.reduce((tags: string[], contact) => {
+      const contactTags = extractHashtags(contact.notes || '');
+      return [...new Set([...tags, ...contactTags])];
+    }, []) || [];
+  }, [contacts]);
+
+  // Memoize filtered and sorted contacts
+  const filteredContacts = useMemo(() => {
+    return contacts
+      ?.filter(contact => {
+        // Search query filter
+        const matchesSearch =
+          contact.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          contact.phone?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          contact.social_media_handle?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+
+        // Category filter
+        const matchesCategories = selectedCategories.length === 0 ||
+          selectedCategories.every(category =>
+            extractHashtags(contact.notes || '').includes(category.toLowerCase())
+          );
+
+        return matchesSearch && matchesCategories;
+      })
+      .sort((a, b) => {
+        if (sortField === 'name') {
+          return sortOrder === 'asc'
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        }
+        if (sortField === 'last_contacted') {
+          const dateA = a.last_contacted ? new Date(a.last_contacted).getTime() : 0;
+          const dateB = b.last_contacted ? new Date(b.last_contacted).getTime() : 0;
+          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        return sortOrder === 'asc'
+          ? (a[sortField] || 0) - (b[sortField] || 0)
+          : (b[sortField] || 0) - (a[sortField] || 0);
+      });
+  }, [contacts, debouncedSearchQuery, selectedCategories, sortField, sortOrder]);
 
   const handleCategoryChange = (hashtag: string) => {
     setSelectedCategories(prev => {
@@ -125,38 +164,6 @@ export const Contacts = () => {
       throw error; // Propagate error to ContactCard for error handling
     }
   };
-
-  const filteredContacts = contacts
-    ?.filter(contact => {
-      // Search query filter
-      const matchesSearch =
-        contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contact.social_media_handle?.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Category filter
-      const matchesCategories = selectedCategories.length === 0 ||
-        selectedCategories.every(category =>
-          extractHashtags(contact.notes || '').includes(category.toLowerCase())
-        );
-
-      return matchesSearch && matchesCategories;
-    })
-    .sort((a, b) => {
-      if (sortField === 'name') {
-        return sortOrder === 'asc'
-          ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name);
-      }
-      if (sortField === 'last_contacted') {
-        const dateA = a.last_contacted ? new Date(a.last_contacted).getTime() : 0;
-        const dateB = b.last_contacted ? new Date(b.last_contacted).getTime() : 0;
-        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-      }
-      return sortOrder === 'asc'
-        ? (a[sortField] || 0) - (b[sortField] || 0)
-        : (b[sortField] || 0) - (a[sortField] || 0);
-    });
 
   const contactLimit = isPremium || isOnTrial ? Infinity : 15;
   const canAddMore = (contacts?.length || 0) < contactLimit;
