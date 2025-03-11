@@ -163,7 +163,7 @@ export const VirtualizedContactList = ({
   }, [items, getItemSize]);
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full overflow-hidden pr-8">
       <List
         ref={listRef}
         height={window.innerHeight - 200} // Adjust based on your layout
