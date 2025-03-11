@@ -1,4 +1,4 @@
-import { useCallback, memo, useState, useRef, useEffect } from 'react';
+import { useCallback, memo, useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
 import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
@@ -30,8 +30,8 @@ interface RowProps {
     onQuickInteraction: VirtualizedContactListProps['onQuickInteraction'];
     hasNextPage: boolean;
     loadMore: () => void;
-    expandedIndex: number | null;
-    setExpandedIndex: (index: number | null) => void;
+    expandedIndices: Set<number>;
+    setExpandedIndices: Dispatch<SetStateAction<Set<number>>>;
     updateHeight: (index: number, height: number) => void;
   };
 }
@@ -46,8 +46,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
     onQuickInteraction,
     hasNextPage,
     loadMore,
-    expandedIndex,
-    setExpandedIndex,
+    expandedIndices,
+    setExpandedIndices,
     updateHeight
   } = data;
 
@@ -63,12 +63,12 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
   // Update height when card expands/collapses
   useEffect(() => {
-    if (cardRef.current && expandedIndex === index) {
+    if (cardRef.current && expandedIndices.has(index)) {
       // Add padding to maintain consistent gap
       const height = cardRef.current.offsetHeight + 16; // Account for 8px padding top and bottom
       updateHeight(index, height);
     }
-  }, [expandedIndex, index, updateHeight]);
+  }, [expandedIndices, index, updateHeight]);
 
   return (
     <div style={{...style, padding: '8px 0'}}>
@@ -80,8 +80,18 @@ const Row = memo(({ index, style, data }: RowProps) => {
           isOnTrial={isOnTrial}
           onDelete={onDelete}
           onQuickInteraction={onQuickInteraction}
-          isExpanded={expandedIndex === index}
-          onExpandChange={(expanded) => setExpandedIndex(expanded ? index : null)}
+          isExpanded={expandedIndices.has(index)}
+          onExpandChange={(expanded) => {
+            setExpandedIndices(prev => {
+              const next = new Set(prev);
+              if (expanded) {
+                next.add(index);
+              } else {
+                next.delete(index);
+              }
+              return next;
+            });
+          }}
         />
       </div>
     </div>
@@ -100,14 +110,14 @@ export const VirtualizedContactList = ({
   hasNextPage,
   loadMore
 }: VirtualizedContactListProps) => {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
   
   // Default height for collapsed cards
   const COLLAPSED_HEIGHT = 216;
   
   const getItemSize = (index: number) => {
-    return expandedIndex === index ? (heightMap[index] || COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
+    return expandedIndices.has(index) ? (heightMap[index] || COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
   };
   
   const listRef = useRef<VariableSizeList>(null);
@@ -134,7 +144,7 @@ export const VirtualizedContactList = ({
     if (listRef.current) {
       listRef.current.resetAfterIndex(0);
     }
-  }, [expandedIndex]);
+  }, [expandedIndices]);
 
   return (
     <List
@@ -153,8 +163,8 @@ export const VirtualizedContactList = ({
         onQuickInteraction,
         hasNextPage,
         loadMore,
-        expandedIndex,
-        setExpandedIndex,
+        expandedIndices,
+        setExpandedIndices,
         updateHeight
       }}
     >
