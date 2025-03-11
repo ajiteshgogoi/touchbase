@@ -12,7 +12,7 @@ import {
   ChevronUpDownIcon,
   ArrowLeftIcon,
 } from '@heroicons/react/24/outline/esm/index.js';
-import type { Contact, Interaction, ImportantEvent } from '../lib/supabase/types';
+import type { BasicContact, Interaction, ImportantEvent } from '../lib/supabase/types';
 import { formatHashtagForDisplay } from '../components/contacts/utils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -45,12 +45,6 @@ export const Contacts = () => {
 
   const { isPremium, isOnTrial } = useStore();
 
-  type ContactsResponse = {
-    contacts: Contact[];
-    hasMore: boolean;
-    total: number;
-  };
-
   // Fetch contacts with infinite scroll
   const {
     data: contactsData,
@@ -58,16 +52,23 @@ export const Contacts = () => {
     fetchNextPage,
     hasNextPage,
     refetch
-  } = useInfiniteQuery<ContactsResponse>({
+  } = useInfiniteQuery<{
+    contacts: BasicContact[];
+    hasMore: boolean;
+    total: number;
+  }>({
     queryKey: ['contacts', debouncedSearchQuery, selectedCategories, sortField, sortOrder],
-    queryFn: ({ pageParam }) => contactsPaginationService.getFilteredContacts(
-      pageParam as number,
-      { field: sortField, order: sortOrder },
-      {
-        search: debouncedSearchQuery,
-        categories: selectedCategories
-      }
-    ),
+    queryFn: async ({ pageParam = 0 }) => {
+      const result = await contactsPaginationService.getFilteredContacts(
+        pageParam as number,
+        { field: sortField, order: sortOrder },
+        {
+          search: debouncedSearchQuery,
+          categories: selectedCategories
+        }
+      );
+      return result;
+    },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasMore) return undefined;
@@ -77,11 +78,11 @@ export const Contacts = () => {
   });
 
   // Memoize contacts array to prevent unnecessary flattening on each render
-  const contacts = useMemo(() =>
-    contactsData?.pages.flatMap(page => page.contacts) || [],
+  const contacts: BasicContact[] = useMemo(() =>
+    contactsData?.pages?.flatMap(page => page.contacts) || [],
     [contactsData?.pages]
   );
-  const totalCount = contactsData?.pages[0]?.total || 0;
+  const totalCount = contactsData?.pages?.[0]?.total || 0;
 
   // Get important events
   const { data: importantEvents } = useQuery<ImportantEvent[]>({

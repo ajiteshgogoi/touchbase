@@ -1,6 +1,6 @@
 import { useCallback, memo, useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
 import { VariableSizeList as List, VariableSizeList } from 'react-window';
-import { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
+import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
 
 // Default heights for cards
@@ -9,7 +9,7 @@ const LOADING_HEIGHT = 300;    // Height when showing loading spinner
 const EXPANDED_HEIGHT = 600;   // Initial height for expanded state before measurement
 
 interface VirtualizedContactListProps {
-  contacts: Contact[];
+  contacts: BasicContact[];
   eventsMap: Record<string, ImportantEvent[]>;
   isPremium: boolean;
   isOnTrial: boolean;
@@ -27,7 +27,7 @@ interface RowProps {
   index: number;
   style: React.CSSProperties;
   data: {
-    contacts: Contact[];
+    contacts: BasicContact[];
     eventsMap: Record<string, ImportantEvent[]>;
     isPremium: boolean;
     isOnTrial: boolean;
