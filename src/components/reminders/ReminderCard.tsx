@@ -87,10 +87,9 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                   {contact?.contact_frequency && (
                     <span className="font-[450]">
                       {contact.contact_frequency === 'every_three_days'
-                        ? 'Bi-weekly contact'
+                        ? 'Bi-weekly'
                         : contact.contact_frequency.charAt(0).toUpperCase() +
-                          contact.contact_frequency.slice(1).replace(/_/g, ' ') +
-                          ' contact'}
+                          contact.contact_frequency.slice(1).replace(/_/g, ' ')}
                     </span>
                   )}
                 </div>

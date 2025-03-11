@@ -143,8 +143,8 @@ export const ContactCard = ({
                 {contact.contact_frequency && (
                   <span>
                     {contact.contact_frequency === 'every_three_days'
-                      ? 'Bi-weekly contact'
-                      : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ') + ' contact'}
+                      ? 'Bi-weekly'
+                      : contact.contact_frequency.charAt(0).toUpperCase() + contact.contact_frequency.slice(1).replace(/_/g, ' ')}
                   </span>
                 )}
               </div>
