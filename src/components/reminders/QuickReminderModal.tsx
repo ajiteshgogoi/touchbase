@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../../services/contacts';
 import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useStore } from '../../stores/useStore';
 import dayjs from 'dayjs';
 import { formatEventToUTC } from '../contacts/utils';
 import type { Contact } from '../../lib/supabase/types';
@@ -44,13 +45,22 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
   const [error, setError] = useState('');
   
   const queryClient = useQueryClient();
+  const { isPremium, isOnTrial } = useStore();
 
-  // Get contacts list
+  // Get contacts list - limit to 15 most recent for free users
   const { data: contacts } = useQuery<Contact[]>({
-    queryKey: ['contacts'],
-    queryFn: contactsService.getContacts,
+    queryKey: ['contacts', isPremium, isOnTrial],
+    queryFn: async () => {
+      const allContacts = await contactsService.getContacts();
+      // If user is not premium and not on trial, limit to 15 most recent contacts
+      if (!isPremium && !isOnTrial) {
+        return allContacts.slice(0, 15);
+      }
+      return allContacts;
+    },
     staleTime: 5 * 60 * 1000
   });
+
 
   // Filter contacts based on search query
   const filteredContacts = contacts

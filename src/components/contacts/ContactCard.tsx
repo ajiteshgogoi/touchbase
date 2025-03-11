@@ -32,6 +32,8 @@ interface ContactCardProps {
   isOnTrial: boolean;
   onDelete: (contactId: string) => Promise<void>;
   onQuickInteraction: (params: { contactId: string; type: Interaction['type']; contactName: string }) => void;
+  isExpanded: boolean;
+  onExpandChange: (expanded: boolean) => void;
 }
 
 export const ContactCard = ({
@@ -40,9 +42,10 @@ export const ContactCard = ({
   isPremium,
   isOnTrial,
   onDelete,
-  onQuickInteraction
+  onQuickInteraction,
+  isExpanded,
+  onExpandChange
 }: ContactCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteContact = async () => {
@@ -82,11 +85,11 @@ export const ContactCard = ({
       <div className="flex items-center justify-between p-4">
         {/* Left side: Status indicator and name */}
         <div
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => onExpandChange(!isExpanded)}
           className="flex items-center flex-1 min-w-0 cursor-pointer rounded-lg p-1 -m-1"
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setIsExpanded(!isExpanded)}
+          onKeyDown={(e) => e.key === 'Enter' && onExpandChange(!isExpanded)}
           aria-expanded={isExpanded}
           aria-label={isExpanded ? "Collapse contact details" : "Expand contact details"}
         >

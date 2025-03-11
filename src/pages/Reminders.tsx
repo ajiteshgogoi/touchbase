@@ -22,9 +22,17 @@ export const Reminders = () => {
     staleTime: 5 * 60 * 1000
   });
 
+  // For free users, we'll only get the 15 most recent contacts
   const { data: contacts } = useQuery<Contact[]>({
-    queryKey: ['contacts'],
-    queryFn: contactsService.getContacts,
+    queryKey: ['contacts', isPremium, isOnTrial],
+    queryFn: async () => {
+      const allContacts = await contactsService.getContacts();
+      // If user is not premium and not on trial, limit to 15 most recent contacts
+      if (!isPremium && !isOnTrial) {
+        return allContacts.slice(0, 15);
+      }
+      return allContacts;
+    },
     staleTime: 5 * 60 * 1000
   });
 
@@ -87,14 +95,20 @@ const [quickReminder, setQuickReminder] = useState<{
   });
 
   const today = dayjs();
+  // Get visible contact IDs (all for premium/trial, only first 15 for free users)
+  const visibleContactIds = contacts?.map(contact => contact.id) || [];
+
+  // Filter reminders to only show those for visible contacts
   const dueTodayReminders = reminders?.filter((r: Reminder) => {
     const dueDate = dayjs(r.due_date);
-    return dueDate.isSame(today, 'day');
+    return dueDate.isSame(today, 'day') && visibleContactIds.includes(r.contact_id);
   }) || [];
 
   const upcomingReminders = reminders?.filter((r: Reminder) => {
     const dueDate = dayjs(r.due_date);
-    return dueDate.isAfter(today) && !dueDate.isSame(today, 'day');
+    return dueDate.isAfter(today) &&
+           !dueDate.isSame(today, 'day') &&
+           visibleContactIds.includes(r.contact_id);
   }) || [];
 
   // Find important events for a contact that fall on the given date
