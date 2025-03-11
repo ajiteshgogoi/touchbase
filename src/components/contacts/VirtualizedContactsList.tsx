@@ -132,11 +132,11 @@ export const VirtualizedContactsList = ({
               return (
                 <div style={style}>
                   <div
-                    className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft mx-3 sm:mx-4"
+                    className="mb-4 bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 hover:shadow-md transition-all duration-200 scroll-mt-6"
                     id={contact.id}
                   >
                     {/* Compact Header */}
-                    <div className="flex items-center justify-between p-3 sm:p-4">
+                    <div className="flex items-center justify-between p-4">
                       {/* Left side: Status indicator and name */}
                       <div
                         onClick={() => onToggleExpand(contact.id)}
@@ -212,7 +212,7 @@ export const VirtualizedContactsList = ({
 
                     {/* Expanded Content */}
                     {expandedContacts[contact.id] && (
-                      <div className="px-3 sm:px-4 pb-3 space-y-3 sm:space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
+                      <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
                         {/* Contact details section */}
                         <div className="mt-4 space-y-4">
                           {(contact.phone || contact.social_media_handle) && (
@@ -346,7 +346,7 @@ export const VirtualizedContactsList = ({
                     )}
 
                     {/* Action Buttons - Always Visible */}
-                    <div className="p-3 sm:p-4 border-t border-gray-100/50 bg-white/30">
+                    <div className="p-4 border-t border-gray-100/50 bg-white/30">
                       <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
                         <button
                           onClick={() => onQuickInteraction({ isOpen: true, contactId: contact.id, type: 'call', contactName: contact.name })}
