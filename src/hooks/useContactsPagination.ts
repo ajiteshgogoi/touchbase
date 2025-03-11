@@ -13,10 +13,8 @@ interface PaginatedContacts {
   hasMore: boolean;
 }
 
-type SortableFields = 'name' | 'last_contacted' | 'missed_interactions' | 'created_at';
-
 interface UseContactsPaginationProps {
-  sortBy?: SortableFields;
+  sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   searchQuery?: string;
   selectedCategories?: string[];
@@ -107,20 +105,9 @@ export function useContactsPagination({
     // Add sorting
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
-    // Add cursor pagination using the correct sort field
+    // Add cursor pagination
     if (cursor) {
-      const [value, id] = cursor.split('::');
-      if (value && id) {
-        // For null/empty values, use appropriate SQL comparison
-        if (value === 'null' || value === '') {
-          query = query.or(`${sortBy}.is.not.null,and(${sortBy}.is.null,id.gt.${id})`);
-        } else {
-          // Escape single quotes in the value
-          const escapedValue = value.replace(/'/g, "''");
-          query = query
-            .or(`${sortBy}.gt.${escapedValue},and(${sortBy}.eq.${escapedValue},id.gt.${id})`);
-        }
-      }
+      query = query.gt('id', cursor);
     }
 
     // Get one extra item to determine if there are more pages
@@ -134,10 +121,10 @@ export function useContactsPagination({
     const contacts = items.slice(0, pageSize);
     const hasMore = items.length > pageSize;
     
-    // Create cursor with both sort value and id for consistent pagination
+    // Get next cursor from last contact if we have more pages
     const lastContact = contacts[contacts.length - 1];
     const nextCursor = hasMore && lastContact
-      ? `${lastContact[sortBy as keyof Contact] ?? ''}::${lastContact.id}`
+      ? lastContact.id
       : null;
 
     return {
