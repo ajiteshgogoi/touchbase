@@ -65,12 +65,12 @@ export function useContactsQuery({
 
     // Apply hashtag filtering using Postgres text pattern matching
     if (selectedCategories.length > 0) {
-      // Build a chain of ilike conditions for hashtags
-      selectedCategories.forEach(category => {
+      // Build an OR condition for the hashtags
+      const hashtagConditions = selectedCategories.map(category => {
         const hashtag = category.startsWith('#') ? category : `#${category}`;
-        // Apply individual ilike conditions, they'll be combined with AND by default
-        query = query.ilike('notes', `%${hashtag}%`);
+        return `notes.ilike.%${hashtag}%`;
       });
+      query = query.or(hashtagConditions.join(','));
     }
 
     // For free tier users, always return first 15 contacts
@@ -132,7 +132,12 @@ export function useContactsQuery({
     queryFn: ({ pageParam }) => fetchContactsPage(pageParam as string | null),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: null as string | null,
-    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    structuralSharing: false,
+    gcTime: 24 * 60 * 60 * 1000 // Keep cache for 24 hours
   });
 
   // Flatten all pages into a single contacts array
