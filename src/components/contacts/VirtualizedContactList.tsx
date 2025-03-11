@@ -71,7 +71,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
   }, [expandedIndices, index, updateHeight]);
 
   return (
-    <div style={{...style, padding: '8px 0'}}>
+    <div style={{ ...style, padding: '8px 0' }}>
       <div ref={cardRef}>
         <ContactCard
           contact={contact}
@@ -114,10 +114,11 @@ export const VirtualizedContactList = ({
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
   
   // Default height for collapsed cards
-  const COLLAPSED_HEIGHT = 216;
+  const COLLAPSED_HEIGHT = 175;
+  const EXPANDED_HEIGHT = 216;
   
   const getItemSize = (index: number) => {
-    return expandedIndices.has(index) ? (heightMap[index] || COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
+    return expandedIndices.has(index) ? (heightMap[index] || EXPANDED_HEIGHT) : COLLAPSED_HEIGHT;
   };
   
   const listRef = useRef<VariableSizeList>(null);
