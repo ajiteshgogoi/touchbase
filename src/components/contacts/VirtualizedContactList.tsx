@@ -1,5 +1,5 @@
-import { useCallback, memo } from 'react';
-import { FixedSizeList as List } from 'react-window';
+import { useCallback, memo, useState, useRef, useEffect } from 'react';
+import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
 
@@ -30,19 +30,23 @@ interface RowProps {
     onQuickInteraction: VirtualizedContactListProps['onQuickInteraction'];
     hasNextPage: boolean;
     loadMore: () => void;
+    expandedIndex: number | null;
+    setExpandedIndex: (index: number | null) => void;
   };
 }
 
 const Row = memo(({ index, style, data }: RowProps) => {
   const { 
-    contacts, 
-    eventsMap, 
-    isPremium, 
-    isOnTrial, 
-    onDelete, 
+    contacts,
+    eventsMap,
+    isPremium,
+    isOnTrial,
+    onDelete,
     onQuickInteraction,
     hasNextPage,
-    loadMore 
+    loadMore,
+    expandedIndex,
+    setExpandedIndex
   } = data;
 
   // If we're at the last item and there's more to load, trigger loading more
@@ -54,7 +58,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
   if (!contact) return null;
 
   return (
-    <div style={style}>
+    <div style={{...style, padding: '8px 0'}}>
       <ContactCard
         contact={contact}
         eventsMap={eventsMap}
@@ -62,6 +66,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
         isOnTrial={isOnTrial}
         onDelete={onDelete}
         onQuickInteraction={onQuickInteraction}
+        isExpanded={expandedIndex === index}
+        onExpandChange={(expanded) => setExpandedIndex(expanded ? index : null)}
       />
     </div>
   );
@@ -79,18 +85,32 @@ export const VirtualizedContactList = ({
   hasNextPage,
   loadMore
 }: VirtualizedContactListProps) => {
-  const itemSize = 200; // Height for each contact card (adjust based on your design)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  
+  const getItemSize = (index: number) => {
+    return expandedIndex === index ? 600 : 216; // Expanded cards get more space
+  };
+  
+  const listRef = useRef<VariableSizeList>(null);
   
   const getItemKey = useCallback((index: number) => {
     const contact = contacts[index];
     return contact ? contact.id : index;
   }, [contacts]);
 
+  // Reset size cache when expanded state changes
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.resetAfterIndex(0);
+    }
+  }, [expandedIndex]);
+
   return (
     <List
+      ref={listRef}
       height={window.innerHeight - 200} // Adjust based on your layout
       itemCount={contacts.length}
-      itemSize={itemSize}
+      itemSize={getItemSize}
       width="100%"
       itemKey={getItemKey}
       itemData={{
@@ -101,7 +121,9 @@ export const VirtualizedContactList = ({
         onDelete,
         onQuickInteraction,
         hasNextPage,
-        loadMore
+        loadMore,
+        expandedIndex,
+        setExpandedIndex
       }}
     >
       {Row}
