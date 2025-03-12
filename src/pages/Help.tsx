@@ -62,7 +62,7 @@ export const Help = () => {
                     <li>phone - International format (e.g., +1-1234567890)</li>
                     <li>social_media_platform - Platform name</li>
                     <li>social_media_handle - Username on the platform</li>
-                    <li>notes - Personal notes with optional #hashtags</li>
+                    <li>notes - Personal notes with optional #hashtags for categorisation</li>
                     <li>birthday - YYYY-MM-DD format</li>
                     <li>anniversary - YYYY-MM-DD format</li>
                     <li>custom_event_name - Name of custom event</li>
