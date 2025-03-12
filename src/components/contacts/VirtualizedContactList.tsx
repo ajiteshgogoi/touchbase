@@ -69,7 +69,18 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
   // Prefetch when within last 10 items
   const PREFETCH_THRESHOLD = 10;
-  if (hasNextPage && contacts.length - index <= PREFETCH_THRESHOLD) {
+  useEffect(() => {
+    if (hasNextPage && index >= contacts.length - PREFETCH_THRESHOLD) {
+      const timeoutId = setTimeout(() => {
+        loadMore();
+      }, 100); // Small delay to prevent multiple rapid calls
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [index, contacts.length, hasNextPage, loadMore]);
+
+  // Fallback: Always load more at the last item to ensure we don't miss loading data
+  if (index === contacts.length - 1 && hasNextPage) {
     loadMore();
   }
 
