@@ -19,7 +19,9 @@ export interface ContactFormData {
   name: string;
   /** Contact's phone number (optional) */
   phone: string;
-  /** Social media handle, must start with @ (optional) */
+  /** Social media platform (optional) */
+  social_media_platform: 'linkedin' | 'instagram' | 'twitter' | null;
+  /** Social media username without @ (optional) */
   social_media_handle: string;
   /** Preferred method of communication */
   preferred_contact_method: 'call' | 'message' | 'social' | null;

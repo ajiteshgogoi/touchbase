@@ -10,6 +10,7 @@ create table public.contacts (
     user_id uuid references auth.users not null,
     name text not null,
     phone text,
+    social_media_platform text check (social_media_platform in ('linkedin', 'instagram', 'twitter', null)),
     social_media_handle text,
     last_contacted timestamp with time zone,
     next_contact_due timestamp with time zone,

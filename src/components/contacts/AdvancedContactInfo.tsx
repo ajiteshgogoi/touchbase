@@ -12,7 +12,8 @@ import {
   formatEventToUTC,
   sortEventsByType,
   filterHashtagSuggestions,
-  getAllUniqueHashtags
+  getAllUniqueHashtags,
+  formatSocialMediaUrl
 } from './utils';
 import { HashtagSuggestions } from './HashtagSuggestions';
 import dayjs from 'dayjs';
@@ -266,31 +267,53 @@ export const AdvancedContactInfo = ({
               )}
             </div>
 
-            {/* Social Media Handle Field */}
+            {/* Social Media Fields */}
             <div>
-              <label htmlFor="social_media_handle" className="block text-sm font-medium text-gray-700">
-                Social Media Handle
-              </label>
-              <input
-                type="text"
-                id="social_media_handle"
-                value={formData.social_media_handle}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  onChange({ social_media_handle: value });
-                  if (value && !isValidSocialHandle(value)) {
-                    onError({
-                      social_media_handle: 'Social media handle must start with @'
+              <label className="block text-sm font-medium text-gray-700">Social Media</label>
+              <div className="mt-1 flex gap-3">
+                <select
+                  value={formData.social_media_platform || ''}
+                  onChange={(e) => {
+                    const platform = e.target.value || null;
+                    onChange({
+                      social_media_platform: platform as any,
+                      social_media_handle: '' // Reset handle when platform changes
                     });
-                  } else {
-                    onError({ social_media_handle: '' });
-                  }
-                }}
-                className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
-                placeholder="@username"
-              />
+                  }}
+                  className="w-1/3 rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+                >
+                  <option value="">Select Platform</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="twitter">Twitter</option>
+                </select>
+                <input
+                  type="text"
+                  value={formData.social_media_handle}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    onChange({ social_media_handle: value });
+                    if (!isValidSocialHandle(value, formData.social_media_platform)) {
+                      onError({
+                        social_media_handle: formData.social_media_platform
+                          ? 'Username can only contain letters, numbers, dots, and underscores'
+                          : 'Please select a platform first'
+                      });
+                    } else {
+                      onError({ social_media_handle: '' });
+                    }
+                  }}
+                  placeholder="Username (without @)"
+                  className="w-2/3 rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+                />
+              </div>
               {errors.social_media_handle && (
                 <p className="mt-1 text-sm text-red-600">{errors.social_media_handle}</p>
+              )}
+              {formData.social_media_handle && formData.social_media_platform && (
+                <p className="mt-1 text-sm text-gray-500">
+                  URL: {formatSocialMediaUrl(formData.social_media_handle, formData.social_media_platform)}
+                </p>
               )}
             </div>
           </div>

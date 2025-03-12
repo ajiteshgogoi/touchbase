@@ -18,12 +18,36 @@ export const isValidPhoneNumber = (phone: string): boolean => {
 
 /**
  * Validates a social media handle
- * Must either be empty or start with @
+ * Must not be empty when platform is selected
  * @param handle - The social media handle to validate
+ * @param platform - The selected social media platform
  * @returns boolean indicating if the handle is valid
  */
-export const isValidSocialHandle = (handle: string): boolean => {
-  return handle === '' || handle.startsWith('@');
+export const isValidSocialHandle = (handle: string, platform: string | null): boolean => {
+  if (!platform) return true; // If no platform selected, any handle is valid
+  if (!handle) return false; // If platform selected, handle is required
+  return /^[a-zA-Z0-9._]+$/.test(handle); // Only allow letters, numbers, dots, and underscores
+};
+
+/**
+ * Format social media handle into platform-specific URL
+ * @param handle - The social media handle
+ * @param platform - The social media platform
+ * @returns The formatted URL for the platform
+ */
+export const formatSocialMediaUrl = (handle: string, platform: string | null): string => {
+  if (!handle || !platform) return '';
+  
+  switch (platform) {
+    case 'twitter':
+      return `https://twitter.com/${handle}`;
+    case 'instagram':
+      return `https://instagram.com/${handle}`;
+    case 'linkedin':
+      return `https://linkedin.com/in/${handle}`;
+    default:
+      return '';
+  }
 };
 
 /**
@@ -188,6 +212,7 @@ export const formatStoredEventForInput = (storedDate: string): string => {
 export const initialFormData = {
   name: '',
   phone: '',
+  social_media_platform: null,
   social_media_handle: '',
   preferred_contact_method: null,
   notes: '',
