@@ -43,7 +43,7 @@ function validateContact(contact: any, rowIndex: number): { isValid: boolean; er
   }
 
   // Validate contact frequency
-  const validFrequencies = ['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly']
+  const validFrequencies = ['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly']
   if (contact.contact_frequency && !validFrequencies.includes(contact.contact_frequency)) {
     errors.push(`Invalid contact frequency. Must be one of: ${validFrequencies.join(', ')}`)
   }
@@ -58,6 +58,18 @@ function validateContact(contact: any, rowIndex: number): { isValid: boolean; er
   const hasHandle = Boolean(contact.social_media_handle)
   if ((hasPlatform && !hasHandle) || (!hasPlatform && hasHandle)) {
     errors.push('Both social media platform and handle must be provided if one is set')
+  }
+  
+  // Validate social media platform
+  const validPlatforms = ['linkedin', 'instagram', 'twitter']
+  if (contact.social_media_platform && !validPlatforms.includes(contact.social_media_platform)) {
+    errors.push(`Invalid social media platform. Must be one of: ${validPlatforms.join(', ')}`)
+  }
+
+  // Validate preferred contact method
+  const validContactMethods = ['call', 'message', 'social']
+  if (contact.preferred_contact_method && !validContactMethods.includes(contact.preferred_contact_method)) {
+    errors.push(`Invalid preferred contact method. Must be one of: ${validContactMethods.join(', ')}`)
   }
 
   // Validate dates in important events
@@ -209,17 +221,74 @@ serve(async (req) => {
           validContacts.push(contactData)
         }
 
-        // Insert valid contacts
+        // Insert valid contacts and their events
         if (validContacts.length > 0) {
-          const { error: insertError } = await supabaseClient
-            .from('contacts')
-            .insert(validContacts)
+          for (const contact of validContacts) {
+            // Insert contact
+            const { data: insertedContact, error: insertError } = await supabaseClient
+              .from('contacts')
+              .insert(contact)
+              .select()
+              .single()
 
-          if (insertError) {
-            throw new Error(`Failed to insert contacts: ${insertError.message}`)
+            if (insertError) {
+              throw new Error(`Failed to insert contact: ${insertError.message}`)
+            }
+
+            // Process important events (max 5 per contact)
+            const record = batch.find(r => r.name === contact.name)
+            if (record) {
+              const events = []
+              let eventCount = 0;
+
+              // Add birthday if provided
+              if (record.birthday && eventCount < 5) {
+                events.push({
+                  contact_id: insertedContact.id,
+                  user_id: user.id,
+                  type: 'birthday',
+                  date: new Date(record.birthday).toISOString()
+                })
+                eventCount++;
+              }
+
+              // Add anniversary if provided
+              if (record.anniversary && eventCount < 5) {
+                events.push({
+                  contact_id: insertedContact.id,
+                  user_id: user.id,
+                  type: 'anniversary',
+                  date: new Date(record.anniversary).toISOString()
+                })
+                eventCount++;
+              }
+
+              // Add custom event if both name and date are provided
+              if (record.custom_event_name && record.custom_event_date && eventCount < 5) {
+                events.push({
+                  contact_id: insertedContact.id,
+                  user_id: user.id,
+                  type: 'custom',
+                  name: record.custom_event_name,
+                  date: new Date(record.custom_event_date).toISOString()
+                })
+                eventCount++;
+              }
+
+              // Insert events if any
+              if (events.length > 0) {
+                const { error: eventsError } = await supabaseClient
+                  .from('important_events')
+                  .insert(events)
+
+                if (eventsError) {
+                  throw new Error(`Failed to insert important events: ${eventsError.message}`)
+                }
+              }
+            }
+
+            result.successCount++
           }
-
-          result.successCount += validContacts.length
         }
       }
 
