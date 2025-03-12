@@ -2,8 +2,54 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { parse } from 'https://esm.sh/csv-parse/sync'
 import dayjs from 'https://esm.sh/dayjs@1.11.7'
-import { calculateNextContactDate } from '../../src/utils/date.ts'
 import { createResponse, handleOptions } from '../_shared/headers.ts'
+
+type ContactFrequency = 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly'
+
+function calculateNextContactDate(
+  frequency: ContactFrequency,
+  missedCount: number = 0,
+  baseDate: Date | null = null
+): Date {
+  const now = baseDate ? new Date(baseDate) : new Date();
+  
+  // Start with today's date
+  const nextDate = new Date(now);
+  nextDate.setHours(9, 0, 0, 0); // Set to 9 AM
+  
+  // Calculate base interval in days
+  let intervalDays = 0;
+  switch (frequency) {
+    case 'every_three_days':
+      intervalDays = 3;
+      break;
+    case 'weekly':
+      intervalDays = 7;
+      break;
+    case 'fortnightly':
+      intervalDays = 14;
+      break;
+    case 'monthly':
+      // Use 30 days as an approximation for a month
+      intervalDays = 30;
+      break;
+    case 'quarterly':
+      // Use 90 days as an approximation for a quarter
+      intervalDays = 90;
+      break;
+    default:
+      intervalDays = 7; // Default to weekly if invalid frequency
+  }
+  
+  // Exponential backoff for missed interactions
+  const backoffFactor = Math.pow(1.5, Math.min(missedCount, 5));
+  const adjustedInterval = Math.round(intervalDays * backoffFactor);
+  
+  // Add the adjusted interval to the next date
+  nextDate.setDate(nextDate.getDate() + adjustedInterval);
+  
+  return nextDate;
+}
 
 interface Contact {
   name: string
