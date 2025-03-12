@@ -124,31 +124,49 @@ const Row = memo(({ index, style, data }: RowProps) => {
     );
   }
 
-  // Update height when expanded or on initial render
+  // Track common height patterns for caching
+  const heightPatterns = useRef<Map<string, number>>(new Map());
+
+  // Setup ResizeObserver for efficient height tracking
   useEffect(() => {
     if (!cardRef.current) return undefined;
 
-    const isExpanded = expandedIndices.has(index);
-    const hasInitialHeight = index in heightMap;
-    const measurementDelay = isScrolling ? 150 : 0; // Delay measurements during scroll
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const target = entry.target as HTMLDivElement;
+        const height = entry.borderBoxSize[0]?.blockSize ?? target.offsetHeight;
+        const finalHeight = height + 16;
 
-    // Only measure if expanded or not yet measured
-    if (isExpanded || !hasInitialHeight) {
-      const timeoutId = setTimeout(() => {
-        if (!cardRef.current) return;
-        requestAnimationFrame(() => {
-          if (cardRef.current) {
-            const height = cardRef.current.offsetHeight + 16;
-            updateHeight(index, height);
+        // Cache height pattern based on content characteristics
+        const isExpanded = expandedIndices.has(index);
+        const contentHash = `${isExpanded}-${loadingStates.has(index)}`;
+        heightPatterns.current.set(contentHash, finalHeight);
+
+        // Only update if significant change (>5px) to reduce unnecessary updates
+        const currentHeight = heightMap[index];
+        if (!currentHeight || Math.abs(currentHeight - finalHeight) > 5) {
+          // Throttle updates during scroll
+          if (isScrolling) {
+            setTimeout(() => updateHeight(index, finalHeight), 100);
+          } else {
+            updateHeight(index, finalHeight);
           }
-        });
-      }, measurementDelay);
-      
-      return () => clearTimeout(timeoutId);
-    }
-    
-    return undefined;
+        }
+      }
+    });
+
+    observer.observe(cardRef.current);
+    return () => observer.disconnect();
   }, [expandedIndices, index, loadingStates, updateHeight, heightMap, isScrolling]);
+
+  // Use cached height patterns when available
+  useEffect(() => {
+    const contentHash = `${expandedIndices.has(index)}-${loadingStates.has(index)}`;
+    const cachedHeight = heightPatterns.current.get(contentHash);
+    if (cachedHeight && !heightMap[index]) {
+      updateHeight(index, cachedHeight);
+    }
+  }, [expandedIndices, index, loadingStates, heightMap, updateHeight]);
 
   return (
     <div style={{ ...style, padding: '8px 0' }}>
@@ -219,6 +237,9 @@ export const VirtualizedContactList = ({
   const [listHeight, setListHeight] = useState(window.innerHeight - 200);
   const initialOverscan = useMemo(() => calculateOverscan(listHeight), [listHeight]);
   const [overscanCount, setOverscanCount] = useState(initialOverscan);
+  
+  // Common height patterns cache
+  const heightPatterns = useRef<Map<string, number>>(new Map());
 
   // Refs for scroll momentum calculation
   const lastScrollTop = useRef(0);
@@ -445,16 +466,21 @@ export const VirtualizedContactList = ({
   }, [contacts]);
 
   const getItemSize = useCallback((index: number) => {
-    if (loadingStates.has(index)) return LOADING_HEIGHT;
-    
-    const cachedHeight = heightMap[index];
     const isExpanded = expandedIndices.has(index);
-
-    if (isExpanded) {
-      return cachedHeight || EXPANDED_HEIGHT;
+    const isLoading = loadingStates.has(index);
+    
+    // Use cached height pattern if available
+    const contentHash = `${isExpanded}-${isLoading}`;
+    const patternHeight = heightPatterns.current?.get(contentHash);
+    
+    if (patternHeight) {
+      // Use pattern height as fallback for uncached items
+      return heightMap[index] || patternHeight;
     }
     
-    // When not expanded, always return collapsed height
+    // Fallback to standard heights
+    if (isLoading) return LOADING_HEIGHT;
+    if (isExpanded) return heightMap[index] || EXPANDED_HEIGHT;
     return COLLAPSED_HEIGHT;
   }, [loadingStates, heightMap, expandedIndices]);
 
