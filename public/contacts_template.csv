@@ -1,0 +1,3 @@
+name,contact_frequency,phone,social_media_platform,social_media_handle,preferred_contact_method,notes,birthday,anniversary,custom_event_name,custom_event_date
+"John Smith",weekly,"+1-1234567890",linkedin,johnsmith,message,"Met at #work conference. #tech #networking",1990-05-15,2020-06-20,"First Meeting",2023-01-10
+"Jane Doe",monthly,,twitter,janedoe,social,"#college #friend from university",1992-08-25,,,,

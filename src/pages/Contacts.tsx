@@ -11,7 +11,9 @@ import {
   MagnifyingGlassIcon,
   ChevronUpDownIcon,
   ArrowLeftIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline/esm/index.js';
+import { BulkImportModal } from '../components/contacts/BulkImportModal';
 import type { BasicContact, Interaction, ImportantEvent } from '../lib/supabase/types';
 import { formatHashtagForDisplay } from '../components/contacts/utils';
 import dayjs from 'dayjs';
@@ -42,8 +44,32 @@ export const Contacts = () => {
     type: Interaction['type'];
     contactName: string;
   } | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const { isPremium, isOnTrial } = useStore();
+
+  const handleImportMethod = async (method: 'google' | 'csv_upload' | 'csv_template') => {
+    setIsImporting(true);
+    try {
+      switch (method) {
+        case 'csv_template':
+          window.open('/contacts_template.csv', '_blank');
+          setShowImportModal(false);
+          break;
+        case 'google':
+          // TODO: Implement Google Contacts import
+          break;
+        case 'csv_upload':
+          // TODO: Implement CSV upload
+          break;
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   // Fetch contacts with infinite scroll
   const {
@@ -153,14 +179,25 @@ export const Contacts = () => {
           </div>
         </div>
         {canAddMore ? (
-          <Link
-            to="/contacts/new"
-            state={{ from: '/contacts' }}
-            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-          >
-            <UserPlusIcon className="h-5 w-5 mr-2" />
-            Add Contact
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 cursor-not-allowed opacity-75 transition-all duration-200 group relative"
+              disabled
+            >
+              <UsersIcon className="h-5 w-5 mr-2 text-white/90" />
+              <span>Bulk Import</span>
+              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap">Under Development</span>
+            </button>
+            <Link
+              to="/contacts/new"
+              state={{ from: '/contacts' }}
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+            >
+              <UserPlusIcon className="h-5 w-5 mr-2" />
+              Add Contact
+            </Link>
+          </div>
         ) : (
           <Link
             to="/settings"
@@ -262,6 +299,12 @@ export const Contacts = () => {
           />
         </div>
       </div>
+      <BulkImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSelect={handleImportMethod}
+        isProcessing={isImporting}
+      />
       {quickInteraction && (
         <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
           <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
