@@ -38,11 +38,6 @@ export const InteractionHistory = () => {
     staleTime: 5 * 60 * 1000
   });
 
-  useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
-  }, []);
-
   const handleDeleteInteraction = async (interaction: Interaction) => {
     if (!confirm('Are you sure you want to delete this interaction?')) {
       return;
