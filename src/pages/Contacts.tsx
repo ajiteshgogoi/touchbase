@@ -133,12 +133,6 @@ export const Contacts = () => {
   const canAddMore = totalCount < contactLimit;
 
   useEffect(() => {
-    if (!window.location.hash) {
-      window.scrollTo(0, 0);
-    }
-  }, []);
-
-  useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (hash) {
       const element = document.getElementById(hash);

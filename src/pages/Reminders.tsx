@@ -73,11 +73,6 @@ const [quickReminder, setQuickReminder] = useState<{
   isOpen: boolean;
 } | null>(null);
 
-  useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
-  }, []);
-
   const contactsMap = contacts?.reduce((acc, contact) => {
     acc[contact.id] = contact;
     return acc;
