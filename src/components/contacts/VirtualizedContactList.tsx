@@ -51,6 +51,7 @@ interface RowProps {
     setLoadingStates: Dispatch<SetStateAction<Set<number>>>;
     heightMap: Record<number, number>;
     isLoading?: boolean;
+    isScrolling: boolean;
   };
 }
 
@@ -70,7 +71,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
     loadingStates,
     setLoadingStates,
     heightMap,
-    isLoading
+    isLoading,
+    isScrolling
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -124,25 +126,39 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
   // Update height when expanded or on initial render
   useEffect(() => {
-    if (!cardRef.current) return;
+    if (!cardRef.current) return undefined;
 
     const isExpanded = expandedIndices.has(index);
     const hasInitialHeight = index in heightMap;
+    const measurementDelay = isScrolling ? 150 : 0; // Delay measurements during scroll
 
     // Only measure if expanded or not yet measured
     if (isExpanded || !hasInitialHeight) {
-      requestAnimationFrame(() => {
-        if (cardRef.current) {
-          const height = cardRef.current.offsetHeight + 16;
-          updateHeight(index, height);
-        }
-      });
+      const timeoutId = setTimeout(() => {
+        if (!cardRef.current) return;
+        requestAnimationFrame(() => {
+          if (cardRef.current) {
+            const height = cardRef.current.offsetHeight + 16;
+            updateHeight(index, height);
+          }
+        });
+      }, measurementDelay);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [expandedIndices, index, loadingStates, updateHeight, heightMap]);
+    
+    return undefined;
+  }, [expandedIndices, index, loadingStates, updateHeight, heightMap, isScrolling]);
 
   return (
     <div style={{ ...style, padding: '8px 0' }}>
-      <div ref={cardRef}>
+      <div
+        ref={cardRef}
+        style={{
+          transform: 'translate3d(0, 0, 0)', // Enable GPU acceleration
+          willChange: isScrolling ? 'transform' : 'auto' // Optimize for scrolling
+        }}
+      >
         <ContactCard
           contact={contact}
           eventsMap={eventsMap}
@@ -159,6 +175,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
                 updateHeight(index, LOADING_HEIGHT, true);
               } else {
                 next.delete(index);
+                updateHeight(index, COLLAPSED_HEIGHT, false);
                 setLoadingStates(prev => {
                   const next = new Set(prev);
                   next.delete(index);
@@ -218,50 +235,68 @@ export const VirtualizedContactList = ({
     const baseOverscan = calculateOverscan(listHeight);
     const currentTime = performance.now();
     
-    // If user hasn't interacted recently (100ms threshold), consider it an explicit stop
-    if (currentTime - lastUserInteraction.current > 100) {
-      setOverscanCount(baseOverscan);
+    // If user hasn't interacted recently (150ms threshold), consider it an explicit stop
+    if (currentTime - lastUserInteraction.current > 150) {
+      setOverscanCount(prev => {
+        const diff = baseOverscan - prev;
+        return Math.round(prev + diff * 0.3); // Smooth transition to base overscan
+      });
       isScrolling.current = false;
       return;
     }
 
-    const targetOverscan = Math.ceil(baseOverscan * Math.min(Math.max(velocity * 1.5, 1), 2));
+    // More conservative velocity scaling
+    const targetOverscan = Math.ceil(baseOverscan * Math.min(Math.max(velocity * 1.2, 1), 1.5));
     
-    // Smoother transition for overscan changes with smaller interpolation factor
+    // Even smoother transition for overscan changes
     setOverscanCount(current => {
       const diff = targetOverscan - current;
-      return Math.round(current + diff * 0.15); // Gentler interpolation
+      return Math.round(current + diff * 0.1); // Very gentle interpolation
     });
 
-    // Continue momentum updates with stricter velocity threshold
-    if (Math.abs(velocity) > 0.15) {
-      scrollVelocity.current *= 0.97; // Slower decay for smoother transitions
+    // Continue momentum updates with gentler velocity threshold
+    if (Math.abs(velocity) > 0.1) {
+      scrollVelocity.current *= 0.98; // Even slower decay for smoother transitions
       scrollMomentumTimer.current = window.requestAnimationFrame(() => {
         updateOverscanWithMomentum(scrollVelocity.current);
       });
     } else {
-      // Gradually return to base overscan when nearly stopped
-      setOverscanCount(baseOverscan);
+      // More gradual return to base overscan
+      setOverscanCount(prev => {
+        const diff = baseOverscan - prev;
+        return Math.round(prev + diff * 0.3);
+      });
       isScrolling.current = false;
     }
   }, [listHeight]);
 
-  // Handle scroll events
+  // Enhanced scroll handling with improved velocity calculation
   const handleScroll = useCallback(({ scrollOffset }: { scrollOffset: number }) => {
     const currentTime = performance.now();
     const timeDelta = currentTime - lastScrollTime.current;
     
     if (timeDelta > 0) {
-      // Calculate and smooth out velocity with improved smoothing
       const scrollDelta = scrollOffset - lastScrollTop.current;
-      const newVelocity = Math.abs(scrollDelta) / timeDelta;
+      const rawVelocity = Math.abs(scrollDelta) / timeDelta;
       
-      // More aggressive velocity smoothing to reduce jitter
-      scrollVelocity.current = isScrolling.current ?
-        scrollVelocity.current * 0.85 + newVelocity * 0.15 : // Smoother velocity transitions
-        newVelocity; // Initial velocity
+      // Apply non-linear smoothing based on velocity
+      const velocityFactor = Math.min(rawVelocity / 2, 1);
+      const smoothingFactor = 0.1 + (0.3 * velocityFactor); // Dynamic smoothing
       
-      // Clear any pending momentum updates
+      // Enhanced velocity smoothing with acceleration consideration
+      scrollVelocity.current = isScrolling.current
+        ? scrollVelocity.current * (1 - smoothingFactor) + rawVelocity * smoothingFactor
+        : rawVelocity;
+
+      // Debounce rapid velocity changes
+      const velocityDelta = Math.abs(scrollVelocity.current - rawVelocity);
+      if (velocityDelta > 1.5) {
+        scrollVelocity.current = rawVelocity > scrollVelocity.current
+          ? scrollVelocity.current + 1.5
+          : scrollVelocity.current - 1.5;
+      }
+
+      // Clean up previous momentum calculation
       if (scrollMomentumTimer.current) {
         cancelAnimationFrame(scrollMomentumTimer.current);
       }
@@ -269,7 +304,7 @@ export const VirtualizedContactList = ({
       isScrolling.current = true;
       updateOverscanWithMomentum(scrollVelocity.current);
 
-      // Update refs for next calculation
+      // Update tracking refs
       lastScrollTop.current = scrollOffset;
       lastScrollTime.current = currentTime;
     }
@@ -378,16 +413,31 @@ export const VirtualizedContactList = ({
     updateScheduled.current = false;
   }, []);
 
+  // Throttle frame updates during scroll
+  const throttleRAF = useCallback((callback: () => void) => {
+    if (isScrolling.current) {
+      // During scroll, use a longer delay to batch more updates
+      setTimeout(() => {
+        requestAnimationFrame(callback);
+      }, 32); // About 2 frames
+    } else {
+      requestAnimationFrame(callback);
+    }
+  }, []);
+
   const updateHeight = useCallback((index: number, height: number, isLoading?: boolean) => {
-    pendingUpdates.current.set(index, { height, isLoading: Boolean(isLoading) });
+    pendingUpdates.current.set(index, {
+      height,
+      isLoading: Boolean(isLoading)
+    });
     
     if (!updateScheduled.current) {
       updateScheduled.current = true;
-      requestAnimationFrame(() => {
+      throttleRAF(() => {
         flushPendingUpdates();
       });
     }
-  }, [flushPendingUpdates]);
+  }, [flushPendingUpdates, throttleRAF]);
 
   const getItemKey = useCallback((index: number) => {
     const contact = contacts[index];
@@ -404,7 +454,8 @@ export const VirtualizedContactList = ({
       return cachedHeight || EXPANDED_HEIGHT;
     }
     
-    return cachedHeight ? Math.max(cachedHeight, COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
+    // When not expanded, always return collapsed height
+    return COLLAPSED_HEIGHT;
   }, [loadingStates, heightMap, expandedIndices]);
 
   // Reset size cache when expanded state changes
@@ -449,7 +500,8 @@ export const VirtualizedContactList = ({
     loadingStates,
     setLoadingStates,
     heightMap,
-    isLoading
+    isLoading,
+    isScrolling: isScrolling.current
   }), [
     contacts,
     eventsMap,
@@ -465,7 +517,8 @@ export const VirtualizedContactList = ({
     loadingStates,
     setLoadingStates,
     heightMap,
-    isLoading
+    isLoading,
+    isScrolling
   ]);
 
   return (
