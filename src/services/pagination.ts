@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase/client';
 import type { BasicContact, Contact } from '../lib/supabase/types';
 import { paymentService } from './payment';
+import { contactCacheService } from './contact-cache';
 
 const PAGE_SIZE = 20;
 
@@ -16,6 +17,12 @@ export type FilterConfig = {
 
 export const contactsPaginationService = {
   async getExpandedContactDetails(contactId: string): Promise<Contact | null> {
+    // Check cache first
+    const cached = contactCacheService.get(contactId);
+    if (cached) {
+      return cached as Contact;
+    }
+
     const { data, error } = await supabase
       .from('contacts')
       .select(`
@@ -36,6 +43,11 @@ export const contactsPaginationService = {
     if (error) {
       console.error('Error fetching expanded contact details:', error);
       return null;
+    }
+
+    // Cache the result before returning
+    if (data) {
+      contactCacheService.set(contactId, data);
     }
 
     return data as Contact;

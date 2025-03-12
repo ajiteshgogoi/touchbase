@@ -267,6 +267,7 @@ export const VirtualizedContactList = ({
       itemSize={getItemSize}
       width="100%"
       itemKey={getItemKey}
+      overscanCount={3} // Add overscanCount for smoother scrolling
       itemData={{
         contacts,
         eventsMap,
