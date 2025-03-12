@@ -43,8 +43,35 @@ export const Help = () => {
             <li>Yearly recurring important events (birthdays, anniversaries, etc.)</li>
             <li>Personal notes and preferences</li>
           </ul>
-          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Start with essential details and add more information if you desire. You can add up to 5 yearly recurring important events per contact, including one birthday and one anniversary.
+          <div className="mt-4 space-y-4">
+            <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+              <strong className="text-primary-700">Pro Tip:</strong> Start with essential details and add more information if you desire. You can add up to 5 yearly recurring important events per contact, including one birthday and one anniversary.
+            </div>
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
+              <strong className="text-gray-700">Bulk Import Format:</strong>
+              <p className="mt-2">When using bulk import via CSV, the following fields are available:</p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><strong>Required Fields:</strong>
+                  <ul className="list-disc list-inside ml-6 text-gray-600">
+                    <li>name - Contact's full name</li>
+                    <li>contact_frequency - How often to stay in touch (weekly, monthly, quarterly, biannual, yearly)</li>
+                  </ul>
+                </li>
+                <li><strong>Optional Fields:</strong>
+                  <ul className="list-disc list-inside ml-6 text-gray-600">
+                    <li>phone - International format (e.g., +1-1234567890)</li>
+                    <li>social_media_platform - Platform name</li>
+                    <li>social_media_handle - Username on the platform</li>
+                    <li>notes - Personal notes with optional #hashtags</li>
+                    <li>birthday - YYYY-MM-DD format</li>
+                    <li>anniversary - YYYY-MM-DD format</li>
+                    <li>custom_event_name - Name of custom event</li>
+                    <li>custom_event_date - YYYY-MM-DD format</li>
+                  </ul>
+                </li>
+              </ul>
+              <p className="mt-2 text-sm text-gray-500">Download the template CSV file using the "Import Contacts" button on the Contacts page.</p>
+            </div>
           </div>
         </ol>
       )
@@ -250,7 +277,7 @@ export const Help = () => {
               How to Use TouchBase
             </h1>
             <p className="mt-1.5 text-[15px] text-gray-600/90">
-              A simple guide to staying connected and nurturing your relationships
+              A detailed guide on staying connected and nurturing your relationships
             </p>
           </div>
         </div>

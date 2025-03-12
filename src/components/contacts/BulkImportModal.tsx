@@ -288,6 +288,11 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                           )}
                         </button>
                       ))}
+
+                      <div className="text-center text-sm text-gray-600">
+                        Check the <a href="/help#contacts" className="text-primary-500 hover:text-primary-600">Help Page</a> for detailed information about CSV file format and fields.
+                      </div>
+                    
                     </div>
                   )}
                 </div>
