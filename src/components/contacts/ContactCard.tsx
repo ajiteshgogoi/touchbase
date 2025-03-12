@@ -199,10 +199,15 @@ export const ContactCard = ({
               {(expandedDetails.phone || expandedDetails.social_media_handle) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
                   {expandedDetails.phone && (
-                    <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                      <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0" />
-                      <span className="truncate leading-5 font-[450]">{expandedDetails.phone}</span>
-                    </div>
+                    <a
+                      href={`tel:${expandedDetails.phone}`}
+                      className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                    >
+                      <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0 group-hover:text-green-600/90 transition-colors" />
+                      <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
+                        {expandedDetails.phone}
+                      </span>
+                    </a>
                   )}
                   {expandedDetails.social_media_handle && (
                     <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
