@@ -1,11 +1,11 @@
 name,contact_frequency,phone,social_media_platform,social_media_handle,preferred_contact_method,notes,birthday,anniversary,custom_event_1_name,custom_event_1_date,custom_event_2_name,custom_event_2_date,custom_event_3_name,custom_event_3_date
-"Sarah Johnson",weekly,"+1-555-0123",linkedin,sarahjohnson,call,"Lead developer at TechCorp. #work #tech",1985-03-15,2019-06-20,"Project Anniversary",2023-09-10,"Team Offsite",2024-03-15,"Office Move",2024-06-01
-"Mike Chen",monthly,"+86-131-2345-6789",twitter,mikechen_dev,social,"Met at React conference. #developer #conference",1990-07-22,,,,,,,,
-"Priya Patel",fortnightly,"+91-98765-43210",instagram,priya.designs,message,"UI/UX designer. Great at #design #creativity",1988-11-30,2021-02-14,"Portfolio Launch",2024-01-15,,,,
-"Alex Thompson",every_three_days,,linkedin,alexthompson,social,"Mentor from bootcamp. #mentor #tech",1975-09-05,,,,,,,,
-"Maria Garcia",quarterly,"+34-612-345-678",twitter,maria_writes,call,"Writer and editor. #writing #books",1982-12-18,,,"Book Launch",2024-01-15,"Writing Workshop",2024-03-20,,
-"James Wilson",monthly,"+1-555-9876",instagram,james.photo,message,"Professional photographer. #photography #art",1992-04-08,2018-08-30,"Gallery Opening",2024-02-10,,,,
-"Emma Brown",weekly,"+44-7700-900123",,,,Fitness trainer. #health #fitness",1987-06-25,,,,,,,,
+"Sarah Johnson",weekly,"+1-5689785462",linkedin,sarahjohnson,call,"Lead developer at TechCorp. #work #tech",1985-03-15,2019-06-20,"Project Anniversary",2023-09-10,"Team Offsite",2024-03-15,"Office Move",2024-06-01
+"Mike Chen",monthly,"+86-131-253-7777",twitter,mikechen_dev,social,"Met at React conference. #developer #conference",1990-07-22,,,,,,,
+"Priya Patel",fortnightly,"+91-9876543210",instagram,priya.designs,message,"UI/UX designer. Great at #design #creativity",1988-11-30,2021-02-14,"Portfolio Launch",2024-01-15,,,,
+"Alex Thompson",every_three_days,,linkedin,alexthompson,social,"Mentor from bootcamp. #mentor #tech",1975-09-05,,,,,,,
+"Maria Garcia",quarterly,"+34-612-345-6798",twitter,maria_writes,call,"Writer and editor. #writing #books",1982-12-18,,"Book Launch",2024-01-15,"Writing Workshop",2024-03-20,,
+"James Wilson",monthly,"+1-5559876777",instagram,james.photo,message,"Professional photographer. #photography #art",1992-04-08,2018-08-30,"Gallery Opening",2024-02-10,,,,
+"Emma Brown",weekly,"2222255555",,,,"Fitness trainer. #health #fitness",1987-06-25,,,,,,,
 "David Kim",fortnightly,,linkedin,davidkim_tech,social,"Senior architect at CloudTech. #cloud #architecture",1980-01-12,2022-11-05,"Product Launch",2024-02-01,"Team Milestone",2024-06-15,"Tech Summit",2024-09-30
-"Lisa Wang",quarterly,"+86-185-6789-0123",twitter,wang_lisa,message,"Product manager. #product #startup",1991-08-17,,,"Startup Demo",2024-04-01,,,,
-"Tom O'Brien",monthly,"+353-85-123-4567",linkedin,tomobrien,call,"Marketing consultant. #marketing #strategy",1983-10-28,2017-04-15,,,,,,
+"Lisa Wang",quarterly,"09538278987",twitter,wang_lisa,message,"Product manager. #product #startup",1991-08-17,,"Startup Demo",2024-04-01,,,,
+"Tom O'Brien",monthly,"01234569856",linkedin,tomobrien,call,"Marketing consultant. #marketing #strategy",1983-10-28,2017-04-15,,,,,,
