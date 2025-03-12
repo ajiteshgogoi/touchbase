@@ -5,6 +5,7 @@ import type { Contact, Interaction, Reminder, ImportantEvent, QuickReminderInput
 import { paymentService } from './payment';
 import { getQueryClient } from '../utils/queryClient';
 import { calculateNextContactDate, ContactFrequency } from '../utils/date';
+import { contactCacheService } from './contact-cache';
 
 // Extend dayjs with the relativeTime plugin
 dayjs.extend(relativeTime);
@@ -404,6 +405,9 @@ export const contactsService = {
     const contact = await this.getContact(id);
     if (!contact) throw new Error('Contact not found');
 
+    // Clear the contact cache since we're updating data
+    contactCacheService.clear();
+
     // Save the base updates
     const { data, error } = await supabase
       .from('contacts')
@@ -424,12 +428,14 @@ export const contactsService = {
       // Invalidate all caches after update that required recalculation
       getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
       getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+      getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
       getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
       return updatedContact;
     }
 
     // Invalidate all related caches for non-recalculation updates
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     return data;

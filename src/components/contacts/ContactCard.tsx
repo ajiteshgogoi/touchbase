@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BasicContact, Contact, ImportantEvent, Interaction } from '../../lib/supabase/types';
+import { useQuery } from '@tanstack/react-query';
+import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { contactsPaginationService } from '../../services/pagination';
 import { contactsService } from '../../services/contacts';
 import { contentReportsService } from '../../services/content-reports';
@@ -52,40 +53,17 @@ export const ContactCard = ({
   isContactsPage
 }: ContactCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [expandedDetails, setExpandedDetails] = useState<Contact | null>(null);
+  const { data: expandedDetails, isLoading } = useQuery({
+    queryKey: ['expanded-contact', contact.id],
+    queryFn: () => contactsPaginationService.getExpandedContactDetails(contact.id),
+    enabled: isExpanded,
+    staleTime: 5 * 60 * 1000, // 5 minutes - matches the cache TTL
+  });
 
   // Notify parent about loading state changes
   useEffect(() => {
     onLoadingChange?.(isLoading);
   }, [isLoading, onLoadingChange]);
-
-  // Debug expanded details
-  useEffect(() => {
-    if (expandedDetails) {
-      console.log('Expanded Details:', expandedDetails);
-      console.log('Social Media Handle:', expandedDetails.social_media_handle);
-      console.log('Social Media Platform:', expandedDetails.social_media_platform);
-    }
-  }, [expandedDetails]);
-
-  useEffect(() => {
-    async function loadExpandedDetails() {
-      if (isExpanded && !expandedDetails) {
-        setIsLoading(true);
-        try {
-          const details = await contactsPaginationService.getExpandedContactDetails(contact.id);
-          setExpandedDetails(details);
-        } catch (error) {
-          console.error('Error loading expanded contact details:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadExpandedDetails();
-  }, [isExpanded, contact.id, expandedDetails]);
 
 
   const handleDeleteContact = async () => {
