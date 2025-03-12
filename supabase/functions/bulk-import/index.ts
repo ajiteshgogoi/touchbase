@@ -131,6 +131,7 @@ serve(async (req) => {
       )
     }
 
+    // Process upload in memory without storing the file
     const formData = await req.formData()
     const file = formData.get('file')
     if (!file || !(file instanceof File)) {
@@ -140,88 +141,108 @@ serve(async (req) => {
       )
     }
 
-    const csvContent = await file.text()
-    const records = parse(csvContent, {
-      columns: true,
-      skip_empty_lines: true
-    })
+    try {
+      // Read and parse CSV in memory
+      const csvContent = await file.text()
+      const records = parse(csvContent, {
+        columns: true,
+        skip_empty_lines: true
+      })
 
-    const result: ImportResult = {
-      success: true,
-      message: 'Import completed',
-      successCount: 0,
-      failureCount: 0,
-      errors: []
-    }
+      // Clear file data from memory
+      formData.delete('file')
 
-    // Process records in batches
-    const batchSize = 50
-    const batches = []
-    for (let i = 0; i < records.length; i += batchSize) {
-      batches.push(records.slice(i, i + batchSize))
-    }
+      const result: ImportResult = {
+        success: true,
+        message: 'Import completed',
+        successCount: 0,
+        failureCount: 0,
+        errors: []
+      }
 
-    for (const batch of batches) {
-      const validContacts = []
-      
-      // Validate each contact in the batch
-      for (const [index, record] of batch.entries()) {
-        const { isValid, errors } = validateContact(record, index)
+      // Process records in batches
+      const batchSize = 50
+      const batches = []
+      for (let i = 0; i < records.length; i += batchSize) {
+        batches.push(records.slice(i, i + batchSize))
+      }
+
+      for (const batch of batches) {
+        const validContacts = []
         
-        if (!isValid) {
-          result.failureCount++
-          result.errors.push({
-            row: index + 1,
-            errors
-          })
-          continue
+        // Validate each contact in the batch
+        for (const [index, record] of batch.entries()) {
+          const { isValid, errors } = validateContact(record, index)
+          
+          if (!isValid) {
+            result.failureCount++
+            result.errors.push({
+              row: index + 1,
+              errors
+            })
+            continue
+          }
+
+          // Check for duplicates
+          const isDuplicate = await checkDuplicateContact(record.name, supabaseClient, user.id)
+          if (isDuplicate) {
+            result.failureCount++
+            result.errors.push({
+              row: index + 1,
+              errors: [`Contact with name '${record.name}' already exists`]
+            })
+            continue
+          }
+
+          // Prepare contact data
+          const contactData = {
+            user_id: user.id,
+            name: record.name.trim(),
+            contact_frequency: record.contact_frequency,
+            phone: record.phone || null,
+            social_media_platform: record.social_media_platform || null,
+            social_media_handle: record.social_media_handle || null,
+            preferred_contact_method: record.preferred_contact_method || 'message',
+            notes: record.notes || ''
+          }
+
+          validContacts.push(contactData)
         }
 
-        // Check for duplicates
-        const isDuplicate = await checkDuplicateContact(record.name, supabaseClient, user.id)
-        if (isDuplicate) {
-          result.failureCount++
-          result.errors.push({
-            row: index + 1,
-            errors: [`Contact with name '${record.name}' already exists`]
-          })
-          continue
-        }
+        // Insert valid contacts
+        if (validContacts.length > 0) {
+          const { error: insertError } = await supabaseClient
+            .from('contacts')
+            .insert(validContacts)
 
-        // Prepare contact data
-        const contactData = {
-          user_id: user.id,
-          name: record.name.trim(),
-          contact_frequency: record.contact_frequency,
-          phone: record.phone || null,
-          social_media_platform: record.social_media_platform || null,
-          social_media_handle: record.social_media_handle || null,
-          preferred_contact_method: record.preferred_contact_method || 'message',
-          notes: record.notes || ''
-        }
+          if (insertError) {
+            throw new Error(`Failed to insert contacts: ${insertError.message}`)
+          }
 
-        validContacts.push(contactData)
+          result.successCount += validContacts.length
+        }
       }
 
-      // Insert valid contacts
-      if (validContacts.length > 0) {
-        const { error: insertError } = await supabaseClient
-          .from('contacts')
-          .insert(validContacts)
+      // Clear CSV data from memory after processing
+      records.length = 0
 
-        if (insertError) {
-          throw new Error(`Failed to insert contacts: ${insertError.message}`)
-        }
-
-        result.successCount += validContacts.length
-      }
+      return createResponse(result)
+    } catch (error) {
+      console.error('Error processing bulk import:', error)
+      
+      return createResponse(
+        {
+          success: false,
+          message: error.message,
+          successCount: 0,
+          failureCount: 0,
+          errors: [{ row: 0, errors: [error.message] }]
+        },
+        { status: 500 }
+      )
     }
-
-    return createResponse(result)
-
   } catch (error) {
-    console.error('Error processing bulk import:', error)
-    
+    console.error('Error in serve handler:', error)
     return createResponse(
       {
         success: false,
