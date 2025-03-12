@@ -45,30 +45,31 @@ export const Contacts = () => {
     contactName: string;
   } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
 
   const { isPremium, isOnTrial } = useStore();
 
   const handleImportMethod = async (method: 'google' | 'csv_upload' | 'csv_template') => {
-    setIsImporting(true);
-    try {
-      switch (method) {
-        case 'csv_template':
-          window.open('/contacts_template.csv', '_blank');
-          setShowImportModal(false);
-          break;
-        case 'google':
-          // TODO: Implement Google Contacts import
-          break;
-        case 'csv_upload':
-          // TODO: Implement CSV upload
-          break;
-      }
-    } catch (error) {
-      console.error('Import error:', error);
-    } finally {
-      setIsImporting(false);
+    if (method === 'csv_template') {
+      const response = await fetch('/contacts_template.csv');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'contacts_template.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      return;
     }
+
+    if (method === 'google') {
+      // TODO: Implement Google Contacts import in the future
+      return;
+    }
+
+    // Keep modal open for CSV upload, the BulkImportModal component
+    // now handles the upload process internally
   };
 
   // Fetch contacts with infinite scroll
@@ -301,7 +302,6 @@ export const Contacts = () => {
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onSelect={handleImportMethod}
-        isProcessing={isImporting}
       />
       {quickInteraction && (
         <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
