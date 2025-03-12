@@ -258,6 +258,7 @@ export const Contacts = () => {
             hasNextPage={hasNextPage}
             loadMore={() => fetchNextPage()}
             isLoading={isLoading}
+            isContactsPage={true}
           />
         </div>
       </div>

@@ -30,6 +30,7 @@ interface VirtualizedContactListProps {
   hasNextPage: boolean;
   loadMore: () => void;
   isLoading?: boolean;
+  isContactsPage?: boolean;
 }
 
 interface RowProps {
@@ -52,6 +53,7 @@ interface RowProps {
     heightMap: Record<number, number>;
     isLoading?: boolean;
     isScrolling: boolean;
+    isContactsPage?: boolean;
   };
 }
 
@@ -72,7 +74,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
     setLoadingStates,
     heightMap,
     isLoading,
-    isScrolling
+    isScrolling,
+    isContactsPage
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -203,6 +206,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
               return next;
             });
           }}
+          isContactsPage={isContactsPage}
           onLoadingChange={(isLoading) => {
             if (!expandedIndices.has(index)) return;
             if (isLoading) {
@@ -229,7 +233,8 @@ export const VirtualizedContactList = ({
   onQuickInteraction,
   hasNextPage,
   loadMore,
-  isLoading
+  isLoading,
+  isContactsPage
 }: VirtualizedContactListProps) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
@@ -527,7 +532,8 @@ export const VirtualizedContactList = ({
     setLoadingStates,
     heightMap,
     isLoading,
-    isScrolling: isScrolling.current
+    isScrolling: isScrolling.current,
+    isContactsPage
   }), [
     contacts,
     eventsMap,
@@ -544,7 +550,8 @@ export const VirtualizedContactList = ({
     setLoadingStates,
     heightMap,
     isLoading,
-    isScrolling
+    isScrolling,
+    isContactsPage
   ]);
 
   return (
