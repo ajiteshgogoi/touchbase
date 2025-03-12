@@ -291,19 +291,31 @@ export const AdvancedContactInfo = ({
                   type="text"
                   value={formData.social_media_handle}
                   onChange={(e) => {
-                    const value = e.target.value;
+                    const value = e.target.value.replace(/^@+/, ''); // Remove leading @ symbols
                     onChange({ social_media_handle: value });
-                    if (!isValidSocialHandle(value, formData.social_media_platform)) {
-                      onError({
-                        social_media_handle: formData.social_media_platform
-                          ? 'Username can only contain letters, numbers, dots, and underscores'
-                          : 'Please select a platform first'
-                      });
-                    } else {
+                    
+                    // Clear error if value is empty
+                    if (!value) {
                       onError({ social_media_handle: '' });
+                      return;
+                    }
+
+                    // Validate based on platform selection
+                    if (!formData.social_media_platform) {
+                      onError({
+                        social_media_handle: 'Please select a platform first'
+                      });
+                    } else if (isValidSocialHandle(value, formData.social_media_platform)) {
+                      onError({ social_media_handle: '' });
+                    } else {
+                      onError({
+                        social_media_handle: 'Username can only contain letters, numbers, dots, and underscores'
+                      });
                     }
                   }}
-                  placeholder="Username (without @)"
+                  placeholder={formData.social_media_platform
+                    ? "Enter username (e.g., johndoe)"
+                    : "Select a platform first"}
                   className="w-2/3 rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
                 />
               </div>
