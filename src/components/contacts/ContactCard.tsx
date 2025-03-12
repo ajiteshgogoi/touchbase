@@ -64,6 +64,8 @@ export const ContactCard = ({
   useEffect(() => {
     if (expandedDetails) {
       console.log('Expanded Details:', expandedDetails);
+      console.log('Social Media Handle:', expandedDetails.social_media_handle);
+      console.log('Social Media Platform:', expandedDetails.social_media_platform);
     }
   }, [expandedDetails]);
 
