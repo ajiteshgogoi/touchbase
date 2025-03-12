@@ -70,7 +70,7 @@ export const Help = () => {
                   </ul>
                 </li>
               </ul>
-              <p className="mt-2 text-sm text-gray-500">Download the template CSV file using the "Import Contacts" button on the Contacts page.</p>
+              <p className="mt-2 text-sm text-gray-500">Download the template CSV file using the 'Bulk Import' button on the Contacts page.</p>
             </div>
           </div>
         </ol>
