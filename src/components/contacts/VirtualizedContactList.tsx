@@ -14,13 +14,14 @@ interface VirtualizedContactListProps {
   isPremium: boolean;
   isOnTrial: boolean;
   onDelete: (contactId: string) => Promise<void>;
-  onQuickInteraction: (params: { 
-    contactId: string; 
-    type: Interaction['type']; 
-    contactName: string 
+  onQuickInteraction: (params: {
+    contactId: string;
+    type: Interaction['type'];
+    contactName: string
   }) => void;
   hasNextPage: boolean;
   loadMore: () => void;
+  isLoading?: boolean;
 }
 
 interface RowProps {
@@ -41,6 +42,7 @@ interface RowProps {
     loadingStates: Set<number>;
     setLoadingStates: Dispatch<SetStateAction<Set<number>>>;
     heightMap: Record<number, number>;
+    isLoading?: boolean;
   };
 }
 
@@ -59,7 +61,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
     updateHeight,
     loadingStates,
     setLoadingStates,
-    heightMap
+    heightMap,
+    isLoading
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -69,8 +72,35 @@ const Row = memo(({ index, style, data }: RowProps) => {
     loadMore();
   }
 
+  // Handle empty state
+  if (!isLoading && contacts.length === 0) {
+    return (
+      <div style={{ ...style, padding: '8px 0' }}>
+        <div className="p-12 text-center text-gray-500">
+          No contacts found
+        </div>
+      </div>
+    );
+  }
+
   const contact = contacts[index];
   if (!contact) return null;
+
+  if (isLoading) {
+    return (
+      <div style={{ ...style, padding: '8px 0' }}>
+        <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Update height when expanded or on initial render
   useEffect(() => {
@@ -145,7 +175,8 @@ export const VirtualizedContactList = ({
   onDelete,
   onQuickInteraction,
   hasNextPage,
-  loadMore
+  loadMore,
+  isLoading
 }: VirtualizedContactListProps) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
@@ -250,7 +281,8 @@ export const VirtualizedContactList = ({
         updateHeight,
         loadingStates,
         setLoadingStates,
-        heightMap
+        heightMap,
+        isLoading
       }}
     >
       {Row}
