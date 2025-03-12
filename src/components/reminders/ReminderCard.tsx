@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarIcon, FlagIcon, CakeIcon, HeartIcon, StarIcon } from '@heroicons/react/24/outline/esm/index.js';
+import { CalendarIcon, FlagIcon, CakeIcon, HeartIcon, StarIcon, PhoneIcon } from '@heroicons/react/24/outline/esm/index.js';
 import type { Reminder, Contact, ImportantEvent } from '../../lib/supabase/types';
-import { getEventTypeDisplay } from '../contacts/utils';
+import { getEventTypeDisplay, formatSocialMediaUrl } from '../contacts/utils';
 import { contactsService } from '../../services/contacts';
 
 const getEventIcon = (type: string) => {
@@ -124,6 +124,49 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 )}
               </div>
             </div>
+            {/* Phone and Social Media section */}
+            {(contact?.phone || (contact?.social_media_handle && contact?.social_media_platform)) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
+                {contact?.phone && (
+                  <a
+                    href={`tel:${contact.phone}`}
+                    className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                  >
+                    <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0 group-hover:text-green-600/90 transition-colors" />
+                    <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
+                      {contact.phone}
+                    </span>
+                  </a>
+                )}
+                {contact?.social_media_handle && contact?.social_media_platform && (
+                  <a
+                    href={formatSocialMediaUrl(contact.social_media_handle, contact.social_media_platform)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                  >
+                    {contact.social_media_platform === 'linkedin' ? (
+                      <svg className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/>
+                      </svg>
+                    ) : contact.social_media_platform === 'twitter' ? (
+                      <svg className="h-4 w-4 mr-2 text-blue-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
+                      </svg>
+                    ) : (
+                      <svg className="h-4 w-4 mr-2 text-pink-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"></path>
+                        <circle cx="17.5" cy="6.5" r="1.5"></circle>
+                      </svg>
+                    )}
+                    <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
+                      @{contact.social_media_handle}
+                    </span>
+                  </a>
+                )}
+              </div>
+            )}
             <div className="bg-gray-50 rounded-lg overflow-hidden">
               <div className="px-3 py-2 bg-gray-100">
                 <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
