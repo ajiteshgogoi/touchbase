@@ -216,12 +216,6 @@ export const VirtualizedContactList = ({
         const targetIndex = contacts.findIndex(contact => contact.id === hash);
         if (targetIndex !== -1) {
           listRef.current.scrollToItem(targetIndex, 'start');
-          // Expand the target contact card after scrolling
-          setExpandedIndices(prev => {
-            const next = new Set(prev);
-            next.add(targetIndex);
-            return next;
-          });
         }
       }
     };
