@@ -11,8 +11,13 @@ dayjs.extend(utc);
  * @returns boolean indicating if the phone number is valid
  */
 export const isValidPhoneNumber = (phone: string): boolean => {
-  // Matches formats: +1234567890, 123-456-7890, (123) 456-7890, 1234567890, 09395877156
-  const phoneRegex = /^(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$|^\d{11}$/;
+  // Matches international phone numbers with flexible formats
+  // Allows:
+  // - Optional + and country code (1-4 digits)
+  // - Numbers 7-15 digits long
+  // - Optional separators (space, dot, hyphen)
+  // - Optional parentheses for area codes
+  const phoneRegex = /^(?:\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,15}$/;
   return phoneRegex.test(phone.trim());
 };
 
