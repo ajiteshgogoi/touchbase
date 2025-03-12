@@ -30,6 +30,7 @@ export const contactsPaginationService = {
         user_id,
         phone,
         social_media_handle,
+        social_media_platform,
         preferred_contact_method,
         notes,
         ai_last_suggestion,
