@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { parse } from 'https://esm.sh/csv-parse/sync'
+import dayjs from 'https://esm.sh/dayjs@1.11.7'
+import { calculateNextContactDate } from '../../src/utils/date.ts'
 import { createResponse, handleOptions } from '../_shared/headers.ts'
 
 interface Contact {
@@ -238,10 +240,28 @@ serve(async (req) => {
         // Insert valid contacts and their events
         if (validContacts.length > 0) {
           for (const contact of validContacts) {
-            // Insert contact
+            // Get user's timezone preference
+            const { data: userPref } = await supabaseClient
+              .from('user_preferences')
+              .select('timezone')
+              .eq('user_id', contact.user_id)
+              .single();
+
+            // Use UTC if no timezone preference is set
+            const timezone = userPref?.timezone || 'UTC';
+            
+            // Get current time in user's timezone
+            const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+
+            // Insert contact with initial dates
             const { data: insertedContact, error: insertError } = await supabaseClient
               .from('contacts')
-              .insert(contact)
+              .insert({
+                ...contact,
+                next_contact_due: now.toISOString(),
+                last_contacted: now.toISOString(),
+                missed_interactions: 0
+              })
               .select()
               .single()
 
@@ -303,6 +323,61 @@ serve(async (req) => {
                 if (eventsError) {
                   throw new Error(`Failed to insert important events: ${eventsError.message}`)
                 }
+              }
+              
+              // Calculate regular next due date
+              const regularDueDate = calculateNextContactDate(
+                contact.contact_frequency,
+                0, // No missed interactions for new contacts
+                now
+              );
+
+              // Find next important event date
+              const today = dayjs().startOf('day');
+              const nextImportantEvent = events
+                .map(event => {
+                  let eventDate = dayjs(event.date).startOf('day');
+                  eventDate = eventDate.year(today.year());
+                  if (eventDate.isBefore(today)) {
+                    eventDate = eventDate.add(1, 'year');
+                  }
+                  return eventDate.toDate();
+                })
+                .sort((a, b) => a.getTime() - b.getTime())[0];
+
+              // Determine which date to use
+              let nextDueDate = regularDueDate;
+              if (nextImportantEvent) {
+                if (dayjs(regularDueDate).isSame(today, 'day')) {
+                  nextDueDate = nextImportantEvent;
+                } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
+                  nextDueDate = nextImportantEvent;
+                }
+              }
+
+              // Update contact with final next_contact_due date
+              const { error: updateError } = await supabaseClient
+                .from('contacts')
+                .update({ next_contact_due: nextDueDate.toISOString() })
+                .eq('id', insertedContact.id);
+
+              if (updateError) {
+                throw new Error(`Failed to update next contact due: ${updateError.message}`)
+              }
+
+              // Create reminder with calculated date
+              const { error: reminderError } = await supabaseClient
+                .from('reminders')
+                .insert({
+                  contact_id: insertedContact.id,
+                  user_id: contact.user_id,
+                  type: contact.preferred_contact_method || 'message',
+                  due_date: nextDueDate.toISOString(),
+                  completed: false
+                });
+
+              if (reminderError) {
+                throw new Error(`Failed to create reminder: ${reminderError.message}`)
               }
             }
 

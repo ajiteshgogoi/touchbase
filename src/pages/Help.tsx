@@ -59,7 +59,7 @@ export const Help = () => {
                 </li>
                 <li><strong>Optional Fields:</strong>
                   <ul className="list-disc list-inside ml-6 text-gray-600">
-                    <li>phone: International format (e.g., +1-1234567890 or +11234567890 or 1234567890 or 01234567890)</li>
+                    <li>phone: International format with or without country code (7-15 digits long)</li>
                     <li>social_media_platform: Platform name (linkedin, instagram, or twitter)</li>
                     <li>social_media_handle: Username on the platform without @ prefix</li>
                     <li>preferred_contact_method: Preferred way to contact (call, message, or social)</li>
