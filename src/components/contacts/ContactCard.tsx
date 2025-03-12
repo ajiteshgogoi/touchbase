@@ -60,6 +60,13 @@ export const ContactCard = ({
     onLoadingChange?.(isLoading);
   }, [isLoading, onLoadingChange]);
 
+  // Debug expanded details
+  useEffect(() => {
+    if (expandedDetails) {
+      console.log('Expanded Details:', expandedDetails);
+    }
+  }, [expandedDetails]);
+
   useEffect(() => {
     async function loadExpandedDetails() {
       if (isExpanded && !expandedDetails) {
