@@ -3,6 +3,21 @@ import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
 
+// Scroll velocity thresholds for overscan adjustment
+const VELOCITY_THRESHOLDS = {
+  LOW: 10,    // pixels/frame
+  MEDIUM: 30,
+  HIGH: 50
+};
+
+// Overscan items based on velocity
+const OVERSCAN_ITEMS = {
+  DEFAULT: 5,
+  LOW: 8,
+  MEDIUM: 12,
+  HIGH: 20
+};
+
 // Default heights for cards
 const COLLAPSED_HEIGHT = 216;
 const LOADING_HEIGHT = 300;    // Height when showing loading spinner
@@ -193,6 +208,42 @@ export const VirtualizedContactList = ({
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
+  const [overscanCount, setOverscanCount] = useState(OVERSCAN_ITEMS.DEFAULT);
+  
+  // Refs for scroll velocity calculation
+  const lastScrollTop = useRef(0);
+  const lastScrollTime = useRef(performance.now());
+
+  // Handle scroll events to adjust overscan count
+  const handleScroll = useCallback(({ scrollOffset }: { scrollOffset: number }) => {
+    const currentTime = performance.now();
+    const timeDelta = currentTime - lastScrollTime.current;
+    
+    if (timeDelta > 0) {
+      // Calculate velocity in pixels per millisecond
+      const scrollDelta = Math.abs(scrollOffset - lastScrollTop.current);
+      const velocity = scrollDelta / timeDelta;
+
+      // Convert to pixels per frame (assuming 60fps)
+      const pixelsPerFrame = velocity * (1000 / 60);
+
+      // Update overscan count based on velocity
+      let newOverscanCount = OVERSCAN_ITEMS.DEFAULT;
+      if (pixelsPerFrame > VELOCITY_THRESHOLDS.HIGH) {
+        newOverscanCount = OVERSCAN_ITEMS.HIGH;
+      } else if (pixelsPerFrame > VELOCITY_THRESHOLDS.MEDIUM) {
+        newOverscanCount = OVERSCAN_ITEMS.MEDIUM;
+      } else if (pixelsPerFrame > VELOCITY_THRESHOLDS.LOW) {
+        newOverscanCount = OVERSCAN_ITEMS.LOW;
+      }
+
+      setOverscanCount(newOverscanCount);
+    }
+
+    // Update refs for next calculation
+    lastScrollTop.current = scrollOffset;
+    lastScrollTime.current = currentTime;
+  }, []);
     
   const getItemSize = useCallback((index: number) => {
     if (loadingStates.has(index)) return LOADING_HEIGHT;
@@ -313,7 +364,8 @@ export const VirtualizedContactList = ({
       itemSize={getItemSize}
       width="100%"
       itemKey={getItemKey}
-      overscanCount={5}
+      overscanCount={overscanCount}
+      onScroll={handleScroll}
       itemData={itemData}
     >
       {Row}
