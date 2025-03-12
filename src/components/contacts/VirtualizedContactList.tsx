@@ -16,9 +16,6 @@ const COLLAPSED_HEIGHT = 216;
 const LOADING_HEIGHT = 300;    // Height when showing loading spinner
 const EXPANDED_HEIGHT = 600;   // Initial height for expanded state before measurement
 
-// Throttle scroll updates
-const SCROLL_UPDATE_INTERVAL = 100; // ms
-
 interface VirtualizedContactListProps {
   contacts: BasicContact[];
   eventsMap: Record<string, ImportantEvent[]>;
@@ -206,71 +203,163 @@ export const VirtualizedContactList = ({
   const initialOverscan = useMemo(() => calculateOverscan(listHeight), [listHeight]);
   const [overscanCount, setOverscanCount] = useState(initialOverscan);
 
-  // Refs for scroll velocity calculation
+  // Refs for scroll momentum calculation
   const lastScrollTop = useRef(0);
   const lastScrollTime = useRef(performance.now());
+  const scrollVelocity = useRef(0);
+  const scrollMomentumTimer = useRef<number>();
+  const isScrolling = useRef(false);
 
-  // Handle scroll events with debouncing
+  // Handle scroll momentum and overscan adjustments
+  const updateOverscanWithMomentum = useCallback((velocity: number) => {
+    const baseOverscan = calculateOverscan(listHeight);
+    const targetOverscan = Math.ceil(baseOverscan * Math.min(Math.max(velocity * 2, 1), 2.5));
+    
+    // Smooth transition for overscan changes
+    setOverscanCount(current => {
+      const diff = targetOverscan - current;
+      return Math.round(current + diff * 0.3); // Smooth interpolation
+    });
+
+    // Continue momentum updates if velocity is significant
+    if (Math.abs(velocity) > 0.1) {
+      scrollVelocity.current *= 0.95; // Decay factor
+      scrollMomentumTimer.current = window.requestAnimationFrame(() => {
+        updateOverscanWithMomentum(scrollVelocity.current);
+      });
+    } else {
+      // Gradually return to base overscan when nearly stopped
+      setOverscanCount(baseOverscan);
+      isScrolling.current = false;
+    }
+  }, [listHeight]);
+
+  // Handle scroll events
   const handleScroll = useCallback(({ scrollOffset }: { scrollOffset: number }) => {
     const currentTime = performance.now();
     const timeDelta = currentTime - lastScrollTime.current;
     
-    if (timeDelta > SCROLL_UPDATE_INTERVAL) {
-      // Calculate scroll velocity
-      const scrollDelta = Math.abs(scrollOffset - lastScrollTop.current);
-      const velocity = scrollDelta / timeDelta;
+    if (timeDelta > 0) {
+      // Calculate and smooth out velocity
+      const scrollDelta = scrollOffset - lastScrollTop.current;
+      const newVelocity = Math.abs(scrollDelta) / timeDelta;
+      scrollVelocity.current = isScrolling.current ?
+        scrollVelocity.current * 0.8 + newVelocity * 0.2 : // Smooth while scrolling
+        newVelocity; // Initial velocity
+      
+      // Clear any pending momentum updates
+      if (scrollMomentumTimer.current) {
+        cancelAnimationFrame(scrollMomentumTimer.current);
+      }
 
-      // Adjust overscan dynamically based on current viewport
-      const baseOverscan = calculateOverscan(listHeight);
-      const velocityMultiplier = Math.min(Math.max(velocity * 2, 1), 2);
-      setOverscanCount(Math.ceil(baseOverscan * velocityMultiplier));
+      isScrolling.current = true;
+      updateOverscanWithMomentum(scrollVelocity.current);
 
       // Update refs for next calculation
       lastScrollTop.current = scrollOffset;
       lastScrollTime.current = currentTime;
     }
-  }, [listHeight]);
+  }, [updateOverscanWithMomentum]);
 
-  // Update list height on window resize
+  // Update list height on window resize and handle cleanup
   useEffect(() => {
     const handleResize = () => {
       const newHeight = window.innerHeight - 200;
       setListHeight(newHeight);
+      
+      // Reset momentum and overscan on resize
+      if (scrollMomentumTimer.current) {
+        cancelAnimationFrame(scrollMomentumTimer.current);
+      }
+      scrollVelocity.current = 0;
+      isScrolling.current = false;
       setOverscanCount(calculateOverscan(newHeight));
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      // Clean up momentum calculations
+      if (scrollMomentumTimer.current) {
+        cancelAnimationFrame(scrollMomentumTimer.current);
+      }
+    };
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollMomentumTimer.current) {
+        cancelAnimationFrame(scrollMomentumTimer.current);
+      }
+    };
   }, []);
 
   const listRef = useRef<VariableSizeList>(null);
 
   // Callback to update height of an expanded card
-  const updateHeight = useCallback((index: number, height: number, isLoading?: boolean) => {
-    requestAnimationFrame(() => {
-      if (isLoading) {
-        setLoadingStates(prev => {
-          const next = new Set(prev);
-          next.add(index);
-          return next;
-        });
-      } else {
-        setLoadingStates(prev => {
-          const next = new Set(prev);
-          next.delete(index);
-          return next;
-        });
-        setHeightMap(prev => {
-          if (prev[index] === height) return prev;
-          return { ...prev, [index]: height };
-        });
-      }
+  // Batch updates for height measurements
+  const pendingUpdates = useRef<Map<number, { height: number; isLoading: boolean }>>(new Map());
+  const updateScheduled = useRef(false);
+
+  const flushPendingUpdates = useCallback(() => {
+    const updates = pendingUpdates.current;
+    if (updates.size === 0) return;
+
+    const loadingUpdates = new Set<number>();
+    const heightUpdates: Record<number, number> = {};
+    let minChangedIndex = Infinity;
+
+    updates.forEach(({ height, isLoading }, index) => {
+      minChangedIndex = Math.min(minChangedIndex, index);
       
-      if (listRef.current) {
-        listRef.current.resetAfterIndex(index);
+      if (isLoading) {
+        loadingUpdates.add(index);
+      } else {
+        heightUpdates[index] = height;
       }
     });
+
+    setLoadingStates(prev => {
+      const next = new Set(prev);
+      updates.forEach(({ isLoading }, index) => {
+        if (isLoading) {
+          next.add(index);
+        } else {
+          next.delete(index);
+        }
+      });
+      return next;
+    });
+
+    setHeightMap(prev => {
+      const newHeightMap = { ...prev };
+      Object.entries(heightUpdates).forEach(([index, height]) => {
+        if (newHeightMap[Number(index)] !== height) {
+          newHeightMap[Number(index)] = height;
+        }
+      });
+      return newHeightMap;
+    });
+
+    if (listRef.current && minChangedIndex !== Infinity) {
+      listRef.current.resetAfterIndex(minChangedIndex);
+    }
+
+    pendingUpdates.current.clear();
+    updateScheduled.current = false;
   }, []);
+
+  const updateHeight = useCallback((index: number, height: number, isLoading?: boolean) => {
+    pendingUpdates.current.set(index, { height, isLoading: Boolean(isLoading) });
+    
+    if (!updateScheduled.current) {
+      updateScheduled.current = true;
+      requestAnimationFrame(() => {
+        flushPendingUpdates();
+      });
+    }
+  }, [flushPendingUpdates]);
 
   const getItemKey = useCallback((index: number) => {
     const contact = contacts[index];
