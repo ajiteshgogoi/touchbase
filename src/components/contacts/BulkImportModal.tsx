@@ -225,16 +225,16 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                   </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="flex-1 overflow-y-auto">
                   {isUploading ? (
-                    <div className="flex flex-col items-center justify-center h-40">
+                    <div className="p-6 flex flex-col items-center justify-center h-40">
                       <LoadingSpinner />
                       <p className="mt-4 text-primary-500">
                         {isUploading ? 'Uploading file...' : 'Processing import...'}
                       </p>
                     </div>
                   ) : importResult ? (
-                    <div className="space-y-4">
+                    <div className="p-6 space-y-4">
                       <div className="text-center">
                         <h4 className="text-lg font-medium text-gray-900">Import Complete</h4>
                         <p className="mt-1 text-sm text-gray-500">
@@ -262,16 +262,9 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                           </div>
                         </div>
                       )}
-
-                      <button
-                        onClick={handleClose}
-                        className="w-full px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                      >
-                        Close
-                      </button>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="p-6 space-y-4">
                       {uploadError && (
                         <div className="p-4 bg-red-50 rounded-lg">
                           <p className="text-sm text-red-600">{uploadError}</p>
@@ -311,10 +304,20 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                       <div className="text-center text-sm text-gray-600">
                         Check the <a href="/help#contacts" className="text-primary-500 hover:text-primary-600">Help Page</a> for detailed information about CSV file format and fields.
                       </div>
-                    
                     </div>
                   )}
                 </div>
+
+                {importResult && (
+                  <div className="flex-shrink-0 flex justify-end px-6 py-4 bg-gray-50/80 border-t border-gray-100/75">
+                    <button
+                      onClick={handleClose}
+                      className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 transition-all duration-200 shadow-sm"
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
               </Dialog.Panel>
             </Transition.Child>
           </div>
