@@ -49,8 +49,8 @@ function validateContact(contact: any, rowIndex: number): { isValid: boolean; er
   }
 
   // Validate phone number if provided
-  if (contact.phone && !/^\+?[\d-]+$/.test(contact.phone)) {
-    errors.push('Invalid phone number format')
+  if (contact.phone && !/^(\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/.test(contact.phone)) {
+    errors.push('Invalid phone number format. Must match: +XX-XXX-XXX-XXXX, (XXX) XXX-XXXX, or XXXXXXXXXX')
   }
 
   // Validate social media fields
