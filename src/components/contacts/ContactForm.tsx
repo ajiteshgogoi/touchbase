@@ -11,7 +11,7 @@ import { useStore } from '../../stores/useStore';
 import { BasicContactInfo } from './BasicContactInfo';
 import { AdvancedContactInfo } from './AdvancedContactInfo';
 import { ContactFormData, FormErrors } from './types';
-import { initialFormData, initialErrors, formatEventToUTC } from './utils';
+import { initialFormData, initialErrors, formatEventToUTC, isValidPhoneNumber } from './utils';
 
 dayjs.extend(utc);
 
@@ -99,6 +99,7 @@ export const ContactForm = () => {
     }
 
     let isValid = true;
+    let newErrors = { ...errors };
 
     try {
       const { hasDuplicate, duplicates } = await contactValidationService.checkDuplicateName({
@@ -108,25 +109,40 @@ export const ContactForm = () => {
       });
 
       if (hasDuplicate) {
-        setErrors(prev => ({
-          ...prev,
-          name: contactValidationService.formatDuplicateMessage(duplicates)
-        }));
+        newErrors.name = contactValidationService.formatDuplicateMessage(duplicates);
         isValid = false;
       } else {
-        setErrors(prev => ({ ...prev, name: '' }));
+        newErrors.name = '';
       }
 
       // Validate contact frequency
       if (!formData.contact_frequency) {
-        setErrors(prev => ({
-          ...prev,
-          frequency: 'Please select how often you want to keep in touch'
-        }));
+        newErrors.frequency = 'Please select how often you want to keep in touch';
         isValid = false;
       } else {
-        setErrors(prev => ({ ...prev, frequency: '' }));
+        newErrors.frequency = '';
       }
+
+      // Validate phone number if provided
+      if (formData.phone && !isValidPhoneNumber(formData.phone)) {
+        newErrors.phone = 'Please enter a valid phone number (e.g., +91-1234567890)';
+        isValid = false;
+      } else {
+        newErrors.phone = '';
+      }
+
+      // Validate social media fields
+      const hasPlatform = !!formData.social_media_platform;
+      const hasHandle = !!formData.social_media_handle;
+      if ((hasPlatform && !hasHandle) || (!hasPlatform && hasHandle)) {
+        newErrors.social_media_handle = 'Both social media platform and username are required';
+        isValid = false;
+      } else {
+        newErrors.social_media_handle = '';
+      }
+
+      // Update all errors at once
+      setErrors(newErrors);
 
       return isValid;
     } catch (error) {
@@ -365,10 +381,12 @@ export const ContactForm = () => {
             </button>
           </div>
           {/* Error Messages Section */}
-          {(errors.name || errors.frequency) && (
+          {(errors.name || errors.frequency || errors.phone || errors.social_media_handle) && (
             <div className="px-4 py-2 bg-red-50 rounded-lg space-y-1">
               {errors.name && <p className="text-sm text-red-600 text-center">{errors.name}</p>}
               {errors.frequency && <p className="text-sm text-red-600 text-center">{errors.frequency}</p>}
+              {errors.phone && <p className="text-sm text-red-600 text-center">{errors.phone}</p>}
+              {errors.social_media_handle && <p className="text-sm text-red-600 text-center">{errors.social_media_handle}</p>}
             </div>
           )}
         </div>
