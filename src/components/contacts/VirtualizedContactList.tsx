@@ -1,4 +1,4 @@
-import { useCallback, memo, useState, useRef, useEffect, Dispatch, SetStateAction } from 'react';
+import { useCallback, memo, useState, useRef, useEffect, useMemo, Dispatch, SetStateAction } from 'react';
 import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
@@ -67,8 +67,9 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // If we're at the last item and there's more to load, trigger loading more
-  if (index === contacts.length - 1 && hasNextPage) {
+  // Prefetch when within last 10 items
+  const PREFETCH_THRESHOLD = 10;
+  if (hasNextPage && contacts.length - index <= PREFETCH_THRESHOLD) {
     loadMore();
   }
 
@@ -182,7 +183,7 @@ export const VirtualizedContactList = ({
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
     
-  const getItemSize = (index: number) => {
+  const getItemSize = useCallback((index: number) => {
     if (loadingStates.has(index)) return LOADING_HEIGHT;
     
     const cachedHeight = heightMap[index];
@@ -194,7 +195,7 @@ export const VirtualizedContactList = ({
     
     // For collapsed cards, use cached height but ensure minimum height
     return cachedHeight ? Math.max(cachedHeight, COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
-  };
+  }, [loadingStates, heightMap, expandedIndices]);
   
   const listRef = useRef<VariableSizeList>(null);
   
@@ -259,32 +260,50 @@ export const VirtualizedContactList = ({
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [contacts]);
 
+  const itemData = useMemo(() => ({
+    contacts,
+    eventsMap,
+    isPremium,
+    isOnTrial,
+    onDelete,
+    onQuickInteraction,
+    hasNextPage,
+    loadMore,
+    expandedIndices,
+    setExpandedIndices,
+    updateHeight,
+    loadingStates,
+    setLoadingStates,
+    heightMap,
+    isLoading
+  }), [
+    contacts,
+    eventsMap,
+    isPremium,
+    isOnTrial,
+    onDelete,
+    onQuickInteraction,
+    hasNextPage,
+    loadMore,
+    expandedIndices,
+    setExpandedIndices,
+    updateHeight,
+    loadingStates,
+    setLoadingStates,
+    heightMap,
+    isLoading
+  ]);
+
   return (
     <List
       ref={listRef}
-      height={window.innerHeight - 200} // Adjust based on your layout
+      height={window.innerHeight - 200}
       itemCount={contacts.length}
       itemSize={getItemSize}
       width="100%"
       itemKey={getItemKey}
-      overscanCount={5} // Add overscanCount for smoother scrolling
-      itemData={{
-        contacts,
-        eventsMap,
-        isPremium,
-        isOnTrial,
-        onDelete,
-        onQuickInteraction,
-        hasNextPage,
-        loadMore,
-        expandedIndices,
-        setExpandedIndices,
-        updateHeight,
-        loadingStates,
-        setLoadingStates,
-        heightMap,
-        isLoading
-      }}
+      overscanCount={5}
+      itemData={itemData}
     >
       {Row}
     </List>
