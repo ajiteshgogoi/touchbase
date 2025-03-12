@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useMemo } from 'react';
+import { useState, lazy, Suspense, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
@@ -23,6 +23,21 @@ export const InteractionHistory = () => {
   const { fromContact, contactHash } = location.state || {};
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  // Handle browser's back button
+  useEffect(() => {
+    const handlePopState = () => {
+      if (fromContact && contactHash) {
+        // Small delay to ensure navigation completes
+        setTimeout(() => {
+          window.location.hash = contactHash;
+        }, 0);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [fromContact, contactHash]);
   const [editingInteraction, setEditingInteraction] = useState<{
     interaction: Interaction;
     isOpen: boolean;
