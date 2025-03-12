@@ -142,6 +142,14 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
       const result = await response.json();
       
       if (!response.ok) {
+        // Get the detailed error message from the response
+        if (result.error?.includes('Invalid Record Length')) {
+          const match = result.error.match(/columns length is (\d+), got (\d+) on line (\d+)/);
+          if (match) {
+            const [_, expected, got, line] = match;
+            throw new Error(`CSV format error on line ${line}: Expected ${expected} columns but got ${got} columns. Please ensure each row has exactly ${expected} columns, even if some values are empty.`);
+          }
+        }
         throw new Error(result.error || 'Failed to import contacts');
       }
 
