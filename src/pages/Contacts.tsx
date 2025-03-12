@@ -182,12 +182,10 @@ export const Contacts = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => setShowImportModal(true)}
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 cursor-not-allowed opacity-75 transition-all duration-200 group relative"
-              disabled
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
-              <UsersIcon className="h-5 w-5 mr-2 text-white/90" />
-              <span>Bulk Import</span>
-              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap">Under Development</span>
+              <UsersIcon className="h-5 w-5 mr-2" />
+              Bulk Import
             </button>
             <Link
               to="/contacts/new"
