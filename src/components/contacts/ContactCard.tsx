@@ -22,7 +22,8 @@ import {
   formatEventDate,
   sortEventsByType,
   extractHashtags,
-  formatHashtagForDisplay
+  formatHashtagForDisplay,
+  formatSocialMediaUrl
 } from './utils';
 import dayjs from 'dayjs';
 
@@ -209,11 +210,18 @@ export const ContactCard = ({
                       </span>
                     </a>
                   )}
-                  {expandedDetails.social_media_handle && (
-                    <div className="flex items-center px-3 py-2.5 bg-gray-50 rounded-lg">
-                      <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0" />
-                      <span className="truncate leading-5 font-[450]">{expandedDetails.social_media_handle}</span>
-                    </div>
+                  {expandedDetails.social_media_handle && expandedDetails.social_media_platform && (
+                    <a
+                      href={formatSocialMediaUrl(expandedDetails.social_media_handle, expandedDetails.social_media_platform)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                    >
+                      <AtSymbolIcon className="h-4 w-4 mr-2 text-pink-500/90 flex-shrink-0 group-hover:text-pink-600/90 transition-colors" />
+                      <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
+                        @{expandedDetails.social_media_handle} ({expandedDetails.social_media_platform})
+                      </span>
+                    </a>
                   )}
                 </div>
               )}

@@ -12,6 +12,7 @@ export interface Contact extends BasicContact {
   user_id: string;
   name: string;
   phone?: string;
+  social_media_platform?: 'linkedin' | 'instagram' | 'twitter' | null;
   social_media_handle?: string;
   last_contacted: string | null;
   next_contact_due: string | null;
