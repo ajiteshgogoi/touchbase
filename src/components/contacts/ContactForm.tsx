@@ -25,6 +25,30 @@ export const ContactForm = () => {
   const queryClient = useQueryClient();
   const { user, isPremium, isOnTrial } = useStore();
   const [showAdvanced, setShowAdvanced] = useState(Boolean(id)); // Show advanced fields by default in edit mode
+  const [fromContactsPage, setFromContactsPage] = useState(false);
+  const [contactHash, setContactHash] = useState<string | null>(null);
+
+  // Check if we came from contacts page and get contactHash
+  useEffect(() => {
+    const state = window.history.state?.usr;
+    if (state?.from === '/contacts') {
+      setFromContactsPage(true);
+      setContactHash(id || null);
+    }
+  }, [id]);
+
+  const handleNavigateBack = () => {
+    if (fromContactsPage && contactHash) {
+      // Add the hash to trigger scroll
+      navigate(-1);
+      // Small delay to ensure navigation completes before setting hash
+      setTimeout(() => {
+        window.location.hash = contactHash;
+      }, 0);
+    } else {
+      navigate(-1);
+    }
+  };
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
@@ -89,7 +113,20 @@ export const ContactForm = () => {
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+
+    // Handle browser's back button
+    const handlePopState = () => {
+      if (fromContactsPage && contactHash) {
+        // Small delay to ensure navigation completes
+        setTimeout(() => {
+          window.location.hash = contactHash;
+        }, 0);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [fromContactsPage, contactHash]);
 
   // Form validation
   const validateForm = async () => {
@@ -178,7 +215,7 @@ export const ContactForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
-      navigate(-1);
+      handleNavigateBack();
     },
   });
 
@@ -215,7 +252,7 @@ export const ContactForm = () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
       queryClient.invalidateQueries({ queryKey: ['important-events'] });
-      navigate(-1);
+      handleNavigateBack();
     },
   });
 
@@ -275,7 +312,11 @@ export const ContactForm = () => {
       <div>
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={(e) => {
+              e.preventDefault(); // Prevent any default form submission
+              handleNavigateBack();
+            }}
+            type="button" // Explicitly set type to prevent form submission
             className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
@@ -340,7 +381,7 @@ export const ContactForm = () => {
           <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-3">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={handleNavigateBack}
               className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] transition-all duration-200 shadow-soft hover:shadow-md"
             >
               Cancel
