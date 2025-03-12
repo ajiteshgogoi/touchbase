@@ -97,7 +97,7 @@ function validateContact(contact: any, rowIndex: number): { isValid: boolean; er
   }
 
   // Validate phone number if provided
-  if (contact.phone && !/^(?:\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,15}$/.test(contact.phone)) {
+  if (contact.phone && !/^(?:\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?(?:[-.\s]?\d{1,4}){0,4}$/.test(contact.phone)) {
     errors.push('Invalid phone number format. Must be a valid international phone number with optional country code')
   }
 

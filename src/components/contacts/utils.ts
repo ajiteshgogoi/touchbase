@@ -17,7 +17,7 @@ export const isValidPhoneNumber = (phone: string): boolean => {
   // - Numbers 7-15 digits long
   // - Optional separators (space, dot, hyphen)
   // - Optional parentheses for area codes
-  const phoneRegex = /^(?:\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,15}$/;
+  const phoneRegex = /^(?:\+?\d{1,4}[-.\s]?)?\(?\d{1,4}\)?(?:[-.\s]?\d{1,4}){0,4}$/;
   return phoneRegex.test(phone.trim());
 };
 
