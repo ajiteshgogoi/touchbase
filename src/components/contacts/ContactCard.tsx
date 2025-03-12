@@ -346,6 +346,7 @@ export const ContactCard = ({
           {(isPremium || isOnTrial) ? (
             <Link
               to={`/contacts/${contact.id}/interactions`}
+              state={{ fromContact: true, contactHash: contact.id }}
               className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
               title="View interaction history"
             >
@@ -354,6 +355,7 @@ export const ContactCard = ({
           ) : (
             <Link
               to={`/contacts/${contact.id}/interactions`}
+              state={{ fromContact: true, contactHash: contact.id }}
               className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-soft hover:shadow-md transition-all duration-200"
               title="Upgrade to view interaction history"
             >

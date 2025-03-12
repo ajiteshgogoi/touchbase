@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
 import { SparklesIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../services/contacts';
@@ -17,8 +17,10 @@ type SortOrder = 'asc' | 'desc';
 export const InteractionHistory = () => {
   const { contactId } = useParams<{ contactId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { isPremium, isOnTrial } = useStore();
+  const { fromContact, contactHash } = location.state || {};
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [editingInteraction, setEditingInteraction] = useState<{
@@ -140,7 +142,13 @@ export const InteractionHistory = () => {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (fromContact && contactHash) {
+                navigate(`/contacts#${contactHash}`);
+              } else {
+                navigate(-1);
+              }
+            }}
             className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
@@ -180,7 +188,13 @@ export const InteractionHistory = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (fromContact && contactHash) {
+                navigate(`/contacts#${contactHash}`);
+              } else {
+                navigate(-1);
+              }
+            }}
             className="p-2 -m-2 text-gray-400 hover:text-gray-500"
             aria-label="Go back"
           >
