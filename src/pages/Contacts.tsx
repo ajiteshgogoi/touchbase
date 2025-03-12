@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useMemo } from 'react';
+import { useState, lazy, Suspense, useMemo } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
@@ -131,22 +131,6 @@ export const Contacts = () => {
 
   const contactLimit = isPremium || isOnTrial ? Infinity : 15;
   const canAddMore = totalCount < contactLimit;
-
-  useEffect(() => {
-    if (!window.location.hash) {
-      window.scrollTo(0, 0);
-    }
-  }, []);
-
-  useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-      const element = document.getElementById(hash);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  }, [window.location.hash]);
 
   return (
     <div className="space-y-6">

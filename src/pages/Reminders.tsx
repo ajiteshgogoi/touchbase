@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import QuickReminderModal from '../components/reminders/QuickReminderModal';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -72,11 +72,6 @@ const [quickInteraction, setQuickInteraction] = useState<{
 const [quickReminder, setQuickReminder] = useState<{
   isOpen: boolean;
 } | null>(null);
-
-  useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo(0, 0);
-  }, []);
 
   const contactsMap = contacts?.reduce((acc, contact) => {
     acc[contact.id] = contact;

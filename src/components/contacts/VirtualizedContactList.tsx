@@ -201,11 +201,38 @@ export const VirtualizedContactList = ({
   }, [contacts]);
 
   // Reset size cache when expanded state changes
+  // Reset size cache when expanded state changes
   useEffect(() => {
     if (listRef.current) {
       listRef.current.resetAfterIndex(0);
     }
   }, [expandedIndices]);
+
+  // Handle hash navigation
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash && listRef.current) {
+        const targetIndex = contacts.findIndex(contact => contact.id === hash);
+        if (targetIndex !== -1) {
+          listRef.current.scrollToItem(targetIndex, 'start');
+          // Expand the target contact card after scrolling
+          setExpandedIndices(prev => {
+            const next = new Set(prev);
+            next.add(targetIndex);
+            return next;
+          });
+        }
+      }
+    };
+
+    // Handle initial hash on mount
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [contacts]);
 
   return (
     <List
