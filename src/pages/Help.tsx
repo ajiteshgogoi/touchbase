@@ -53,20 +53,21 @@ export const Help = () => {
               <ul className="list-disc list-inside mt-2 space-y-1">
                 <li><strong>Required Fields:</strong>
                   <ul className="list-disc list-inside ml-6 text-gray-600">
-                    <li>name - Contact's full name</li>
-                    <li>contact_frequency - How often to stay in touch (weekly, monthly, quarterly, biannual, yearly)</li>
+                    <li>name: Contact's full name</li>
+                    <li>contact_frequency: How often to stay in touch (every_three_days, weekly, fortnightly, monthly, quarterly)</li>
                   </ul>
                 </li>
                 <li><strong>Optional Fields:</strong>
                   <ul className="list-disc list-inside ml-6 text-gray-600">
-                    <li>phone - International format (e.g., +1-1234567890)</li>
-                    <li>social_media_platform - Platform name</li>
-                    <li>social_media_handle - Username on the platform</li>
-                    <li>notes - Personal notes with optional #hashtags for categorisation</li>
-                    <li>birthday - YYYY-MM-DD format</li>
-                    <li>anniversary - YYYY-MM-DD format</li>
-                    <li>custom_event_name - Name of custom event</li>
-                    <li>custom_event_date - YYYY-MM-DD format</li>
+                    <li>phone: International format (e.g., +1-1234567890 or +11234567890 or 1234567890)</li>
+                    <li>social_media_platform: Platform name (linkedin, instagram, or twitter)</li>
+                    <li>social_media_handle: Username on the platform without @ prefix</li>
+                    <li>preferred_contact_method: Preferred way to contact (call, message, or social)</li>
+                    <li>notes: Personal notes with optional #hashtags for categorisation</li>
+                    <li>birthday: YYYY-MM-DD format</li>
+                    <li>anniversary: YYYY-MM-DD format</li>
+                    <li>custom_event_name: Name of custom event</li>
+                    <li>custom_event_date: YYYY-MM-DD format</li>
                   </ul>
                 </li>
               </ul>
