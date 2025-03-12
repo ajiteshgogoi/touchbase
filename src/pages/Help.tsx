@@ -65,9 +65,10 @@ export const Help = () => {
                     <li>preferred_contact_method: Preferred way to contact (call, message, or social)</li>
                     <li>notes: Personal notes with optional #hashtags for categorisation</li>
                     <li>birthday: YYYY-MM-DD format</li>
-                    <li>anniversary: YYYY-MM-DD format</li>
-                    <li>custom_event_name: Name of custom event</li>
-                    <li>custom_event_date: YYYY-MM-DD format</li>
+                   <li>anniversary: YYYY-MM-DD format</li>
+                   <li>custom_event_1_name, custom_event_2_name, custom_event_3_name: Names for up to 3 custom events</li>
+                   <li>custom_event_1_date, custom_event_2_date, custom_event_3_date: Dates for corresponding custom events</li>
+                   <li className="mt-1 text-sm text-gray-500">Note: You can add up to 3 custom events via CSV. Combined with birthday and anniversary, this respects the 5 events per contact limit.</li>
                   </ul>
                 </li>
               </ul>

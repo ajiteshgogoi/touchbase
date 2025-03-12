@@ -73,15 +73,22 @@ function validateContact(contact: any, rowIndex: number): { isValid: boolean; er
   }
 
   // Validate dates in important events
-  if (contact.custom_event_date && !contact.custom_event_name) {
-    errors.push('Custom event name is required when date is provided')
+  for (let i = 1; i <= 3; i++) {
+    const nameField = `custom_event_${i}_name`;
+    const dateField = `custom_event_${i}_date`;
+    
+    if (contact[dateField] && !contact[nameField]) {
+      errors.push(`Custom event name ${i} is required when date is provided`)
+    }
   }
 
   // Check date formats
   const dateFields = [
     { field: 'birthday', value: contact.birthday },
     { field: 'anniversary', value: contact.anniversary },
-    { field: 'custom_event_date', value: contact.custom_event_date }
+    { field: 'custom_event_1_date', value: contact.custom_event_1_date },
+    { field: 'custom_event_2_date', value: contact.custom_event_2_date },
+    { field: 'custom_event_3_date', value: contact.custom_event_3_date }
   ]
 
   dateFields.forEach(({ field, value }) => {
@@ -263,16 +270,21 @@ serve(async (req) => {
                 eventCount++;
               }
 
-              // Add custom event if both name and date are provided
-              if (record.custom_event_name && record.custom_event_date && eventCount < 5) {
-                events.push({
-                  contact_id: insertedContact.id,
-                  user_id: user.id,
-                  type: 'custom',
-                  name: record.custom_event_name,
-                  date: new Date(record.custom_event_date).toISOString()
-                })
-                eventCount++;
+              // Add custom events if provided (up to 3)
+              for (let i = 1; i <= 3; i++) {
+                const nameField = `custom_event_${i}_name`;
+                const dateField = `custom_event_${i}_date`;
+                
+                if (record[nameField] && record[dateField] && eventCount < 5) {
+                  events.push({
+                    contact_id: insertedContact.id,
+                    user_id: user.id,
+                    type: 'custom',
+                    name: record[nameField],
+                    date: new Date(record[dateField]).toISOString()
+                  });
+                  eventCount++;
+                }
               }
 
               // Insert events if any
