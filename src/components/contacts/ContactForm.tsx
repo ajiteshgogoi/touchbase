@@ -55,6 +55,7 @@ export const ContactForm = () => {
       setFormData({
         name: contact.name,
         phone: contact.phone || '',
+        social_media_platform: contact.social_media_platform || null,
         social_media_handle: contact.social_media_handle || '',
         preferred_contact_method: contact.preferred_contact_method,
         notes: contact.notes || '',
