@@ -210,20 +210,32 @@ export const VirtualizedContactList = ({
   const scrollMomentumTimer = useRef<number>();
   const isScrolling = useRef(false);
 
+  // Track touch/wheel events to detect explicit scroll stops
+  const lastUserInteraction = useRef<number>(0);
+  
   // Handle scroll momentum and overscan adjustments
   const updateOverscanWithMomentum = useCallback((velocity: number) => {
     const baseOverscan = calculateOverscan(listHeight);
-    const targetOverscan = Math.ceil(baseOverscan * Math.min(Math.max(velocity * 2, 1), 2.5));
+    const currentTime = performance.now();
     
-    // Smooth transition for overscan changes
+    // If user hasn't interacted recently (100ms threshold), consider it an explicit stop
+    if (currentTime - lastUserInteraction.current > 100) {
+      setOverscanCount(baseOverscan);
+      isScrolling.current = false;
+      return;
+    }
+
+    const targetOverscan = Math.ceil(baseOverscan * Math.min(Math.max(velocity * 1.5, 1), 2));
+    
+    // Smoother transition for overscan changes with smaller interpolation factor
     setOverscanCount(current => {
       const diff = targetOverscan - current;
-      return Math.round(current + diff * 0.3); // Smooth interpolation
+      return Math.round(current + diff * 0.15); // Gentler interpolation
     });
 
-    // Continue momentum updates if velocity is significant
-    if (Math.abs(velocity) > 0.1) {
-      scrollVelocity.current *= 0.95; // Decay factor
+    // Continue momentum updates with stricter velocity threshold
+    if (Math.abs(velocity) > 0.15) {
+      scrollVelocity.current *= 0.97; // Slower decay for smoother transitions
       scrollMomentumTimer.current = window.requestAnimationFrame(() => {
         updateOverscanWithMomentum(scrollVelocity.current);
       });
@@ -240,11 +252,13 @@ export const VirtualizedContactList = ({
     const timeDelta = currentTime - lastScrollTime.current;
     
     if (timeDelta > 0) {
-      // Calculate and smooth out velocity
+      // Calculate and smooth out velocity with improved smoothing
       const scrollDelta = scrollOffset - lastScrollTop.current;
       const newVelocity = Math.abs(scrollDelta) / timeDelta;
+      
+      // More aggressive velocity smoothing to reduce jitter
       scrollVelocity.current = isScrolling.current ?
-        scrollVelocity.current * 0.8 + newVelocity * 0.2 : // Smooth while scrolling
+        scrollVelocity.current * 0.85 + newVelocity * 0.15 : // Smoother velocity transitions
         newVelocity; // Initial velocity
       
       // Clear any pending momentum updates
@@ -261,7 +275,7 @@ export const VirtualizedContactList = ({
     }
   }, [updateOverscanWithMomentum]);
 
-  // Update list height on window resize and handle cleanup
+  // Update list height on resize and handle user interactions
   useEffect(() => {
     const handleResize = () => {
       const newHeight = window.innerHeight - 200;
@@ -276,9 +290,23 @@ export const VirtualizedContactList = ({
       setOverscanCount(calculateOverscan(newHeight));
     };
 
+    // Track user interactions to detect explicit scroll stops
+    const handleUserInteraction = () => {
+      lastUserInteraction.current = performance.now();
+    };
+
+    // Use passive listeners for better scroll performance
     window.addEventListener('resize', handleResize);
+    window.addEventListener('touchstart', handleUserInteraction, { passive: true });
+    window.addEventListener('touchmove', handleUserInteraction, { passive: true });
+    window.addEventListener('wheel', handleUserInteraction, { passive: true });
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('touchstart', handleUserInteraction);
+      window.removeEventListener('touchmove', handleUserInteraction);
+      window.removeEventListener('wheel', handleUserInteraction);
+      
       // Clean up momentum calculations
       if (scrollMomentumTimer.current) {
         cancelAnimationFrame(scrollMomentumTimer.current);
