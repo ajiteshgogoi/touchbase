@@ -3,25 +3,21 @@ import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
 
-// Scroll velocity thresholds for overscan adjustment
-const VELOCITY_THRESHOLDS = {
-  LOW: 10,    // pixels/frame
-  MEDIUM: 30,
-  HIGH: 50
-};
-
-// Overscan items based on velocity
-const OVERSCAN_ITEMS = {
-  DEFAULT: 5,
-  LOW: 8,
-  MEDIUM: 12,
-  HIGH: 20
+// Calculate dynamic overscan based on viewport height
+const calculateOverscan = (viewportHeight: number): number => {
+  // Approximate number of items visible in viewport assuming average item height
+  const approxVisibleItems = Math.ceil(viewportHeight / 250); // 250px average item height
+  // Set overscan to roughly 50% of visible items, min 5 max 20
+  return Math.min(Math.max(Math.ceil(approxVisibleItems * 0.5), 5), 20);
 };
 
 // Default heights for cards
 const COLLAPSED_HEIGHT = 216;
 const LOADING_HEIGHT = 300;    // Height when showing loading spinner
 const EXPANDED_HEIGHT = 600;   // Initial height for expanded state before measurement
+
+// Throttle scroll updates
+const SCROLL_UPDATE_INTERVAL = 100; // ms
 
 interface VirtualizedContactListProps {
   contacts: BasicContact[];
@@ -163,11 +159,9 @@ const Row = memo(({ index, style, data }: RowProps) => {
               const next = new Set(prev);
               if (expanded) {
                 next.add(index);
-                // When expanding, immediately mark as loading and update height
                 updateHeight(index, LOADING_HEIGHT, true);
               } else {
                 next.delete(index);
-                // When collapsing, clear loading state
                 setLoadingStates(prev => {
                   const next = new Set(prev);
                   next.delete(index);
@@ -208,62 +202,51 @@ export const VirtualizedContactList = ({
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
-  const [overscanCount, setOverscanCount] = useState(OVERSCAN_ITEMS.DEFAULT);
-  
+  const [listHeight, setListHeight] = useState(window.innerHeight - 200);
+  const initialOverscan = useMemo(() => calculateOverscan(listHeight), [listHeight]);
+  const [overscanCount, setOverscanCount] = useState(initialOverscan);
+
   // Refs for scroll velocity calculation
   const lastScrollTop = useRef(0);
   const lastScrollTime = useRef(performance.now());
 
-  // Handle scroll events to adjust overscan count
+  // Handle scroll events with debouncing
   const handleScroll = useCallback(({ scrollOffset }: { scrollOffset: number }) => {
     const currentTime = performance.now();
     const timeDelta = currentTime - lastScrollTime.current;
     
-    if (timeDelta > 0) {
-      // Calculate velocity in pixels per millisecond
+    if (timeDelta > SCROLL_UPDATE_INTERVAL) {
+      // Calculate scroll velocity
       const scrollDelta = Math.abs(scrollOffset - lastScrollTop.current);
       const velocity = scrollDelta / timeDelta;
 
-      // Convert to pixels per frame (assuming 60fps)
-      const pixelsPerFrame = velocity * (1000 / 60);
+      // Adjust overscan dynamically based on current viewport
+      const baseOverscan = calculateOverscan(listHeight);
+      const velocityMultiplier = Math.min(Math.max(velocity * 2, 1), 2);
+      setOverscanCount(Math.ceil(baseOverscan * velocityMultiplier));
 
-      // Update overscan count based on velocity
-      let newOverscanCount = OVERSCAN_ITEMS.DEFAULT;
-      if (pixelsPerFrame > VELOCITY_THRESHOLDS.HIGH) {
-        newOverscanCount = OVERSCAN_ITEMS.HIGH;
-      } else if (pixelsPerFrame > VELOCITY_THRESHOLDS.MEDIUM) {
-        newOverscanCount = OVERSCAN_ITEMS.MEDIUM;
-      } else if (pixelsPerFrame > VELOCITY_THRESHOLDS.LOW) {
-        newOverscanCount = OVERSCAN_ITEMS.LOW;
-      }
-
-      setOverscanCount(newOverscanCount);
+      // Update refs for next calculation
+      lastScrollTop.current = scrollOffset;
+      lastScrollTime.current = currentTime;
     }
+  }, [listHeight]);
 
-    // Update refs for next calculation
-    lastScrollTop.current = scrollOffset;
-    lastScrollTime.current = currentTime;
+  // Update list height on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const newHeight = window.innerHeight - 200;
+      setListHeight(newHeight);
+      setOverscanCount(calculateOverscan(newHeight));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
-    
-  const getItemSize = useCallback((index: number) => {
-    if (loadingStates.has(index)) return LOADING_HEIGHT;
-    
-    const cachedHeight = heightMap[index];
-    const isExpanded = expandedIndices.has(index);
 
-    if (isExpanded) {
-      return cachedHeight || EXPANDED_HEIGHT;
-    }
-    
-    // For collapsed cards, use cached height but ensure minimum height
-    return cachedHeight ? Math.max(cachedHeight, COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
-  }, [loadingStates, heightMap, expandedIndices]);
-  
   const listRef = useRef<VariableSizeList>(null);
-  
+
   // Callback to update height of an expanded card
   const updateHeight = useCallback((index: number, height: number, isLoading?: boolean) => {
-    // Use requestAnimationFrame to make the height update non-blocking
     requestAnimationFrame(() => {
       if (isLoading) {
         setLoadingStates(prev => {
@@ -288,13 +271,25 @@ export const VirtualizedContactList = ({
       }
     });
   }, []);
-  
+
   const getItemKey = useCallback((index: number) => {
     const contact = contacts[index];
     return contact ? contact.id : index;
   }, [contacts]);
 
-  // Reset size cache when expanded state changes
+  const getItemSize = useCallback((index: number) => {
+    if (loadingStates.has(index)) return LOADING_HEIGHT;
+    
+    const cachedHeight = heightMap[index];
+    const isExpanded = expandedIndices.has(index);
+
+    if (isExpanded) {
+      return cachedHeight || EXPANDED_HEIGHT;
+    }
+    
+    return cachedHeight ? Math.max(cachedHeight, COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
+  }, [loadingStates, heightMap, expandedIndices]);
+
   // Reset size cache when expanded state changes
   useEffect(() => {
     if (listRef.current) {
@@ -359,7 +354,7 @@ export const VirtualizedContactList = ({
   return (
     <List
       ref={listRef}
-      height={window.innerHeight - 200}
+      height={listHeight}
       itemCount={contacts.length}
       itemSize={getItemSize}
       width="100%"
