@@ -182,7 +182,7 @@ export const Contacts = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => setShowImportModal(true)}
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <UsersIcon className="h-5 w-5 mr-2" />
               Bulk Import
