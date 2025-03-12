@@ -40,6 +40,7 @@ interface RowProps {
     updateHeight: (index: number, height: number, isLoading?: boolean) => void;
     loadingStates: Set<number>;
     setLoadingStates: Dispatch<SetStateAction<Set<number>>>;
+    heightMap: Record<number, number>;
   };
 }
 
@@ -57,7 +58,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
     setExpandedIndices,
     updateHeight,
     loadingStates,
-    setLoadingStates
+    setLoadingStates,
+    heightMap
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -70,18 +72,23 @@ const Row = memo(({ index, style, data }: RowProps) => {
   const contact = contacts[index];
   if (!contact) return null;
 
-  // Update height when card expands/collapses or content loads
+  // Update height when expanded or on initial render
   useEffect(() => {
-    if (cardRef.current && expandedIndices.has(index)) {
-      // Use requestAnimationFrame to make the height update non-blocking
+    if (!cardRef.current) return;
+
+    const isExpanded = expandedIndices.has(index);
+    const hasInitialHeight = index in heightMap;
+
+    // Only measure if expanded or not yet measured
+    if (isExpanded || !hasInitialHeight) {
       requestAnimationFrame(() => {
-        if (cardRef.current) {  // Re-check ref in case component unmounted
-          const height = cardRef.current.offsetHeight + 16; // Account for 8px padding top and bottom
+        if (cardRef.current) {
+          const height = cardRef.current.offsetHeight + 16;
           updateHeight(index, height);
         }
       });
     }
-  }, [expandedIndices, index, loadingStates, updateHeight]);
+  }, [expandedIndices, index, loadingStates, updateHeight, heightMap]);
 
   return (
     <div style={{ ...style, padding: '8px 0' }}>
@@ -145,9 +152,17 @@ export const VirtualizedContactList = ({
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
     
   const getItemSize = (index: number) => {
-    if (!expandedIndices.has(index)) return COLLAPSED_HEIGHT;
     if (loadingStates.has(index)) return LOADING_HEIGHT;
-    return heightMap[index] || EXPANDED_HEIGHT;
+    
+    const cachedHeight = heightMap[index];
+    const isExpanded = expandedIndices.has(index);
+
+    if (isExpanded) {
+      return cachedHeight || EXPANDED_HEIGHT;
+    }
+    
+    // For collapsed cards, use cached height but ensure minimum height
+    return cachedHeight ? Math.max(cachedHeight, COLLAPSED_HEIGHT) : COLLAPSED_HEIGHT;
   };
   
   const listRef = useRef<VariableSizeList>(null);
@@ -213,7 +228,8 @@ export const VirtualizedContactList = ({
         setExpandedIndices,
         updateHeight,
         loadingStates,
-        setLoadingStates
+        setLoadingStates,
+        heightMap
       }}
     >
       {Row}
