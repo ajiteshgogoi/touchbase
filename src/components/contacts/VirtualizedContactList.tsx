@@ -162,7 +162,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
         // Cache height pattern based on content characteristics
         const isExpanded = expandedIndices.has(index);
-        const contentHash = `${isExpanded}-${loadingStates.has(index)}`;
+        const contentHash = `${isExpanded}-${loadingStates.has(index)}-${isSelectionMode}`;
         heightPatterns.current.set(contentHash, finalHeight);
 
         // Only update if significant change (>5px) to reduce unnecessary updates
@@ -507,7 +507,7 @@ export const VirtualizedContactList = ({
     const isLoading = loadingStates.has(index);
     
     // Use cached height pattern if available
-    const contentHash = `${isExpanded}-${isLoading}`;
+    const contentHash = `${isExpanded}-${loadingStates.has(index)}-${isSelectionMode}`;
     const patternHeight = heightPatterns.current?.get(contentHash);
     
     if (patternHeight) {
@@ -518,7 +518,7 @@ export const VirtualizedContactList = ({
     // Fallback to standard heights
     if (isLoading) return LOADING_HEIGHT;
     if (isExpanded) return heightMap[index] || EXPANDED_HEIGHT;
-    return isSelectionMode ? 100 : COLLAPSED_HEIGHT; // In selection mode, card is much smaller
+    return isSelectionMode ? 100 : (heightMap[index] || COLLAPSED_HEIGHT); // Prefer dynamic height in normal mode
   }, [loadingStates, heightMap, expandedIndices]);
 
   // Reset size cache when expanded state changes
