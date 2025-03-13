@@ -109,6 +109,26 @@ export const Contacts = () => {
       if (!isSelectionMode) return;
 
       const target = e.target as HTMLElement;
+      // For debugging
+      console.log('Click target classes:', target.className);
+      console.log('Parent elements:', Array.from(target.closest('div')?.classList || []));
+
+      // Check if click is on scrollbar
+      const isScrollbarClick = (e: MouseEvent) => {
+        // Find any scrollable container
+        const scrollContainer = target.closest('[data-virtualized-list]') ||
+                              target.closest('div[style*="overflow"]') ||
+                              document.querySelector('[role="grid"]');
+                              
+        if (!scrollContainer) return false;
+        
+        const rect = scrollContainer.getBoundingClientRect();
+        const isVerticalScrollbar = e.clientX > rect.right - 20 && e.clientX <= rect.right;
+        const isHorizontalScrollbar = e.clientY > rect.bottom - 20 && e.clientY <= rect.bottom;
+        
+        return isVerticalScrollbar || isHorizontalScrollbar;
+      };
+
       const isInteractive =
         target.tagName === 'BUTTON' ||
         target.tagName === 'INPUT' ||
@@ -119,7 +139,8 @@ export const Contacts = () => {
         target.closest('[role="button"]') ||
         target.classList.contains('bg-gradient-to-r') ||
         target.closest('button') ||
-        target.closest('a');
+        target.closest('a') ||
+        isScrollbarClick(e);
 
       if (!isInteractive) {
         handleExitSelectionMode();

@@ -605,6 +605,8 @@ export const VirtualizedContactList = ({
       overscanCount={overscanCount}
       onScroll={handleScroll}
       itemData={itemData}
+      data-virtualized-list
+      style={{ outline: 'none' }}
     >
       {Row}
     </List>
