@@ -69,44 +69,87 @@ export const ContactCard = ({
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isSelectionMode) {
-      // For touch events or left mouse button
-      if ('touches' in e || ('button' in e && e.button === 0)) {
-        pressStartTime.current = Date.now();
-        pressTimer.current = setTimeout(() => {
-          setIsLongPressing(true);
-          onStartSelectionMode?.();
-          onToggleSelect?.(contact.id);
-        }, 500);
-      }
-      // Store which mouse button was pressed
-      if ('button' in e) {
+    if (isSelectionMode) {
+      // In selection mode, handle touch/click immediately
+      if (!('button' in e)) {
+        // Touch event
+        e.preventDefault();
+        e.stopPropagation();
+        onToggleSelect?.(contact.id);
+      } else if (e.button === 0) {
+        // Left click
         mouseButton.current = e.button;
       }
+      return;
+    }
+
+    // Outside selection mode
+    pressStartTime.current = Date.now();
+    if ('button' in e) {
+      mouseButton.current = e.button;
+    }
+
+    // Set up long press timer for touch or left click
+    if ('touches' in e || ('button' in e && e.button === 0)) {
+      pressTimer.current = setTimeout(() => {
+        setIsLongPressing(true);
+        onStartSelectionMode?.();
+        onToggleSelect?.(contact.id);
+      }, 500);
     }
   };
 
   const handlePressEnd = (e: React.MouseEvent | React.TouchEvent) => {
+    // Clear long press timer if it exists
     if (pressTimer.current) {
       clearTimeout(pressTimer.current);
+      pressTimer.current = undefined;
     }
 
-    // Only handle click if it wasn't a long press
     const pressDuration = Date.now() - (pressStartTime.current || 0);
+    
+    // Reset press start time
+    pressStartTime.current = undefined;
+
+    // For touch events in selection mode, don't handle the end event
+    if (isSelectionMode && !('button' in e)) {
+      return;
+    }
+
+    // Handle interactions
     if (!isLongPressing && pressDuration < 500) {
-      // For selection mode or right click
-      if (isSelectionMode || ('button' in e && e.button === 2)) {
-        onToggleSelect?.(contact.id);
-      } else if ('button' in e && e.button === 0 && !e.ctrlKey && !e.metaKey) {
-        // Left click without modifier keys expands/collapses
-        onExpandChange(!isExpanded);
+      if (isSelectionMode) {
+        // In selection mode, only handle mouse clicks
+        if ('button' in e && e.button === 0) {
+          onToggleSelect?.(contact.id);
+        }
+      } else {
+        // Outside selection mode
+        if ('button' in e) {
+          if (e.button === 2) {
+            // Right click enters selection mode
+            onStartSelectionMode?.();
+            onToggleSelect?.(contact.id);
+          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+            // Regular left click without modifier keys expands/collapses
+            onExpandChange(!isExpanded);
+          }
+        } else {
+          // Regular tap expands/collapses when not in selection mode
+          onExpandChange(!isExpanded);
+        }
       }
     }
-    setIsLongPressing(false);
+
+    // Only reset long pressing state if we're not in selection mode
+    if (!isSelectionMode) {
+      setIsLongPressing(false);
+    }
   };
 
   const handlePressMove = () => {
-    if (pressTimer.current) {
+    // Only handle movement outside selection mode
+    if (!isSelectionMode && pressTimer.current) {
       clearTimeout(pressTimer.current);
       setIsLongPressing(false);
     }
@@ -129,8 +172,8 @@ export const ContactCard = ({
     e.preventDefault();
     if (!isSelectionMode) {
       onStartSelectionMode?.();
+      onToggleSelect?.(contact.id);
     }
-    onToggleSelect?.(contact.id);
   };
 
   // Cleanup timers on unmount
