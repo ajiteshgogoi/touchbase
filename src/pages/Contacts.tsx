@@ -218,31 +218,27 @@ export const Contacts = () => {
     <div 
       className="space-y-6"
       onClick={(e) => {
-          // Handle clicks on any non-interactive area to exit selection mode
-          const target = e.target as HTMLElement;
-          const isInteractive = 
-            target.tagName === 'BUTTON' ||
-            target.tagName === 'INPUT' ||
-            target.tagName === 'SELECT' ||
-            target.tagName === 'A' ||
-            target.closest('.contact-card') ||
-            target.closest('[role="button"]') ||
-            target.classList.contains('bg-gradient-to-r') || // Ignore gradient text
-            target.closest('button') || // Catch any nested button content
-            target.closest('a'); // Catch any nested link content
-          
-          if (isSelectionMode && !isInteractive) {
-            handleExitSelectionMode();
-          }
+        // Handle clicks on any non-interactive area to exit selection mode
+        const target = e.target as HTMLElement;
+        const isInteractive = 
+          target.tagName === 'BUTTON' ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'SELECT' ||
+          target.tagName === 'A' ||
+          target.closest('.contact-card') ||
+          target.closest('[role="button"]') ||
+          target.classList.contains('bg-gradient-to-r') || // Ignore gradient text
+          target.closest('button') || // Catch any nested button content
+          target.closest('a'); // Catch any nested link content
+        
+        if (isSelectionMode && !isInteractive) {
+          handleExitSelectionMode();
+        }
       }}
     >
-      <div 
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-      >
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div 
-            className="flex items-center gap-4"
-          >
+          <div className="flex items-center gap-4">
             {isSelectionMode ? (
               <button
                 onClick={handleExitSelectionMode}
@@ -260,8 +256,7 @@ export const Contacts = () => {
                 <ArrowLeftIcon className="h-5 w-5" />
               </button>
             )}
-            <div
-            >
+            <div>
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                 {isSelectionMode ? `${selectedContacts.size} Selected` : 'Contacts'}
               </h1>
@@ -322,24 +317,8 @@ export const Contacts = () => {
         )}
       </div>
 
-      <div 
-        className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft"
-        onClick={(e) => {
-          // Only handle clicks on the container itself, not bubbled events from children
-          if (e.target === e.currentTarget) {
-            handleExitSelectionMode();
-          }
-        }}
-      >
-        <div 
-          className="p-6 border-b border-gray-100"
-          onClick={(e) => {
-            // Exit selection mode when clicking white space in the header
-            if (e.target === e.currentTarget) {
-              handleExitSelectionMode();
-            }
-          }}
-        >
+      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="p-6 border-b border-gray-100">
           <div className="flex flex-col gap-4">
             <div className="flex flex-1 flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
@@ -377,11 +356,8 @@ export const Contacts = () => {
               </div>
             </div>
             {allHashtags.length > 0 && (
-              <div
-              >
-                <div 
-                  className="flex flex-wrap gap-2"
-                >
+              <div>
+                <div className="flex flex-wrap gap-2">
                   {allHashtags.map((tag, index) => (
                     <button
                       key={index}
@@ -400,9 +376,7 @@ export const Contacts = () => {
           </div>
         </div>
 
-        <div 
-          className="p-4 space-y-4"
-        >
+        <div className="p-4 space-y-4">
           {!isPremium && !isOnTrial && totalCount > 15 && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
               <p className="text-sm text-amber-800">
