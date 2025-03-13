@@ -114,19 +114,34 @@ export const Contacts = () => {
       console.log('Parent elements:', Array.from(target.closest('div')?.classList || []));
 
       // Check if click is on scrollbar
-      const isScrollbarClick = (e: MouseEvent) => {
-        // Find any scrollable container
+      const isScrollbarClick = (e: MouseEvent) => {        
+        // Check for virtualized list scrollbar first (keep existing working logic)
         const scrollContainer = target.closest('[data-virtualized-list]') ||
                               target.closest('div[style*="overflow"]') ||
                               document.querySelector('[role="grid"]');
-                              
-        if (!scrollContainer) return false;
         
-        const rect = scrollContainer.getBoundingClientRect();
-        const isVerticalScrollbar = e.clientX > rect.right - 20 && e.clientX <= rect.right;
-        const isHorizontalScrollbar = e.clientY > rect.bottom - 20 && e.clientY <= rect.bottom;
+        if (scrollContainer) {
+          const rect = scrollContainer.getBoundingClientRect();
+          const isContainerScrollbar = (
+            (e.clientX > rect.right - 20 && e.clientX <= rect.right) ||
+            (e.clientY > rect.bottom - 20 && e.clientY <= rect.bottom)
+          );
+          if (isContainerScrollbar) return true;
+        }
         
-        return isVerticalScrollbar || isHorizontalScrollbar;
+        // New approach: Check if click is directly on document/body
+        // This typically indicates a scrollbar click
+        if (target === document.documentElement || target === document.body) {
+          // Additional verification using coordinates
+          const windowWidth = document.documentElement.clientWidth;
+          const windowHeight = document.documentElement.clientHeight;
+          const isMainScrollbarVertical = e.clientX > windowWidth - 20;
+          const isMainScrollbarHorizontal = e.clientY > windowHeight - 20;
+          
+          return isMainScrollbarVertical || isMainScrollbarHorizontal;
+        }
+        
+        return false;
       };
 
       const isInteractive =
