@@ -218,35 +218,30 @@ export const Contacts = () => {
     <div 
       className="space-y-6"
       onClick={(e) => {
-        // Handle clicks on any container area that doesn't have interactive elements
-        if (isSelectionMode && 
-            (e.target as HTMLElement).tagName !== 'BUTTON' &&
-            (e.target as HTMLElement).tagName !== 'INPUT' &&
-            (e.target as HTMLElement).tagName !== 'SELECT' &&
-            (e.target as HTMLElement).tagName !== 'A' &&
-            !(e.target as HTMLElement).closest('.contact-card')) {
-          handleExitSelectionMode();
-        }
+          // Handle clicks on any non-interactive area to exit selection mode
+          const target = e.target as HTMLElement;
+          const isInteractive = 
+            target.tagName === 'BUTTON' ||
+            target.tagName === 'INPUT' ||
+            target.tagName === 'SELECT' ||
+            target.tagName === 'A' ||
+            target.closest('.contact-card') ||
+            target.closest('[role="button"]') ||
+            target.classList.contains('bg-gradient-to-r') || // Ignore gradient text
+            target.closest('button') || // Catch any nested button content
+            target.closest('a'); // Catch any nested link content
+          
+          if (isSelectionMode && !isInteractive) {
+            handleExitSelectionMode();
+          }
       }}
     >
       <div 
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        onClick={(e) => {
-          // Handle clicks on the header area
-          if (e.target === e.currentTarget && isSelectionMode) {
-            handleExitSelectionMode();
-          }
-        }}
       >
         <div>
           <div 
             className="flex items-center gap-4"
-            onClick={(e) => {
-              // Handle clicks in the title area
-              if (e.target === e.currentTarget && isSelectionMode) {
-                handleExitSelectionMode();
-              }
-            }}
           >
             {isSelectionMode ? (
               <button
@@ -266,12 +261,6 @@ export const Contacts = () => {
               </button>
             )}
             <div
-              onClick={(e) => {
-                // Handle clicks in the heading container
-                if (e.target === e.currentTarget && isSelectionMode) {
-                  handleExitSelectionMode();
-                }
-              }}
             >
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                 {isSelectionMode ? `${selectedContacts.size} Selected` : 'Contacts'}
@@ -389,21 +378,9 @@ export const Contacts = () => {
             </div>
             {allHashtags.length > 0 && (
               <div
-                onClick={(e) => {
-                  // Handle clicks in the categories container
-                  if (e.target === e.currentTarget && isSelectionMode) {
-                    handleExitSelectionMode();
-                  }
-                }}
               >
                 <div 
                   className="flex flex-wrap gap-2"
-                  onClick={(e) => {
-                    // Handle clicks in the categories area
-                    if (e.target === e.currentTarget && isSelectionMode) {
-                      handleExitSelectionMode();
-                    }
-                  }}
                 >
                   {allHashtags.map((tag, index) => (
                     <button
@@ -425,12 +402,6 @@ export const Contacts = () => {
 
         <div 
           className="p-4 space-y-4"
-          onClick={(e) => {
-            // Exit selection mode when clicking white space in the content area
-            if (e.target === e.currentTarget) {
-              handleExitSelectionMode();
-            }
-          }}
         >
           {!isPremium && !isOnTrial && totalCount > 15 && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
