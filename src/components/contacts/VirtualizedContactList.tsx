@@ -180,16 +180,16 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
     observer.observe(cardRef.current);
     return () => observer.disconnect();
-  }, [expandedIndices, index, loadingStates, updateHeight, heightMap, isScrolling]);
+  }, [expandedIndices, index, loadingStates, updateHeight, heightMap, isScrolling, isSelectionMode]);
 
   // Use cached height patterns when available
   useEffect(() => {
-    const contentHash = `${expandedIndices.has(index)}-${loadingStates.has(index)}`;
+    const contentHash = `${expandedIndices.has(index)}-${loadingStates.has(index)}-${isSelectionMode}`;
     const cachedHeight = heightPatterns.current.get(contentHash);
     if (cachedHeight && !heightMap[index]) {
       updateHeight(index, cachedHeight);
     }
-  }, [expandedIndices, index, loadingStates, heightMap, updateHeight]);
+  }, [expandedIndices, index, loadingStates, heightMap, updateHeight, isSelectionMode]);
 
   return (
     <div style={{
@@ -519,14 +519,14 @@ export const VirtualizedContactList = ({
     if (isLoading) return LOADING_HEIGHT;
     if (isExpanded) return heightMap[index] || EXPANDED_HEIGHT;
     return isSelectionMode ? 100 : (heightMap[index] || COLLAPSED_HEIGHT); // Prefer dynamic height in normal mode
-  }, [loadingStates, heightMap, expandedIndices]);
+  }, [loadingStates, heightMap, expandedIndices, isSelectionMode]);
 
   // Reset size cache when expanded state changes
   useEffect(() => {
     if (listRef.current) {
       listRef.current.resetAfterIndex(0);
     }
-  }, [expandedIndices]);
+  }, [expandedIndices, isSelectionMode]);
 
   // Handle hash navigation
   useEffect(() => {
@@ -546,7 +546,7 @@ export const VirtualizedContactList = ({
     // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [contacts]);
+  }, [contacts, isSelectionMode]);
 
   const itemData = useMemo(() => ({
     contacts,
