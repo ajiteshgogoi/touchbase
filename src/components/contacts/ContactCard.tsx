@@ -144,10 +144,17 @@ export const ContactCard = ({
     staleTime: 5 * 60 * 1000,
   });
 
-  // Notify parent about loading state changes
+  // Notify parent about loading state changes and handle selection mode
   useEffect(() => {
     onLoadingChange?.(isLoading);
   }, [isLoading, onLoadingChange]);
+
+  // Collapse card when entering selection mode
+  useEffect(() => {
+    if (isSelectionMode && isExpanded) {
+      onExpandChange(false);
+    }
+  }, [isSelectionMode, isExpanded, onExpandChange]);
 
   const handleDeleteContact = async () => {
     if (confirm('Are you sure you want to delete this contact?')) {
@@ -188,14 +195,21 @@ export const ContactCard = ({
       {/* Compact Header */}
       <div
         onClick={(e) => {
-          if (isSelectionMode) {
+          // Only handle click for touch events and expand/collapse
+          if (!('button' in e) && isSelectionMode) {
             onToggleSelect?.(contact.id);
-          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey && !isSelectionMode) {
             onExpandChange(!isExpanded);
           }
         }}
         onMouseDown={handlePressStart}
-        onMouseUp={handlePressEnd}
+        onMouseUp={(e) => {
+          // Handle selection on mouse up in selection mode
+          if (isSelectionMode && e.button === 0) {
+            onToggleSelect?.(contact.id);
+          }
+          handlePressEnd(e);
+        }}
         onMouseMove={handlePressMove}
         onMouseLeave={handlePressEnd}
         onTouchStart={(e) => {
