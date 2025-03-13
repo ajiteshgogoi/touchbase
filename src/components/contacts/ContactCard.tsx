@@ -69,8 +69,14 @@ export const ContactCard = ({
 
   const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isSelectionMode) {
-      // For touch events or left mouse button
-      if ('touches' in e || ('button' in e && e.button === 0)) {
+      // For touch events - immediate selection
+      if ('touches' in e) {
+        onStartSelectionMode?.();
+        onToggleSelect?.(contact.id);
+        return; // Skip mouse handling for touch events
+      }
+      // For left mouse button - keep long press behavior
+      if ('button' in e && e.button === 0) {
         pressStartTime.current = Date.now();
         pressTimer.current = setTimeout(() => {
           setIsLongPressing(true);
