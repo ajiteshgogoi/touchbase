@@ -112,7 +112,11 @@ const Row = memo(({ index, style, data }: RowProps) => {
   // Handle empty state
   if (!isLoading && contacts.length === 0) {
     return (
-      <div style={{ ...style, padding: '8px 0' }}>
+      <div style={{ 
+        ...style, 
+        padding: data.isSelectionMode ? '4px 0' : '8px 0',
+        transition: 'padding 150ms ease-in-out'
+      }}>
         <div className="p-12 text-center text-gray-500">
           No contacts found
         </div>
@@ -125,7 +129,11 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
   if (isLoading) {
     return (
-      <div style={{ ...style, padding: '8px 0' }}>
+    <div style={{
+      ...style,
+      padding: isSelectionMode ? '4px 0' : '8px 0',
+      transition: 'padding 150ms ease-in-out'
+    }}>
         <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="animate-pulse space-y-4">
             <div className="h-6 bg-gray-200 rounded w-1/3"></div>
@@ -184,7 +192,11 @@ const Row = memo(({ index, style, data }: RowProps) => {
   }, [expandedIndices, index, loadingStates, heightMap, updateHeight]);
 
   return (
-    <div style={{ ...style, padding: '8px 0' }}>
+    <div style={{
+      ...style,
+      padding: isSelectionMode ? '4px 0' : '8px 0',
+      transition: 'padding 150ms ease-in-out'
+    }}>
       <div
         ref={cardRef}
         style={{
