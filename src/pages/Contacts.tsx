@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useMemo } from 'react';
+import { useState, lazy, Suspense, useMemo, useEffect } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
@@ -102,6 +102,33 @@ export const Contacts = () => {
     setIsSelectionMode(false);
     setSelectedContacts(new Set());
   };
+
+  // Handle document-level clicks
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      if (!isSelectionMode) return;
+
+      const target = e.target as HTMLElement;
+      const isInteractive =
+        target.tagName === 'BUTTON' ||
+        target.tagName === 'INPUT' ||
+        target.tagName === 'SELECT' ||
+        target.tagName === 'A' ||
+        target.closest('.react-window-list') ||
+        target.closest('[style*="padding: 8px"]') ||
+        target.closest('[role="button"]') ||
+        target.classList.contains('bg-gradient-to-r') ||
+        target.closest('button') ||
+        target.closest('a');
+
+      if (!isInteractive) {
+        handleExitSelectionMode();
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    return () => document.removeEventListener('mousedown', handleDocumentClick);
+  }, [isSelectionMode]);
 
   const handleImportMethod = async (method: 'google' | 'csv_upload' | 'csv_template') => {
     if (method === 'csv_template') {
@@ -215,27 +242,7 @@ export const Contacts = () => {
   const canAddMore = totalCount < contactLimit;
 
   return (
-    <div 
-      className="space-y-6"
-      onClick={(e) => {
-        // Handle clicks on any non-interactive area to exit selection mode
-        const target = e.target as HTMLElement;
-        const isInteractive = 
-          target.tagName === 'BUTTON' ||
-          target.tagName === 'INPUT' ||
-          target.tagName === 'SELECT' ||
-          target.tagName === 'A' ||
-          target.closest('.contact-card') ||
-          target.closest('[role="button"]') ||
-          target.classList.contains('bg-gradient-to-r') || // Ignore gradient text
-          target.closest('button') || // Catch any nested button content
-          target.closest('a'); // Catch any nested link content
-        
-        if (isSelectionMode && !isInteractive) {
-          handleExitSelectionMode();
-        }
-      }}
-    >
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-4">

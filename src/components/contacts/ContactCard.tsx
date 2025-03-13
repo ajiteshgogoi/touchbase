@@ -66,6 +66,7 @@ export const ContactCard = ({
   const pressTimer = useRef<NodeJS.Timeout>();
   const pressStartTime = useRef<number>();
   const mouseButton = useRef<number>();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isSelectionMode) {
@@ -184,7 +185,8 @@ export const ContactCard = ({
   return (
     <div
       id={contact.id}
-      className={`bg-white/60 backdrop-blur-xl rounded-xl border ${
+      ref={cardRef}
+      className={`contact-card bg-white/60 backdrop-blur-xl rounded-xl border ${
         isSelected ? 'border-primary-400 shadow-md' : 'border-gray-100/50 shadow-soft hover:shadow-md'
       } transition-all duration-200 scroll-mt-6`}
     >
