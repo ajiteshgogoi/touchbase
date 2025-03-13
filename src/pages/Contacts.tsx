@@ -12,12 +12,15 @@ import {
   ChevronUpDownIcon,
   ArrowLeftIcon,
   UsersIcon,
+  TrashIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline/esm/index.js';
 import { BulkImportModal } from '../components/contacts/BulkImportModal';
 import type { BasicContact, Interaction, ImportantEvent } from '../lib/supabase/types';
 import { formatHashtagForDisplay } from '../components/contacts/utils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+
 // Lazy load QuickInteraction
 const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
 
@@ -45,8 +48,60 @@ export const Contacts = () => {
     contactName: string;
   } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
 
   const { isPremium, isOnTrial } = useStore();
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (!selectedContacts.size) return;
+    
+    if (confirm(`Are you sure you want to delete ${selectedContacts.size} contacts?`)) {
+      try {
+        await contactsService.bulkDeleteContacts(Array.from(selectedContacts));
+        setSelectedContacts(new Set());
+        setIsSelectionMode(false);
+        await refetch();
+      } catch (error) {
+        console.error('Error bulk deleting contacts:', error);
+        alert('Failed to delete contacts. Please try again.');
+      }
+    }
+  };
+
+  // Handle selection toggle for a contact
+  const handleToggleSelect = (contactId: string) => {
+    setSelectedContacts(prev => {
+      const next = new Set(prev);
+      if (next.has(contactId)) {
+        next.delete(contactId);
+      } else {
+        next.add(contactId);
+      }
+      return next;
+    });
+  };
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (selectedContacts.size === contacts.length) {
+      setSelectedContacts(new Set());
+    } else {
+      setSelectedContacts(new Set(contacts.map(c => c.id)));
+    }
+  };
+
+  // Start selection mode
+  const handleStartSelectionMode = () => {
+    setIsSelectionMode(true);
+  };
+
+  // Exit selection mode
+  const handleExitSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedContacts(new Set());
+  };
 
   const handleImportMethod = async (method: 'google' | 'csv_upload' | 'csv_template') => {
     if (method === 'csv_template') {
@@ -164,46 +219,81 @@ export const Contacts = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
-              aria-label="Go back"
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
-            </button>
+            {isSelectionMode ? (
+              <button
+                onClick={handleExitSelectionMode}
+                className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+                aria-label="Exit selection mode"
+              >
+                <ArrowLeftIcon className="h-5 w-5" />
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+                aria-label="Go back"
+              >
+                <ArrowLeftIcon className="h-5 w-5" />
+              </button>
+            )}
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Contacts</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+                {isSelectionMode ? `${selectedContacts.size} Selected` : 'Contacts'}
+              </h1>
               <p className="mt-1.5 text-[15px] text-gray-600/90">
-                Keep your relationships intentional with a focused contact list
+                {isSelectionMode 
+                  ? 'Select contacts to delete in bulk'
+                  : 'Keep your relationships intentional with a focused contact list'
+                }
               </p>
             </div>
           </div>
         </div>
-        {canAddMore ? (
+        {isSelectionMode ? (
           <div className="flex flex-col sm:flex-row gap-3">
             <button
-              onClick={() => setShowImportModal(true)}
+              onClick={handleSelectAll}
               className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
-              <UsersIcon className="h-5 w-5 mr-2" />
-              Bulk Import
+              <CheckCircleIcon className="h-5 w-5 mr-2" />
+              {selectedContacts.size === contacts.length ? 'Deselect All' : 'Select All'}
             </button>
-            <Link
-              to="/contacts/new"
-              state={{ from: '/contacts' }}
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+            <button
+              onClick={handleBulkDelete}
+              disabled={selectedContacts.size === 0}
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
-              <UserPlusIcon className="h-5 w-5 mr-2" />
-              Add Contact
-            </Link>
+              <TrashIcon className="h-5 w-5 mr-2" />
+              Delete Selected
+            </button>
           </div>
         ) : (
-          <Link
-            to="/settings"
-            className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-          >
-            Upgrade to add more contacts
-          </Link>
+          canAddMore ? (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              >
+                <UsersIcon className="h-5 w-5 mr-2" />
+                Bulk Import
+              </button>
+              <Link
+                to="/contacts/new"
+                state={{ from: '/contacts' }}
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              >
+                <UserPlusIcon className="h-5 w-5 mr-2" />
+                Add Contact
+              </Link>
+            </div>
+          ) : (
+            <Link
+              to="/settings"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+            >
+              Upgrade to add more contacts
+            </Link>
+          )
         )}
       </div>
 
@@ -295,6 +385,10 @@ export const Contacts = () => {
             loadMore={() => fetchNextPage()}
             isLoading={isLoading}
             isContactsPage={true}
+            selectedContacts={selectedContacts}
+            isSelectionMode={isSelectionMode}
+            onToggleSelect={handleToggleSelect}
+            onStartSelectionMode={handleStartSelectionMode}
           />
         </div>
       </div>

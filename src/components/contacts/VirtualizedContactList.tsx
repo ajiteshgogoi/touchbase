@@ -31,6 +31,10 @@ interface VirtualizedContactListProps {
   loadMore: () => void;
   isLoading?: boolean;
   isContactsPage?: boolean;
+  selectedContacts?: Set<string>;
+  isSelectionMode?: boolean;
+  onToggleSelect?: (contactId: string) => void;
+  onStartSelectionMode?: () => void;
 }
 
 interface RowProps {
@@ -54,6 +58,10 @@ interface RowProps {
     isLoading?: boolean;
     isScrolling: boolean;
     isContactsPage?: boolean;
+    selectedContacts?: Set<string>;
+    isSelectionMode?: boolean;
+    onToggleSelect?: (contactId: string) => void;
+    onStartSelectionMode?: () => void;
   };
 }
 
@@ -75,7 +83,11 @@ const Row = memo(({ index, style, data }: RowProps) => {
     heightMap,
     isLoading,
     isScrolling,
-    isContactsPage
+    isContactsPage,
+    selectedContacts,
+    isSelectionMode,
+    onToggleSelect,
+    onStartSelectionMode
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -216,6 +228,10 @@ const Row = memo(({ index, style, data }: RowProps) => {
               updateHeight(index, height, false);
             }
           }}
+          isSelected={selectedContacts?.has(contact.id)}
+          isSelectionMode={isSelectionMode}
+          onToggleSelect={onToggleSelect}
+          onStartSelectionMode={onStartSelectionMode}
         />
       </div>
     </div>
@@ -234,7 +250,11 @@ export const VirtualizedContactList = ({
   hasNextPage,
   loadMore,
   isLoading,
-  isContactsPage
+  isContactsPage,
+  selectedContacts,
+  isSelectionMode,
+  onToggleSelect,
+  onStartSelectionMode
 }: VirtualizedContactListProps) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
@@ -533,7 +553,11 @@ export const VirtualizedContactList = ({
     heightMap,
     isLoading,
     isScrolling: isScrolling.current,
-    isContactsPage
+    isContactsPage,
+    selectedContacts,
+    isSelectionMode,
+    onToggleSelect,
+    onStartSelectionMode
   }), [
     contacts,
     eventsMap,
@@ -551,7 +575,11 @@ export const VirtualizedContactList = ({
     heightMap,
     isLoading,
     isScrolling,
-    isContactsPage
+    isContactsPage,
+    selectedContacts,
+    isSelectionMode,
+    onToggleSelect,
+    onStartSelectionMode
   ]);
 
   return (

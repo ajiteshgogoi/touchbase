@@ -734,6 +734,45 @@ export const contactsService = {
     if (error) throw error;
   },
 
+  /**
+   * Delete multiple contacts and their associated data in bulk
+   * @param contactIds Array of contact IDs to delete
+   */
+  async bulkDeleteContacts(contactIds: string[]): Promise<void> {
+    if (!contactIds.length) return;
+
+    // Delete all interactions for these contacts
+    const { error: interactionsError } = await supabase
+      .from('interactions')
+      .delete()
+      .in('contact_id', contactIds);
+    
+    if (interactionsError) throw interactionsError;
+
+    // Delete all reminders for these contacts
+    const { error: remindersError } = await supabase
+      .from('reminders')
+      .delete()
+      .in('contact_id', contactIds);
+    
+    if (remindersError) throw remindersError;
+
+    // Important events will be automatically deleted due to ON DELETE CASCADE
+
+    // Finally delete the contacts
+    const { error: contactError } = await supabase
+      .from('contacts')
+      .delete()
+      .in('id', contactIds);
+    
+    if (contactError) throw contactError;
+
+    // Invalidate all related caches after bulk deletion
+    getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
+    getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+  },
+
   async handleMissedInteraction(contactId: string): Promise<void> {
     const contact = await this.getContact(contactId);
     if (!contact) throw new Error('Contact not found');
