@@ -470,9 +470,9 @@ export const ContactCard = ({
         </div>
       )}
 
-      {/* Action Buttons - Always Visible */}
-      {!isSelectionMode && (
-        <div className="p-4 border-t border-gray-100/50 bg-white/30">
+      {/* Action Buttons */}
+      <div className={!isSelectionMode ? "p-4 border-t border-gray-100/50 bg-white/30" : ""}>
+        {!isSelectionMode && (
           <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
             <button
               onClick={() => onQuickInteraction({ contactId: contact.id, type: 'call', contactName: contact.name })}
@@ -501,8 +501,8 @@ export const ContactCard = ({
               </Link>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

@@ -114,7 +114,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
     return (
       <div style={{ 
         ...style, 
-        padding: data.isSelectionMode ? '4px 0' : '8px 0',
+        padding: '8px 0',
         transition: 'padding 150ms ease-in-out'
       }}>
         <div className="p-12 text-center text-gray-500">
@@ -131,7 +131,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
     return (
     <div style={{
       ...style,
-      padding: isSelectionMode ? '4px 0' : '8px 0',
+      padding: '8px 0',
       transition: 'padding 150ms ease-in-out'
     }}>
         <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -194,7 +194,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
   return (
     <div style={{
       ...style,
-      padding: isSelectionMode ? '4px 0' : '8px 0',
+      padding: '8px 0',
       transition: 'padding 150ms ease-in-out'
     }}>
       <div
@@ -518,7 +518,7 @@ export const VirtualizedContactList = ({
     // Fallback to standard heights
     if (isLoading) return LOADING_HEIGHT;
     if (isExpanded) return heightMap[index] || EXPANDED_HEIGHT;
-    return COLLAPSED_HEIGHT;
+    return isSelectionMode ? 100 : COLLAPSED_HEIGHT; // In selection mode, card is much smaller
   }, [loadingStates, heightMap, expandedIndices]);
 
   // Reset size cache when expanded state changes
