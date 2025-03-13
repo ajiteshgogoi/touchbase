@@ -518,7 +518,7 @@ export const VirtualizedContactList = ({
     // Fallback to standard heights
     if (isLoading) return LOADING_HEIGHT;
     if (isExpanded) return heightMap[index] || EXPANDED_HEIGHT;
-    return isSelectionMode ? 100 : (heightMap[index] || COLLAPSED_HEIGHT); // Prefer dynamic height in normal mode
+    return heightMap[index] || COLLAPSED_HEIGHT; // Always use dynamic height measurements
   }, [loadingStates, heightMap, expandedIndices, isSelectionMode]);
 
   // Reset size cache when expanded state changes
