@@ -215,10 +215,39 @@ export const Contacts = () => {
   const canAddMore = totalCount < contactLimit;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div 
+      className="space-y-6"
+      onClick={(e) => {
+        // Handle clicks on any container area that doesn't have interactive elements
+        if (isSelectionMode && 
+            (e.target as HTMLElement).tagName !== 'BUTTON' &&
+            (e.target as HTMLElement).tagName !== 'INPUT' &&
+            (e.target as HTMLElement).tagName !== 'SELECT' &&
+            (e.target as HTMLElement).tagName !== 'A' &&
+            !(e.target as HTMLElement).closest('.contact-card')) {
+          handleExitSelectionMode();
+        }
+      }}
+    >
+      <div 
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        onClick={(e) => {
+          // Handle clicks on the header area
+          if (e.target === e.currentTarget && isSelectionMode) {
+            handleExitSelectionMode();
+          }
+        }}
+      >
         <div>
-          <div className="flex items-center gap-4">
+          <div 
+            className="flex items-center gap-4"
+            onClick={(e) => {
+              // Handle clicks in the title area
+              if (e.target === e.currentTarget && isSelectionMode) {
+                handleExitSelectionMode();
+              }
+            }}
+          >
             {isSelectionMode ? (
               <button
                 onClick={handleExitSelectionMode}
@@ -236,7 +265,14 @@ export const Contacts = () => {
                 <ArrowLeftIcon className="h-5 w-5" />
               </button>
             )}
-            <div>
+            <div
+              onClick={(e) => {
+                // Handle clicks in the heading container
+                if (e.target === e.currentTarget && isSelectionMode) {
+                  handleExitSelectionMode();
+                }
+              }}
+            >
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                 {isSelectionMode ? `${selectedContacts.size} Selected` : 'Contacts'}
               </h1>
@@ -297,8 +333,24 @@ export const Contacts = () => {
         )}
       </div>
 
-      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
-        <div className="p-6 border-b border-gray-100">
+      <div 
+        className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft"
+        onClick={(e) => {
+          // Only handle clicks on the container itself, not bubbled events from children
+          if (e.target === e.currentTarget) {
+            handleExitSelectionMode();
+          }
+        }}
+      >
+        <div 
+          className="p-6 border-b border-gray-100"
+          onClick={(e) => {
+            // Exit selection mode when clicking white space in the header
+            if (e.target === e.currentTarget) {
+              handleExitSelectionMode();
+            }
+          }}
+        >
           <div className="flex flex-col gap-4">
             <div className="flex flex-1 flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
@@ -336,8 +388,23 @@ export const Contacts = () => {
               </div>
             </div>
             {allHashtags.length > 0 && (
-              <div>
-                <div className="flex flex-wrap gap-2">
+              <div
+                onClick={(e) => {
+                  // Handle clicks in the categories container
+                  if (e.target === e.currentTarget && isSelectionMode) {
+                    handleExitSelectionMode();
+                  }
+                }}
+              >
+                <div 
+                  className="flex flex-wrap gap-2"
+                  onClick={(e) => {
+                    // Handle clicks in the categories area
+                    if (e.target === e.currentTarget && isSelectionMode) {
+                      handleExitSelectionMode();
+                    }
+                  }}
+                >
                   {allHashtags.map((tag, index) => (
                     <button
                       key={index}
@@ -356,7 +423,15 @@ export const Contacts = () => {
           </div>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div 
+          className="p-4 space-y-4"
+          onClick={(e) => {
+            // Exit selection mode when clicking white space in the content area
+            if (e.target === e.currentTarget) {
+              handleExitSelectionMode();
+            }
+          }}
+        >
           {!isPremium && !isOnTrial && totalCount > 15 && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
               <p className="text-sm text-amber-800">
