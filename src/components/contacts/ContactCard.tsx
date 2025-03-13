@@ -62,49 +62,81 @@ export const ContactCard = ({
   onStartSelectionMode
 }: ContactCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isLongPress, setIsLongPress] = useState(false);
-  const longPressTimer = useRef<NodeJS.Timeout>();
-  const touchStartTime = useRef<number>();
+  const [isLongPressing, setIsLongPressing] = useState(false);
+  const pressTimer = useRef<NodeJS.Timeout>();
+  const pressStartTime = useRef<number>();
+  const mouseButton = useRef<number>();
 
-  const handleTouchStart = () => {
+  const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isSelectionMode) {
-      touchStartTime.current = Date.now();
-      longPressTimer.current = setTimeout(() => {
-        setIsLongPress(true);
-        onStartSelectionMode?.();
-        onToggleSelect?.(contact.id);
-      }, 500);
+      // For touch events or left mouse button
+      if ('touches' in e || ('button' in e && e.button === 0)) {
+        pressStartTime.current = Date.now();
+        pressTimer.current = setTimeout(() => {
+          setIsLongPressing(true);
+          onStartSelectionMode?.();
+          onToggleSelect?.(contact.id);
+        }, 500);
+      }
+      // Store which mouse button was pressed
+      if ('button' in e) {
+        mouseButton.current = e.button;
+      }
     }
   };
 
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
+  const handlePressEnd = (e: React.MouseEvent | React.TouchEvent) => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
     }
+
     // Only handle click if it wasn't a long press
-    const touchDuration = Date.now() - (touchStartTime.current || 0);
-    if (!isLongPress && touchDuration < 500) {
+    const pressDuration = Date.now() - (pressStartTime.current || 0);
+    if (!isLongPressing && pressDuration < 500) {
+      // For selection mode or right click
+      if (isSelectionMode || ('button' in e && e.button === 2)) {
+        onToggleSelect?.(contact.id);
+      } else if ('button' in e && e.button === 0 && !e.ctrlKey && !e.metaKey) {
+        // Left click without modifier keys expands/collapses
+        onExpandChange(!isExpanded);
+      }
+    }
+    setIsLongPressing(false);
+  };
+
+  const handlePressMove = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      setIsLongPressing(false);
+    }
+  };
+
+  // Handle keyboard shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
       if (isSelectionMode) {
         onToggleSelect?.(contact.id);
       } else {
         onExpandChange(!isExpanded);
       }
     }
-    setIsLongPress(false);
   };
 
-  const handleTouchMove = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      setIsLongPress(false);
+  // Handle right click
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isSelectionMode) {
+      onStartSelectionMode?.();
     }
+    onToggleSelect?.(contact.id);
   };
 
-  // Cleanup timer on unmount
+  // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
+      if (pressTimer.current) {
+        clearTimeout(pressTimer.current);
       }
     };
   }, []);
@@ -158,10 +190,18 @@ export const ContactCard = ({
     >
       {/* Compact Header */}
       <div
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchMove}
-        onTouchCancel={handleTouchEnd}
+        onMouseDown={handlePressStart}
+        onMouseUp={handlePressEnd}
+        onMouseMove={handlePressMove}
+        onMouseLeave={handlePressEnd}
+        onTouchStart={handlePressStart}
+        onTouchEnd={handlePressEnd}
+        onTouchMove={handlePressMove}
+        onTouchCancel={handlePressEnd}
+        onContextMenu={handleContextMenu}
+        onKeyDown={handleKeyDown}
+        role="button"
+        tabIndex={0}
         className="flex items-center justify-between p-4"
       >
         {/* Left side: Status indicator and name */}
