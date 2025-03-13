@@ -62,37 +62,20 @@ export const ContactCard = ({
   onStartSelectionMode
 }: ContactCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isLongPressing, setIsLongPressing] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout>();
   const pressStartTime = useRef<number>();
   const mouseButton = useRef<number>();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (isSelectionMode) {
-      // In selection mode, handle touch/click immediately
-      if (!('button' in e)) {
-        // Touch event
-        e.preventDefault();
-        e.stopPropagation();
-        onToggleSelect?.(contact.id);
-      } else if (e.button === 0) {
-        // Left click
+    // Only handle long press when not in selection mode
+    if (!isSelectionMode) {
+      pressStartTime.current = Date.now();
+      if ('button' in e) {
         mouseButton.current = e.button;
       }
-      return;
-    }
 
-    // Outside selection mode
-    pressStartTime.current = Date.now();
-    if ('button' in e) {
-      mouseButton.current = e.button;
-    }
-
-    // Set up long press timer for touch or left click
-    if ('touches' in e || ('button' in e && e.button === 0)) {
       pressTimer.current = setTimeout(() => {
-        setIsLongPressing(true);
         onStartSelectionMode?.();
         onToggleSelect?.(contact.id);
       }, 500);
@@ -100,50 +83,19 @@ export const ContactCard = ({
   };
 
   const handlePressEnd = (e: React.MouseEvent | React.TouchEvent) => {
-    // Clear long press timer if it exists
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = undefined;
-    }
-
-    const pressDuration = Date.now() - (pressStartTime.current || 0);
-    
-    // Reset press start time
-    pressStartTime.current = undefined;
-
-    // For touch events in selection mode, don't handle the end event
-    if (isSelectionMode && !('button' in e)) {
-      return;
-    }
-
-    // Handle interactions
-    if (!isLongPressing && pressDuration < 500) {
-      if (isSelectionMode) {
-        // In selection mode, only handle mouse clicks
-        if ('button' in e && e.button === 0) {
-          onToggleSelect?.(contact.id);
-        }
-      } else {
-        // Outside selection mode
-        if ('button' in e) {
-          if (e.button === 2) {
-            // Right click enters selection mode
-            onStartSelectionMode?.();
-            onToggleSelect?.(contact.id);
-          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
-            // Regular left click without modifier keys expands/collapses
-            onExpandChange(!isExpanded);
-          }
-        } else {
-          // Regular tap expands/collapses when not in selection mode
-          onExpandChange(!isExpanded);
-        }
-      }
-    }
-
-    // Only reset long pressing state if we're not in selection mode
+    // Only handle events when not in selection mode
     if (!isSelectionMode) {
-      setIsLongPressing(false);
+      if (pressTimer.current) {
+        clearTimeout(pressTimer.current);
+        pressTimer.current = undefined;
+      }
+      pressStartTime.current = undefined;
+
+      // Handle right click to enter selection mode
+      if ('button' in e && e.button === 2) {
+        onStartSelectionMode?.();
+        onToggleSelect?.(contact.id);
+      }
     }
   };
 
@@ -151,7 +103,7 @@ export const ContactCard = ({
     // Only handle movement outside selection mode
     if (!isSelectionMode && pressTimer.current) {
       clearTimeout(pressTimer.current);
-      setIsLongPressing(false);
+      pressTimer.current = undefined;
     }
   };
 
@@ -235,12 +187,27 @@ export const ContactCard = ({
     >
       {/* Compact Header */}
       <div
+        onClick={(e) => {
+          if (isSelectionMode) {
+            onToggleSelect?.(contact.id);
+          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+            onExpandChange(!isExpanded);
+          }
+        }}
         onMouseDown={handlePressStart}
         onMouseUp={handlePressEnd}
         onMouseMove={handlePressMove}
         onMouseLeave={handlePressEnd}
-        onTouchStart={handlePressStart}
-        onTouchEnd={handlePressEnd}
+        onTouchStart={(e) => {
+          if (!isSelectionMode) {
+            handlePressStart(e);
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (!isSelectionMode) {
+            handlePressEnd(e);
+          }
+        }}
         onTouchMove={handlePressMove}
         onTouchCancel={handlePressEnd}
         onContextMenu={handleContextMenu}
@@ -252,11 +219,7 @@ export const ContactCard = ({
         {/* Left side: Status indicator and name */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {isSelectionMode && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleSelect?.(contact.id);
-              }}
+            <div
               className={`flex-shrink-0 rounded-lg p-1 -m-1 transition-colors ${
                 isSelected ? 'text-primary-500' : 'text-gray-400 hover:text-primary-500'
               }`}
@@ -265,7 +228,7 @@ export const ContactCard = ({
               <CheckCircleIcon
                 className={`h-6 w-6 ${isSelected ? 'fill-primary-50' : ''}`}
               />
-            </button>
+            </div>
           )}
           <div className="py-1">
             <div className={`flex items-center space-y-1 ${!isSelectionMode ? '-ml-2' : ''}`}>
