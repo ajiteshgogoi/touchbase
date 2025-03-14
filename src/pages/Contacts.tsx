@@ -3,6 +3,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
+import { supabase } from '../lib/supabase/client';
 import { contactsPaginationService } from '../services/pagination';
 import { useStore } from '../stores/useStore';
 import { VirtualizedContactList } from '../components/contacts/VirtualizedContactList';
@@ -82,13 +83,45 @@ export const Contacts = () => {
       return next;
     });
   };
-
   // Handle select all
-  const handleSelectAll = () => {
-    if (selectedContacts.size === contacts.length) {
-      setSelectedContacts(new Set());
-    } else {
-      setSelectedContacts(new Set(contacts.map(c => c.id)));
+  const handleSelectAll = async () => {
+    try {
+      if (selectedContacts.size === totalCount) {
+        setSelectedContacts(new Set());
+      } else {
+        // Get all contact IDs with current filters
+        let query = supabase
+          .from('contacts')
+          .select('id');
+          
+        if (debouncedSearchQuery) {
+          query = query.or(`name.ilike.%${debouncedSearchQuery}%,phone.ilike.%${debouncedSearchQuery}%,social_media_handle.ilike.%${debouncedSearchQuery}%`);
+        }
+
+        if (selectedCategories.length > 0) {
+          const categoryConditions = selectedCategories
+            .map(category => {
+              const hashtagQuery = category.startsWith('#') ? category : `#${category}`;
+              return `notes.ilike.%${hashtagQuery.toLowerCase()}%`;
+            })
+            .join(',');
+          query = query.or(categoryConditions);
+        }
+
+        // Apply sorting to maintain consistency with current view
+        query = query.order(sortField, { ascending: sortOrder === 'asc' });
+
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        // TypeScript type guard for the response data
+        if (data && Array.isArray(data)) {
+          setSelectedContacts(new Set(data.map(contact => contact.id as string)));
+        }
+      }
+    } catch (error) {
+      console.error('Error selecting all contacts:', error);
+      alert('Failed to select all contacts. Please try again.');
     }
   };
 
@@ -319,7 +352,7 @@ export const Contacts = () => {
               className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <CheckCircleIcon className="h-5 w-5 mr-2" />
-              {selectedContacts.size === contacts.length ? 'Deselect All' : 'Select All'}
+              {selectedContacts.size === totalCount ? 'Deselect All' : 'Select All'}
             </button>
             <button
               onClick={handleBulkDelete}
