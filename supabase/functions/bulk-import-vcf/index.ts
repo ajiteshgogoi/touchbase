@@ -545,14 +545,8 @@ serve(async (req) => {
     await writer.write(encoder.encode(JSON.stringify({ type: 'result', ...result }) + '\n'));
     await writer.close();
 
-    return new Response(stream.readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        ...createResponse({}).headers
-      }
-    });
+    // Use createResponse with streaming body
+    return createResponse(stream.readable, {}, 'default');
   } catch (error) {
     console.error('Error processing VCF import:', error);
     // Close stream with error
@@ -567,14 +561,7 @@ serve(async (req) => {
     await writer.write(encoder.encode(JSON.stringify(errorResult) + '\n'));
     await writer.close();
 
-    return new Response(stream.readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        ...createResponse({}).headers
-      },
-      status: 500
-    });
+    // Use createResponse with streaming body and error status
+    return createResponse(stream.readable, { status: 500 }, 'default');
   }
 });
