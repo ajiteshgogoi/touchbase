@@ -70,7 +70,7 @@ export const OnboardingStep2 = ({ onNext, onBack }: OnboardingStep2Props) => {
 
         {notificationsEnabled && (
           <div className="p-6 bg-primary-50/50 rounded-xl border border-primary-100/50 shadow-soft">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center gap-3">
               <CheckCircleIcon className="w-5 h-5 text-primary-500" />
               <p className="text-sm text-primary-700 font-medium">
                 Notifications enabled successfully!
