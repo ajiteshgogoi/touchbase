@@ -90,8 +90,36 @@ function validateSocialMediaPlatform(platform: string): string | null {
 function processVCardLine(line: string, contact: Contact, timezone: string): void {
   if (line.startsWith('FN:')) {
     contact.name = line.substring(3).trim();
-  } else if (line.startsWith('TEL:')) {
-    contact.phone = line.substring(4).trim();
+  } else if (line.startsWith('TEL')) {
+    // Get the full line for type checking
+    const telLine = line.toLowerCase();
+    const number = line.substring(line.indexOf(':') + 1).trim();
+  
+    // Skip empty numbers
+    if (!number) return;
+  
+    // Priority order:
+    // 1. Mobile/Cell
+    // 2. Main/Primary
+    // 3. Home
+    // 4. Work
+    // 5. Other (first encountered)
+    
+    // If no phone set yet, set it (covers case 5)
+    if (!contact.phone) {
+      contact.phone = number;
+    }
+  
+    // Check for specific types and override based on priority
+    if (telLine.includes('cell') || telLine.includes('mobile')) {
+      contact.phone = number; // Mobile takes highest priority
+    } else if (!contact.phone || telLine.includes('main') || telLine.includes('pref')) {
+      contact.phone = number; // Main/Primary takes second priority
+    } else if (!contact.phone || telLine.includes('home')) {
+      contact.phone = number; // Home takes third priority
+    } else if (!contact.phone || telLine.includes('work')) {
+      contact.phone = number; // Work takes fourth priority
+    }
   } else if (line.startsWith('X-SOCIALPROFILE;') || line.startsWith('SOCIALPROFILE;')) {
     const match = line.match(/TYPE=(\w+):(.+)/i);
     if (match) {
