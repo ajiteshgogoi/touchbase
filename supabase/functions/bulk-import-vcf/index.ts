@@ -1,12 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createResponse, handleOptions } from '../_shared/headers.ts'
-
 interface Contact {
   name: string
   phone?: string
   social_media_platform?: string
   social_media_handle?: string
+  important_events: Array<{
+    type: 'birthday' | 'anniversary' | 'custom'
+    name?: string
+    date: string
+  }>
+}
 }
 
 interface ValidationError {
@@ -22,13 +27,22 @@ interface ImportResult {
   errors: ValidationError[]
 }
 
+function validateSocialMediaPlatform(platform: string): string | null {
+  const validPlatforms = ['linkedin', 'instagram', 'twitter'];
+  const normalized = platform.toLowerCase();
+  return validPlatforms.includes(normalized) ? normalized : null;
+}
+
 function parseVCF(vcfContent: string): Contact[] {
   const contacts: Contact[] = [];
   const vcards = vcfContent.split('BEGIN:VCARD').filter(card => card.trim());
 
   for (const vcard of vcards) {
     const lines = vcard.split('\n').map(line => line.trim());
-    const contact: Contact = { name: '' };
+    const contact: Contact = {
+      name: '',
+      important_events: []
+    };
 
     for (const line of lines) {
       if (line.startsWith('FN:')) {
@@ -38,11 +52,77 @@ function parseVCF(vcfContent: string): Contact[] {
       } else if (line.startsWith('X-SOCIALPROFILE;') || line.startsWith('SOCIALPROFILE;')) {
         const match = line.match(/TYPE=(\w+):(.+)/i);
         if (match) {
-          const platform = match[1].toLowerCase();
+          const platform = validateSocialMediaPlatform(match[1]);
           const handle = match[2].trim();
-          if (['linkedin', 'instagram', 'twitter'].includes(platform)) {
+          if (platform) {
             contact.social_media_platform = platform;
             contact.social_media_handle = handle;
+          }
+        }
+      } else if (line.startsWith('BDAY:')) {
+        // Extract birthday in format YYYY-MM-DD
+        const date = line.substring(5).trim();
+        if (date && contact.important_events.length < 5) {
+          try {
+            // Parse and validate date
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime()) &&
+                !contact.important_events.some(event => event.type === 'birthday')) {
+              // Set time to midnight UTC
+              parsedDate.setUTCHours(0, 0, 0, 0);
+              contact.important_events.push({
+                type: 'birthday',
+                date: parsedDate.toISOString()
+              });
+            }
+          } catch (e) {
+            console.error('Invalid birthday date:', date);
+          }
+        }
+      } else if (line.startsWith('ANNIVERSARY:') || line.startsWith('X-ANNIVERSARY:')) {
+        // Extract anniversary date
+        const date = line.includes('X-ANNIVERSARY:') ?
+          line.substring(13).trim() :
+          line.substring(12).trim();
+        if (date && contact.important_events.length < 5) {
+          try {
+            // Parse and validate date
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime()) &&
+                !contact.important_events.some(event => event.type === 'anniversary')) {
+              // Set time to midnight UTC
+              parsedDate.setUTCHours(0, 0, 0, 0);
+              contact.important_events.push({
+                type: 'anniversary',
+                date: parsedDate.toISOString()
+              });
+            }
+          } catch (e) {
+            console.error('Invalid anniversary date:', date);
+          }
+        }
+      } else if (line.startsWith('X-EVENT:') || line.startsWith('CATEGORIES:')) {
+        // Extract custom events (some VCF files use CATEGORIES for events)
+        const eventData = line.includes('X-EVENT:') ?
+          line.substring(8).trim() :
+          line.substring(11).trim();
+        
+        const [name, date] = eventData.split(';').map(s => s.trim());
+        // Only add custom event if it has a name and we're under the limit
+        if (name && date && contact.important_events.length < 5) {
+          try {
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime())) {
+              // Set time to midnight UTC
+              parsedDate.setUTCHours(0, 0, 0, 0);
+              contact.important_events.push({
+                type: 'custom',
+                name,
+                date: parsedDate.toISOString()
+              });
+            }
+          } catch (e) {
+            console.error('Invalid custom event date:', date);
           }
         }
       }
@@ -165,8 +245,8 @@ serve(async (req) => {
         const timezone = userPref?.timezone || 'UTC';
         const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
 
-        // Insert contact with monthly frequency
-        const { error: insertError } = await supabaseClient
+        // Insert contact with monthly frequency and get the new contact's ID
+        const { data: newContact, error: insertError } = await supabaseClient
           .from('contacts')
           .insert({
             user_id: user.id,
@@ -179,15 +259,39 @@ serve(async (req) => {
             next_contact_due: now.toISOString(),
             last_contacted: now.toISOString(),
             missed_interactions: 0
-          });
+          })
+          .select()
+          .single();
 
-        if (insertError) {
+        if (insertError || !newContact) {
           result.failureCount++;
           result.errors.push({
             row: index + 1,
-            errors: [`Failed to insert contact: ${insertError.message}`]
+            errors: [`Failed to insert contact: ${insertError?.message || 'Unknown error'}`]
           });
           continue;
+        }
+
+        // Insert important events if any
+        if (contact.important_events.length > 0) {
+          const { error: eventsError } = await supabaseClient
+            .from('important_events')
+            .insert(contact.important_events.map(event => ({
+              contact_id: newContact.id,
+              user_id: user.id,
+              type: event.type,
+              name: event.type === 'custom' ? event.name : null,
+              date: event.date
+            })));
+
+          if (eventsError) {
+            console.error('Failed to insert events:', eventsError);
+            // Don't fail the whole import if events fail
+            result.errors.push({
+              row: index + 1,
+              errors: [`Events not imported: ${eventsError.message}`]
+            });
+          }
         }
 
         result.successCount++;
