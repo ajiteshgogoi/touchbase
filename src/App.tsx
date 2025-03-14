@@ -2,8 +2,6 @@ import { useEffect, useState, lazy, Suspense } from 'react';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useOnboarding } from './hooks/useOnboarding';
-import { OnboardingModal } from './components/onboarding/OnboardingModal';
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -271,7 +269,6 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   const { setUser, setIsLoading, setIsPremium, setTrialStatus } = useStore();
-  const { shouldShow: showOnboarding, markCompleted: markOnboardingCompleted } = useOnboarding();
 
   // Separate premium status check
   const checkPremiumStatus = async () => {
@@ -491,10 +488,6 @@ function App() {
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <SpeedInsights />
-          <OnboardingModal
-            isOpen={showOnboarding}
-            onClose={markOnboardingCompleted}
-          />
           <Toaster
             position="top-right"
             toastOptions={{

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
+import { useOnboarding } from '../hooks/useOnboarding';
+import { OnboardingModal } from '../components/onboarding/OnboardingModal';
 import {
   UserPlusIcon
 } from '@heroicons/react/24/outline/esm/index.js';
@@ -23,6 +25,7 @@ const LoadingFallback = () => (
 
 export const Dashboard = () => {
   const { user, isPremium, isOnTrial, trialDaysRemaining } = useStore();
+  const { shouldShow: showOnboarding, markCompleted: markOnboardingCompleted } = useOnboarding();
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts,
@@ -43,6 +46,10 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-8">
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={markOnboardingCompleted}
+      />
       {!isPremium && isOnTrial && trialDaysRemaining !== null && (
         <Suspense fallback={<LoadingFallback />}>
           <TrialBanner daysRemaining={trialDaysRemaining} />
