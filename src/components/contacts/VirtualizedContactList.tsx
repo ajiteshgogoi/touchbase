@@ -334,8 +334,10 @@ export const VirtualizedContactList = ({
 
     // Natural momentum decay with variable rate
     if (Math.abs(velocity) > 0.05) {
-      // Apply non-linear decay for more natural feel
-      const decayFactor = 0.97 + (Math.min(Math.abs(velocity), 1) * 0.02);
+      // Apply non-linear decay with stricter values in selection mode
+      const baseDecay = isSelectionMode ? 0.98 : 0.97;
+      const velocityInfluence = isSelectionMode ? 0.01 : 0.02;
+      const decayFactor = baseDecay + (Math.min(Math.abs(velocity), 1) * velocityInfluence);
       scrollVelocity.current *= decayFactor;
       
       scrollMomentumTimer.current = window.requestAnimationFrame(() => {
@@ -361,9 +363,11 @@ export const VirtualizedContactList = ({
       const rawVelocity = Math.abs(scrollDelta) / timeDelta;
       
       // Enhanced smoothing using cubic bezier like easing
-      const velocityFactor = Math.min(rawVelocity / 1.5, 1);
-      const smoothingStart = 0.15;
-      const smoothingEnd = 0.35;
+      // Reduce velocity and smoothing in selection mode
+      const velocityScale = isSelectionMode ? 0.5 : 1;
+      const velocityFactor = Math.min((rawVelocity * velocityScale) / 1.5, 1);
+      const smoothingStart = isSelectionMode ? 0.25 : 0.15;
+      const smoothingEnd = isSelectionMode ? 0.45 : 0.35;
       const t = velocityFactor * velocityFactor * (3 - 2 * velocityFactor); // Smoothstep easing
       const smoothingFactor = smoothingStart + (smoothingEnd - smoothingStart) * t;
       
@@ -502,14 +506,7 @@ export const VirtualizedContactList = ({
 
   // Throttle frame updates during scroll
   const throttleRAF = useCallback((callback: () => void) => {
-    if (isScrolling.current) {
-      // During scroll, use a longer delay to batch more updates
-      setTimeout(() => {
-        requestAnimationFrame(callback);
-      }, 32); // About 2 frames
-    } else {
-      requestAnimationFrame(callback);
-    }
+    requestAnimationFrame(callback);
   }, []);
 
   const updateHeight = useCallback((index: number, height: number, isLoading?: boolean) => {
