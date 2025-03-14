@@ -166,7 +166,7 @@ export const Contacts = () => {
     return () => document.removeEventListener('mousedown', handleDocumentClick);
   }, [isSelectionMode]);
 
-  const handleImportMethod = async (method: 'google' | 'csv_upload' | 'csv_template') => {
+  const handleImportMethod = async (method: 'google' | 'csv_upload' | 'csv_template' | 'vcf_upload') => {
     if (method === 'csv_template') {
       const response = await fetch('/contacts_template.csv');
       const blob = await response.blob();
