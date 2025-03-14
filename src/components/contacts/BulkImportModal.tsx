@@ -123,22 +123,54 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
   };
 
   const calculateTotalContacts = async (file: File): Promise<number> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        if (file.name.toLowerCase().endsWith('.csv')) {
-          // For CSV, count lines minus header
-          const lines = text.split('\n').filter(line => line.trim()).length - 1;
-          resolve(lines);
-        } else {
-          // For VCF, count BEGIN:VCARD occurrences
-          const matches = (text.match(/BEGIN:VCARD/gi) || []).length;
-          resolve(matches);
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      // For CSV, count lines minus header using streams
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim()).length - 1;
+      return lines;
+    } else {
+      // For VCF, count contacts by streaming
+      let count = 0;
+      let buffer = '';
+      const decoder = new TextDecoder();
+      const reader = file.stream().getReader();
+
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Count complete vCards
+          while (buffer.includes('END:VCARD')) {
+            const endIndex = buffer.indexOf('END:VCARD') + 'END:VCARD'.length;
+            const vcard = buffer.slice(0, endIndex);
+            buffer = buffer.slice(endIndex);
+
+            if (vcard.includes('BEGIN:VCARD')) {
+              count++;
+            }
+          }
         }
-      };
-      reader.readAsText(file);
-    });
+
+        // Process any remaining buffer
+        buffer += decoder.decode();
+        while (buffer.includes('END:VCARD')) {
+          const endIndex = buffer.indexOf('END:VCARD') + 'END:VCARD'.length;
+          const vcard = buffer.slice(0, endIndex);
+          buffer = buffer.slice(endIndex);
+
+          if (vcard.includes('BEGIN:VCARD')) {
+            count++;
+          }
+        }
+
+        return count;
+      } finally {
+        reader.releaseLock();
+      }
+    }
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,12 +216,54 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
       const response = await fetch(`${EDGE_FUNCTION_URL}/${endpoint}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${session.access_token}`,
+          'Accept': fileExt === 'vcf' ? 'text/event-stream' : 'application/json'
         },
         body: formData
       });
 
-     const result = await response.json();
+      let result;
+      if (fileExt === 'vcf') {
+        // For VCF files, process chunks as they come in
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+          throw new Error('Failed to read response stream');
+        }
+
+        let processedContacts = 0;
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          // Each chunk has a "processed" count
+          const match = chunk.match(/processed:(\d+)/);
+          if (match && match[1]) {
+            processedContacts = parseInt(match[1], 10);
+            const progressPercentage = (processedContacts / total) * 100;
+            setProgress(progressPercentage);
+            // Update success count progressively
+            setImportResult(prev => prev ? { ...prev, successCount: processedContacts } : null);
+          }
+
+          // Check for final result
+          try {
+            result = JSON.parse(chunk);
+            if (result.success !== undefined) {
+              break;
+            }
+          } catch {
+            // Not a JSON result, continue processing chunks
+          }
+        }
+
+        reader.releaseLock();
+      } else {
+        // For CSV files, handle as before
+        result = await response.json();
+      }
 
      // Update progress based on imported contacts
      if (response.ok) {
