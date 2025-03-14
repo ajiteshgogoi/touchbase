@@ -125,7 +125,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                 </div>
 
                 {/* Content */}
-                <div className="px-6 py-12">
+                <div className="px-6 py-6">
                   {renderStep()}
                 </div>
               </Dialog.Panel>

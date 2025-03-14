@@ -28,7 +28,7 @@ const FEATURES: readonly Feature[] = Object.freeze([
   {
     icon: UserGroupIcon,
     title: 'Contact Management',
-    description: 'Keep track of your important relationships in one place'
+    description: 'Manage your important relationships in one place'
   },
   {
     icon: BellIcon,
@@ -38,7 +38,7 @@ const FEATURES: readonly Feature[] = Object.freeze([
   {
     icon: ChartBarIcon,
     title: 'Relationship Insights',
-    description: 'Track your interaction patterns and strengthen bonds'
+    description: 'Understand your interaction patterns and strengthen bonds'
   }
 ]);
 
@@ -65,21 +65,21 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
   const currentFeature = FEATURES[safeIndex]!;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Welcome Message */}
-      <div className="space-y-4 text-center">
+      <div className="space-y-3 text-center">
         <h2 className="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-primary-600
           to-primary-400 bg-clip-text text-transparent leading-relaxed pb-1">
-          Welcome{userName ? `, ${userName}` : ''}! 👋
+          Welcome{userName ? `, ${userName}` : ''}!
         </h2>
-        <p className="text-lg text-gray-600 max-w-sm mx-auto">
-          Let's help you build and maintain meaningful relationships.
+        <p className="text-base text-gray-600 max-w-sm mx-auto">
+          Let's help you build and maintain meaningful relationships
         </p>
       </div>
 
       {/* Feature Showcase */}
       <div className="relative">
-        <div className="h-[280px] flex items-center justify-center">
+        <div className="h-[200px] flex items-center justify-center">
           <div 
             key={safeIndex}
             className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-100"
