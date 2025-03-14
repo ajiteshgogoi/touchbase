@@ -120,7 +120,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
         // Cache height pattern based on content characteristics
         const isExpanded = expandedIndices.has(index);
-        const contentHash = `${isExpanded}-${loadingStates.has(index)}-${isSelectionMode}`;
+        const contentHash = `${isExpanded}-${loadingStates.has(index)}`;
         heightPatterns.current.set(contentHash, finalHeight);
 
         // Only update if significant change (>5px) to reduce unnecessary updates
@@ -537,7 +537,7 @@ export const VirtualizedContactList = ({
     const isLoading = loadingStates.has(index);
     
     // Use cached height pattern if available
-    const contentHash = `${isExpanded}-${loadingStates.has(index)}-${isSelectionMode}`;
+    const contentHash = `${isExpanded}-${loadingStates.has(index)}`;
     const patternHeight = heightPatterns.current?.get(contentHash);
     
     if (patternHeight) {
@@ -549,14 +549,14 @@ export const VirtualizedContactList = ({
     if (isLoading) return LOADING_HEIGHT;
     if (isExpanded) return heightMap[index] || EXPANDED_HEIGHT;
     return heightMap[index] || COLLAPSED_HEIGHT; // Always use dynamic height measurements
-  }, [loadingStates, heightMap, expandedIndices, isSelectionMode]);
+  }, [loadingStates, heightMap, expandedIndices]);
 
   // Reset size cache when expanded state changes
   useEffect(() => {
     if (listRef.current) {
       listRef.current.resetAfterIndex(0);
     }
-  }, [expandedIndices, isSelectionMode]);
+  }, [expandedIndices]);
 
   // Handle hash navigation
   useEffect(() => {
