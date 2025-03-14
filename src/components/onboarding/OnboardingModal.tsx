@@ -5,13 +5,14 @@ import { useOnboarding } from '../../hooks/useOnboarding';
 import { OnboardingStep1 } from './steps/OnboardingStep1';
 import { OnboardingStep2 } from './steps/OnboardingStep2';
 import { OnboardingStep3 } from './steps/OnboardingStep3';
+import { OnboardingSuccessStep } from './steps/OnboardingSuccessStep';
 
 interface OnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
   const { user } = useStore();
   const { markCompleted } = useOnboarding();
   const [currentStep, setCurrentStep] = useState(1);
@@ -46,7 +47,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
 
   const handleComplete = async () => {
     await markCompleted();
-    onClose();
+    setCurrentStep(4); // Show success step
   };
 
   const handleSkip = async () => {
@@ -80,6 +81,12 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
           <OnboardingStep3 
             onComplete={handleComplete} 
             onBack={handleBack}
+          />
+        );
+      case 4:
+        return (
+          <OnboardingSuccessStep 
+            onClose={onClose}
           />
         );
       default:
@@ -119,7 +126,7 @@ export const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100">
                     <div 
                       className="h-full bg-primary-500 transition-all duration-300"
-                      style={{ width: `${(currentStep / 3) * 100}%` }}
+                      style={{ width: `${(Math.min(currentStep, 4) / 4) * 100}%` }}
                     />
                   </div>
                 </div>
