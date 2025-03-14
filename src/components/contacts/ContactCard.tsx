@@ -299,22 +299,20 @@ export const ContactCard = ({
               disabled={isDeleting}
               className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
                 isDeleting
-                  ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                  ? 'text-gray-400 bg-gray-100'
                   : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
               }`}
               title={isDeleting ? 'Deleting contact...' : 'Delete contact'}
             >
-              <span className="inline-flex items-center justify-center">
-                {isDeleting ? (
-                  <div className="h-4 w-4 flex items-center justify-center">
-                    <div className="transform scale-50 -m-2">
-                      <LoadingSpinner />
-                    </div>
+              {isDeleting ? (
+                <div className="h-4 w-4 flex items-center justify-center">
+                  <div className="transform scale-50 -m-2">
+                    <LoadingSpinner />
                   </div>
-                ) : (
-                  <TrashIcon className="h-4 w-4" />
-                )}
-              </span>
+                </div>
+              ) : (
+                <TrashIcon className="h-4 w-4" />
+              )}
             </button>
           </div>
         )}
