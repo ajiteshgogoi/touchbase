@@ -2,7 +2,7 @@
   "name": "touchbase",
   "type": "module",
   "private": true,
-  "version": "2.5.6.0",
+  "version": "2.5.7.0",
   "scripts": {
     "predev": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js",
     "dev": "vite",

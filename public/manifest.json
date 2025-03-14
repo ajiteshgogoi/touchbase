@@ -3,7 +3,7 @@
   "name": "TouchBase",
   "short_name": "TouchBase",
   "description": "Stay connected with the people who matter most",
-  "version": "2.5.6",
+  "version": "2.5.7",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F9FAFB",
@@ -128,14 +128,14 @@
       "type": "image/png",
       "platform": "narrow",
       "label": "Detailed relationship insights"
-    }, 
+    },
     {
       "src": "/assets/7.png",
       "sizes": "1920x1080",
       "type": "image/png",
       "platform": "wide",
       "label": "Login page"
-    },    
+    },
     {
       "src": "/assets/8.png",
       "sizes": "4096x3072",
