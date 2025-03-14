@@ -73,7 +73,7 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
           Welcome{userName ? `, ${userName}` : ''}!
         </h2>
         <p className="text-base text-gray-600 max-w-sm mx-auto">
-          Let's help you build and maintain meaningful relationships
+          Let's help you build and nurture meaningful relationships
         </p>
       </div>
 

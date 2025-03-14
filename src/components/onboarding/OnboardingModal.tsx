@@ -6,6 +6,7 @@ import { OnboardingStep1 } from './steps/OnboardingStep1';
 import { OnboardingStep2 } from './steps/OnboardingStep2';
 import { OnboardingStep3 } from './steps/OnboardingStep3';
 import { OnboardingSuccessStep } from './steps/OnboardingSuccessStep';
+import Confetti from 'react-confetti';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -16,18 +17,33 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
   const { user } = useStore();
   const { markCompleted } = useOnboarding();
   const [currentStep, setCurrentStep] = useState(1);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   useLayoutEffect(() => {
-    if (isOpen) {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+      
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+    };
+
+    if (isOpen) {
+      handleResize();
       document.body.classList.add('modal-open');
     } else {
       document.body.classList.remove('modal-open');
       document.documentElement.style.setProperty('--scrollbar-width', '0px');
     }
 
+    window.addEventListener('resize', handleResize);
     return () => {
+      window.removeEventListener('resize', handleResize);
       document.body.classList.remove('modal-open');
       document.documentElement.style.setProperty('--scrollbar-width', '0px');
     };
@@ -111,6 +127,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           </Transition.Child>
 
           <div className="fixed inset-0 flex items-center justify-center p-4 z-10">
+            {currentStep === 4 && (
+              <Confetti
+                width={windowSize.width}
+                height={windowSize.height}
+                numberOfPieces={200}
+                recycle={false}
+                colors={['#4F46E5', '#10B981', '#3B82F6', '#6366F1']}
+                style={{ position: 'absolute', top: 0, left: 0 }}
+              />
+            )}
             <Transition.Child
               as={React.Fragment}
               enter="ease-out duration-300"
