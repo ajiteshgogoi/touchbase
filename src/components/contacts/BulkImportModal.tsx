@@ -164,26 +164,29 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
       const result = await response.json();
       
       if (!response.ok) {
-        // Parse different types of CSV errors
-        if (result.error?.includes('Invalid Record Length')) {
-          const match = result.error.match(/columns length is (\d+), got (\d+) on line (\d+)/);
-          if (match) {
-            const [_, expected, got, line] = match;
-            throw new Error(`CSV format error on line ${line}: Expected ${expected} columns but got ${got} columns. Please ensure each row has exactly ${expected} columns, even if some values are empty.`);
+        if (fileExt === 'csv') {
+          // Parse different types of CSV errors
+          if (result.error?.includes('Invalid Record Length')) {
+            const match = result.error.match(/columns length is (\d+), got (\d+) on line (\d+)/);
+            if (match) {
+              const [_, expected, got, line] = match;
+              throw new Error(`CSV format error on line ${line}: Expected ${expected} columns but got ${got} columns. Please ensure each row has exactly ${expected} columns, even if some values are empty.`);
+            }
+          } else if (result.error?.includes('CSV_RECORD_INCONSISTENT_COLUMNS')) {
+            const lineMatch = result.error.match(/on line (\d+)/);
+            const line = lineMatch ? lineMatch[1] : 'unknown';
+            throw new Error(`CSV format error on line ${line}: The number of columns is inconsistent with the header. Please check for extra or missing commas. Each row must have exactly 15 columns, even if some values are empty.`);
+          } else if (result.error?.includes('CSV_QUOTE')) {
+            const lineMatch = result.error.match(/on line (\d+)/);
+            const line = lineMatch ? lineMatch[1] : 'unknown';
+            throw new Error(`CSV format error on line ${line}: Invalid quote formatting. Please ensure all quoted fields are properly closed and escaped.`);
           }
-        } else if (result.error?.includes('CSV_RECORD_INCONSISTENT_COLUMNS')) {
-          // Extract line number from the error stack if available
-          const lineMatch = result.error.match(/on line (\d+)/);
-          const line = lineMatch ? lineMatch[1] : 'unknown';
-          throw new Error(`CSV format error on line ${line}: The number of columns is inconsistent with the header. Please check for extra or missing commas. Each row must have exactly 15 columns, even if some values are empty.`);
-        } else if (result.error?.includes('CSV_QUOTE')) {
-          // Handle quote-related errors
-          const lineMatch = result.error.match(/on line (\d+)/);
-          const line = lineMatch ? lineMatch[1] : 'unknown';
-          throw new Error(`CSV format error on line ${line}: Invalid quote formatting. Please ensure all quoted fields are properly closed and escaped.`);
+          // If no specific CSV error is matched, show a CSV-specific default message
+          throw new Error(result.error || 'Failed to import contacts. Please check the CSV format and try again.');
+        } else {
+          // VCF specific error handling
+          throw new Error(result.error || 'Failed to import contacts. Please check the VCF file format and try again.');
         }
-        // If no specific CSV error is matched, show the original error or a default message
-        throw new Error(result.error || 'Failed to import contacts. Please check the CSV format and try again.');
       }
 
       setImportResult(result);
