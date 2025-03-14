@@ -234,7 +234,7 @@ async function* parseVCFChunks(file: File, chunkSize: number = 1024 * 1024): Asy
 
       const lines = vcard.split('\n').map(line => line.trim());
       for (const line of lines) {
-        processVCardLine(line, contact);
+        processVCardLine(line, contact, timezone);
       }
 
       if (contact.name) {
