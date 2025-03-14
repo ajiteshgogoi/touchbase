@@ -89,35 +89,50 @@ export const Contacts = () => {
       if (selectedContacts.size === totalCount) {
         setSelectedContacts(new Set());
       } else {
-        // Get all contact IDs with current filters
-        let query = supabase
-          .from('contacts')
-          .select('id');
-          
-        if (debouncedSearchQuery) {
-          query = query.or(`name.ilike.%${debouncedSearchQuery}%,phone.ilike.%${debouncedSearchQuery}%,social_media_handle.ilike.%${debouncedSearchQuery}%`);
-        }
-
-        if (selectedCategories.length > 0) {
-          const categoryConditions = selectedCategories
-            .map(category => {
-              const hashtagQuery = category.startsWith('#') ? category : `#${category}`;
-              return `notes.ilike.%${hashtagQuery.toLowerCase()}%`;
-            })
-            .join(',');
-          query = query.or(categoryConditions);
-        }
-
-        // Apply sorting to maintain consistency with current view
-        query = query.order(sortField, { ascending: sortOrder === 'asc' });
-
-        const { data, error } = await query;
-        if (error) throw error;
+        const allContactIds = new Set<string>();
+        let page = 0;
+        const pageSize = 950; // Process in chunks of 1000
         
-        // TypeScript type guard for the response data
-        if (data && Array.isArray(data)) {
-          setSelectedContacts(new Set(data.map(contact => contact.id as string)));
+        while (true) {
+          // Get contact IDs in chunks
+          let query = supabase
+            .from('contacts')
+            .select('id')
+            .range(page * pageSize, (page + 1) * pageSize - 1);
+          
+          if (debouncedSearchQuery) {
+            query = query.or(`name.ilike.%${debouncedSearchQuery}%,phone.ilike.%${debouncedSearchQuery}%,social_media_handle.ilike.%${debouncedSearchQuery}%`);
+          }
+
+          if (selectedCategories.length > 0) {
+            const categoryConditions = selectedCategories
+              .map(category => {
+                const hashtagQuery = category.startsWith('#') ? category : `#${category}`;
+                return `notes.ilike.%${hashtagQuery.toLowerCase()}%`;
+              })
+              .join(',');
+            query = query.or(categoryConditions);
+          }
+
+          // Apply sorting to maintain consistency with current view
+          query = query.order(sortField, { ascending: sortOrder === 'asc' });
+
+          const { data, error } = await query;
+          if (error) throw error;
+
+          // If no more data, break the loop
+          if (!data || data.length === 0) break;
+
+          // Add IDs to the set
+          data.forEach(contact => allContactIds.add(contact.id));
+
+          // If we got less than pageSize results, we've reached the end
+          if (data.length < pageSize) break;
+
+          page++;
         }
+
+        setSelectedContacts(allContactIds);
       }
     } catch (error) {
       console.error('Error selecting all contacts:', error);
