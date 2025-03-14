@@ -8,8 +8,8 @@ import { LoadingSpinner } from '../shared/LoadingSpinner';
 const calculateOverscan = (viewportHeight: number): number => {
   // Approximate number of items visible in viewport assuming average item height
   const approxVisibleItems = Math.ceil(viewportHeight / 250); // 250px average item height
-  // Set overscan to roughly 50% of visible items, min 5 max 20
-  return Math.min(Math.max(Math.ceil(approxVisibleItems * 0.5), 5), 20);
+  // Set overscan to 100% of visible items, min 10 max 30
+  return Math.min(Math.max(Math.ceil(approxVisibleItems * 1.0), 10), 30);
 };
 
 // Default heights for cards
@@ -320,24 +320,24 @@ export const VirtualizedContactList = ({
       }
     }
 
-    // Calculate target overscan with improved scaling
-    const velocityFactor = Math.min(Math.max(velocity, 0.2), 2);
-    const targetOverscan = Math.ceil(baseOverscan * (1 + Math.log10(1 + velocityFactor)));
+    // Calculate target overscan with velocity-based scaling
+    const velocityFactor = Math.min(Math.max(velocity, 0.5), 3); // Increased range
+    const targetOverscan = Math.ceil(baseOverscan * (1.5 + velocityFactor)); // Scale up with velocity
     
-    // Apply smooth interpolation with dynamic factor
+    // Apply smooth interpolation with faster response to velocity
     setOverscanCount(current => {
-      const progress = Math.min(velocity * 0.3, 1);
+      const progress = Math.min(velocity * 0.5, 1); // Increased velocity influence
       const easedProgress = easeOutQuart(progress);
       const diff = targetOverscan - current;
-      return Math.round(current + diff * (0.15 + (0.2 * easedProgress)));
+      return Math.round(current + diff * (0.3 + (0.4 * easedProgress))); // Faster adaptation
     });
 
     // Natural momentum decay with variable rate
     if (Math.abs(velocity) > 0.05) {
-      // Apply non-linear decay with stricter values in selection mode
-      const baseDecay = isSelectionMode ? 0.98 : 0.97;
-      const velocityInfluence = isSelectionMode ? 0.01 : 0.02;
-      const decayFactor = baseDecay + (Math.min(Math.abs(velocity), 1) * velocityInfluence);
+      // Apply gentler decay to maintain higher overscan longer
+      const baseDecay = isSelectionMode ? 0.985 : 0.975;
+      const velocityInfluence = isSelectionMode ? 0.015 : 0.025;
+      const decayFactor = baseDecay + (Math.min(Math.abs(velocity), 1.5) * velocityInfluence);
       scrollVelocity.current *= decayFactor;
       
       scrollMomentumTimer.current = window.requestAnimationFrame(() => {
