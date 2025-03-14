@@ -290,15 +290,8 @@ async function checkDuplicateContacts(names: string[], supabase: any, userId: st
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    const headers = new Headers();
-    headers.set('Access-Control-Allow-Origin', '*');
-    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-    headers.set('Access-Control-Max-Age', '86400');
-    headers.set('Access-Control-Allow-Credentials', 'true');
-    return new Response(null, { headers });
+    return handleOptions();
   }
 
   // Set up a TransformStream for progress updates
