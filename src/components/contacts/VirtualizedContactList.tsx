@@ -2,6 +2,7 @@ import { useCallback, memo, useState, useRef, useEffect, useMemo, Dispatch, SetS
 import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 // Calculate dynamic overscan based on viewport height
 const calculateOverscan = (viewportHeight: number): number => {
@@ -91,9 +92,12 @@ const Row = memo(({ index, style, data }: RowProps) => {
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
+  const heightPatterns = useRef<Map<string, number>>(new Map());
+  const isLastRow = index === contacts.length - 1;
+  const showLoadingSpinner = isLastRow && hasNextPage;
 
-  // Prefetch when within last 10 items
-  const PREFETCH_THRESHOLD = 10;
+  // Prefetch when within last 5 items to reduce aggressive loading
+  const PREFETCH_THRESHOLD = 5;
   useEffect(() => {
     if (hasNextPage && index >= contacts.length - PREFETCH_THRESHOLD) {
       const timeoutId = setTimeout(() => {
@@ -103,52 +107,6 @@ const Row = memo(({ index, style, data }: RowProps) => {
     }
     return undefined;
   }, [index, contacts.length, hasNextPage, loadMore]);
-
-  // Fallback: Always load more at the last item to ensure we don't miss loading data
-  if (index === contacts.length - 1 && hasNextPage) {
-    loadMore();
-  }
-
-  // Handle empty state
-  if (!isLoading && contacts.length === 0) {
-    return (
-      <div style={{ 
-        ...style, 
-        padding: '8px 0',
-        transition: 'padding 150ms ease-in-out'
-      }}>
-        <div className="p-12 text-center text-gray-500">
-          No contacts found
-        </div>
-      </div>
-    );
-  }
-
-  const contact = contacts[index];
-  if (!contact) return null;
-
-  if (isLoading) {
-    return (
-    <div style={{
-      ...style,
-      padding: '8px 0',
-      transition: 'padding 150ms ease-in-out'
-    }}>
-        <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="animate-pulse space-y-4">
-            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Track common height patterns for caching
-  const heightPatterns = useRef<Map<string, number>>(new Map());
 
   // Setup ResizeObserver for efficient height tracking
   useEffect(() => {
@@ -190,6 +148,44 @@ const Row = memo(({ index, style, data }: RowProps) => {
       updateHeight(index, cachedHeight);
     }
   }, [expandedIndices, index, loadingStates, heightMap, updateHeight, isSelectionMode]);
+
+  // Handle empty state
+  if (!isLoading && contacts.length === 0) {
+    return (
+      <div style={{
+        ...style,
+        padding: '8px 0',
+        transition: 'padding 150ms ease-in-out'
+      }}>
+        <div className="p-12 text-center text-gray-500">
+          No contacts found
+        </div>
+      </div>
+    );
+  }
+
+  const contact = contacts[index];
+  if (!contact) return null;
+
+  if (isLoading) {
+    return (
+      <div style={{
+        ...style,
+        padding: '8px 0',
+        transition: 'padding 150ms ease-in-out'
+      }}>
+        <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -246,6 +242,18 @@ const Row = memo(({ index, style, data }: RowProps) => {
           onStartSelectionMode={onStartSelectionMode}
         />
       </div>
+      {showLoadingSpinner && (
+        <div style={{
+          height: '80px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div className="scale-75 opacity-70">
+            <LoadingSpinner />
+          </div>
+        </div>
+      )}
     </div>
   );
 });
@@ -293,36 +301,52 @@ export const VirtualizedContactList = ({
     const baseOverscan = calculateOverscan(listHeight);
     const currentTime = performance.now();
     
-    // If user hasn't interacted recently (150ms threshold), consider it an explicit stop
-    if (currentTime - lastUserInteraction.current > 150) {
+    // Custom easing for natural deceleration
+    const easeOutQuart = (x: number) => 1 - Math.pow(1 - x, 4);
+    
+    // If user hasn't interacted recently (200ms threshold), start natural deceleration
+    if (currentTime - lastUserInteraction.current > 200) {
+      const timeSinceLastInteraction = (currentTime - lastUserInteraction.current) / 1000;
+      const decelerationFactor = easeOutQuart(Math.min(timeSinceLastInteraction * 2, 1));
+      
       setOverscanCount(prev => {
         const diff = baseOverscan - prev;
-        return Math.round(prev + diff * 0.3); // Smooth transition to base overscan
+        // Smoother transition using the deceleration factor
+        return Math.round(prev + diff * (0.2 + (0.3 * decelerationFactor)));
       });
-      isScrolling.current = false;
-      return;
+      
+      if (decelerationFactor >= 0.95) {
+        isScrolling.current = false;
+        return;
+      }
     }
 
-    // More conservative velocity scaling
-    const targetOverscan = Math.ceil(baseOverscan * Math.min(Math.max(velocity * 1.2, 1), 1.5));
+    // Calculate target overscan with improved scaling
+    const velocityFactor = Math.min(Math.max(velocity, 0.2), 2);
+    const targetOverscan = Math.ceil(baseOverscan * (1 + Math.log10(1 + velocityFactor)));
     
-    // Even smoother transition for overscan changes
+    // Apply smooth interpolation with dynamic factor
     setOverscanCount(current => {
+      const progress = Math.min(velocity * 0.3, 1);
+      const easedProgress = easeOutQuart(progress);
       const diff = targetOverscan - current;
-      return Math.round(current + diff * 0.1); // Very gentle interpolation
+      return Math.round(current + diff * (0.15 + (0.2 * easedProgress)));
     });
 
-    // Continue momentum updates with gentler velocity threshold
-    if (Math.abs(velocity) > 0.1) {
-      scrollVelocity.current *= 0.98; // Even slower decay for smoother transitions
+    // Natural momentum decay with variable rate
+    if (Math.abs(velocity) > 0.05) {
+      // Apply non-linear decay for more natural feel
+      const decayFactor = 0.97 + (Math.min(Math.abs(velocity), 1) * 0.02);
+      scrollVelocity.current *= decayFactor;
+      
       scrollMomentumTimer.current = window.requestAnimationFrame(() => {
         updateOverscanWithMomentum(scrollVelocity.current);
       });
     } else {
-      // More gradual return to base overscan
+      // Graceful return to base overscan
       setOverscanCount(prev => {
         const diff = baseOverscan - prev;
-        return Math.round(prev + diff * 0.3);
+        return Math.round(prev + diff * 0.2);
       });
       isScrolling.current = false;
     }
@@ -337,21 +361,27 @@ export const VirtualizedContactList = ({
       const scrollDelta = scrollOffset - lastScrollTop.current;
       const rawVelocity = Math.abs(scrollDelta) / timeDelta;
       
-      // Apply non-linear smoothing based on velocity
-      const velocityFactor = Math.min(rawVelocity / 2, 1);
-      const smoothingFactor = 0.1 + (0.3 * velocityFactor); // Dynamic smoothing
+      // Enhanced smoothing using cubic bezier like easing
+      const velocityFactor = Math.min(rawVelocity / 1.5, 1);
+      const smoothingStart = 0.15;
+      const smoothingEnd = 0.35;
+      const t = velocityFactor * velocityFactor * (3 - 2 * velocityFactor); // Smoothstep easing
+      const smoothingFactor = smoothingStart + (smoothingEnd - smoothingStart) * t;
       
-      // Enhanced velocity smoothing with acceleration consideration
+      // Calculate target velocity with gradual acceleration/deceleration
+      const targetVelocity = rawVelocity * (1 - Math.pow(1 - velocityFactor, 2));
+      
+      // Apply smoothing with momentum preservation
       scrollVelocity.current = isScrolling.current
-        ? scrollVelocity.current * (1 - smoothingFactor) + rawVelocity * smoothingFactor
-        : rawVelocity;
+        ? scrollVelocity.current * (1 - smoothingFactor) + targetVelocity * smoothingFactor
+        : targetVelocity;
 
-      // Debounce rapid velocity changes
+      // Limit maximum velocity change per frame for extra smoothness
+      const maxVelocityDelta = 1.2;
       const velocityDelta = Math.abs(scrollVelocity.current - rawVelocity);
-      if (velocityDelta > 1.5) {
-        scrollVelocity.current = rawVelocity > scrollVelocity.current
-          ? scrollVelocity.current + 1.5
-          : scrollVelocity.current - 1.5;
+      if (velocityDelta > maxVelocityDelta) {
+        const direction = rawVelocity > scrollVelocity.current ? 1 : -1;
+        scrollVelocity.current = scrollVelocity.current + (maxVelocityDelta * direction);
       }
 
       // Clean up previous momentum calculation
