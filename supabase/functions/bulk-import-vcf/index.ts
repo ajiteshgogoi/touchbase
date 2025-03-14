@@ -359,7 +359,6 @@ serve(async (req) => {
     // Set up streaming response if client accepts it
     const acceptHeader = req.headers.get('Accept');
     const isStreamingResponse = acceptHeader?.includes('text/event-stream');
-    console.log('Streaming response:', isStreamingResponse);
     let processedTotal = 0;
 
     // Create a writable stream for progress updates
@@ -367,19 +366,16 @@ serve(async (req) => {
     const writer = stream.writable.getWriter();
     
     // If streaming, start sending response immediately
-    console.log('Setting up stream response...');
     let responsePromise;
     if (isStreamingResponse) {
-      console.log('Creating streaming response');
-      const headers = {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        ...Object.fromEntries(createResponse({}).headers)
-      };
-      console.log('Response headers:', headers);
-      responsePromise = new Response(stream.readable, { headers });
-      console.log('Streaming response created');
+      responsePromise = new Response(stream.readable, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          ...Object.fromEntries(createResponse({}).headers)
+        }
+      });
     }
 
     // Process VCF in chunks
@@ -392,10 +388,7 @@ serve(async (req) => {
 
       // Send progress update if streaming
       if (isStreamingResponse) {
-        console.log(`Processing chunk: ${processedTotal} contacts`);
-        const message = `processed:${processedTotal}\n`;
-        console.log('Sending message:', message);
-        await writer.write(new TextEncoder().encode(message));
+        await writer.write(new TextEncoder().encode(`processed:${processedTotal}\n`));
       }
       const invalidContacts = contacts.filter(contact => !contact.name?.trim());
       
@@ -560,15 +553,10 @@ serve(async (req) => {
 
     // Send final result
     if (isStreamingResponse) {
-      console.log('Processing complete, sending final result');
-      console.log('Final result:', JSON.stringify(result));
       await writer.write(new TextEncoder().encode(JSON.stringify(result)));
-      console.log('Closing writer stream');
       await writer.close();
-      console.log('Stream closed, returning response');
       return responsePromise;
     } else {
-      console.log('Non-streaming response, sending result directly');
       return createResponse(result);
     }
   } catch (error) {
