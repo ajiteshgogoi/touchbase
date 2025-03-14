@@ -189,76 +189,40 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
         body: formData
       });
 
-      let result;
+     const result = await response.json();
 
-      // Handle response based on content type
-      if (response.headers.get('Content-Type')?.includes('text/event-stream')) {
-        // Handle streaming response for VCF
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-
-        if (!reader) {
-          throw new Error('Failed to get response reader');
-        }
-
-        try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n').filter(line => line.trim());
-
-            for (const line of lines) {
-              try {
-                const data = JSON.parse(line);
-                if (data.type === 'progress') {
-                  setProgress(data.percent);
-                } else if (data.type === 'result') {
-                  const { type, ...finalResult } = data;
-                  result = finalResult;
-                  setImportResult(finalResult);
-                }
-              } catch (e) {
-                console.error('Error parsing stream data:', e);
-              }
-            }
-          }
-        } finally {
-          reader.releaseLock();
-        }
-      } else {
-        // Handle regular JSON response for CSV
-        result = await response.json();
-        if (response.ok) {
-          const processedCount = result.successCount + result.failureCount;
-          const progressPercentage = (processedCount / total) * 100;
-          setProgress(progressPercentage);
-          setImportResult(result);
-        }
-      }
-
-      // Handle errors from both streaming and non-streaming responses
-      if (!response.ok) {
+     // Update progress based on imported contacts
+     if (response.ok) {
+       const processedCount = result.successCount + result.failureCount;
+       const progressPercentage = (processedCount / total) * 100;
+       setProgress(progressPercentage);
+       setImportResult(result);
+     }
+     
+     if (!response.ok) {
         if (fileExt === 'csv') {
-          if (result?.error?.includes('Invalid Record Length')) {
+          // Parse different types of CSV errors
+          if (result.error?.includes('Invalid Record Length')) {
             const match = result.error.match(/columns length is (\d+), got (\d+) on line (\d+)/);
             if (match) {
               const [_, expected, got, line] = match;
               throw new Error(`CSV format error on line ${line}: Expected ${expected} columns but got ${got} columns. Please ensure each row has exactly ${expected} columns, even if some values are empty.`);
             }
-          } else if (result?.error?.includes('CSV_RECORD_INCONSISTENT_COLUMNS')) {
+          } else if (result.error?.includes('CSV_RECORD_INCONSISTENT_COLUMNS')) {
             const lineMatch = result.error.match(/on line (\d+)/);
             const line = lineMatch ? lineMatch[1] : 'unknown';
             throw new Error(`CSV format error on line ${line}: The number of columns is inconsistent with the header. Please check for extra or missing commas. Each row must have exactly 15 columns, even if some values are empty.`);
-          } else if (result?.error?.includes('CSV_QUOTE')) {
+          } else if (result.error?.includes('CSV_QUOTE')) {
             const lineMatch = result.error.match(/on line (\d+)/);
             const line = lineMatch ? lineMatch[1] : 'unknown';
             throw new Error(`CSV format error on line ${line}: Invalid quote formatting. Please ensure all quoted fields are properly closed and escaped.`);
           }
-          throw new Error(result?.error || 'Failed to import contacts. Please check the CSV format and try again.');
+          // If no specific CSV error is matched, show a CSV-specific default message
+          throw new Error(result.error || 'Failed to import contacts. Please check the CSV format and try again.');
+        } else {
+          // VCF specific error handling
+          throw new Error(result.error || 'Failed to import contacts. Please check the VCF file format and try again.');
         }
-        throw new Error(result?.error || 'Failed to import contacts. Please check the file format and try again.');
       }
 
       // Invalidate all related queries after successful import

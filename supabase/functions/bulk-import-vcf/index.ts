@@ -294,11 +294,6 @@ serve(async (req) => {
     return handleOptions();
   }
 
-  // Set up a TransformStream for progress updates
-  const stream = new TransformStream();
-  const writer = stream.writable.getWriter();
-  const encoder = new TextEncoder();
-
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -361,22 +356,9 @@ serve(async (req) => {
       errors: []
     };
 
-    let processedCount = 0;
-    const fileSize = file.size;
-    
     // Process VCF in chunks
     for await (const contacts of parseVCFChunks(file, timezone)) {
       if (contacts.length === 0) continue;
-
-      // Send progress update
-      processedCount += contacts.length;
-      const progress = {
-        type: 'progress',
-        processed: processedCount,
-        total: fileSize,
-        percent: Math.round((processedCount / fileSize) * 100)
-      };
-      await writer.write(encoder.encode(JSON.stringify(progress) + '\n'));
 
       // Validate names and check duplicates in batch
       const validContacts = contacts.filter(contact => contact.name?.trim());
@@ -541,40 +523,18 @@ serve(async (req) => {
       result.successCount += newContacts.length;
     }
 
-    // Send final result through stream
-    await writer.write(encoder.encode(JSON.stringify({ type: 'result', ...result }) + '\n'));
-    await writer.close();
-
-    return new Response(stream.readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        ...createResponse({}).headers
-      }
-    });
+    return createResponse(result);
   } catch (error) {
     console.error('Error processing VCF import:', error);
-    // Close stream with error
-    const errorResult = {
-      type: 'result',
-      success: false,
-      message: error.message,
-      successCount: 0,
-      failureCount: 0,
-      errors: [{ row: 0, errors: [error.message] }]
-    };
-    await writer.write(encoder.encode(JSON.stringify(errorResult) + '\n'));
-    await writer.close();
-
-    return new Response(stream.readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        ...createResponse({}).headers
+    return createResponse(
+      {
+        success: false,
+        message: error.message,
+        successCount: 0,
+        failureCount: 0,
+        errors: [{ row: 0, errors: [error.message] }]
       },
-      status: 500
-    });
+      { status: 500 }
+    );
   }
 });
