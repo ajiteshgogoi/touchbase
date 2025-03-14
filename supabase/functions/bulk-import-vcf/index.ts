@@ -174,7 +174,7 @@ function processVCardLine(line: string, contact: Contact, timezone: string): voi
   }
 }
 
-async function* parseVCFChunks(file: File, chunkSize: number = 1024 * 1024): AsyncGenerator<Contact[]> {
+async function* parseVCFChunks(file: File, timezone: string, chunkSize: number = 1024 * 1024): AsyncGenerator<Contact[]> {
   let buffer = '';
   const decoder = new TextDecoder();
   const reader = file.stream().getReader();
