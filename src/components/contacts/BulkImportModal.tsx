@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase/client';
 import { useStore } from '../../stores/useStore';
 
 interface ImportMethod {
-  id: 'google' | 'csv_upload' | 'csv_template';
+  id: 'google' | 'csv_upload' | 'csv_template' | 'vcf_upload';
   name: string;
   description: string;
   icon: React.ReactNode;
@@ -54,6 +54,12 @@ const IMPORT_METHODS: ImportMethod[] = [
     ),
     disabled: true,
     disabledReason: 'Coming soon'
+  },
+  {
+    id: 'vcf_upload',
+    name: 'Upload VCF file',
+    description: 'Import contacts from a VCF (vCard) file',
+    icon: <ArrowUpTrayIcon className="h-6 w-6 text-primary-500" />
   },
   {
     id: 'csv_upload',
@@ -122,9 +128,10 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
     setIsUploading(true);
 
     try {
-      // Validate file type
-      if (!file.name.toLowerCase().endsWith('.csv')) {
-        throw new Error('Please upload a CSV file');
+      // Get file extension and validate type
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      if (!fileExt || !['csv', 'vcf'].includes(fileExt)) {
+        throw new Error('Please upload a CSV or VCF file');
       }
 
       // Validate file size (max 5MB)
@@ -134,6 +141,7 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
 
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('type', fileExt); // Add file type to form data
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -144,7 +152,8 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
         throw new Error('Edge function URL not configured');
       }
 
-      const response = await fetch(`${EDGE_FUNCTION_URL}/bulk-import`, {
+      const endpoint = fileExt === 'vcf' ? 'bulk-import-vcf' : 'bulk-import';
+      const response = await fetch(`${EDGE_FUNCTION_URL}/${endpoint}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`
@@ -302,10 +311,10 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                               {method.disabled ? method.disabledReason : method.description}
                             </p>
                           </div>
-                          {method.id === 'csv_upload' && (
+                          {(method.id === 'csv_upload' || method.id === 'vcf_upload') && (
                             <input
                               type="file"
-                              accept=".csv"
+                              accept={method.id === 'csv_upload' ? '.csv' : '.vcf'}
                               onChange={handleFileUpload}
                               className="absolute inset-0 opacity-0 cursor-pointer"
                               disabled={method.disabled}

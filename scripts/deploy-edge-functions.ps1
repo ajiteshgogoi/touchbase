@@ -9,6 +9,7 @@ Write-Host "Deploying Edge Functions..." -ForegroundColor Green
 $functions = @(
     "activate-subscription",
     "bulk-import",
+    "bulk-import-vcf",
     "cancel-google-subscription",
     "cancel-subscription",
     "check-duplicate-contact",
