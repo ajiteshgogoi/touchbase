@@ -188,6 +188,7 @@ export const contactsService = {
     
     // Invalidate all related caches after creating a new contact
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
@@ -399,6 +400,7 @@ export const contactsService = {
 
     // Invalidate reminders cache
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
   },
 
   async updateContact(id: string, updates: Partial<Contact>): Promise<Contact> {
@@ -428,6 +430,7 @@ export const contactsService = {
       if (!updatedContact) throw new Error('Failed to retrieve updated contact');
       // Invalidate all caches after update that required recalculation
       getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+      getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
       getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
       getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
       getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
@@ -441,6 +444,7 @@ export const contactsService = {
     getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
     return data;
   },
 
@@ -452,7 +456,7 @@ export const contactsService = {
       .eq('contact_id', id);
     
     if (interactionsError) throw interactionsError;
-
+  
     // Delete all reminders for this contact
     const { error: remindersError } = await supabase
       .from('reminders')
@@ -460,9 +464,9 @@ export const contactsService = {
       .eq('contact_id', id);
     
     if (remindersError) throw remindersError;
-
+  
     // Important events will be automatically deleted due to ON DELETE CASCADE
-
+  
     // Finally delete the contact
     const { error: contactError } = await supabase
       .from('contacts')
@@ -470,12 +474,14 @@ export const contactsService = {
       .eq('id', id);
     
     if (contactError) throw contactError;
-
+  
     // Invalidate all related caches after deletion
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
+  
   },
 
   async getInteractions(contactId: string): Promise<Interaction[]> {
@@ -549,6 +555,41 @@ export const contactsService = {
     return totalCount;
   },
 
+  async getTotalReminderCount(): Promise<number> {
+    // Use ranged queries to get total count beyond 1000
+    let totalCount = 0;
+    let page = 0;
+    const pageSize = 950; // Match the chunk size being used elsewhere
+    
+    while (true) {
+      const { data, error, count } = await supabase
+        .from('reminders')
+        .select('*', { count: 'exact' })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      if (error) throw error;
+      
+      // If no more data or count is available, break
+      if (!data || data.length === 0) break;
+      
+      // If count is available, use it and break (optimization)
+      if (count !== null) {
+        totalCount = count;
+        break;
+      }
+      
+      // Otherwise, add the chunk size and continue
+      totalCount += data.length;
+      
+      // If we got less than pageSize, we've reached the end
+      if (data.length < pageSize) break;
+      
+      page++;
+    }
+    
+    return totalCount;
+  },
+
   async getReminders(contactId?: string): Promise<Reminder[]> {
     const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
     
@@ -565,30 +606,47 @@ export const contactsService = {
       visibleContactIds = (contacts || []).map(c => c.id);
     }
 
-    let query = supabase
-      .from('reminders')
-      .select(`
-        id,
-        contact_id,
-        user_id,
-        type,
-        name,
-        due_date,
-        completed,
-        created_at
-      `)
-      .order('due_date');
-    
-    if (contactId) {
-      query = query.eq('contact_id', contactId);
-    } else if (!isPremium && !isOnTrial) {
-      query = query.in('contact_id', visibleContactIds);
+    // Use chunked fetching for reminders to handle large datasets
+    let allReminders: Reminder[] = [];
+    let page = 0;
+    const pageSize = 950;
+
+    while (true) {
+      let query = supabase
+        .from('reminders')
+        .select(`
+          id,
+          contact_id,
+          user_id,
+          type,
+          name,
+          due_date,
+          completed,
+          created_at
+        `)
+        .order('due_date')
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+      
+      if (contactId) {
+        query = query.eq('contact_id', contactId);
+      } else if (!isPremium && !isOnTrial) {
+        query = query.in('contact_id', visibleContactIds);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+
+      allReminders = [...allReminders, ...data];
+
+      // If we got less than pageSize, we've reached the end
+      if (data.length < pageSize) break;
+
+      page++;
     }
     
-    const { data, error } = await query;
-    
-    if (error) throw error;
-    return data || [];
+    return allReminders;
   },
 
   async updateInteraction(id: string, updates: Partial<Interaction>): Promise<Interaction> {
@@ -710,6 +768,7 @@ export const contactsService = {
     // Recalculate next contact due date and invalidate caches
     await this.recalculateNextContactDue(reminderData.contact_id);
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
   },
 
@@ -748,6 +807,7 @@ export const contactsService = {
 
     // Invalidate reminders cache
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
     
     return data;
   },
@@ -848,6 +908,7 @@ export const contactsService = {
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
+    getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
   },
 
   async handleMissedInteraction(contactId: string): Promise<void> {

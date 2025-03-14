@@ -197,6 +197,7 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
       queryClient.invalidateQueries({ queryKey: ['important-events'] });
 
       // Clear the file input

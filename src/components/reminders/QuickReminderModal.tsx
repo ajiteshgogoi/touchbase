@@ -127,6 +127,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
       
       // Invalidate reminders query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
       onClose();
     } catch (error) {
       console.error('Error adding quick reminder:', error);

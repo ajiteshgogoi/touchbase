@@ -41,8 +41,10 @@ export const RecentContacts = () => {
       await contactsService.deleteContact(contactId);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['contacts'], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ['total-contacts'], exact: true }),
         queryClient.invalidateQueries({ queryKey: ['contactsCount'], exact: true }),
-        queryClient.invalidateQueries({ queryKey: ['reminders'], exact: true })
+        queryClient.invalidateQueries({ queryKey: ['reminders'], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ['total-reminders'], exact: true })
       ]);
     } catch (error) {
       console.error('Error deleting contact:', error);

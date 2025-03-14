@@ -214,6 +214,7 @@ export const ContactForm = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
       handleNavigateBack();
     },
@@ -250,6 +251,7 @@ export const ContactForm = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
       queryClient.invalidateQueries({ queryKey: ['important-events'] });
       handleNavigateBack();
