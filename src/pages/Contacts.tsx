@@ -91,7 +91,7 @@ export const Contacts = () => {
       } else {
         const allContactIds = new Set<string>();
         let page = 0;
-        const pageSize = 950; // Process in chunks of 1000
+        const pageSize = 950; // Process in chunks of 950
         
         while (true) {
           // Get contact IDs in chunks
