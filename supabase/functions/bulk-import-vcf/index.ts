@@ -8,13 +8,19 @@ type ContactFrequency = 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly
 function calculateNextContactDate(
   frequency: ContactFrequency,
   missedCount: number = 0,
-  baseDate: Date | null = null
+  baseDate: Date | null = null,
+  timezone: string = 'UTC'
 ): Date {
-  const now = baseDate ? new Date(baseDate) : new Date();
+  // Get current time in user's timezone
+  const now = baseDate
+    ? new Date(baseDate.toLocaleString('en-US', { timeZone: timezone }))
+    : new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
   
-  // Start with today's date
+  // Start with today's date in user's timezone
   const nextDate = new Date(now);
-  nextDate.setHours(9, 0, 0, 0); // Set to 9 AM
+  // Set to 9 AM in user's timezone
+  const [hours, , , ] = new Date(nextDate.toLocaleString('en-US', { timeZone: timezone, hour12: false })).toTimeString().split(':');
+  nextDate.setHours(9 - (parseInt(hours) - nextDate.getHours()), 0, 0, 0);
   
   // Calculate base interval in days
   let intervalDays = 0;
@@ -105,11 +111,12 @@ function processVCardLine(line: string, contact: Contact): void {
         const parsedDate = new Date(date);
         if (!isNaN(parsedDate.getTime()) &&
             !contact.important_events.some(event => event.type === 'birthday')) {
-          // Set time to midnight UTC
-          parsedDate.setUTCHours(0, 0, 0, 0);
+          // Convert to user's timezone and set to midnight
+          const userDate = new Date(parsedDate.toLocaleString('en-US', { timeZone: timezone }));
+          userDate.setHours(0, 0, 0, 0);
           contact.important_events.push({
             type: 'birthday',
-            date: parsedDate.toISOString()
+            date: userDate.toISOString()
           });
         }
       } catch (e) {
@@ -127,11 +134,12 @@ function processVCardLine(line: string, contact: Contact): void {
         const parsedDate = new Date(date);
         if (!isNaN(parsedDate.getTime()) &&
             !contact.important_events.some(event => event.type === 'anniversary')) {
-          // Set time to midnight UTC
-          parsedDate.setUTCHours(0, 0, 0, 0);
+          // Convert to user's timezone and set to midnight
+          const userDate = new Date(parsedDate.toLocaleString('en-US', { timeZone: timezone }));
+          userDate.setHours(0, 0, 0, 0);
           contact.important_events.push({
             type: 'anniversary',
-            date: parsedDate.toISOString()
+            date: userDate.toISOString()
           });
         }
       } catch (e) {
@@ -150,12 +158,13 @@ function processVCardLine(line: string, contact: Contact): void {
       try {
         const parsedDate = new Date(date);
         if (!isNaN(parsedDate.getTime())) {
-          // Set time to midnight UTC
-          parsedDate.setUTCHours(0, 0, 0, 0);
+          // Convert to user's timezone and set to midnight
+          const userDate = new Date(parsedDate.toLocaleString('en-US', { timeZone: timezone }));
+          userDate.setHours(0, 0, 0, 0);
           contact.important_events.push({
             type: 'custom',
             name,
-            date: parsedDate.toISOString()
+            date: userDate.toISOString()
           });
         }
       } catch (e) {
@@ -351,8 +360,9 @@ serve(async (req) => {
         social_media_handle: contact.social_media_handle || null,
         preferred_contact_method: contact.phone ? 'call' : 'message',
         contact_frequency: 'monthly',
-        next_contact_due: now.toISOString(),
-        last_contacted: now.toISOString(),
+        // Set next_contact_due and last_contacted in user's timezone
+        next_contact_due: new Date(new Date().toLocaleString('en-US', { timeZone: timezone })).toISOString(),
+        last_contacted: new Date(new Date().toLocaleString('en-US', { timeZone: timezone })).toISOString(),
         missed_interactions: 0,
         notes: ''
       }));
@@ -406,11 +416,12 @@ serve(async (req) => {
 
         allEvents.push(...events);
 
-        // Calculate next due date
-        const regularDueDate = calculateNextContactDate('monthly', 0, now);
+        // Calculate next due date in user's timezone
+        const regularDueDate = calculateNextContactDate('monthly', 0, now, timezone);
         const nextImportantEvent = events
           .map(event => {
-            let eventDate = dayjs(event.date).startOf('day');
+            // Convert event date to user's timezone
+            let eventDate = dayjs(new Date(event.date).toLocaleString('en-US', { timeZone: timezone })).startOf('day');
             eventDate = eventDate.year(today.year());
             if (eventDate.isBefore(today)) {
               eventDate = eventDate.add(1, 'year');
