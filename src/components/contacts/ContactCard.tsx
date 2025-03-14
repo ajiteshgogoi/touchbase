@@ -238,29 +238,30 @@ export const ContactCard = ({
       >
         {/* Left side: Status indicator and name */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          {isSelectionMode && (
-            <div
-              className={`flex-shrink-0 rounded-lg p-1 -m-1 transition-colors ${
-                isSelected ? 'text-primary-500' : 'text-gray-400 hover:text-primary-500'
-              }`}
-              aria-label={isSelected ? "Unselect contact" : "Select contact"}
-            >
-              <CheckCircleIcon
-                className={`h-6 w-6 ${isSelected ? 'fill-primary-50' : ''}`}
-              />
-            </div>
-          )}
+          <div className="w-6 flex-shrink-0">
+            {isSelectionMode ? (
+              <div
+                className={`rounded-lg transition-colors ${
+                  isSelected ? 'text-primary-500' : 'text-gray-400 hover:text-primary-500'
+                }`}
+                aria-label={isSelected ? "Unselect contact" : "Select contact"}
+              >
+                <CheckCircleIcon
+                  className={`h-6 w-6 ${isSelected ? 'fill-primary-50' : ''}`}
+                />
+              </div>
+            ) : (
+              <div className="text-gray-500">
+                {isExpanded ? (
+                  <ChevronDownIcon className="h-5 w-5 text-primary-500" />
+                ) : (
+                  <ChevronRightIcon className="h-5 w-5" />
+                )}
+              </div>
+            )}
+          </div>
           <div className="py-1">
-            <div className={`flex items-center space-y-1 ${!isSelectionMode ? '-ml-2' : ''}`}>
-              {!isSelectionMode && (
-                <div className="text-gray-500">
-                  {isExpanded ? (
-                    <ChevronDownIcon className="h-5 w-5 text-primary-500" />
-                  ) : (
-                    <ChevronRightIcon className="h-5 w-5" />
-                  )}
-                </div>
-              )}
+            <div className="flex items-center space-y-1">
               <div className="min-w-0">
                 <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 hover:text-primary-600 transition-colors tracking-[-0.01em]">
                   {contact.name}
@@ -290,38 +291,60 @@ export const ContactCard = ({
         </div>
 
         {/* Right side: Action buttons */}
-        {!isSelectionMode && (
-          <div className="flex ml-4 space-x-2">
-            <Link
-              to={`/contacts/${contact.id}/edit`}
-              state={{ from: '/contacts' }}
-              className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-              title="Edit contact"
-            >
-              <PencilSquareIcon className="h-4 w-4" />
-            </Link>
-            <button
-              onClick={handleDeleteContact}
-              disabled={isDeleting}
-              className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
-                isDeleting
-                  ? 'text-gray-400 bg-gray-100'
-                  : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
-              }`}
-              title={isDeleting ? 'Deleting contact...' : 'Delete contact'}
-            >
-              {isDeleting ? (
-                <div className="h-4 w-4 flex items-center justify-center">
-                  <div className="transform scale-50 -m-2">
-                    <LoadingSpinner />
-                  </div>
+        <div
+          className={`flex ml-4 space-x-2 ${isSelectionMode ? 'cursor-pointer' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent parent card click
+            if (isSelectionMode && e.button === 0) {
+              onToggleSelect?.(contact.id);
+            }
+          }}
+          role={isSelectionMode ? "button" : undefined}
+          tabIndex={isSelectionMode ? 0 : undefined}
+        >
+          <Link
+            to={isSelectionMode ? '#' : `/contacts/${contact.id}/edit`}
+            state={{ from: '/contacts' }}
+            className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
+              isSelectionMode ? 'invisible' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
+            }`}
+            title={isSelectionMode ? "Click to select/deselect" : "Edit contact"}
+            onClick={(e) => {
+              if (isSelectionMode) {
+                e.stopPropagation();
+                onToggleSelect?.(contact.id);
+              }
+            }}
+          >
+            <PencilSquareIcon className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={(e) => {
+              if (isSelectionMode) {
+                e.stopPropagation();
+                onToggleSelect?.(contact.id);
+              } else {
+                handleDeleteContact();
+              }
+            }}
+            disabled={isDeleting}
+            className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
+              isSelectionMode ? 'invisible' :
+              isDeleting ? 'text-gray-400 bg-gray-100' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+            }`}
+            title={isSelectionMode ? "Click to select/deselect" : isDeleting ? 'Deleting contact...' : 'Delete contact'}
+          >
+            {isDeleting ? (
+              <div className="h-4 w-4 flex items-center justify-center">
+                <div className="transform scale-50 -m-2">
+                  <LoadingSpinner />
                 </div>
-              ) : (
-                <TrashIcon className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        )}
+              </div>
+            ) : (
+              <TrashIcon className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Collapsible Details Section */}
@@ -510,37 +533,53 @@ export const ContactCard = ({
       >
         <div className={`flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm ${isSelectionMode ? 'cursor-pointer' : ''}`}>
           <button
-            onClick={() => onQuickInteraction({ contactId: contact.id, type: 'call', contactName: contact.name })}
+            onClick={(e) => {
+              if (isSelectionMode) {
+                e.stopPropagation();
+                onToggleSelect?.(contact.id);
+              } else {
+                onQuickInteraction({ contactId: contact.id, type: 'call', contactName: contact.name });
+              }
+            }}
             className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-              ${isSelectionMode ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
-            title={isSelectionMode ? "Not available in selection mode" : "Log an interaction"}
-            disabled={isSelectionMode}
+              ${isSelectionMode ? 'bg-gray-300 text-gray-500 cursor-pointer' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
+            title={isSelectionMode ? "Click to select/deselect" : "Log an interaction"}
           >
             Log Interaction
           </button>
-          {(isPremium || isOnTrial) ? (
-            <Link
-              to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
-              state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
-              className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-                ${isSelectionMode ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
-              title={isSelectionMode ? "Not available in selection mode" : "View interaction history"}
-              onClick={e => isSelectionMode && e.preventDefault()}
-            >
-              View History
-            </Link>
-          ) : (
-            <Link
-              to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
-              state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
-              className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-soft transition-all duration-200
-                ${isSelectionMode ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] hover:shadow-md'}`}
-              title={isSelectionMode ? "Not available in selection mode" : "Upgrade to view interaction history"}
-              onClick={e => isSelectionMode && e.preventDefault()}
-            >
-              View History
-            </Link>
-          )}
+          <div
+            onClick={(e) => {
+              if (isSelectionMode) {
+                e.stopPropagation();
+                onToggleSelect?.(contact.id);
+              }
+            }}
+            className={`inline-flex items-center justify-center ${isSelectionMode ? 'cursor-pointer' : ''}`}
+          >
+            {(isPremium || isOnTrial) ? (
+              <Link
+                to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
+                state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
+                className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
+                  ${isSelectionMode ? 'bg-gray-100 text-gray-400 pointer-events-none' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
+                title={isSelectionMode ? "Click to select/deselect" : "View interaction history"}
+                onClick={e => isSelectionMode && e.preventDefault()}
+              >
+                View History
+              </Link>
+            ) : (
+              <Link
+                to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
+                state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
+                className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-soft transition-all duration-200
+                  ${isSelectionMode ? 'bg-gray-100 text-gray-400 pointer-events-none' : 'text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] hover:shadow-md'}`}
+                title={isSelectionMode ? "Click to select/deselect" : "Upgrade to view interaction history"}
+                onClick={e => isSelectionMode && e.preventDefault()}
+              >
+                View History
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>
