@@ -82,7 +82,7 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
         <div className="h-[200px] flex items-center justify-center">
           <div 
             key={safeIndex}
-            className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-100"
+            className="absolute inset-0 flex flex-col items-center justify-center px-6 pt-2 pb-6 text-center opacity-100"
           >
             <div className="mb-6">
               {React.createElement(currentFeature.icon, {
