@@ -468,39 +468,47 @@ export const Contacts = () => {
         </div>
 
         <div className="p-4 space-y-4">
-          {!isPremium && !isOnTrial && totalCount > 15 && (
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-              <p className="text-sm text-amber-800">
-                You're seeing your 15 most recent contacts. {' '}
-                <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
-                  Upgrade to Premium
-                </Link>{' '}
-                to manage all {totalCount} of your contacts.
-              </p>
+          {!contacts.length ? (
+            <div className="p-12 text-center">
+              <p className="text-[15px] text-gray-600/90">No contacts added yet</p>
             </div>
+          ) : (
+            <>
+              {!isPremium && !isOnTrial && totalCount > 15 && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                  <p className="text-sm text-amber-800">
+                    You're seeing your 15 most recent contacts. {' '}
+                    <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+                      Upgrade to Premium
+                    </Link>{' '}
+                    to manage all {totalCount} of your contacts.
+                  </p>
+                </div>
+              )}
+              <VirtualizedContactList
+                contacts={contacts}
+                eventsMap={eventsMap}
+                isPremium={isPremium}
+                isOnTrial={isOnTrial}
+                onDelete={handleDeleteContact}
+                onQuickInteraction={(params: QuickInteractionParams) =>
+                  setQuickInteraction({
+                    isOpen: true,
+                    contactId: params.contactId,
+                    type: params.type,
+                    contactName: params.contactName
+                  })}
+                hasNextPage={hasNextPage}
+                loadMore={() => fetchNextPage()}
+                isLoading={isLoading}
+                isContactsPage={true}
+                selectedContacts={selectedContacts}
+                isSelectionMode={isSelectionMode}
+                onToggleSelect={handleToggleSelect}
+                onStartSelectionMode={handleStartSelectionMode}
+              />
+            </>
           )}
-          <VirtualizedContactList
-            contacts={contacts}
-            eventsMap={eventsMap}
-            isPremium={isPremium}
-            isOnTrial={isOnTrial}
-            onDelete={handleDeleteContact}
-            onQuickInteraction={(params: QuickInteractionParams) =>
-              setQuickInteraction({
-                isOpen: true,
-                contactId: params.contactId,
-                type: params.type,
-                contactName: params.contactName
-              })}
-            hasNextPage={hasNextPage}
-            loadMore={() => fetchNextPage()}
-            isLoading={isLoading}
-            isContactsPage={true}
-            selectedContacts={selectedContacts}
-            isSelectionMode={isSelectionMode}
-            onToggleSelect={handleToggleSelect}
-            onStartSelectionMode={handleStartSelectionMode}
-          />
         </div>
       </div>
       <BulkImportModal
