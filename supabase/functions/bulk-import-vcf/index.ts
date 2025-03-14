@@ -1,6 +1,54 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createResponse, handleOptions } from '../_shared/headers.ts'
+import dayjs from 'https://esm.sh/dayjs@1.11.7'
+
+type ContactFrequency = 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly'
+
+function calculateNextContactDate(
+  frequency: ContactFrequency,
+  missedCount: number = 0,
+  baseDate: Date | null = null
+): Date {
+  const now = baseDate ? new Date(baseDate) : new Date();
+  
+  // Start with today's date
+  const nextDate = new Date(now);
+  nextDate.setHours(9, 0, 0, 0); // Set to 9 AM
+  
+  // Calculate base interval in days
+  let intervalDays = 0;
+  switch (frequency) {
+    case 'every_three_days':
+      intervalDays = 3;
+      break;
+    case 'weekly':
+      intervalDays = 7;
+      break;
+    case 'fortnightly':
+      intervalDays = 14;
+      break;
+    case 'monthly':
+      // Use 30 days as an approximation for a month
+      intervalDays = 30;
+      break;
+    case 'quarterly':
+      // Use 90 days as an approximation for a quarter
+      intervalDays = 90;
+      break;
+    default:
+      intervalDays = 7; // Default to weekly if invalid frequency
+  }
+  
+  // Exponential backoff for missed interactions
+  const backoffFactor = Math.pow(1.5, Math.min(missedCount, 5));
+  const adjustedInterval = Math.round(intervalDays * backoffFactor);
+  
+  // Add the adjusted interval to the next date
+  nextDate.setDate(nextDate.getDate() + adjustedInterval);
+  
+  return nextDate;
+}
 interface Contact {
   name: string
   phone?: string
@@ -11,7 +59,6 @@ interface Contact {
     name?: string
     date: string
   }>
-}
 }
 
 interface ValidationError {
@@ -258,7 +305,8 @@ serve(async (req) => {
             contact_frequency: 'monthly', // Set default frequency to monthly
             next_contact_due: now.toISOString(),
             last_contacted: now.toISOString(),
-            missed_interactions: 0
+            missed_interactions: 0,
+            notes: ''
           })
           .select()
           .single();
@@ -274,23 +322,75 @@ serve(async (req) => {
 
         // Insert important events if any
         if (contact.important_events.length > 0) {
+          const events = contact.important_events.map(event => ({
+            contact_id: newContact.id,
+            user_id: user.id,
+            type: event.type,
+            name: event.type === 'custom' ? event.name : null,
+            date: event.date
+          }));
+
           const { error: eventsError } = await supabaseClient
             .from('important_events')
-            .insert(contact.important_events.map(event => ({
-              contact_id: newContact.id,
-              user_id: user.id,
-              type: event.type,
-              name: event.type === 'custom' ? event.name : null,
-              date: event.date
-            })));
+            .insert(events);
 
           if (eventsError) {
             console.error('Failed to insert events:', eventsError);
-            // Don't fail the whole import if events fail
             result.errors.push({
               row: index + 1,
               errors: [`Events not imported: ${eventsError.message}`]
             });
+          }
+
+          // Calculate next contact due date considering events
+          const regularDueDate = calculateNextContactDate('monthly', 0, now);
+
+          // Find next important event date
+          const today = dayjs().startOf('day');
+          const nextImportantEvent = events
+            .map(event => {
+              let eventDate = dayjs(event.date).startOf('day');
+              eventDate = eventDate.year(today.year());
+              if (eventDate.isBefore(today)) {
+                eventDate = eventDate.add(1, 'year');
+              }
+              return eventDate.toDate();
+            })
+            .sort((a, b) => a.getTime() - b.getTime())[0];
+
+          // Determine which date to use
+          let nextDueDate = regularDueDate;
+          if (nextImportantEvent) {
+            if (dayjs(regularDueDate).isSame(today, 'day')) {
+              nextDueDate = nextImportantEvent;
+            } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
+              nextDueDate = nextImportantEvent;
+            }
+          }
+
+          // Update contact with final next_contact_due date
+          const { error: updateError } = await supabaseClient
+            .from('contacts')
+            .update({ next_contact_due: nextDueDate.toISOString() })
+            .eq('id', newContact.id);
+
+          if (updateError) {
+            console.error('Failed to update next contact due:', updateError);
+          }
+
+          // Create reminder
+          const { error: reminderError } = await supabaseClient
+            .from('reminders')
+            .insert({
+              contact_id: newContact.id,
+              user_id: user.id,
+              type: newContact.preferred_contact_method,
+              due_date: nextDueDate.toISOString(),
+              completed: false
+            });
+
+          if (reminderError) {
+            console.error('Failed to create reminder:', reminderError);
           }
         }
 
