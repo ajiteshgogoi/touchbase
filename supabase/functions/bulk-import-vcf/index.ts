@@ -49,6 +49,7 @@ function calculateNextContactDate(
   
   return nextDate;
 }
+
 interface Contact {
   name: string
   phone?: string
@@ -80,118 +81,175 @@ function validateSocialMediaPlatform(platform: string): string | null {
   return validPlatforms.includes(normalized) ? normalized : null;
 }
 
-function parseVCF(vcfContent: string): Contact[] {
+function processVCardLine(line: string, contact: Contact): void {
+  if (line.startsWith('FN:')) {
+    contact.name = line.substring(3).trim();
+  } else if (line.startsWith('TEL:')) {
+    contact.phone = line.substring(4).trim();
+  } else if (line.startsWith('X-SOCIALPROFILE;') || line.startsWith('SOCIALPROFILE;')) {
+    const match = line.match(/TYPE=(\w+):(.+)/i);
+    if (match) {
+      const platform = validateSocialMediaPlatform(match[1]);
+      const handle = match[2].trim();
+      if (platform) {
+        contact.social_media_platform = platform;
+        contact.social_media_handle = handle;
+      }
+    }
+  } else if (line.startsWith('BDAY:')) {
+    // Extract birthday in format YYYY-MM-DD
+    const date = line.substring(5).trim();
+    if (date && contact.important_events.length < 5) {
+      try {
+        // Parse and validate date
+        const parsedDate = new Date(date);
+        if (!isNaN(parsedDate.getTime()) &&
+            !contact.important_events.some(event => event.type === 'birthday')) {
+          // Set time to midnight UTC
+          parsedDate.setUTCHours(0, 0, 0, 0);
+          contact.important_events.push({
+            type: 'birthday',
+            date: parsedDate.toISOString()
+          });
+        }
+      } catch (e) {
+        console.error('Invalid birthday date:', date);
+      }
+    }
+  } else if (line.startsWith('ANNIVERSARY:') || line.startsWith('X-ANNIVERSARY:')) {
+    // Extract anniversary date
+    const date = line.includes('X-ANNIVERSARY:') ?
+      line.substring(13).trim() :
+      line.substring(12).trim();
+    if (date && contact.important_events.length < 5) {
+      try {
+        // Parse and validate date
+        const parsedDate = new Date(date);
+        if (!isNaN(parsedDate.getTime()) &&
+            !contact.important_events.some(event => event.type === 'anniversary')) {
+          // Set time to midnight UTC
+          parsedDate.setUTCHours(0, 0, 0, 0);
+          contact.important_events.push({
+            type: 'anniversary',
+            date: parsedDate.toISOString()
+          });
+        }
+      } catch (e) {
+        console.error('Invalid anniversary date:', date);
+      }
+    }
+  } else if (line.startsWith('X-EVENT:') || line.startsWith('CATEGORIES:')) {
+    // Extract custom events (some VCF files use CATEGORIES for events)
+    const eventData = line.includes('X-EVENT:') ?
+      line.substring(8).trim() :
+      line.substring(11).trim();
+    
+    const [name, date] = eventData.split(';').map(s => s.trim());
+    // Only add custom event if it has a name and we're under the limit
+    if (name && date && contact.important_events.length < 5) {
+      try {
+        const parsedDate = new Date(date);
+        if (!isNaN(parsedDate.getTime())) {
+          // Set time to midnight UTC
+          parsedDate.setUTCHours(0, 0, 0, 0);
+          contact.important_events.push({
+            type: 'custom',
+            name,
+            date: parsedDate.toISOString()
+          });
+        }
+      } catch (e) {
+        console.error('Invalid custom event date:', date);
+      }
+    }
+  }
+}
+
+async function* parseVCFChunks(file: File, chunkSize: number = 1024 * 1024): AsyncGenerator<Contact[]> {
+  let buffer = '';
+  const decoder = new TextDecoder();
+  const reader = file.stream().getReader();
   const contacts: Contact[] = [];
-  const vcards = vcfContent.split('BEGIN:VCARD').filter(card => card.trim());
 
-  for (const vcard of vcards) {
-    const lines = vcard.split('\n').map(line => line.trim());
-    const contact: Contact = {
-      name: '',
-      important_events: []
-    };
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      
+      buffer += decoder.decode(value, { stream: true });
+      
+      // Process complete vCards from buffer
+      while (buffer.includes('END:VCARD')) {
+        const endIndex = buffer.indexOf('END:VCARD') + 'END:VCARD'.length;
+        const vcard = buffer.slice(0, endIndex);
+        buffer = buffer.slice(endIndex);
 
-    for (const line of lines) {
-      if (line.startsWith('FN:')) {
-        contact.name = line.substring(3).trim();
-      } else if (line.startsWith('TEL:')) {
-        contact.phone = line.substring(4).trim();
-      } else if (line.startsWith('X-SOCIALPROFILE;') || line.startsWith('SOCIALPROFILE;')) {
-        const match = line.match(/TYPE=(\w+):(.+)/i);
-        if (match) {
-          const platform = validateSocialMediaPlatform(match[1]);
-          const handle = match[2].trim();
-          if (platform) {
-            contact.social_media_platform = platform;
-            contact.social_media_handle = handle;
-          }
+        if (!vcard.includes('BEGIN:VCARD')) continue;
+
+        const contact: Contact = {
+          name: '',
+          important_events: []
+        };
+
+        const lines = vcard.split('\n').map(line => line.trim());
+        for (const line of lines) {
+          processVCardLine(line, contact);
         }
-      } else if (line.startsWith('BDAY:')) {
-        // Extract birthday in format YYYY-MM-DD
-        const date = line.substring(5).trim();
-        if (date && contact.important_events.length < 5) {
-          try {
-            // Parse and validate date
-            const parsedDate = new Date(date);
-            if (!isNaN(parsedDate.getTime()) &&
-                !contact.important_events.some(event => event.type === 'birthday')) {
-              // Set time to midnight UTC
-              parsedDate.setUTCHours(0, 0, 0, 0);
-              contact.important_events.push({
-                type: 'birthday',
-                date: parsedDate.toISOString()
-              });
-            }
-          } catch (e) {
-            console.error('Invalid birthday date:', date);
-          }
+
+        if (contact.name) {
+          contacts.push(contact);
         }
-      } else if (line.startsWith('ANNIVERSARY:') || line.startsWith('X-ANNIVERSARY:')) {
-        // Extract anniversary date
-        const date = line.includes('X-ANNIVERSARY:') ?
-          line.substring(13).trim() :
-          line.substring(12).trim();
-        if (date && contact.important_events.length < 5) {
-          try {
-            // Parse and validate date
-            const parsedDate = new Date(date);
-            if (!isNaN(parsedDate.getTime()) &&
-                !contact.important_events.some(event => event.type === 'anniversary')) {
-              // Set time to midnight UTC
-              parsedDate.setUTCHours(0, 0, 0, 0);
-              contact.important_events.push({
-                type: 'anniversary',
-                date: parsedDate.toISOString()
-              });
-            }
-          } catch (e) {
-            console.error('Invalid anniversary date:', date);
-          }
-        }
-      } else if (line.startsWith('X-EVENT:') || line.startsWith('CATEGORIES:')) {
-        // Extract custom events (some VCF files use CATEGORIES for events)
-        const eventData = line.includes('X-EVENT:') ?
-          line.substring(8).trim() :
-          line.substring(11).trim();
-        
-        const [name, date] = eventData.split(';').map(s => s.trim());
-        // Only add custom event if it has a name and we're under the limit
-        if (name && date && contact.important_events.length < 5) {
-          try {
-            const parsedDate = new Date(date);
-            if (!isNaN(parsedDate.getTime())) {
-              // Set time to midnight UTC
-              parsedDate.setUTCHours(0, 0, 0, 0);
-              contact.important_events.push({
-                type: 'custom',
-                name,
-                date: parsedDate.toISOString()
-              });
-            }
-          } catch (e) {
-            console.error('Invalid custom event date:', date);
-          }
+
+        // Yield batch of contacts when size threshold is reached
+        if (contacts.length >= 50) {
+          yield contacts.splice(0);
         }
       }
     }
 
-    if (contact.name) {
-      contacts.push(contact);
-    }
-  }
+    // Decode any remaining chunks
+    buffer += decoder.decode();
 
-  return contacts;
+    // Process any remaining complete vCards
+    while (buffer.includes('END:VCARD')) {
+      const endIndex = buffer.indexOf('END:VCARD') + 'END:VCARD'.length;
+      const vcard = buffer.slice(0, endIndex);
+      buffer = buffer.slice(endIndex);
+
+      if (!vcard.includes('BEGIN:VCARD')) continue;
+
+      const contact: Contact = {
+        name: '',
+        important_events: []
+      };
+
+      const lines = vcard.split('\n').map(line => line.trim());
+      for (const line of lines) {
+        processVCardLine(line, contact);
+      }
+
+      if (contact.name) {
+        contacts.push(contact);
+      }
+    }
+
+    // Yield any remaining contacts
+    if (contacts.length > 0) {
+      yield contacts;
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }
 
-async function checkDuplicateContact(name: string, supabase: any, userId: string): Promise<boolean> {
+async function checkDuplicateContacts(names: string[], supabase: any, userId: string): Promise<Set<string>> {
   const { data: duplicates } = await supabase
     .from('contacts')
-    .select('id')
+    .select('name')
     .eq('user_id', userId)
-    .ilike('name', name)
-    .limit(1);
+    .in('name', names);
 
-  return duplicates?.length > 0;
+  return new Set(duplicates?.map(d => d.name.toLowerCase()) || []);
 }
 
 serve(async (req) => {
@@ -242,177 +300,186 @@ serve(async (req) => {
       );
     }
 
-    try {
-      // Read and parse VCF in memory
-      const vcfContent = await file.text();
-      const contacts = parseVCF(vcfContent);
+    // Get user's timezone preference once
+    const { data: userPref } = await supabaseClient
+      .from('user_preferences')
+      .select('timezone')
+      .eq('user_id', user.id)
+      .single();
 
-      // Clear file data from memory
-      formData.delete('file');
+    // Use UTC if no timezone preference is set
+    const timezone = userPref?.timezone || 'UTC';
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
 
-      const result: ImportResult = {
-        success: true,
-        message: 'Import completed',
-        successCount: 0,
-        failureCount: 0,
-        errors: []
-      };
+    const result: ImportResult = {
+      success: true,
+      message: 'Import completed',
+      successCount: 0,
+      failureCount: 0,
+      errors: []
+    };
 
-      // Process contacts
-      for (const [index, contact] of contacts.entries()) {
-        // Validate contact name
-        if (!contact.name?.trim()) {
+    // Process VCF in chunks
+    for await (const contacts of parseVCFChunks(file)) {
+      if (contacts.length === 0) continue;
+
+      // Validate names and check duplicates in batch
+      const validContacts = contacts.filter(contact => contact.name?.trim());
+      const invalidContacts = contacts.filter(contact => !contact.name?.trim());
+      
+      // Update result for invalid contacts
+      invalidContacts.forEach((_, idx) => {
+        result.failureCount++;
+        result.errors.push({
+          row: result.successCount + result.failureCount,
+          errors: ['Name is required']
+        });
+      });
+
+      if (validContacts.length === 0) continue;
+
+      // Check duplicates in batch
+      const validNames = validContacts.map(c => c.name.trim().toLowerCase());
+      const duplicateNames = await checkDuplicateContacts(validNames, supabaseClient, user.id);
+      
+      // Prepare batch inserts for non-duplicate contacts
+      const contactsToInsert = validContacts.filter(c => !duplicateNames.has(c.name.trim().toLowerCase())).map(contact => ({
+        user_id: user.id,
+        name: contact.name.trim(),
+        phone: contact.phone || null,
+        social_media_platform: contact.social_media_platform || null,
+        social_media_handle: contact.social_media_handle || null,
+        preferred_contact_method: contact.phone ? 'call' : 'message',
+        contact_frequency: 'monthly',
+        next_contact_due: now.toISOString(),
+        last_contacted: now.toISOString(),
+        missed_interactions: 0,
+        notes: ''
+      }));
+
+      // Update result for duplicate contacts
+      validContacts.forEach((contact) => {
+        if (duplicateNames.has(contact.name.trim().toLowerCase())) {
           result.failureCount++;
           result.errors.push({
-            row: index + 1,
-            errors: ['Name is required']
-          });
-          continue;
-        }
-
-        // Check for duplicates
-        const isDuplicate = await checkDuplicateContact(contact.name, supabaseClient, user.id);
-        if (isDuplicate) {
-          result.failureCount++;
-          result.errors.push({
-            row: index + 1,
+            row: result.successCount + result.failureCount,
             errors: [`Contact with name '${contact.name}' already exists`]
           });
-          continue;
         }
+      });
 
-        // Get user's timezone preference
-        const { data: userPref } = await supabaseClient
-          .from('user_preferences')
-          .select('timezone')
-          .eq('user_id', user.id)
-          .single();
+      if (contactsToInsert.length === 0) continue;
 
-        // Use UTC if no timezone preference is set
-        const timezone = userPref?.timezone || 'UTC';
-        const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+      // Bulk insert contacts
+      const { data: newContacts, error: insertError } = await supabaseClient
+        .from('contacts')
+        .insert(contactsToInsert)
+        .select();
 
-        // Insert contact with monthly frequency and get the new contact's ID
-        const { data: newContact, error: insertError } = await supabaseClient
-          .from('contacts')
-          .insert({
-            user_id: user.id,
-            name: contact.name.trim(),
-            phone: contact.phone || null,
-            social_media_platform: contact.social_media_platform || null,
-            social_media_handle: contact.social_media_handle || null,
-            preferred_contact_method: contact.phone ? 'call' : 'message',
-            contact_frequency: 'monthly', // Set default frequency to monthly
-            next_contact_due: now.toISOString(),
-            last_contacted: now.toISOString(),
-            missed_interactions: 0,
-            notes: ''
-          })
-          .select()
-          .single();
-
-        if (insertError || !newContact) {
-          result.failureCount++;
+      if (insertError || !newContacts) {
+        result.failureCount += contactsToInsert.length;
+        contactsToInsert.forEach(() => {
           result.errors.push({
-            row: index + 1,
+            row: result.successCount + result.failureCount,
             errors: [`Failed to insert contact: ${insertError?.message || 'Unknown error'}`]
           });
-          continue;
-        }
-
-        // Insert important events if any
-        if (contact.important_events.length > 0) {
-          const events = contact.important_events.map(event => ({
-            contact_id: newContact.id,
-            user_id: user.id,
-            type: event.type,
-            name: event.type === 'custom' ? event.name : null,
-            date: event.date
-          }));
-
-          const { error: eventsError } = await supabaseClient
-            .from('important_events')
-            .insert(events);
-
-          if (eventsError) {
-            console.error('Failed to insert events:', eventsError);
-            result.errors.push({
-              row: index + 1,
-              errors: [`Events not imported: ${eventsError.message}`]
-            });
-          }
-
-          // Calculate next contact due date considering events
-          const regularDueDate = calculateNextContactDate('monthly', 0, now);
-
-          // Find next important event date
-          const today = dayjs().startOf('day');
-          const nextImportantEvent = events
-            .map(event => {
-              let eventDate = dayjs(event.date).startOf('day');
-              eventDate = eventDate.year(today.year());
-              if (eventDate.isBefore(today)) {
-                eventDate = eventDate.add(1, 'year');
-              }
-              return eventDate.toDate();
-            })
-            .sort((a, b) => a.getTime() - b.getTime())[0];
-
-          // Determine which date to use
-          let nextDueDate = regularDueDate;
-          if (nextImportantEvent) {
-            if (dayjs(regularDueDate).isSame(today, 'day')) {
-              nextDueDate = nextImportantEvent;
-            } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
-              nextDueDate = nextImportantEvent;
-            }
-          }
-
-          // Update contact with final next_contact_due date
-          const { error: updateError } = await supabaseClient
-            .from('contacts')
-            .update({ next_contact_due: nextDueDate.toISOString() })
-            .eq('id', newContact.id);
-
-          if (updateError) {
-            console.error('Failed to update next contact due:', updateError);
-          }
-
-          // Create reminder
-          const { error: reminderError } = await supabaseClient
-            .from('reminders')
-            .insert({
-              contact_id: newContact.id,
-              user_id: user.id,
-              type: newContact.preferred_contact_method,
-              due_date: nextDueDate.toISOString(),
-              completed: false
-            });
-
-          if (reminderError) {
-            console.error('Failed to create reminder:', reminderError);
-          }
-        }
-
-        result.successCount++;
+        });
+        continue;
       }
 
-      return createResponse(result);
-    } catch (error) {
-      console.error('Error processing VCF import:', error);
-      return createResponse(
-        {
-          success: false,
-          message: error.message,
-          successCount: 0,
-          failureCount: 0,
-          errors: [{ row: 0, errors: [error.message] }]
-        },
-        { status: 500 }
-      );
+      // Prepare events and reminders for bulk insert
+      const allEvents = [];
+      const allReminders = [];
+      const today = dayjs().startOf('day');
+
+      newContacts.forEach((newContact) => {
+        const contact = validContacts.find(c => c.name.trim() === newContact.name);
+        if (!contact || !contact.important_events.length) return;
+
+        const events = contact.important_events.map(event => ({
+          contact_id: newContact.id,
+          user_id: user.id,
+          type: event.type,
+          name: event.type === 'custom' ? event.name : null,
+          date: event.date
+        }));
+
+        allEvents.push(...events);
+
+        // Calculate next due date
+        const regularDueDate = calculateNextContactDate('monthly', 0, now);
+        const nextImportantEvent = events
+          .map(event => {
+            let eventDate = dayjs(event.date).startOf('day');
+            eventDate = eventDate.year(today.year());
+            if (eventDate.isBefore(today)) {
+              eventDate = eventDate.add(1, 'year');
+            }
+            return eventDate.toDate();
+          })
+          .sort((a, b) => a.getTime() - b.getTime())[0];
+
+        let nextDueDate = regularDueDate;
+        if (nextImportantEvent) {
+          if (dayjs(regularDueDate).isSame(today, 'day')) {
+            nextDueDate = nextImportantEvent;
+          } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
+            nextDueDate = nextImportantEvent;
+          }
+        }
+
+        // Update contact's next_due_date
+        newContact.next_contact_due = nextDueDate.toISOString();
+
+        // Add reminder
+        allReminders.push({
+          contact_id: newContact.id,
+          user_id: user.id,
+          type: newContact.preferred_contact_method,
+          due_date: nextDueDate.toISOString(),
+          completed: false
+        });
+      });
+
+      // Bulk update contacts with next_due_dates
+      if (newContacts.length > 0) {
+        const { error: updateError } = await supabaseClient
+          .from('contacts')
+          .upsert(newContacts);
+
+        if (updateError) {
+          console.error('Failed to update next contact due dates:', updateError);
+        }
+      }
+
+      // Bulk insert events
+      if (allEvents.length > 0) {
+        const { error: eventsError } = await supabaseClient
+          .from('important_events')
+          .insert(allEvents);
+
+        if (eventsError) {
+          console.error('Failed to insert events:', eventsError);
+        }
+      }
+
+      // Bulk insert reminders
+      if (allReminders.length > 0) {
+        const { error: remindersError } = await supabaseClient
+          .from('reminders')
+          .insert(allReminders);
+
+        if (remindersError) {
+          console.error('Failed to insert reminders:', remindersError);
+        }
+      }
+
+      result.successCount += newContacts.length;
     }
+
+    return createResponse(result);
   } catch (error) {
-    console.error('Error in serve handler:', error);
+    console.error('Error processing VCF import:', error);
     return createResponse(
       {
         success: false,

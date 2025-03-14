@@ -156,15 +156,91 @@ function isValidDate(dateStr: string): boolean {
   return date instanceof Date && !isNaN(date.getTime())
 }
 
-async function checkDuplicateContact(name: string, supabase: any, userId: string): Promise<boolean> {
+async function checkDuplicateContacts(names: string[], supabase: any, userId: string): Promise<Set<string>> {
   const { data: duplicates } = await supabase
     .from('contacts')
-    .select('id')
+    .select('name')
     .eq('user_id', userId)
-    .ilike('name', name)
-    .limit(1)
+    .in('name', names);
 
-  return duplicates?.length > 0
+  return new Set(duplicates?.map(d => d.name.toLowerCase()) || []);
+}
+
+async function* parseCSVChunks(file: File, batchSize: number = 50): AsyncGenerator<any[]> {
+  const decoder = new TextDecoder();
+  const reader = file.stream().getReader();
+  
+  let buffer = '';
+  let records = [];
+  let headers: string[] | null = null;
+  let headerLine = '';
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      
+      buffer += decoder.decode(value, { stream: true });
+      
+      // Process complete lines
+      while (buffer.includes('\n')) {
+        const lineEnd = buffer.indexOf('\n');
+        const line = buffer.slice(0, lineEnd).trim();
+        buffer = buffer.slice(lineEnd + 1);
+
+        if (!headers) {
+          // Store header line to parse future rows
+          headerLine = line;
+          headers = line.split(',').map(h => h.trim());
+          continue;
+        }
+
+        if (line) {
+          // Parse CSV line into object using headers
+          const values = line.split(',').map(v => v.trim());
+          const record = {};
+          headers.forEach((header, index) => {
+            record[header] = values[index] || '';
+          });
+          records.push(record);
+
+          // Yield batch when size threshold is reached
+          if (records.length >= batchSize) {
+            yield records;
+            records = [];
+          }
+        }
+      }
+    }
+
+    // Process any remaining buffer
+    buffer += decoder.decode();
+    if (buffer.trim() && headers) {
+      const lines = buffer.trim().split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          const values = line.split(',').map(v => v.trim());
+          const record = {};
+          headers.forEach((header, index) => {
+            record[header] = values[index] || '';
+          });
+          records.push(record);
+
+          if (records.length >= batchSize) {
+            yield records;
+            records = [];
+          }
+        }
+      }
+    }
+
+    // Yield any remaining records
+    if (records.length > 0) {
+      yield records;
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 serve(async (req) => {
@@ -216,16 +292,6 @@ serve(async (req) => {
     }
 
     try {
-      // Read and parse CSV in memory
-      const csvContent = await file.text()
-      const records = parse(csvContent, {
-        columns: true,
-        skip_empty_lines: true
-      })
-
-      // Clear file data from memory
-      formData.delete('file')
-
       const result: ImportResult = {
         success: true,
         message: 'Import completed',
@@ -234,206 +300,211 @@ serve(async (req) => {
         errors: []
       }
 
-      // Process records in batches
-      const batchSize = 50
-      const batches = []
-      for (let i = 0; i < records.length; i += batchSize) {
-        batches.push(records.slice(i, i + batchSize))
-      }
+      // Get user's timezone preference once
+      const { data: userPref } = await supabaseClient
+        .from('user_preferences')
+        .select('timezone')
+        .eq('user_id', user.id)
+        .single();
 
-      for (const batch of batches) {
-        const validContacts = []
-        
-        // Validate each contact in the batch
+      // Use UTC if no timezone preference is set
+      const timezone = userPref?.timezone || 'UTC';
+      const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+
+      // Process CSV in chunks
+      for await (const batch of parseCSVChunks(file)) {
+        // Validate contacts in batch
+        const validRecords = [];
         for (const [index, record] of batch.entries()) {
-          const { isValid, errors } = validateContact(record, index)
-          
+          const { isValid, errors } = validateContact(record, index);
           if (!isValid) {
-            result.failureCount++
+            result.failureCount++;
             result.errors.push({
-              row: index + 1,
+              row: result.successCount + result.failureCount,
               errors
-            })
-            continue
+            });
+            continue;
           }
+          validRecords.push(record);
+        }
 
-          // Check for duplicates
-          const isDuplicate = await checkDuplicateContact(record.name, supabaseClient, user.id)
-          if (isDuplicate) {
-            result.failureCount++
+        if (validRecords.length === 0) continue;
+
+        // Check duplicates in batch
+        const validNames = validRecords.map(r => r.name.trim().toLowerCase());
+        const duplicateNames = await checkDuplicateContacts(validNames, supabaseClient, user.id);
+
+        // Prepare data for bulk insert
+        const contactsToInsert = [];
+        const skippedRecords = [];
+
+        validRecords.forEach(record => {
+          if (duplicateNames.has(record.name.trim().toLowerCase())) {
+            result.failureCount++;
             result.errors.push({
-              row: index + 1,
+              row: result.successCount + result.failureCount,
               errors: [`Contact with name '${record.name}' already exists`]
-            })
-            continue
+            });
+            skippedRecords.push(record);
+          } else {
+            contactsToInsert.push({
+              user_id: user.id,
+              name: record.name.trim(),
+              contact_frequency: record.contact_frequency,
+              phone: record.phone || null,
+              social_media_platform: record.social_media_platform || null,
+              social_media_handle: record.social_media_handle || null,
+              preferred_contact_method: record.preferred_contact_method || 'message',
+              notes: record.notes || '',
+              next_contact_due: now.toISOString(),
+              last_contacted: now.toISOString(),
+              missed_interactions: 0
+            });
           }
+        });
 
-          // Prepare contact data
-          const contactData = {
-            user_id: user.id,
-            name: record.name.trim(),
-            contact_frequency: record.contact_frequency,
-            phone: record.phone || null,
-            social_media_platform: record.social_media_platform || null,
-            social_media_handle: record.social_media_handle || null,
-            preferred_contact_method: record.preferred_contact_method || 'message',
-            notes: record.notes || ''
-          }
+        if (contactsToInsert.length === 0) continue;
 
-          validContacts.push(contactData)
+        // Bulk insert contacts
+        const { data: newContacts, error: insertError } = await supabaseClient
+          .from('contacts')
+          .insert(contactsToInsert)
+          .select();
+
+        if (insertError || !newContacts) {
+          result.failureCount += contactsToInsert.length;
+          contactsToInsert.forEach(() => {
+            result.errors.push({
+              row: result.successCount + result.failureCount,
+              errors: [`Failed to insert contact: ${insertError?.message || 'Unknown error'}`]
+            });
+          });
+          continue;
         }
 
-        // Insert valid contacts and their events
-        if (validContacts.length > 0) {
-          for (const contact of validContacts) {
-            // Get user's timezone preference
-            const { data: userPref } = await supabaseClient
-              .from('user_preferences')
-              .select('timezone')
-              .eq('user_id', contact.user_id)
-              .single();
+        // Process events and reminders in bulk
+        const allEvents = [];
+        const allReminders = [];
+        const today = dayjs().startOf('day');
 
-            // Use UTC if no timezone preference is set
-            const timezone = userPref?.timezone || 'UTC';
+        newContacts.forEach(newContact => {
+          const record = validRecords.find(r => r.name.trim() === newContact.name);
+          if (!record) return;
+
+          const events = [];
+          let eventCount = 0;
+
+          // Add birthday if provided
+          if (record.birthday && eventCount < 5) {
+            events.push({
+              contact_id: newContact.id,
+              user_id: user.id,
+              type: 'birthday',
+              date: new Date(record.birthday).toISOString()
+            });
+            eventCount++;
+          }
+
+          // Add anniversary if provided
+          if (record.anniversary && eventCount < 5) {
+            events.push({
+              contact_id: newContact.id,
+              user_id: user.id,
+              type: 'anniversary',
+              date: new Date(record.anniversary).toISOString()
+            });
+            eventCount++;
+          }
+
+          // Add custom events
+          for (let i = 1; i <= 3 && eventCount < 5; i++) {
+            const nameField = `custom_event_${i}_name`;
+            const dateField = `custom_event_${i}_date`;
             
-            // Get current time in user's timezone
-            const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+            if (record[nameField] && record[dateField]) {
+              events.push({
+                contact_id: newContact.id,
+                user_id: user.id,
+                type: 'custom',
+                name: record[nameField],
+                date: new Date(record[dateField]).toISOString()
+              });
+              eventCount++;
+            }
+          }
 
-            // Insert contact with initial dates
-            const { data: insertedContact, error: insertError } = await supabaseClient
-              .from('contacts')
-              .insert({
-                ...contact,
-                next_contact_due: now.toISOString(),
-                last_contacted: now.toISOString(),
-                missed_interactions: 0
+          if (events.length > 0) {
+            allEvents.push(...events);
+
+            // Calculate next due date considering events
+            const regularDueDate = calculateNextContactDate(newContact.contact_frequency, 0, now);
+            const nextImportantEvent = events
+              .map(event => {
+                let eventDate = dayjs(event.date).startOf('day');
+                eventDate = eventDate.year(today.year());
+                if (eventDate.isBefore(today)) {
+                  eventDate = eventDate.add(1, 'year');
+                }
+                return eventDate.toDate();
               })
-              .select()
-              .single()
+              .sort((a, b) => a.getTime() - b.getTime())[0];
 
-            if (insertError) {
-              throw new Error(`Failed to insert contact: ${insertError.message}`)
-            }
-
-            // Process important events (max 5 per contact)
-            const record = batch.find(r => r.name === contact.name)
-            if (record) {
-              const events = []
-              let eventCount = 0;
-
-              // Add birthday if provided
-              if (record.birthday && eventCount < 5) {
-                events.push({
-                  contact_id: insertedContact.id,
-                  user_id: user.id,
-                  type: 'birthday',
-                  date: new Date(record.birthday).toISOString()
-                })
-                eventCount++;
-              }
-
-              // Add anniversary if provided
-              if (record.anniversary && eventCount < 5) {
-                events.push({
-                  contact_id: insertedContact.id,
-                  user_id: user.id,
-                  type: 'anniversary',
-                  date: new Date(record.anniversary).toISOString()
-                })
-                eventCount++;
-              }
-
-              // Add custom events if provided (up to 3)
-              for (let i = 1; i <= 3; i++) {
-                const nameField = `custom_event_${i}_name`;
-                const dateField = `custom_event_${i}_date`;
-                
-                if (record[nameField] && record[dateField] && eventCount < 5) {
-                  events.push({
-                    contact_id: insertedContact.id,
-                    user_id: user.id,
-                    type: 'custom',
-                    name: record[nameField],
-                    date: new Date(record[dateField]).toISOString()
-                  });
-                  eventCount++;
-                }
-              }
-
-              // Insert events if any
-              if (events.length > 0) {
-                const { error: eventsError } = await supabaseClient
-                  .from('important_events')
-                  .insert(events)
-
-                if (eventsError) {
-                  throw new Error(`Failed to insert important events: ${eventsError.message}`)
-                }
-              }
-              
-              // Calculate regular next due date
-              const regularDueDate = calculateNextContactDate(
-                contact.contact_frequency,
-                0, // No missed interactions for new contacts
-                now
-              );
-
-              // Find next important event date
-              const today = dayjs().startOf('day');
-              const nextImportantEvent = events
-                .map(event => {
-                  let eventDate = dayjs(event.date).startOf('day');
-                  eventDate = eventDate.year(today.year());
-                  if (eventDate.isBefore(today)) {
-                    eventDate = eventDate.add(1, 'year');
-                  }
-                  return eventDate.toDate();
-                })
-                .sort((a, b) => a.getTime() - b.getTime())[0];
-
-              // Determine which date to use
-              let nextDueDate = regularDueDate;
-              if (nextImportantEvent) {
-                if (dayjs(regularDueDate).isSame(today, 'day')) {
-                  nextDueDate = nextImportantEvent;
-                } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
-                  nextDueDate = nextImportantEvent;
-                }
-              }
-
-              // Update contact with final next_contact_due date
-              const { error: updateError } = await supabaseClient
-                .from('contacts')
-                .update({ next_contact_due: nextDueDate.toISOString() })
-                .eq('id', insertedContact.id);
-
-              if (updateError) {
-                throw new Error(`Failed to update next contact due: ${updateError.message}`)
-              }
-
-              // Create reminder with calculated date
-              const { error: reminderError } = await supabaseClient
-                .from('reminders')
-                .insert({
-                  contact_id: insertedContact.id,
-                  user_id: contact.user_id,
-                  type: contact.preferred_contact_method || 'message',
-                  due_date: nextDueDate.toISOString(),
-                  completed: false
-                });
-
-              if (reminderError) {
-                throw new Error(`Failed to create reminder: ${reminderError.message}`)
+            let nextDueDate = regularDueDate;
+            if (nextImportantEvent) {
+              if (dayjs(regularDueDate).isSame(today, 'day')) {
+                nextDueDate = nextImportantEvent;
+              } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
+                nextDueDate = nextImportantEvent;
               }
             }
 
-            result.successCount++
+            newContact.next_contact_due = nextDueDate.toISOString();
+
+            allReminders.push({
+              contact_id: newContact.id,
+              user_id: user.id,
+              type: newContact.preferred_contact_method,
+              due_date: nextDueDate.toISOString(),
+              completed: false
+            });
+          }
+        });
+
+        // Bulk update contacts with new due dates
+        if (newContacts.length > 0) {
+          const { error: updateError } = await supabaseClient
+            .from('contacts')
+            .upsert(newContacts);
+
+          if (updateError) {
+            console.error('Failed to update next contact due dates:', updateError);
           }
         }
-      }
 
-      // Clear CSV data from memory after processing
-      records.length = 0
+        // Bulk insert events
+        if (allEvents.length > 0) {
+          const { error: eventsError } = await supabaseClient
+            .from('important_events')
+            .insert(allEvents);
+
+          if (eventsError) {
+            console.error('Failed to insert events:', eventsError);
+          }
+        }
+
+        // Bulk insert reminders
+        if (allReminders.length > 0) {
+          const { error: remindersError } = await supabaseClient
+            .from('reminders')
+            .insert(allReminders);
+
+          if (remindersError) {
+            console.error('Failed to insert reminders:', remindersError);
+          }
+        }
+
+        result.successCount += newContacts.length;
+      }
 
       return createResponse(result)
     } catch (error) {
