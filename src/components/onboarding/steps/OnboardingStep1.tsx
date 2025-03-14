@@ -53,7 +53,7 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % FEATURES.length);
-    }, 3000);
+    }, 3500);
 
     return () => clearInterval(timer);
   }, []);
