@@ -256,7 +256,10 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
         }
       }
 
-      // Invalidate all related queries after successful import
+      // Clear contact cache and invalidate all related queries after successful import
+      const { contactCacheService } = await import('../../services/contact-cache');
+      contactCacheService.clear();
+      
       const queryClient = getQueryClient();
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['total-contacts'] });

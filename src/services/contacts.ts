@@ -156,6 +156,9 @@ export const contactsService = {
   async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>): Promise<Contact> {
     await this.checkContactLimit();
     
+    // Clear the contact cache since we're adding a new contact
+    contactCacheService.clear();
+    
     // Get user's timezone preference
     const { data: userPref } = await supabase
       .from('user_preferences')
@@ -449,6 +452,9 @@ export const contactsService = {
   },
 
   async deleteContact(id: string): Promise<void> {
+    // Clear the contact cache
+    contactCacheService.clear();
+
     // Delete all interactions for this contact
     const { error: interactionsError } = await supabase
       .from('interactions')
@@ -827,6 +833,9 @@ export const contactsService = {
    */
   async bulkDeleteContacts(contactIds: string[]): Promise<void> {
     if (!contactIds.length) return;
+
+    // Clear the contact cache before bulk deletion
+    contactCacheService.clear();
 
     // Process deletions in smaller chunks to avoid URL length limitations
     const chunkSize = 25; // Reduced chunk size for better reliability
