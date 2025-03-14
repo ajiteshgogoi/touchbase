@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { notificationService } from '../../../services/notifications';
-import { BellIcon, BellSlashIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { BellIcon, BellSlashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 interface OnboardingStep2Props {
   onNext: () => void;
@@ -36,20 +36,21 @@ export const OnboardingStep2 = ({ onNext, onBack }: OnboardingStep2Props) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-4 text-center">
-        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+      <div className="space-y-3 text-center">
+        <h2 className="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-primary-600
+          to-primary-400 bg-clip-text text-transparent leading-relaxed pb-1">
           Stay Connected
         </h2>
-        <p className="text-lg text-gray-600 max-w-sm mx-auto">
-          Get timely reminders to maintain meaningful connections with your contacts.
+        <p className="text-base text-gray-600 max-w-sm mx-auto">
+          Remember to connect with your contacts regularly
         </p>
       </div>
 
       {/* Notification Features */}
       <div className="space-y-4">
-        <div className="p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 shadow-soft space-y-4">
+        <div className="p-8 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 shadow-soft space-y-4">
           <div className="flex items-center gap-4">
             {notificationsEnabled ? (
               <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center">
@@ -67,18 +68,6 @@ export const OnboardingStep2 = ({ onNext, onBack }: OnboardingStep2Props) => {
           </div>
         </div>
 
-        <div className="p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 shadow-soft space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center">
-              <ClockIcon className="w-6 h-6 text-primary-500" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-base font-medium text-gray-900">Perfect Timing</h3>
-              <p className="mt-1 text-sm text-gray-600">Based on your preferred contact frequency</p>
-            </div>
-          </div>
-        </div>
-
         {notificationsEnabled && (
           <div className="p-6 bg-primary-50/50 rounded-xl border border-primary-100/50 shadow-soft">
             <div className="flex items-center gap-3">
@@ -91,8 +80,8 @@ export const OnboardingStep2 = ({ onNext, onBack }: OnboardingStep2Props) => {
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 rounded-xl border border-red-100/50">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="flex items-center justify-center px-3 py-2 bg-red-50 rounded-lg">
+            <p className="text-sm text-red-600 text-center">{error}</p>
           </div>
         )}
       </div>
