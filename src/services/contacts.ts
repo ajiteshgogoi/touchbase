@@ -741,31 +741,37 @@ export const contactsService = {
   async bulkDeleteContacts(contactIds: string[]): Promise<void> {
     if (!contactIds.length) return;
 
-    // Delete all interactions for these contacts
-    const { error: interactionsError } = await supabase
-      .from('interactions')
-      .delete()
-      .in('contact_id', contactIds);
-    
-    if (interactionsError) throw interactionsError;
+    // Process deletions in chunks of 50 to avoid URL length limitations
+    const chunkSize = 50;
+    for (let i = 0; i < contactIds.length; i += chunkSize) {
+      const chunk = contactIds.slice(i, i + chunkSize);
 
-    // Delete all reminders for these contacts
-    const { error: remindersError } = await supabase
-      .from('reminders')
-      .delete()
-      .in('contact_id', contactIds);
-    
-    if (remindersError) throw remindersError;
+      // Delete all interactions for this chunk of contacts
+      const { error: interactionsError } = await supabase
+        .from('interactions')
+        .delete()
+        .in('contact_id', chunk);
+      
+      if (interactionsError) throw interactionsError;
 
-    // Important events will be automatically deleted due to ON DELETE CASCADE
+      // Delete all reminders for this chunk of contacts
+      const { error: remindersError } = await supabase
+        .from('reminders')
+        .delete()
+        .in('contact_id', chunk);
+      
+      if (remindersError) throw remindersError;
 
-    // Finally delete the contacts
-    const { error: contactError } = await supabase
-      .from('contacts')
-      .delete()
-      .in('id', contactIds);
-    
-    if (contactError) throw contactError;
+      // Important events will be automatically deleted due to ON DELETE CASCADE
+
+      // Delete the contacts in this chunk
+      const { error: contactError } = await supabase
+        .from('contacts')
+        .delete()
+        .in('id', chunk);
+      
+      if (contactError) throw contactError;
+    }
 
     // Invalidate all related caches after bulk deletion
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
