@@ -4,6 +4,7 @@ import { XMarkIcon, CloudArrowDownIcon, ArrowUpTrayIcon, ExclamationCircleIcon }
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { supabase } from '../../lib/supabase/client';
 import { useStore } from '../../stores/useStore';
+import { getQueryClient } from '../../utils/queryClient';
 
 interface ImportMethod {
   id: 'google' | 'csv_upload' | 'csv_template' | 'vcf_upload';
@@ -190,6 +191,13 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
       }
 
       setImportResult(result);
+
+      // Invalidate all related queries after successful import
+      const queryClient = getQueryClient();
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['important-events'] });
 
       // Clear the file input
       event.target.value = '';
