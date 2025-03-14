@@ -123,12 +123,44 @@ export const contactsPaginationService = {
       query = query.limit(Math.min(PAGE_SIZE, 15 - offset));
     }
 
-    const { data, error, count } = await query;
+    // Get total count first using chunked approach for accuracy
+    let total = 0;
+    let countQuery = supabase.from('contacts').select('*', { count: 'exact', head: true });
     
+    // Apply same filters to count query
+    if (filters.search) {
+      countQuery = countQuery.or(`name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,social_media_handle.ilike.%${filters.search}%`);
+    }
+    if (filters.categories && filters.categories.length > 0) {
+      const categoryConditions = filters.categories
+        .map(category => {
+          const hashtagQuery = category.startsWith('#') ? category : `#${category}`;
+          return `notes.ilike.%${hashtagQuery.toLowerCase()}%`;
+        })
+        .join(',');
+      countQuery = countQuery.or(categoryConditions);
+    }
+
+    // Get accurate count using chunked approach
+    let countPage = 0;
+    const countPageSize = 950;
+    while (true) {
+      const { data: countData, error: countError } = await countQuery
+        .range(countPage * countPageSize, (countPage + 1) * countPageSize - 1);
+      
+      if (countError) throw countError;
+      if (!countData || countData.length === 0) break;
+      
+      total += countData.length;
+      if (countData.length < countPageSize) break;
+      countPage++;
+    }
+
+    // Get paginated data
+    const { data, error } = await query;
     if (error) throw error;
 
-    // Calculate if there are more results
-    const total = count || 0;
+    // Calculate if there are more results considering the accurate total
     const hasMore = offset + PAGE_SIZE < total && (isPremium || isOnTrial || offset + PAGE_SIZE < 15);
 
     return {

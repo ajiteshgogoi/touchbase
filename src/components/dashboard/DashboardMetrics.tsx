@@ -8,9 +8,9 @@ import type { Reminder } from '../../lib/supabase/types';
 
 export const DashboardMetrics = () => {
   const { isPremium, isOnTrial } = useStore();
-  const { data: contacts } = useQuery({
-    queryKey: ['contacts'],
-    queryFn: contactsService.getContacts,
+  const { data: totalContacts = 0 } = useQuery({
+    queryKey: ['total-contacts'],
+    queryFn: contactsService.getTotalContactCount,
     staleTime: 5 * 60 * 1000 // Cache for 5 minutes
   });
 
@@ -21,12 +21,8 @@ export const DashboardMetrics = () => {
   });
 
   const today = dayjs();
-  const sortedContacts = contacts?.sort((a, b) =>
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-  const visibleContacts = isPremium || isOnTrial ? sortedContacts : sortedContacts?.slice(0, 15);
   const metrics = {
-    totalContacts: visibleContacts?.length || 0,
+    totalContacts: isPremium || isOnTrial ? totalContacts : Math.min(totalContacts, 15),
     dueToday: reminders?.filter((r: Reminder) => {
       const dueDate = dayjs(r.due_date);
       return dueDate.isSame(today, 'day');

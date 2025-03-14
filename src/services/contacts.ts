@@ -511,15 +511,38 @@ export const contactsService = {
   },
 
   async getTotalContactCount(): Promise<number> {
-    const { count, error } = await supabase
-      .from('contacts')
-      .select('*', {
-        count: 'exact',
-        head: true  // Only get count, don't return actual rows
-      });
+    // Use ranged queries to get total count beyond 1000
+    let totalCount = 0;
+    let page = 0;
+    const pageSize = 950; // Match the chunk size being used elsewhere
     
-    if (error) throw error;
-    return count || 0;
+    while (true) {
+      const { data, error, count } = await supabase
+        .from('contacts')
+        .select('*', { count: 'exact' })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      if (error) throw error;
+      
+      // If no more data or count is available, break
+      if (!data || data.length === 0) break;
+      
+      // If count is available, use it and break (optimization)
+      if (count !== null) {
+        totalCount = count;
+        break;
+      }
+      
+      // Otherwise, add the chunk size and continue
+      totalCount += data.length;
+      
+      // If we got less than pageSize, we've reached the end
+      if (data.length < pageSize) break;
+      
+      page++;
+    }
+    
+    return totalCount;
   },
 
   async getReminders(contactId?: string): Promise<Reminder[]> {
