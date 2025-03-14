@@ -51,6 +51,7 @@ export const Contacts = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const { isPremium, isOnTrial } = useStore();
 
@@ -60,6 +61,7 @@ export const Contacts = () => {
     
     if (confirm(`Are you sure you want to delete ${selectedContacts.size} contacts?`)) {
       try {
+        setIsBulkDeleting(true);
         await contactsService.bulkDeleteContacts(Array.from(selectedContacts));
         setSelectedContacts(new Set());
         setIsSelectionMode(false);
@@ -67,6 +69,8 @@ export const Contacts = () => {
       } catch (error) {
         console.error('Error bulk deleting contacts:', error);
         alert('Failed to delete contacts. Please try again.');
+      } finally {
+        setIsBulkDeleting(false);
       }
     }
   };
@@ -371,11 +375,11 @@ export const Contacts = () => {
             </button>
             <button
               onClick={handleBulkDelete}
-              disabled={selectedContacts.size === 0}
+              disabled={selectedContacts.size === 0 || isBulkDeleting}
               className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <TrashIcon className="h-5 w-5 mr-2" />
-              Delete Selected
+              {isBulkDeleting ? 'Deleting...' : 'Delete Selected'}
             </button>
           </div>
         ) : (
