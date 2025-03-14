@@ -1,4 +1,4 @@
-import { Fragment, useLayoutEffect, useState } from 'react';
+import { Fragment, useLayoutEffect, useState, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, CloudArrowDownIcon, ArrowUpTrayIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
@@ -86,7 +86,19 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [progress, setProgress] = useState<number>(0);
-  const [totalContacts, setTotalContacts] = useState<number>(0);
+  const [progressInterval, setProgressInterval] = useState<NodeJS.Timeout | null>(null);
+  // Keep track of current progress outside of state to prevent race conditions
+  const progressRef = useRef<number>(0);
+  const isCompletingRef = useRef<boolean>(false);
+
+  // Cleanup interval on unmount or modal close
+  useLayoutEffect(() => {
+    return () => {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+    };
+  }, [progressInterval]);
 
   useLayoutEffect(() => {
     if (isOpen) {
@@ -122,23 +134,48 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
     onSelect(method);
   };
 
-  const calculateTotalContacts = async (file: File): Promise<number> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        if (file.name.toLowerCase().endsWith('.csv')) {
-          // For CSV, count lines minus header
-          const lines = text.split('\n').filter(line => line.trim()).length - 1;
-          resolve(lines);
-        } else {
-          // For VCF, count BEGIN:VCARD occurrences
-          const matches = (text.match(/BEGIN:VCARD/gi) || []).length;
-          resolve(matches);
-        }
-      };
-      reader.readAsText(file);
-    });
+  const startProgressSimulation = () => {
+    // Clear any existing interval
+    if (progressInterval) {
+      clearInterval(progressInterval);
+    }
+
+    setProgress(0);
+    progressRef.current = 0;
+    isCompletingRef.current = false;
+    const interval = setInterval(() => {
+      // Don't update if we're completing
+      if (!isCompletingRef.current) {
+        // Generate random increment between 2-8%
+        const increment = Math.random() * 6 + 2;
+        progressRef.current += increment;
+        // Cap at 93% to leave room for completion
+        setProgress(Math.min(93, progressRef.current));
+      }
+    }, 500);
+    setProgressInterval(interval);
+  };
+
+  const completeProgress = async () => {
+    // Mark as completing to prevent further progress updates
+    isCompletingRef.current = true;
+
+    // Clear the interval
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      setProgressInterval(null);
+    }
+
+    // Ensure we stay at the last progress value before going to 100%
+    const lastProgress = Math.min(93, progressRef.current);
+    setProgress(lastProgress);
+    
+    // Set to 100% and wait to show completion
+    setProgress(100);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Reset completing flag
+    isCompletingRef.current = false;
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,11 +187,10 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
     setImportResult(null);
     setIsUploading(true);
     setProgress(0);
-    setTotalContacts(0);
 
     try {
-      const total = await calculateTotalContacts(file);
-      setTotalContacts(total);
+      // Start progress simulation
+      startProgressSimulation();
       
       // Get file extension and validate type
       const fileExt = file.name.split('.').pop()?.toLowerCase();
@@ -191,15 +227,10 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
 
      const result = await response.json();
 
-     // Update progress based on imported contacts
      if (response.ok) {
-       const processedCount = result.successCount + result.failureCount;
-       const progressPercentage = (processedCount / total) * 100;
-       setProgress(progressPercentage);
+       await completeProgress();
        setImportResult(result);
-     }
-     
-     if (!response.ok) {
+     } else {
         if (fileExt === 'csv') {
           // Parse different types of CSV errors
           if (result.error?.includes('Invalid Record Length')) {
@@ -248,7 +279,10 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
     setUploadError(null);
     setImportResult(null);
     setProgress(0);
-    setTotalContacts(0);
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      setProgressInterval(null);
+    }
     onClose();
   };
 
@@ -302,7 +336,7 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                         <ProgressBar progress={progress} />
                       </div>
                       <p className="mt-2 text-primary-500">
-                        {`Processing ${Math.round(progress)}% (${importResult?.successCount || 0}/${totalContacts} contacts)`}
+                        {`Processing ${Math.round(progress)}%`}
                       </p>
                     </div>
                   ) : importResult ? (
