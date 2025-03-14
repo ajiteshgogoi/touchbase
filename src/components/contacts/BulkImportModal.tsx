@@ -238,24 +238,37 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          // Each chunk has a "processed" count
-          const match = chunk.match(/processed:(\d+)/);
-          if (match && match[1]) {
-            processedContacts = parseInt(match[1], 10);
-            const progressPercentage = (processedContacts / total) * 100;
-            setProgress(progressPercentage);
-            // Update success count progressively
-            setImportResult(prev => prev ? { ...prev, successCount: processedContacts } : null);
+          console.log('Received chunk:', chunk);
+
+          // Split chunk into lines
+          const lines = chunk.trim().split('\n');
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            
+            console.log('Processing line:', line);
+
+            // Try parsing as JSON first
+            try {
+              const jsonResult = JSON.parse(line);
+              if (jsonResult.success !== undefined) {
+                result = jsonResult;
+                break;
+              }
+            } catch {
+              // Not JSON, check if it's a progress update
+              const match = line.match(/processed:(\d+)/);
+              if (match && match[1]) {
+                processedContacts = parseInt(match[1], 10);
+                const progressPercentage = (processedContacts / total) * 100;
+                console.log('Progress update:', progressPercentage);
+                setProgress(progressPercentage);
+                setImportResult(prev => prev ? { ...prev, successCount: processedContacts } : null);
+              }
+            }
           }
 
-          // Check for final result
-          try {
-            result = JSON.parse(chunk);
-            if (result.success !== undefined) {
-              break;
-            }
-          } catch {
-            // Not a JSON result, continue processing chunks
+          if (result?.success !== undefined) {
+            break;
           }
         }
 
