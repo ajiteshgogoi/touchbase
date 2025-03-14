@@ -221,11 +221,7 @@ async function* parseVCFChunks(file: File, timezone: string, chunkSize: number =
         const vcard = buffer.slice(0, endIndex);
         buffer = buffer.slice(endIndex);
 
-        if (!vcard.includes('BEGIN:VCARD')) {
-          console.log('Skipping invalid vCard (no BEGIN:VCARD found)');
-          continue;
-        }
-        console.log('Processing vCard:', vcard.substring(0, 100) + '...');
+        if (!vcard.includes('BEGIN:VCARD')) continue;
 
         const contact: Contact = {
           name: '',
@@ -375,7 +371,6 @@ serve(async (req) => {
     let responsePromise;
     if (isStreamingResponse) {
       console.log('Creating streaming response');
-      console.log('Total contacts to process:', file.size);
       const headers = {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
