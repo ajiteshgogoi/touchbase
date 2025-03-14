@@ -42,9 +42,14 @@ export function createResponse(
   addCorsHeaders(headers, type);
 
   // Handle content type and body serialization
-  if (typeof body === 'object') {
+  if (typeof body === 'object' && !(body instanceof ReadableStream)) {
     headers.set('Content-Type', 'application/json');
     body = JSON.stringify(body);
+  } else if (body instanceof ReadableStream && !headers.has('Content-Type')) {
+    // For streaming responses, set text/event-stream if no content type is set
+    headers.set('Content-Type', 'text/event-stream');
+    headers.set('Cache-Control', 'no-cache');
+    headers.set('Connection', 'keep-alive');
   }
 
   // Add security headers for non-users endpoints

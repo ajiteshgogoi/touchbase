@@ -545,18 +545,8 @@ serve(async (req) => {
     await writer.write(encoder.encode(JSON.stringify({ type: 'result', ...result }) + '\n'));
     await writer.close();
 
-    // Set up streaming response with proper CORS headers
-    const headers = new Headers();
-    headers.set('Content-Type', 'text/event-stream');
-    headers.set('Cache-Control', 'no-cache');
-    headers.set('Connection', 'keep-alive');
-    headers.set('Access-Control-Allow-Origin', '*');
-    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-    headers.set('Access-Control-Max-Age', '86400');
-    headers.set('Access-Control-Allow-Credentials', 'true');
-
-    return new Response(stream.readable, { headers });
+    // Use createResponse with streaming body
+    return createResponse(stream.readable, {}, 'default');
   } catch (error) {
     console.error('Error processing VCF import:', error);
     // Close stream with error
@@ -571,17 +561,7 @@ serve(async (req) => {
     await writer.write(encoder.encode(JSON.stringify(errorResult) + '\n'));
     await writer.close();
 
-    // Set up error response with proper CORS headers
-    const headers = new Headers();
-    headers.set('Content-Type', 'text/event-stream');
-    headers.set('Cache-Control', 'no-cache');
-    headers.set('Connection', 'keep-alive');
-    headers.set('Access-Control-Allow-Origin', '*');
-    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
-    headers.set('Access-Control-Max-Age', '86400');
-    headers.set('Access-Control-Allow-Credentials', 'true');
-
-    return new Response(stream.readable, { status: 500, headers });
+    // Use createResponse with streaming body and error status
+    return createResponse(stream.readable, { status: 500 }, 'default');
   }
 });
