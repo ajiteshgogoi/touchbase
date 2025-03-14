@@ -5,7 +5,7 @@ export const useRatingSettings = () => {
   const updateRatingStatus = useCallback(async (userId: string) => {
     try {
       const { error } = await supabase
-        .from('user_settings')
+        .from('user_preferences')
         .update({
           has_rated_app: true
         })
@@ -22,7 +22,7 @@ export const useRatingSettings = () => {
   const updateLastPromptTime = useCallback(async (userId: string) => {
     try {
       const { error } = await supabase
-        .from('user_settings')
+        .from('user_preferences')
         .update({
           last_rating_prompt: new Date().toISOString()
         })
@@ -39,7 +39,7 @@ export const useRatingSettings = () => {
   const initializeInstallTime = useCallback(async (userId: string) => {
     try {
       const { data, error: selectError } = await supabase
-        .from('user_settings')
+        .from('user_preferences')
         .select('install_time')
         .eq('id', userId)
         .single();
@@ -52,7 +52,7 @@ export const useRatingSettings = () => {
       // Only set install_time if it hasn't been set yet
       if (!data?.install_time) {
         const { error: updateError } = await supabase
-          .from('user_settings')
+          .from('user_preferences')
           .update({
             install_time: new Date().toISOString()
           })
