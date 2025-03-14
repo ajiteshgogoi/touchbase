@@ -432,38 +432,45 @@ serve(async (req) => {
 
       newContacts.forEach((newContact) => {
         const contact = validContacts.find(c => c.name.trim() === newContact.name);
-        if (!contact || !contact.important_events.length) return;
+        if (!contact) return;
 
-        const events = contact.important_events.map(event => ({
-          contact_id: newContact.id,
-          user_id: user.id,
-          type: event.type,
-          name: event.type === 'custom' ? event.name : null,
-          date: event.date
-        }));
+        // Process important events if they exist
+        if (contact.important_events.length > 0) {
+          const events = contact.important_events.map(event => ({
+            contact_id: newContact.id,
+            user_id: user.id,
+            type: event.type,
+            name: event.type === 'custom' ? event.name : null,
+            date: event.date
+          }));
 
-        allEvents.push(...events);
+          allEvents.push(...events);
+        }
 
         // Calculate next due date in user's timezone
         const regularDueDate = calculateNextContactDate('monthly', 0, now, timezone);
-        const nextImportantEvent = events
-          .map(event => {
-            // Convert event date to user's timezone
-            let eventDate = dayjs(new Date(event.date).toLocaleString('en-US', { timeZone: timezone })).startOf('day');
-            eventDate = eventDate.year(today.year());
-            if (eventDate.isBefore(today)) {
-              eventDate = eventDate.add(1, 'year');
-            }
-            return eventDate.toDate();
-          })
-          .sort((a, b) => a.getTime() - b.getTime())[0];
-
         let nextDueDate = regularDueDate;
-        if (nextImportantEvent) {
-          if (dayjs(regularDueDate).isSame(today, 'day')) {
-            nextDueDate = nextImportantEvent;
-          } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
-            nextDueDate = nextImportantEvent;
+
+        // If there are events, check if any should override the regular due date
+        if (allEvents.length > 0) {
+          const nextImportantEvent = events
+            .map(event => {
+              // Convert event date to user's timezone
+              let eventDate = dayjs(new Date(event.date).toLocaleString('en-US', { timeZone: timezone })).startOf('day');
+              eventDate = eventDate.year(today.year());
+              if (eventDate.isBefore(today)) {
+                eventDate = eventDate.add(1, 'year');
+              }
+              return eventDate.toDate();
+            })
+            .sort((a, b) => a.getTime() - b.getTime())[0];
+
+          if (nextImportantEvent) {
+            if (dayjs(regularDueDate).isSame(today, 'day')) {
+              nextDueDate = nextImportantEvent;
+            } else if (!dayjs(nextImportantEvent).isSame(today, 'day') && nextImportantEvent < regularDueDate) {
+              nextDueDate = nextImportantEvent;
+            }
           }
         }
 
