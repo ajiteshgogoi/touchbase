@@ -44,7 +44,7 @@ export const OnboardingSuccessStep = ({ onClose }: OnboardingSuccessStepProps) =
             Congratulations!
           </h2>
           <p className="text-[15px] text-gray-600/90 max-w-sm mx-auto">
-            You're ready to start building meaningful relationships.
+            You're ready to start building meaningful relationships
           </p>
         </div>
       </div>
