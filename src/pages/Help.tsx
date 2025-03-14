@@ -48,7 +48,10 @@ export const Help = () => {
               <strong className="text-primary-700">Pro Tip:</strong> Start with essential details and add more information if you desire. You can add up to 5 yearly recurring important events per contact, including one birthday and one anniversary.
             </div>
             <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
-              <strong className="text-gray-700">Bulk Import Format:</strong>
+              <strong className="text-gray-700">VCF Import:</strong> When importing contacts via VCF files, all contacts will be set to a monthly contact frequency by default. You can adjust this frequency for individual contacts after import if needed.
+            </div>
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600 mt-4">
+              <strong className="text-gray-700">CSV Import Format:</strong>
               <p className="mt-2">When using bulk import via CSV, the following fields are available:</p>
               <ul className="list-disc list-inside mt-2 space-y-1">
                 <li><strong>Required Fields:</strong>
