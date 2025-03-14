@@ -6,7 +6,7 @@ interface ProgressBarProps {
   className?: string;
 }
 
-export const ProgressBar = ({ progress, showPercentage = true, className = '' }: ProgressBarProps) => {
+export const ProgressBar = ({ progress, className = '' }: ProgressBarProps) => {
   const [width, setWidth] = useState(0);
 
   useEffect(() => {
@@ -20,11 +20,6 @@ export const ProgressBar = ({ progress, showPercentage = true, className = '' }:
         className="bg-primary-500 h-2.5 rounded-full transition-all duration-300 ease-out"
         style={{ width: `${width}%` }}
       />
-      {showPercentage && (
-        <div className="text-xs text-gray-600 mt-1 text-center">
-          {Math.round(progress)}%
-        </div>
-      )}
     </div>
   );
 };
