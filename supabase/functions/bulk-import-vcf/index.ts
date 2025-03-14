@@ -356,40 +356,12 @@ serve(async (req) => {
       errors: []
     };
 
-    // Set up streaming response if client accepts it
-    const acceptHeader = req.headers.get('Accept');
-    const isStreamingResponse = acceptHeader?.includes('text/event-stream');
-    let processedTotal = 0;
-
-    // Create a writable stream for progress updates
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
-    
-    // If streaming, start sending response immediately
-    let responsePromise;
-    if (isStreamingResponse) {
-      responsePromise = new Response(stream.readable, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-          ...Object.fromEntries(createResponse({}).headers)
-        }
-      });
-    }
-
     // Process VCF in chunks
     for await (const contacts of parseVCFChunks(file, timezone)) {
       if (contacts.length === 0) continue;
 
       // Validate names and check duplicates in batch
       const validContacts = contacts.filter(contact => contact.name?.trim());
-      processedTotal += contacts.length;
-
-      // Send progress update if streaming
-      if (isStreamingResponse) {
-        await writer.write(new TextEncoder().encode(`processed:${processedTotal}\n`));
-      }
       const invalidContacts = contacts.filter(contact => !contact.name?.trim());
       
       // Update result for invalid contacts
@@ -551,31 +523,18 @@ serve(async (req) => {
       result.successCount += newContacts.length;
     }
 
-    // Send final result
-    if (isStreamingResponse) {
-      await writer.write(new TextEncoder().encode(JSON.stringify(result)));
-      await writer.close();
-      return responsePromise;
-    } else {
-      return createResponse(result);
-    }
+    return createResponse(result);
   } catch (error) {
     console.error('Error processing VCF import:', error);
-    
-    const errorResult = {
-      success: false,
-      message: error.message,
-      successCount: 0,
-      failureCount: 0,
-      errors: [{ row: 0, errors: [error.message] }]
-    };
-
-    if (isStreamingResponse) {
-      await writer.write(new TextEncoder().encode(JSON.stringify(errorResult)));
-      await writer.close();
-      return responsePromise;
-    } else {
-      return createResponse(errorResult, { status: 500 });
-    }
+    return createResponse(
+      {
+        success: false,
+        message: error.message,
+        successCount: 0,
+        failureCount: 0,
+        errors: [{ row: 0, errors: [error.message] }]
+      },
+      { status: 500 }
+    );
   }
 });
