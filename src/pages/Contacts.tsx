@@ -368,7 +368,8 @@ export const Contacts = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSelectAll}
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              disabled={isBulkDeleting}
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <CheckCircleIcon className="h-5 w-5 mr-2" />
               {selectedContacts.size === totalCount ? 'Deselect All' : 'Select All'}
