@@ -2,6 +2,7 @@ import { Fragment, useLayoutEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, CloudArrowDownIcon, ArrowUpTrayIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ProgressBar } from '../shared/ProgressBar';
 import { supabase } from '../../lib/supabase/client';
 import { useStore } from '../../stores/useStore';
 import { getQueryClient } from '../../utils/queryClient';
@@ -84,6 +85,8 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [totalContacts, setTotalContacts] = useState<number>(0);
 
   useLayoutEffect(() => {
     if (isOpen) {
@@ -119,6 +122,25 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
     onSelect(method);
   };
 
+  const calculateTotalContacts = async (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          // For CSV, count lines minus header
+          const lines = text.split('\n').filter(line => line.trim()).length - 1;
+          resolve(lines);
+        } else {
+          // For VCF, count BEGIN:VCARD occurrences
+          const matches = (text.match(/BEGIN:VCARD/gi) || []).length;
+          resolve(matches);
+        }
+      };
+      reader.readAsText(file);
+    });
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -127,8 +149,13 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
     setUploadError(null);
     setImportResult(null);
     setIsUploading(true);
+    setProgress(0);
+    setTotalContacts(0);
 
     try {
+      const total = await calculateTotalContacts(file);
+      setTotalContacts(total);
+      
       // Get file extension and validate type
       const fileExt = file.name.split('.').pop()?.toLowerCase();
       if (!fileExt || !['csv', 'vcf'].includes(fileExt)) {
@@ -162,9 +189,17 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
         body: formData
       });
 
-      const result = await response.json();
-      
-      if (!response.ok) {
+     const result = await response.json();
+
+     // Update progress based on imported contacts
+     if (response.ok) {
+       const processedCount = result.successCount + result.failureCount;
+       const progressPercentage = (processedCount / total) * 100;
+       setProgress(progressPercentage);
+       setImportResult(result);
+     }
+     
+     if (!response.ok) {
         if (fileExt === 'csv') {
           // Parse different types of CSV errors
           if (result.error?.includes('Invalid Record Length')) {
@@ -190,8 +225,6 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
         }
       }
 
-      setImportResult(result);
-
       // Invalidate all related queries after successful import
       const queryClient = getQueryClient();
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
@@ -214,6 +247,8 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
   const handleClose = () => {
     setUploadError(null);
     setImportResult(null);
+    setProgress(0);
+    setTotalContacts(0);
     onClose();
   };
 
@@ -263,8 +298,11 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                   {isUploading ? (
                     <div className="p-6 flex flex-col items-center justify-center h-40">
                       <LoadingSpinner />
-                      <p className="mt-4 text-primary-500">
-                        {isUploading ? 'Uploading file...' : 'Processing import...'}
+                      <div className="w-full max-w-xs mt-4">
+                        <ProgressBar progress={progress} />
+                      </div>
+                      <p className="mt-2 text-primary-500">
+                        {`Processing ${Math.round(progress)}% (${importResult?.successCount || 0}/${totalContacts} contacts)`}
                       </p>
                     </div>
                   ) : importResult ? (
