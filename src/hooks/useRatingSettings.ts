@@ -9,7 +9,7 @@ export const useRatingSettings = () => {
         .update({
           has_rated_app: true
         })
-        .eq('id', userId);
+        .eq('user_id', userId);
 
       if (error) {
         console.error('Error updating rating status:', error);
@@ -26,7 +26,7 @@ export const useRatingSettings = () => {
         .update({
           last_rating_prompt: new Date().toISOString()
         })
-        .eq('id', userId);
+        .eq('user_id', userId);
 
       if (error) {
         console.error('Error updating last prompt time:', error);
@@ -41,7 +41,7 @@ export const useRatingSettings = () => {
       const { data, error: selectError } = await supabase
         .from('user_preferences')
         .select('install_time')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
 
       if (selectError) {
@@ -56,7 +56,7 @@ export const useRatingSettings = () => {
           .update({
             install_time: new Date().toISOString()
           })
-          .eq('id', userId);
+          .eq('user_id', userId);
 
         if (updateError) {
           console.error('Error setting install time:', updateError);
