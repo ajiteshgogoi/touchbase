@@ -68,15 +68,11 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
     <div className="space-y-8">
       {/* Welcome Message */}
       <div className="space-y-4 text-center">
-        <h2 className="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-primary-600 
-          to-primary-400 bg-clip-text text-transparent
-          motion-safe:translate-y-4 motion-safe:opacity-0
-          motion-safe:animate-[fade-in-up_0.6s_ease-out_forwards]">
+        <h2 className="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-primary-600
+          to-primary-400 bg-clip-text text-transparent leading-relaxed pb-1">
           Welcome{userName ? `, ${userName}` : ''}! 👋
         </h2>
-        <p className="text-lg text-gray-600 max-w-sm mx-auto
-          motion-safe:opacity-0
-          motion-safe:animate-[fade-in_0.6s_ease-out_0.3s_forwards]">
+        <p className="text-lg text-gray-600 max-w-sm mx-auto">
           Let's help you build and maintain meaningful relationships.
         </p>
       </div>
@@ -86,9 +82,7 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
         <div className="h-[280px] flex items-center justify-center">
           <div 
             key={safeIndex}
-            className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center 
-              motion-safe:opacity-0 motion-safe:scale-95
-              motion-safe:animate-[feature-in_0.3s_ease-out_forwards]"
+            className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-100"
           >
             <div className="mb-6">
               {React.createElement(currentFeature.icon, {
