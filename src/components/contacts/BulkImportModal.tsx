@@ -269,7 +269,7 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                   ) : importResult ? (
                     <div className="p-6 space-y-4">
                       <div className="text-center">
-                        <h4 className="text-lg font-medium text-gray-900">Import Complete</h4>
+                        <h4 className="text-lg font-medium text-primary-500">Import Complete</h4>
                         <p className="mt-1 text-sm text-gray-500">
                           Successfully imported {importResult.successCount} contacts
                           {importResult.failureCount > 0 && ` with ${importResult.failureCount} failures`}
