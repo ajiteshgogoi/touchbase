@@ -87,7 +87,7 @@ function validateSocialMediaPlatform(platform: string): string | null {
   return validPlatforms.includes(normalized) ? normalized : null;
 }
 
-function processVCardLine(line: string, contact: Contact): void {
+function processVCardLine(line: string, contact: Contact, timezone: string): void {
   if (line.startsWith('FN:')) {
     contact.name = line.substring(3).trim();
   } else if (line.startsWith('TEL:')) {
@@ -202,7 +202,7 @@ async function* parseVCFChunks(file: File, chunkSize: number = 1024 * 1024): Asy
 
         const lines = vcard.split('\n').map(line => line.trim());
         for (const line of lines) {
-          processVCardLine(line, contact);
+          processVCardLine(line, contact, timezone);
         }
 
         if (contact.name) {
