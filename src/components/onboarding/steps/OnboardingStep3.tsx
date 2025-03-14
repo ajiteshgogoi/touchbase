@@ -10,33 +10,25 @@ interface OnboardingStep3Props {
 }
 
 type ContactFrequency = Contact['contact_frequency'];
-type ContactMethod = NonNullable<Contact['preferred_contact_method']>;
 
 interface ContactForm {
   name: string;
   frequency: ContactFrequency;
-  preferred_method: ContactMethod;
 }
 
 const FREQUENCY_OPTIONS = [
   { label: 'Weekly', value: 'weekly' as ContactFrequency },
+  { label: 'Every 3 Days', value: 'every_three_days' as ContactFrequency },
   { label: 'Every 2 Weeks', value: 'fortnightly' as ContactFrequency },
-  { label: 'Monthly', value: 'monthly' as ContactFrequency },
-  { label: 'Quarterly', value: 'quarterly' as ContactFrequency }
-];
+  { label: 'Monthly', value: 'monthly' as ContactFrequency }
 
-const METHOD_OPTIONS = [
-  { label: 'Message', value: 'message' as ContactMethod },
-  { label: 'Call', value: 'call' as ContactMethod },
-  { label: 'Social', value: 'social' as ContactMethod }
 ];
 
 export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) => {
   const { user } = useStore();
   const [form, setForm] = useState<ContactForm>({
     name: '',
-    frequency: 'monthly',
-    preferred_method: 'message'
+    frequency: 'monthly'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -55,7 +47,7 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
         user_id: user?.id as string,
         name: form.name.trim(),
         contact_frequency: form.frequency,
-        preferred_contact_method: form.preferred_method,
+        preferred_contact_method: null,
         notes: null,
         phone: undefined,
         social_media_platform: null,
@@ -76,14 +68,15 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-4 text-center">
-        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+      <div className="space-y-3 text-center">
+        <h2 className="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-primary-600
+          to-primary-400 bg-clip-text text-transparent leading-relaxed pb-1">
           Add Your First Contact
         </h2>
-        <p className="text-lg text-gray-600 max-w-sm mx-auto">
-          Start by adding someone you'd like to stay in touch with regularly.
+        <p className="text-[15px] text-gray-600/90 max-w-sm mx-auto mt-1.5">
+          Start by adding someone you'd like to stay in touch with
         </p>
       </div>
 
@@ -91,14 +84,14 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
       <div className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Contact Name *
+            Name *
           </label>
           <input
             type="text"
             id="name"
             value={form.name}
             onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Enter contact name"
+            placeholder="Enter name"
             className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 
               focus:outline-none focus:border-primary-400 focus:ring-1 
               focus:ring-primary-400 transition-colors duration-200"
@@ -107,7 +100,7 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
-            How often would you like to stay in touch? *
+            How often would you like to keep in touch? *
           </label>
           <div className="grid grid-cols-2 gap-2">
             {FREQUENCY_OPTIONS.map(option => (
@@ -126,30 +119,9 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Preferred Contact Method *
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {METHOD_OPTIONS.map(option => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setForm(prev => ({ ...prev, preferred_method: option.value }))}
-                className={`p-3 text-sm font-medium rounded-xl transition-all duration-200 
-                  ${form.preferred_method === option.value 
-                    ? 'bg-primary-50 text-primary-700 ring-1 ring-primary-200' 
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {error && (
-          <div className="p-3 bg-red-50 rounded-xl">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="flex items-center justify-center px-3 py-2 bg-red-50 rounded-lg">
+            <p className="text-sm text-red-600 text-center">{error}</p>
           </div>
         )}
       </div>
