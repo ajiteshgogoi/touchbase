@@ -451,9 +451,9 @@ serve(async (req) => {
         const regularDueDate = calculateNextContactDate('monthly', 0, now, timezone);
         let nextDueDate = regularDueDate;
 
-        // If there are events, check if any should override the regular due date
-        if (allEvents.length > 0) {
-          const nextImportantEvent = events
+        // If contact has events, check if any should override the regular due date
+        if (contact.important_events.length > 0) {
+          const nextImportantEvent = contact.important_events
             .map(event => {
               // Convert event date to user's timezone
               let eventDate = dayjs(new Date(event.date).toLocaleString('en-US', { timeZone: timezone })).startOf('day');
