@@ -74,6 +74,7 @@ export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   timezone: string;
   ai_suggestions_enabled: boolean;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }

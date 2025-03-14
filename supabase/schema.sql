@@ -87,6 +87,7 @@ create table public.user_preferences (
     has_rated_app boolean default false,
     last_rating_prompt timestamp with time zone,
     install_time timestamp with time zone default now(),
+    onboarding_completed boolean default false,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
@@ -205,6 +206,10 @@ comment on column public.user_preferences.install_time is 'When the user first i
 
 -- Add index for install_time
 create index idx_user_preferences_install_time on public.user_preferences(install_time);
+create index idx_user_preferences_onboarding on public.user_preferences(onboarding_completed);
+
+-- Add comment for onboarding_completed column
+comment on column public.user_preferences.onboarding_completed is 'Whether the user has completed the onboarding flow';
 
 create table public.prompt_generation_logs (
     id uuid primary key default uuid_generate_v4(),
