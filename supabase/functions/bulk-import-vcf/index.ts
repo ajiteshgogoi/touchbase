@@ -329,7 +329,7 @@ serve(async (req) => {
     };
 
     // Process VCF in chunks
-    for await (const contacts of parseVCFChunks(file)) {
+    for await (const contacts of parseVCFChunks(file, timezone)) {
       if (contacts.length === 0) continue;
 
       // Validate names and check duplicates in batch
