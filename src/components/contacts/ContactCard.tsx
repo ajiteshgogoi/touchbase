@@ -291,17 +291,7 @@ export const ContactCard = ({
         </div>
 
         {/* Right side: Action buttons */}
-        <div
-          className={`flex ml-4 space-x-2 ${isSelectionMode ? 'cursor-pointer' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent parent card click
-            if (isSelectionMode && e.button === 0) {
-              onToggleSelect?.(contact.id);
-            }
-          }}
-          role={isSelectionMode ? "button" : undefined}
-          tabIndex={isSelectionMode ? 0 : undefined}
-        >
+        <div className="flex ml-4 space-x-2">
           <Link
             to={isSelectionMode ? '#' : `/contacts/${contact.id}/edit`}
             state={{ from: '/contacts' }}
