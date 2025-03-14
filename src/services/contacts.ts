@@ -741,36 +741,79 @@ export const contactsService = {
   async bulkDeleteContacts(contactIds: string[]): Promise<void> {
     if (!contactIds.length) return;
 
-    // Process deletions in chunks of 50 to avoid URL length limitations
-    const chunkSize = 50;
+    // Process deletions in smaller chunks to avoid URL length limitations
+    const chunkSize = 25; // Reduced chunk size for better reliability
+    const failedIds: string[] = [];
+
     for (let i = 0; i < contactIds.length; i += chunkSize) {
       const chunk = contactIds.slice(i, i + chunkSize);
-
-      // Delete all interactions for this chunk of contacts
-      const { error: interactionsError } = await supabase
-        .from('interactions')
-        .delete()
-        .in('contact_id', chunk);
       
-      if (interactionsError) throw interactionsError;
+      try {
+        // Wrap each chunk in a try-catch to handle individual failures
+        
+        // Delete all interactions for this chunk of contacts
+        const { error: interactionsError } = await supabase
+          .from('interactions')
+          .delete()
+          .in('contact_id', chunk);
+        
+        if (interactionsError) {
+          console.error('Error deleting interactions:', interactionsError);
+          throw interactionsError;
+        }
 
-      // Delete all reminders for this chunk of contacts
-      const { error: remindersError } = await supabase
-        .from('reminders')
-        .delete()
-        .in('contact_id', chunk);
+        // Delete all reminders for this chunk of contacts
+        const { error: remindersError } = await supabase
+          .from('reminders')
+          .delete()
+          .in('contact_id', chunk);
+        
+        if (remindersError) {
+          console.error('Error deleting reminders:', remindersError);
+          throw remindersError;
+        }
+
+        // Important events will be automatically deleted due to ON DELETE CASCADE
+
+        // Delete the contacts in this chunk
+        const { error: contactError } = await supabase
+          .from('contacts')
+          .delete()
+          .in('id', chunk);
+        
+        if (contactError) {
+          console.error('Error deleting contacts:', contactError);
+          throw contactError;
+        }
+
+        // Add a small delay between chunks to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+      } catch (error) {
+        console.error(`Failed to delete chunk ${i / chunkSize + 1}:`, error);
+        failedIds.push(...chunk);
+      }
+    }
+
+    // If any deletions failed, try one more time with the failed IDs
+    if (failedIds.length > 0) {
+      console.log(`Retrying deletion for ${failedIds.length} failed contacts...`);
       
-      if (remindersError) throw remindersError;
+      try {
+        // Try one more time with the failed IDs
+        const { error: retryError } = await supabase
+          .from('contacts')
+          .delete()
+          .in('id', failedIds);
 
-      // Important events will be automatically deleted due to ON DELETE CASCADE
-
-      // Delete the contacts in this chunk
-      const { error: contactError } = await supabase
-        .from('contacts')
-        .delete()
-        .in('id', chunk);
-      
-      if (contactError) throw contactError;
+        if (retryError) {
+          console.error('Error in retry deletion:', retryError);
+          throw retryError;
+        }
+      } catch (error) {
+        console.error('Final retry failed:', error);
+        throw new Error(`Failed to delete ${failedIds.length} contacts after retry`);
+      }
     }
 
     // Invalidate all related caches after bulk deletion
