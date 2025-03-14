@@ -190,8 +190,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
   return (
     <div style={{
       ...style,
-      padding: '8px 0',
-      transition: 'padding 150ms ease-in-out'
+      padding: '8px 0'
     }}>
       <div
         ref={cardRef}
