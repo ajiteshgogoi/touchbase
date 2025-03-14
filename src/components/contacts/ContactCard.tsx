@@ -188,13 +188,19 @@ export const ContactCard = ({
     <div
       id={contact.id}
       ref={cardRef}
+      onClick={(e) => {
+        if (isSelectionMode && e.button === 0) {
+          onToggleSelect?.(contact.id);
+        }
+      }}
       className={`contact-card bg-white/60 backdrop-blur-xl rounded-xl border ${
         isSelected ? 'border-primary-400 shadow-md' : 'border-gray-100/50 shadow-soft hover:shadow-md'
-      } transition-all duration-200 scroll-mt-6`}
+      } transition-all duration-200 scroll-mt-6 ${isSelectionMode ? 'cursor-pointer' : ''}`}
     >
       {/* Compact Header */}
       <div
         onClick={(e) => {
+          e.stopPropagation(); // Prevent triggering container's click
           // Only handle click for touch events and expand/collapse
           if (!('button' in e) && isSelectionMode) {
             onToggleSelect?.(contact.id);
@@ -493,8 +499,16 @@ export const ContactCard = ({
       )}
 
       {/* Action Buttons */}
-      <div className="p-4 border-t border-gray-100/50 bg-white/30">
-        <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
+      <div
+        className="p-4 border-t border-gray-100/50 bg-white/30"
+        onClick={(e) => {
+          if (isSelectionMode && e.button === 0) {
+            e.stopPropagation();
+            onToggleSelect?.(contact.id);
+          }
+        }}
+      >
+        <div className={`flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm ${isSelectionMode ? 'cursor-pointer' : ''}`}>
           <button
             onClick={() => onQuickInteraction({ contactId: contact.id, type: 'call', contactName: contact.name })}
             className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
