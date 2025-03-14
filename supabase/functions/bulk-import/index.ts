@@ -9,13 +9,19 @@ type ContactFrequency = 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly
 function calculateNextContactDate(
   frequency: ContactFrequency,
   missedCount: number = 0,
-  baseDate: Date | null = null
+  baseDate: Date | null = null,
+  timezone: string = 'UTC'
 ): Date {
-  const now = baseDate ? new Date(baseDate) : new Date();
+  // Get current time in user's timezone
+  const now = baseDate
+    ? new Date(baseDate.toLocaleString('en-US', { timeZone: timezone }))
+    : new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
   
-  // Start with today's date
+  // Start with today's date in user's timezone
   const nextDate = new Date(now);
-  nextDate.setHours(9, 0, 0, 0); // Set to 9 AM
+  // Set to 9 AM in user's timezone
+  const [hours, , , ] = new Date(nextDate.toLocaleString('en-US', { timeZone: timezone, hour12: false })).toTimeString().split(':');
+  nextDate.setHours(9 - (parseInt(hours) - nextDate.getHours()), 0, 0, 0);
   
   // Calculate base interval in days
   let intervalDays = 0;
@@ -400,7 +406,7 @@ serve(async (req) => {
               contact_id: newContact.id,
               user_id: user.id,
               type: 'birthday',
-              date: new Date(record.birthday).toISOString()
+              date: new Date(new Date(record.birthday).toLocaleString('en-US', { timeZone: timezone })).toISOString()
             });
             eventCount++;
           }
@@ -411,7 +417,7 @@ serve(async (req) => {
               contact_id: newContact.id,
               user_id: user.id,
               type: 'anniversary',
-              date: new Date(record.anniversary).toISOString()
+              date: new Date(new Date(record.anniversary).toLocaleString('en-US', { timeZone: timezone })).toISOString()
             });
             eventCount++;
           }
@@ -427,7 +433,7 @@ serve(async (req) => {
                 user_id: user.id,
                 type: 'custom',
                 name: record[nameField],
-                date: new Date(record[dateField]).toISOString()
+                date: new Date(new Date(record[dateField]).toLocaleString('en-US', { timeZone: timezone })).toISOString()
               });
               eventCount++;
             }
@@ -437,10 +443,11 @@ serve(async (req) => {
             allEvents.push(...events);
 
             // Calculate next due date considering events
-            const regularDueDate = calculateNextContactDate(newContact.contact_frequency, 0, now);
+            const regularDueDate = calculateNextContactDate(newContact.contact_frequency, 0, now, timezone);
             const nextImportantEvent = events
               .map(event => {
-                let eventDate = dayjs(event.date).startOf('day');
+                // Convert event date to user's timezone
+                let eventDate = dayjs(new Date(event.date).toLocaleString('en-US', { timeZone: timezone })).startOf('day');
                 eventDate = eventDate.year(today.year());
                 if (eventDate.isBefore(today)) {
                   eventDate = eventDate.add(1, 'year');
