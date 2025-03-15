@@ -298,7 +298,7 @@ export const ContactCard = ({
             to={isSelectionMode ? '#' : `/contacts/${contact.id}/edit`}
             state={{ from: '/contacts' }}
             className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
-              isSelectionMode ? 'invisible' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
+              isSelectionMode || isDeleting ? 'invisible cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
             }`}
             title={isSelectionMode ? "Click to select/deselect" : "Edit contact"}
             onClick={(e) => {
@@ -320,10 +320,9 @@ export const ContactCard = ({
                 handleDeleteContact();
               }
             }}
-            disabled={isDeleting}
             className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
               isSelectionMode ? 'invisible' :
-              isDeleting ? 'text-gray-400 bg-gray-100' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+              isDeleting ? 'text-gray-400 cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
             }`}
             title={isSelectionMode ? "Click to select/deselect" : isDeleting ? 'Deleting contact...' : 'Delete contact'}
           >
