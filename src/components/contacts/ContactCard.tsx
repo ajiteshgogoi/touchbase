@@ -189,7 +189,7 @@ export const ContactCard = ({
       id={contact.id}
       ref={cardRef}
       onClick={(e) => {
-        if (isSelectionMode && e.button === 0) {
+        if (isSelectionMode && !isDeleting && e.button === 0) {
           onToggleSelect?.(contact.id);
         }
       }}
@@ -202,16 +202,16 @@ export const ContactCard = ({
         onClick={(e) => {
           e.stopPropagation(); // Prevent triggering container's click
           // Only handle click for touch events and expand/collapse
-          if (!('button' in e) && isSelectionMode) {
+          if (!('button' in e) && isSelectionMode && !isDeleting) {
             onToggleSelect?.(contact.id);
-          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey && !isSelectionMode) {
+          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey && !isSelectionMode && !isDeleting) {
             onExpandChange(!isExpanded);
           }
         }}
         onMouseDown={handlePressStart}
         onMouseUp={(e) => {
           // Handle selection on mouse up in selection mode
-          if (isSelectionMode && e.button === 0) {
+          if (isSelectionMode && !isDeleting && e.button === 0) {
             onToggleSelect?.(contact.id);
           }
           handlePressEnd(e);
@@ -310,6 +310,7 @@ export const ContactCard = ({
           </Link>
           <button
             onClick={(e) => {
+              e.stopPropagation(); // Prevent triggering collapse/expand
               if (isSelectionMode) {
                 e.stopPropagation();
                 onToggleSelect?.(contact.id);
@@ -524,16 +525,17 @@ export const ContactCard = ({
         <div className={`flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm ${isSelectionMode ? 'cursor-pointer' : ''}`}>
           <button
             onClick={(e) => {
-              if (isSelectionMode) {
-                e.stopPropagation();
+              e.stopPropagation();
+              if (isSelectionMode && !isDeleting) {
                 onToggleSelect?.(contact.id);
-              } else {
+              } else if (!isDeleting) {
                 onQuickInteraction({ contactId: contact.id, type: 'call', contactName: contact.name });
               }
             }}
             className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-              ${isSelectionMode ? 'bg-gray-300 text-gray-500 cursor-pointer' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
-            title={isSelectionMode ? "Click to select/deselect" : "Log an interaction"}
+              ${isSelectionMode || isDeleting ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
+            title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "Log an interaction"}
+            disabled={isDeleting}
           >
             Log Interaction
           </button>
@@ -551,9 +553,9 @@ export const ContactCard = ({
                 to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
                 state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
                 className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-                  ${isSelectionMode ? 'bg-gray-100 text-gray-400 pointer-events-none' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
-                title={isSelectionMode ? "Click to select/deselect" : "View interaction history"}
-                onClick={e => isSelectionMode && e.preventDefault()}
+                  ${isSelectionMode || isDeleting ? 'bg-gray-100 text-gray-400 pointer-events-none cursor-not-allowed' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
+                title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "View interaction history"}
+                onClick={e => (isSelectionMode || isDeleting) && e.preventDefault()}
               >
                 View History
               </Link>
