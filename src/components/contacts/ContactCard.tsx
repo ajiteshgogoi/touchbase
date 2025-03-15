@@ -352,8 +352,9 @@ export const ContactCard = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
                   {expandedDetails.phone && (
                     <a
-                      href={`tel:${expandedDetails.phone}`}
-                      className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                      href={isDeleting ? '#' : `tel:${expandedDetails.phone}`}
+                      className={`flex items-center px-3 py-2.5 bg-gray-50 ${!isDeleting && 'hover:bg-gray-100'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
+                      onClick={e => isDeleting && e.preventDefault()}
                     >
                       <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0 group-hover:text-green-600/90 transition-colors" />
                       <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
@@ -363,10 +364,11 @@ export const ContactCard = ({
                   )}
                   {expandedDetails.social_media_handle && expandedDetails.social_media_platform && (
                     <a
-                      href={formatSocialMediaUrl(expandedDetails.social_media_handle, expandedDetails.social_media_platform)}
-                      target="_blank"
+                      href={isDeleting ? '#' : formatSocialMediaUrl(expandedDetails.social_media_handle, expandedDetails.social_media_platform)}
+                      target={isDeleting ? '_self' : '_blank'}
                       rel="noopener noreferrer"
-                      className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                      className={`flex items-center px-3 py-2.5 bg-gray-50 ${!isDeleting && 'hover:bg-gray-100'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
+                      onClick={e => isDeleting && e.preventDefault()}
                     >
                       {expandedDetails.social_media_platform === 'linkedin' ? (
                         <svg className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
