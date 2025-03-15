@@ -499,9 +499,13 @@ export const ContactCard = ({
                       </span>
                       {expandedDetails.ai_last_suggestion && (
                         <button
-                          onClick={() => handleReportContent(expandedDetails.ai_last_suggestion!)}
-                          className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
-                          title="Report inappropriate suggestion"
+                          onClick={() => {
+                            if (!isDeleting) {
+                              handleReportContent(expandedDetails.ai_last_suggestion!)
+                            }
+                          }}
+                          className={`flex-shrink-0 p-1 ${isDeleting ? 'text-gray-300 cursor-not-allowed' : 'text-gray-300 hover:text-red-400'} transition-colors`}
+                          title={isDeleting ? "Cannot report while deleting" : "Report inappropriate suggestion"}
                         >
                           <FlagIcon className="h-4 w-4" />
                         </button>
