@@ -27,9 +27,11 @@ export const Reminders = () => {
     queryKey: ['contacts', isPremium, isOnTrial],
     queryFn: async () => {
       const allContacts = await contactsService.getContacts();
-      // If user is not premium and not on trial, limit to 15 most recent contacts
+      // If user is not premium and not on trial, get 15 most recent contacts by created_at
       if (!isPremium && !isOnTrial) {
-        return allContacts.slice(0, 15);
+        return allContacts
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 15);
       }
       return allContacts;
     },

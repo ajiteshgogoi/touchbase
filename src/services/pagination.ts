@@ -111,16 +111,64 @@ export const contactsPaginationService = {
       query = query.or(categoryConditions);
     }
 
-    // Apply sorting
-    query = query.order(sort.field, { ascending: sort.order === 'asc' });
-
-    // Add pagination
-    query = query
-      .range(offset, offset + PAGE_SIZE - 1);
-
-    // For free users, ensure we don't exceed 15 contacts
     if (!isPremium && !isOnTrial) {
-      query = query.limit(Math.min(PAGE_SIZE, 15 - offset));
+      // For free users:
+      // 1. First sort by created_at to get most recent
+      // 2. Limit to 15 most recent
+      // 3. Then order those 15 by user's preferred sort
+      const { data: recentContacts } = await supabase
+        .from('contacts')
+        .select(`
+          id,
+          name,
+          last_contacted,
+          missed_interactions,
+          contact_frequency,
+          next_contact_due
+        `)
+        .order('created_at', { ascending: false })
+        .limit(15);
+
+      // Apply search filter if needed
+      let filteredContacts = recentContacts || [];
+      if (filters.search) {
+        filteredContacts = filteredContacts.filter(contact =>
+          contact.name.toLowerCase().includes(filters.search!.toLowerCase())
+        );
+      }
+
+      // Apply category filters if needed
+      if (filters.categories && filters.categories.length > 0) {
+        // Note: We'd need to fetch notes for this filtering
+        // This might need optimization in a real implementation
+      }
+
+      // Apply user's preferred sorting
+      filteredContacts.sort((a, b) => {
+        if (sort.field === 'name') {
+          return sort.order === 'asc'
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        } else if (sort.field === 'last_contacted') {
+          const aDate = a.last_contacted ? new Date(a.last_contacted).getTime() : 0;
+          const bDate = b.last_contacted ? new Date(b.last_contacted).getTime() : 0;
+          return sort.order === 'asc' ? aDate - bDate : bDate - aDate;
+        } else { // missed_interactions
+          return sort.order === 'asc'
+            ? (a.missed_interactions || 0) - (b.missed_interactions || 0)
+            : (b.missed_interactions || 0) - (a.missed_interactions || 0);
+        }
+      });
+
+      return {
+        contacts: filteredContacts.slice(offset, offset + PAGE_SIZE),
+        hasMore: offset + PAGE_SIZE < filteredContacts.length,
+        total: recentContacts?.length || 0
+      };
+    } else {
+      // Premium users: Apply normal sorting and pagination
+      query = query.order(sort.field, { ascending: sort.order === 'asc' });
+      query = query.range(offset, offset + PAGE_SIZE - 1);
     }
 
     const { data, error, count } = await query;
