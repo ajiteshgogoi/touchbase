@@ -386,7 +386,7 @@ serve(async (req) => {
         phone: contact.phone || null,
         social_media_platform: contact.social_media_platform || null,
         social_media_handle: contact.social_media_handle || null,
-        preferred_contact_method: contact.phone ? 'call' : 'message',
+        preferred_contact_method: null,
         contact_frequency: 'monthly',
         // Set next_contact_due and last_contacted in user's timezone
         next_contact_due: new Date(new Date().toLocaleString('en-US', { timeZone: timezone })).toISOString(),
