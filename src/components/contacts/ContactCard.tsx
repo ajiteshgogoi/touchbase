@@ -535,9 +535,8 @@ export const ContactCard = ({
               }
             }}
             className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-              ${isSelectionMode || isDeleting ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
+              ${isSelectionMode || isDeleting ? 'bg-gray-300 text-gray-500 cursor-pointer pointer-events-none' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
             title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "Log an interaction"}
-            disabled={isDeleting}
           >
             Log Interaction
           </button>
