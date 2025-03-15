@@ -534,7 +534,7 @@ export const ContactCard = ({
               }
             }}
             className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-              ${isSelectionMode || isDeleting ? 'bg-gray-300 text-gray-500 cursor-pointer pointer-events-none' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
+              ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-300 text-gray-500 cursor-pointer pointer-events-none' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
             title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "Log an interaction"}
           >
             Log Interaction
@@ -546,14 +546,14 @@ export const ContactCard = ({
                 onToggleSelect?.(contact.id);
               }
             }}
-            className={`inline-flex items-center justify-center ${isSelectionMode ? 'cursor-pointer' : ''}`}
+            className={`inline-flex items-center justify-center ${isSelectionMode || isDeleting || isBulkDeleting ? 'cursor-pointer pointer-events-none' : ''}`}
           >
             {(isPremium || isOnTrial) ? (
               <Link
                 to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
                 state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
                 className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-                  ${isSelectionMode || isDeleting ? 'bg-gray-100 text-gray-400 pointer-events-none cursor-not-allowed' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
+                  ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-100 text-gray-400 pointer-events-none cursor-pointer' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
                 title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "View interaction history"}
                 onClick={e => (isSelectionMode || isDeleting) && e.preventDefault()}
               >
