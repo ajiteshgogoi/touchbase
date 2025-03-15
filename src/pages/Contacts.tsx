@@ -77,6 +77,8 @@ export const Contacts = () => {
 
   // Handle selection toggle for a contact
   const handleToggleSelect = (contactId: string) => {
+    if (isBulkDeleting) return;
+    
     setSelectedContacts(prev => {
       const next = new Set(prev);
       if (next.has(contactId)) {
@@ -146,13 +148,17 @@ export const Contacts = () => {
 
   // Start selection mode
   const handleStartSelectionMode = () => {
-    setIsSelectionMode(true);
+    if (!isBulkDeleting) {
+      setIsSelectionMode(true);
+    }
   };
 
   // Exit selection mode
   const handleExitSelectionMode = () => {
-    setIsSelectionMode(false);
-    setSelectedContacts(new Set());
+    if (!isBulkDeleting) {
+      setIsSelectionMode(false);
+      setSelectedContacts(new Set());
+    }
   };
 
   // Handle document-level clicks
@@ -209,14 +215,14 @@ export const Contacts = () => {
         target.closest('a') ||
         isScrollbarClick(e);
 
-      if (!isInteractive) {
+      if (!isInteractive && !isBulkDeleting) {
         handleExitSelectionMode();
       }
     };
 
     document.addEventListener('mousedown', handleDocumentClick);
     return () => document.removeEventListener('mousedown', handleDocumentClick);
-  }, [isSelectionMode]);
+  }, [isSelectionMode, isBulkDeleting]);
 
   const handleImportMethod = async (method: 'google' | 'csv_upload' | 'csv_template' | 'vcf_upload') => {
     if (method === 'csv_template') {
@@ -337,8 +343,11 @@ export const Contacts = () => {
             {isSelectionMode ? (
               <button
                 onClick={handleExitSelectionMode}
-                className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
-                aria-label="Exit selection mode"
+                disabled={isBulkDeleting}
+                className={`p-2.5 -m-2.5 text-gray-400 rounded-xl transition-all duration-200 ${
+                  isBulkDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary-500 hover:bg-gray-50/70'
+                }`}
+                aria-label={isBulkDeleting ? "Cannot exit while deleting" : "Exit selection mode"}
               >
                 <ArrowLeftIcon className="h-5 w-5" />
               </button>
@@ -511,6 +520,7 @@ export const Contacts = () => {
                 isSelectionMode={isSelectionMode}
                 onToggleSelect={handleToggleSelect}
                 onStartSelectionMode={handleStartSelectionMode}
+                isBulkDeleting={isBulkDeleting}
               />
             </>
           )}

@@ -36,6 +36,7 @@ interface VirtualizedContactListProps {
   isSelectionMode?: boolean;
   onToggleSelect?: (contactId: string) => void;
   onStartSelectionMode?: () => void;
+  isBulkDeleting?: boolean;
 }
 
 interface RowProps {
@@ -63,6 +64,7 @@ interface RowProps {
     isSelectionMode?: boolean;
     onToggleSelect?: (contactId: string) => void;
     onStartSelectionMode?: () => void;
+    isBulkDeleting?: boolean;
   };
 }
 
@@ -88,7 +90,8 @@ const Row = memo(({ index, style, data }: RowProps) => {
     selectedContacts,
     isSelectionMode,
     onToggleSelect,
-    onStartSelectionMode
+    onStartSelectionMode,
+    isBulkDeleting
   } = data;
 
   const cardRef = useRef<HTMLDivElement>(null);
@@ -239,6 +242,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
           isSelectionMode={isSelectionMode}
           onToggleSelect={onToggleSelect}
           onStartSelectionMode={onStartSelectionMode}
+          isBulkDeleting={isBulkDeleting}
         />
       </div>
       {showLoadingSpinner && (
@@ -273,7 +277,8 @@ export const VirtualizedContactList = ({
   selectedContacts,
   isSelectionMode,
   onToggleSelect,
-  onStartSelectionMode
+  onStartSelectionMode,
+  isBulkDeleting
 }: VirtualizedContactListProps) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
@@ -595,7 +600,8 @@ export const VirtualizedContactList = ({
     selectedContacts,
     isSelectionMode,
     onToggleSelect,
-    onStartSelectionMode
+    onStartSelectionMode,
+    isBulkDeleting
   }), [
     contacts,
     eventsMap,
@@ -617,7 +623,8 @@ export const VirtualizedContactList = ({
     selectedContacts,
     isSelectionMode,
     onToggleSelect,
-    onStartSelectionMode
+    onStartSelectionMode,
+    isBulkDeleting
   ]);
 
   return (

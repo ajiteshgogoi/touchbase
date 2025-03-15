@@ -43,6 +43,7 @@ interface ContactCardProps {
   isSelectionMode?: boolean;
   onToggleSelect?: (contactId: string) => void;
   onStartSelectionMode?: () => void;
+  isBulkDeleting?: boolean;
 }
 
 export const ContactCard = ({
@@ -59,7 +60,8 @@ export const ContactCard = ({
   isSelected,
   isSelectionMode,
   onToggleSelect,
-  onStartSelectionMode
+  onStartSelectionMode,
+  isBulkDeleting = false
 }: ContactCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout>();
@@ -69,7 +71,7 @@ export const ContactCard = ({
 
   const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
     // Only handle long press when not in selection mode
-    if (!isSelectionMode) {
+    if (!isSelectionMode && !isBulkDeleting && !isDeleting) {
       pressStartTime.current = Date.now();
       if ('button' in e) {
         mouseButton.current = e.button;
@@ -111,9 +113,9 @@ export const ContactCard = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      if (isSelectionMode) {
+      if (isSelectionMode && !isBulkDeleting && !isDeleting) {
         onToggleSelect?.(contact.id);
-      } else {
+      } else if (!isBulkDeleting && !isDeleting) {
         onExpandChange(!isExpanded);
       }
     }
@@ -122,7 +124,7 @@ export const ContactCard = ({
   // Handle right click
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isSelectionMode) {
+    if (!isSelectionMode && !isBulkDeleting && !isDeleting) {
       onStartSelectionMode?.();
       onToggleSelect?.(contact.id);
     }
@@ -189,7 +191,7 @@ export const ContactCard = ({
       id={contact.id}
       ref={cardRef}
       onClick={(e) => {
-        if (isSelectionMode && !isDeleting && e.button === 0) {
+        if (isSelectionMode && !isDeleting && !isBulkDeleting && e.button === 0) {
           onToggleSelect?.(contact.id);
         }
       }}
@@ -202,16 +204,16 @@ export const ContactCard = ({
         onClick={(e) => {
           e.stopPropagation(); // Prevent triggering container's click
           // Only handle click for touch events and expand/collapse
-          if (!('button' in e) && isSelectionMode && !isDeleting) {
+          if (!('button' in e) && isSelectionMode && !isDeleting && !isBulkDeleting) {
             onToggleSelect?.(contact.id);
-          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey && !isSelectionMode && !isDeleting) {
+          } else if (e.button === 0 && !e.ctrlKey && !e.metaKey && !isSelectionMode && !isDeleting && !isBulkDeleting) {
             onExpandChange(!isExpanded);
           }
         }}
         onMouseDown={handlePressStart}
         onMouseUp={(e) => {
           // Handle selection on mouse up in selection mode
-          if (isSelectionMode && !isDeleting && e.button === 0) {
+          if (isSelectionMode && !isDeleting && !isBulkDeleting && e.button === 0) {
             onToggleSelect?.(contact.id);
           }
           handlePressEnd(e);
@@ -219,12 +221,12 @@ export const ContactCard = ({
         onMouseMove={handlePressMove}
         onMouseLeave={handlePressEnd}
         onTouchStart={(e) => {
-          if (!isSelectionMode) {
+          if (!isSelectionMode && !isBulkDeleting && !isDeleting) {
             handlePressStart(e);
           }
         }}
         onTouchEnd={(e) => {
-          if (!isSelectionMode) {
+          if (!isSelectionMode && !isBulkDeleting && !isDeleting) {
             handlePressEnd(e);
           }
         }}
@@ -300,7 +302,7 @@ export const ContactCard = ({
             }`}
             title={isSelectionMode ? "Click to select/deselect" : "Edit contact"}
             onClick={(e) => {
-              if (isSelectionMode) {
+              if (isSelectionMode && !isBulkDeleting) {
                 e.stopPropagation();
                 onToggleSelect?.(contact.id);
               }
@@ -311,10 +313,10 @@ export const ContactCard = ({
           <button
             onClick={(e) => {
               e.stopPropagation(); // Prevent triggering collapse/expand
-              if (isSelectionMode) {
+              if (isSelectionMode && !isBulkDeleting) {
                 e.stopPropagation();
                 onToggleSelect?.(contact.id);
-              } else {
+              } else if (!isBulkDeleting) {
                 handleDeleteContact();
               }
             }}
@@ -516,7 +518,7 @@ export const ContactCard = ({
       <div
         className="p-4 border-t border-gray-100/50 bg-white/30"
         onClick={(e) => {
-          if (isSelectionMode && e.button === 0) {
+          if (isSelectionMode && !isBulkDeleting && e.button === 0) {
             e.stopPropagation();
             onToggleSelect?.(contact.id);
           }
