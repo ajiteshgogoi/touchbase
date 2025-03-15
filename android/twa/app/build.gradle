@@ -61,8 +61,8 @@ android {
         applicationId "app.touchbase.site.twa"
         minSdk 21
         targetSdk 34
-        versionCode 28  // Increment this number for each new release
-        versionName "1.9.8" // Version name for users to see
+        versionCode 32  // Increment this number for each new release
+        versionName "2.0.1" // Version name for users to see
 
         // Enable vector drawable support for older Android versions
         vectorDrawables.useSupportLibrary = true
