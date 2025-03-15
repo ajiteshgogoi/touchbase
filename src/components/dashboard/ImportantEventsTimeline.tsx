@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { useStore } from '../../stores/useStore';
 import { contactsService } from '../../services/contacts';
 import { getNextOccurrence } from '../contacts/utils';
 import type { Contact, ImportantEvent } from '../../lib/supabase/types';
@@ -10,12 +11,20 @@ import { ImportantEventCard } from '../contacts/ImportantEventCard';
  * Component to display upcoming important events in a timeline format
  */
 export const ImportantEventsTimeline = () => {
-  // Fetch all contacts to get their names
-  const { data: contacts } = useQuery<Contact[]>({
-    queryKey: ['contacts'],
-    queryFn: contactsService.getContacts,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  // For free users, we'll only get the 15 most recent contacts
+    const { isPremium, isOnTrial } = useStore();
+    const { data: contacts } = useQuery<Contact[]>({
+      queryKey: ['contacts', isPremium, isOnTrial],
+      queryFn: async () => {
+        const allContacts = await contactsService.getContacts();
+        // If user is not premium and not on trial, limit to 15 most recent contacts
+        if (!isPremium && !isOnTrial) {
+          return allContacts.slice(0, 15);
+        }
+        return allContacts;
+      },
+      staleTime: 5 * 60 * 1000 // 5 minutes
+    });
 
   // Fetch all important events
   const { data: events } = useQuery<ImportantEvent[]>({
@@ -29,13 +38,19 @@ export const ImportantEventsTimeline = () => {
     return contacts?.find(c => c.id === contactId)?.name || 'Unknown';
   };
 
+  // Get visible contact IDs
+  const visibleContactIds = contacts?.map(contact => contact.id) || [];
+
   // Filter and sort upcoming events using yearly recurrence logic
   const upcomingEvents = events
     ?.map(event => ({
       ...event,
       nextOccurrence: dayjs(getNextOccurrence(event.date)).toDate()
     }))
-    .filter(event => event.nextOccurrence >= new Date())
+    .filter(event =>
+      event.nextOccurrence >= new Date() &&
+      visibleContactIds.includes(event.contact_id as string)
+    )
     .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime())
     .slice(0, 6); // Show only next 6 events
 

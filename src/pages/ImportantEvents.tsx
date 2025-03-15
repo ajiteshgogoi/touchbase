@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useStore } from '../stores/useStore';
 import dayjs from 'dayjs';
 import { useEffect } from 'react';
 import { contactsService } from '../services/contacts';
@@ -11,11 +12,26 @@ import { ImportantEventCard } from '../components/contacts/ImportantEventCard';
 export const ImportantEventsPage = () => {
   const navigate = useNavigate();
 
-  // Fetch all contacts to get their names
+  const { isPremium, isOnTrial } = useStore();
+
+  // For free users, we'll only get the 15 most recent contacts
   const { data: contacts } = useQuery<Contact[]>({
-    queryKey: ['contacts'],
-    queryFn: contactsService.getContacts,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryKey: ['contacts', isPremium, isOnTrial],
+    queryFn: async () => {
+      const allContacts = await contactsService.getContacts();
+      // If user is not premium and not on trial, limit to 15 most recent contacts
+      if (!isPremium && !isOnTrial) {
+        return allContacts.slice(0, 15);
+      }
+      return allContacts;
+    },
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  });
+
+  const { data: totalCount } = useQuery<number>({
+    queryKey: ['contactsCount'],
+    queryFn: contactsService.getTotalContactCount,
+    enabled: !isPremium && !isOnTrial
   });
 
   // Fetch all important events
@@ -35,6 +51,9 @@ export const ImportantEventsPage = () => {
     return contacts?.find(c => c.id === contactId)?.name || 'Unknown';
   };
 
+  // Get visible contact IDs
+  const visibleContactIds = contacts?.map(contact => contact.id) || [];
+
   // Filter and sort upcoming events for next 12 months using yearly recurrence logic
   const upcomingEvents = events
     ?.map(event => ({
@@ -43,7 +62,9 @@ export const ImportantEventsPage = () => {
     }))
     .filter(event => {
       const nextYear = dayjs().add(12, 'months').toDate();
-      return event.nextOccurrence >= new Date() && event.nextOccurrence <= nextYear;
+      return event.nextOccurrence >= new Date() &&
+             event.nextOccurrence <= nextYear &&
+             visibleContactIds.includes(event.contact_id as string);
     })
     .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime());
 
@@ -80,6 +101,18 @@ export const ImportantEventsPage = () => {
         </div>
       </div>
 
+      {!isPremium && !isOnTrial && totalCount !== undefined && totalCount > 15 && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-6">
+          <p className="text-sm text-amber-800">
+            You're seeing important events for your 15 most recent contacts. {' '}
+            <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+              Upgrade to Premium
+            </Link>{' '}
+            to manage events for all {totalCount} of your contacts.
+          </p>
+        </div>
+      )}
+      
       <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
         {isLoading ? (
           <div className="p-12 text-center">
