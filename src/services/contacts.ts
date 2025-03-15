@@ -845,33 +845,8 @@ export const contactsService = {
       const chunk = contactIds.slice(i, i + chunkSize);
       
       try {
-        // Wrap each chunk in a try-catch to handle individual failures
-        
-        // Delete all interactions for this chunk of contacts
-        const { error: interactionsError } = await supabase
-          .from('interactions')
-          .delete()
-          .in('contact_id', chunk);
-        
-        if (interactionsError) {
-          console.error('Error deleting interactions:', interactionsError);
-          throw interactionsError;
-        }
-
-        // Delete all reminders for this chunk of contacts
-        const { error: remindersError } = await supabase
-          .from('reminders')
-          .delete()
-          .in('contact_id', chunk);
-        
-        if (remindersError) {
-          console.error('Error deleting reminders:', remindersError);
-          throw remindersError;
-        }
-
-        // Important events will be automatically deleted due to ON DELETE CASCADE
-
-        // Delete the contacts in this chunk
+        // Delete contacts first and let the database cascade handle related data
+        // This ensures that if the process is interrupted, we don't have orphaned data
         const { error: contactError } = await supabase
           .from('contacts')
           .delete()
@@ -879,12 +854,11 @@ export const contactsService = {
         
         if (contactError) {
           console.error('Error deleting contacts:', contactError);
-          throw contactError;
+          failedIds.push(...chunk);
         }
 
         // Add a small delay between chunks to prevent rate limiting
         await new Promise(resolve => setTimeout(resolve, 100));
-
       } catch (error) {
         console.error(`Failed to delete chunk ${i / chunkSize + 1}:`, error);
         failedIds.push(...chunk);
@@ -896,7 +870,6 @@ export const contactsService = {
       console.log(`Retrying deletion for ${failedIds.length} failed contacts...`);
       
       try {
-        // Try one more time with the failed IDs
         const { error: retryError } = await supabase
           .from('contacts')
           .delete()
@@ -904,7 +877,7 @@ export const contactsService = {
 
         if (retryError) {
           console.error('Error in retry deletion:', retryError);
-          throw retryError;
+          throw new Error(`Failed to delete ${failedIds.length} contacts after retry`);
         }
       } catch (error) {
         console.error('Final retry failed:', error);
@@ -912,7 +885,7 @@ export const contactsService = {
       }
     }
 
-    // Invalidate all related caches after bulk deletion
+    // Invalidate all related caches after bulk deletion is complete
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
