@@ -470,7 +470,7 @@ serve(async (req) => {
             allReminders.push({
               contact_id: newContact.id,
               user_id: user.id,
-              type: newContact.preferred_contact_method,
+              type: newContact.preferred_contact_method || 'message',
               due_date: nextDueDate.toISOString(),
               completed: false
             });
