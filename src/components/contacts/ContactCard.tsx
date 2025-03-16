@@ -536,11 +536,7 @@ export const ContactCard = ({
               if (isSelectionMode && !isDeleting) {
                 onToggleSelect?.(contact.id);
               } else if (!isDeleting) {
-                onQuickInteraction({
-                  contactId: contact.id,
-                  type: contact.preferred_contact_method || 'message',
-                  contactName: contact.name
-                });
+                onQuickInteraction({ contactId: contact.id, type: 'call', contactName: contact.name });
               }
             }}
             className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
