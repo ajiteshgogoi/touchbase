@@ -411,7 +411,7 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                       ))}
 
                       <div className="text-center text-sm text-gray-600">
-                        Check the <a href="/help#contacts" className="text-primary-500 hover:text-primary-600">Help Page</a> for detailed information about VCF and CSV file formats
+                        Check the <a href="/help#contacts" className="text-primary-500 hover:text-primary-600">Help Page</a> for detailed instructions on VCF and CSV files
                       </div>
                     </div>
                   )}
