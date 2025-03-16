@@ -9,7 +9,8 @@ import {
   CalendarIcon,
   ChevronDownIcon,
   QuestionMarkCircleIcon,
-  HashtagIcon
+  HashtagIcon,
+  ArrowUpTrayIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -43,42 +44,71 @@ export const Help = () => {
             <li>Yearly recurring important events (birthdays, anniversaries, etc.)</li>
             <li>Personal notes and preferences</li>
           </ul>
-          <div className="mt-4 space-y-4">
+          <div className="mt-4">
             <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
               <strong className="text-primary-700">Pro Tip:</strong> Start with essential details and add more information if you desire. You can add up to 5 yearly recurring important events per contact, including one birthday and one anniversary.
             </div>
-            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
-              <strong className="text-gray-700">VCF Import:</strong> When importing contacts via VCF files, all contacts will be set to a monthly contact frequency by default. You can adjust this frequency for individual contacts after import if needed.
-            </div>
-            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600 mt-4">
-              <strong className="text-gray-700">CSV Import Format:</strong>
-              <p className="mt-2">When using bulk import via CSV, the following fields are available:</p>
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li><strong>Required Fields:</strong>
-                  <ul className="list-disc list-inside ml-6 text-gray-600">
-                    <li>name: Contact's full name</li>
-                    <li>contact_frequency: How often to stay in touch (every_three_days, weekly, fortnightly, monthly, quarterly)</li>
-                  </ul>
-                </li>
-                <li><strong>Optional Fields:</strong>
-                  <ul className="list-disc list-inside ml-6 text-gray-600">
-                    <li>phone: International format with or without country code (7-15 digits long)</li>
-                    <li>social_media_platform: Platform name (linkedin, instagram, or twitter)</li>
-                    <li>social_media_handle: Username on the platform without @ prefix</li>
-                    <li>preferred_contact_method: Preferred way to contact (call, message, or social)</li>
-                    <li>notes: Personal notes with optional #hashtags for categorisation</li>
-                    <li>birthday: YYYY-MM-DD format</li>
-                   <li>anniversary: YYYY-MM-DD format</li>
-                   <li>custom_event_1_name, custom_event_2_name, custom_event_3_name: Names for up to 3 custom events</li>
-                   <li>custom_event_1_date, custom_event_2_date, custom_event_3_date: Dates for corresponding custom events</li>
-                   <li className="mt-1 text-sm text-gray-500">Note: You can add up to 3 custom events via CSV. Combined with birthday and anniversary, this respects the 5 events per contact limit.</li>
-                  </ul>
-                </li>
-              </ul>
-              <p className="mt-2 text-sm text-gray-500">Download the template CSV file using the 'Bulk Import' button on the Contacts page.</p>
-            </div>
           </div>
         </ol>
+      )
+    },
+    {
+      id: 'bulk-import',
+      title: 'Importing Contacts',
+      icon: ArrowUpTrayIcon,
+      description: 'Import multiple contacts from your devices',
+      content: (
+        <>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-900 mb-2">VCF Import</h4>
+              <ol className="list-decimal list-inside space-y-2 ml-4 text-gray-600">
+                <li>Export contacts from your device's contacts app:
+                  <ul className="list-disc list-inside ml-8 mt-1 space-y-1">
+                    <li>iPhone: Settings → Contacts → Export vCard</li>
+                    <li>Android: Contacts → ⋮ Menu → Export → VCF file</li>
+                    <li>Gmail: Contacts → Export → vCard format</li>
+                  </ul>
+                </li>
+                <li>Click 'Bulk Import' on the Contacts page</li>
+                <li>Select 'Upload VCF file' and choose your file</li>
+              </ol>
+              <p className="text-[14px] text-gray-500 mt-2">Note: Imported contacts will have a monthly contact frequency by default, which you can adjust individually later.</p>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-900 mb-2">CSV Import</h4>
+              <ol className="list-decimal list-inside space-y-2 ml-4 text-gray-600">
+                <li>Download the template using 'Download CSV template' option in Bulk Import</li>
+                <li>Fill in the required fields:
+                  <ul className="list-disc list-inside ml-8 mt-1">
+                    <li>name: Contact's full name</li>
+                    <li>contact_frequency: How often to connect (every_three_days, weekly, fortnightly, monthly, quarterly)</li>
+                  </ul>
+                </li>
+                <li>Optional fields:
+                  <ul className="list-disc list-inside ml-8 mt-1">
+                    <li>phone: International format, 7-15 digits (e.g., +11234567890)</li>
+                    <li>social_media_platform: linkedin, instagram, or twitter</li>
+                    <li>social_media_handle: Username without @ symbol</li>
+                    <li>preferred_contact_method: call, message, or social</li>
+                    <li>birthday: YYYY-MM-DD format (e.g., 1990-05-15)</li>
+                    <li>anniversary: YYYY-MM-DD format</li>
+                    <li>custom_event_1_name, custom_event_2_name, custom_event_3_name</li>
+                    <li>custom_event_1_date, custom_event_2_date, custom_event_3_date: All in YYYY-MM-DD format</li>
+                  </ul>
+                </li>
+                <li>Save your CSV file</li>
+                <li>Click 'Bulk Import' and select 'Upload CSV file'</li>
+              </ol>
+              <p className="text-[14px] text-gray-500 mt-2">Start with a few close contacts. The template includes examples to help you get started.</p>
+            </div>
+
+            <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+              <strong className="text-primary-700">Important:</strong> TouchBase is about nurturing meaningful relationships. Consider importing only the contacts you actively want to stay connected with, rather than your entire address book.
+            </div>
+          </div>
+        </>
       )
     },
     {
