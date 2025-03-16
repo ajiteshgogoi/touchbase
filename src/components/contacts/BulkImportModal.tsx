@@ -71,7 +71,7 @@ const IMPORT_METHODS: ImportMethod[] = [
   },
   {
     id: 'csv_template',
-    name: 'Download CSV Template',
+    name: 'Download CSV template',
     description: 'Get a sample CSV file with the correct format',
     icon: <CloudArrowDownIcon className="h-6 w-6 text-primary-500" />
   }
@@ -411,7 +411,7 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
                       ))}
 
                       <div className="text-center text-sm text-gray-600">
-                        Check the <a href="/help#contacts" className="text-primary-500 hover:text-primary-600">Help Page</a> for detailed information about CSV file format and fields
+                        Check the <a href="/help#contacts" className="text-primary-500 hover:text-primary-600">Help Page</a> for detailed information about VCF and CSV file formats
                       </div>
                     </div>
                   )}
