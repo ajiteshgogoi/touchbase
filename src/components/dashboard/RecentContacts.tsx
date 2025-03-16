@@ -90,7 +90,10 @@ export const RecentContacts = () => {
             <>
               <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                 {(contacts || [])
-                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .sort((a, b) => {
+                    const timeCompare = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                    return timeCompare === 0 ? a.name.localeCompare(b.name) : timeCompare;
+                  })
                   .slice(0, isPremium || isOnTrial ? Infinity : 15)
                   .slice(0, 3)
                   .map((contact: Contact) => (
