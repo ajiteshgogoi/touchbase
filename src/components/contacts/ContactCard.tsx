@@ -109,7 +109,7 @@ export const ContactCard = ({
     }
   };
 
-  // Handle keyboard shortcuts
+  // Handle keyboard shortcuts //
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
