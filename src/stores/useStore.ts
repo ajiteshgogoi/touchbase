@@ -24,7 +24,7 @@ interface StoreState {
   setDarkMode: (darkMode: boolean) => void;
 }
 
-export const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>((set: (state: Partial<StoreState>) => void) => ({
   user: null,
   contacts: [],
   isLoading: false,
