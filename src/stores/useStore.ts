@@ -1,7 +1,7 @@
 import create from 'zustand';
 import type { Contact, UserPreferences } from '../lib/supabase/types';
 import type { User } from '@supabase/supabase-js';
-import { type StoreApi } from 'zustand';
+import { type StoreApi } from 'zustand/vanilla';
 
 type Store = {
   user: User | null;
