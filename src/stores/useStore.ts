@@ -1,7 +1,7 @@
 import create from 'zustand';
 import type { Contact, UserPreferences } from '../lib/supabase/types';
 import type { User } from '@supabase/supabase-js';
-import { type StoreApi } from 'zustand';
+import type { SetState } from 'zustand';
 
 type Store = {
   user: User | null;
@@ -25,7 +25,7 @@ type Store = {
   setDarkMode: (darkMode: boolean) => void;
 }
 
-export const useStore = create<Store>((set: StoreApi<Store>['setState']) => ({
+export const useStore = create<Store>((set: SetState<Store>) => ({
   user: null,
   contacts: [],
   isLoading: false,
