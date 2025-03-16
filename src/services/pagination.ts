@@ -90,8 +90,7 @@ export const contactsPaginationService = {
         last_contacted,
         missed_interactions,
         contact_frequency,
-        next_contact_due,
-        preferred_contact_method
+        next_contact_due
       `, { count: 'exact' });
 
     // Apply search filter if provided
@@ -125,8 +124,7 @@ export const contactsPaginationService = {
           last_contacted,
           missed_interactions,
           contact_frequency,
-          next_contact_due,
-          preferred_contact_method
+          next_contact_due
         `)
         .order('created_at', { ascending: false })
         .limit(15);
