@@ -89,9 +89,9 @@ export const Help = () => {
                 <li>Optional fields:
                   <ul className="list-disc list-inside ml-8 mt-1">
                     <li>phone: International format, 7-15 digits (e.g., +11234567890)</li>
-                    <li>social_media_platform: linkedin, instagram, or twitter</li>
+                    <li>social_media_platform: linkedin, instagram, twitter</li>
                     <li>social_media_handle: Username without @ symbol</li>
-                    <li>preferred_contact_method: call, message, or social</li>
+                    <li>preferred_contact_method: call, message, social</li>
                     <li>birthday: YYYY-MM-DD format (e.g., 1990-05-15)</li>
                     <li>anniversary: YYYY-MM-DD format</li>
                     <li>custom_event_1_name, custom_event_2_name, custom_event_3_name</li>
