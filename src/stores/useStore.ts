@@ -1,5 +1,4 @@
-import create from 'zustand';
-import type { SetState } from 'zustand';
+import { create } from 'zustand';
 import type { Contact, UserPreferences } from '../lib/supabase/types';
 import type { User } from '@supabase/supabase-js';
 
@@ -25,7 +24,7 @@ type Store = {
   setDarkMode: (darkMode: boolean) => void;
 }
 
-export const useStore = create<Store>((set: SetState<Store>) => ({
+export const useStore = create<Store>((set) => ({
   user: null,
   contacts: [],
   isLoading: false,
