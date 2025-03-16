@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import type { Contact, UserPreferences } from '../lib/supabase/types';
 import type { User } from '@supabase/supabase-js';
 
