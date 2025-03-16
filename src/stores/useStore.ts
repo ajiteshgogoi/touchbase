@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import type { Contact, UserPreferences } from '../lib/supabase/types';
 import type { User } from '@supabase/supabase-js';
 
@@ -36,15 +36,15 @@ export const useStore = create<StoreState>((set) => ({
   contactFilter: 'all',
   darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
 
-  setUser: (user: User | null) => set({ user }),
-  setContacts: (contacts: Contact[]) => set({ contacts }),
-  setIsLoading: (isLoading: boolean) => set({ isLoading }),
-  setPreferences: (preferences: UserPreferences | null) => set({ preferences }),
-  setIsPremium: (isPremium: boolean) => set({ isPremium }),
-  setTrialStatus: (isOnTrial: boolean, trialDaysRemaining: number | null) => set({ isOnTrial, trialDaysRemaining }),
-  setSearchQuery: (searchQuery: string) => set({ searchQuery }),
-  setContactFilter: (contactFilter: 'all' | 'due') => set({ contactFilter }),
-  setDarkMode: (darkMode: boolean) => {
+  setUser: (user) => set({ user }),
+  setContacts: (contacts) => set({ contacts }),
+  setIsLoading: (isLoading) => set({ isLoading }),
+  setPreferences: (preferences) => set({ preferences }),
+  setIsPremium: (isPremium) => set({ isPremium }),
+  setTrialStatus: (isOnTrial, trialDaysRemaining) => set({ isOnTrial, trialDaysRemaining }),
+  setSearchQuery: (searchQuery) => set({ searchQuery }),
+  setContactFilter: (contactFilter) => set({ contactFilter }),
+  setDarkMode: (darkMode) => {
     set({ darkMode });
     document.documentElement.classList.toggle('dark', darkMode);
   },

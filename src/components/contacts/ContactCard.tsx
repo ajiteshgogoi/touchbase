@@ -538,8 +538,6 @@ export const ContactCard = ({
               } else if (!isDeleting) {
                 onQuickInteraction({
                   contactId: contact.id,
-                  // Use contact's preferred method if set, otherwise default to 'message'
-                  // This matches the behavior in contactsService.recalculateNextContactDue()
                   type: contact.preferred_contact_method || 'message',
                   contactName: contact.name
                 });
