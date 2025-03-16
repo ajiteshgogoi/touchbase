@@ -63,11 +63,11 @@ export const Help = () => {
             <div className="space-y-2">
               <h4 className="font-medium text-gray-900 mb-2">VCF Import</h4>
               <ol className="list-decimal list-inside space-y-2 ml-4 text-gray-600">
-                <li>Export contacts from your device's contacts app:
+                <li>Export selected contacts from your device's contacts app:
                   <ul className="list-disc list-inside ml-8 mt-1 space-y-1">
-                    <li>iPhone: Open Contacts → Select contacts → Settings → Export vCard → Save to Files</li>
-                    <li>Android: Open Contacts → Tap Settings/Menu (⋮) → Settings/Manage contacts → Export/Export contacts → Select VCF format</li>
-                    <li>Google Contacts: Visit contacts.google.com → Select contacts → Click More (⋮) → Export → Choose vCard → Export</li>
+                    <li>iPhone: Open Contacts → Tap Select → Choose specific contacts you want to export → Share → Share Contact → Save to Files as VCF</li>
+                    <li>Android: Open Contacts → Press and hold to start selection → Tap additional contacts to select multiple → Tap Share/Export icon → Save as VCF file</li>
+                    <li>Google Contacts: Visit contacts.google.com → Click the checkbox next to specific contacts you want to export → Click More (⋮) → Export → Choose vCard → Export</li>
                   </ul>
                 </li>
                 <li>Click 'Bulk Import' on the Contacts page</li>
