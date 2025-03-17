@@ -43,7 +43,7 @@ export const ContactForm = () => {
       navigate(-1);
       // Small delay to ensure navigation completes before setting hash
       setTimeout(() => {
-        window.location.hash = contactHash;
+        navigate(`/contacts?contact=${contactHash}`);
       }, 0);
     } else {
       navigate(-1);
@@ -119,7 +119,7 @@ export const ContactForm = () => {
       if (fromContactsPage && contactHash) {
         // Small delay to ensure navigation completes
         setTimeout(() => {
-          window.location.hash = contactHash;
+          navigate(`/contacts?contact=${contactHash}`);
         }, 0);
       }
     };
