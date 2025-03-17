@@ -538,7 +538,7 @@ export const ContactCard = ({
               } else if (!isDeleting) {
                 onQuickInteraction({
                   contactId: contact.id,
-                  type: expandedDetails?.preferred_contact_method || 'message',
+                  type: contact.preferred_contact_method || 'message',
                   contactName: contact.name
                 });
               }

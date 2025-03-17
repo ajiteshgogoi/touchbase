@@ -5,6 +5,7 @@ export interface BasicContact {
   next_contact_due: string | null;
   contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
   missed_interactions: number;
+  preferred_contact_method: 'call' | 'message' | 'social' | null;
 }
 
 export interface Contact extends BasicContact {
