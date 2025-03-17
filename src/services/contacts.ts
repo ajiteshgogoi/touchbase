@@ -228,6 +228,7 @@ export const contactsService = {
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     
@@ -470,6 +471,7 @@ export const contactsService = {
       getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
       getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
       getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+      getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
       getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
       getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
       getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
@@ -478,6 +480,7 @@ export const contactsService = {
 
     // Invalidate all related caches for non-recalculation updates
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
@@ -518,6 +521,7 @@ export const contactsService = {
   
     // Invalidate all related caches after deletion
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
@@ -932,6 +936,7 @@ export const contactsService = {
 
     // Invalidate all related caches after bulk deletion is complete
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
