@@ -147,19 +147,28 @@ export const contactsPaginationService = {
 
       // Apply user's preferred sorting
       filteredContacts.sort((a, b) => {
+        // Primary sort based on selected field
+        let comparison = 0;
         if (sort.field === 'name') {
-          return sort.order === 'asc'
+          comparison = sort.order === 'asc'
             ? a.name.localeCompare(b.name)
             : b.name.localeCompare(a.name);
         } else if (sort.field === 'last_contacted') {
           const aDate = a.last_contacted ? new Date(a.last_contacted).getTime() : 0;
           const bDate = b.last_contacted ? new Date(b.last_contacted).getTime() : 0;
-          return sort.order === 'asc' ? aDate - bDate : bDate - aDate;
+          comparison = sort.order === 'asc' ? aDate - bDate : bDate - aDate;
         } else { // missed_interactions
-          return sort.order === 'asc'
+          comparison = sort.order === 'asc'
             ? (a.missed_interactions || 0) - (b.missed_interactions || 0)
             : (b.missed_interactions || 0) - (a.missed_interactions || 0);
         }
+
+        // If primary sort results in a tie, sort alphabetically by name
+        if (comparison === 0 && sort.field !== 'name') {
+          return a.name.localeCompare(b.name);
+        }
+
+        return comparison;
       });
 
       return {
@@ -168,8 +177,10 @@ export const contactsPaginationService = {
         total: recentContacts?.length || 0
       };
     } else {
-      // Premium users: Apply normal sorting and pagination
-      query = query.order(sort.field, { ascending: sort.order === 'asc' });
+      // Premium users: Apply sorting with name as secondary sort
+      query = query
+        .order(sort.field, { ascending: sort.order === 'asc' })
+        .order('name', { ascending: true }); // Always sort alphabetically by name as secondary sort
       query = query.range(offset, offset + PAGE_SIZE - 1);
     }
 
