@@ -188,7 +188,6 @@ export const ContactCard = ({
 
   return (
     <div
-      id={contact.id}
       ref={cardRef}
       onClick={(e) => {
         if (isSelectionMode && !isDeleting && !isBulkDeleting && e.button === 0) {
@@ -295,7 +294,7 @@ export const ContactCard = ({
         {/* Right side: Action buttons */}
         <div className="flex ml-4 space-x-2">
           <Link
-            to={isSelectionMode ? '#' : `/contacts/${contact.id}/edit`}
+            to={isSelectionMode ? `/contacts?selection=true` : `/contacts/${contact.id}/edit`}
             state={{ from: '/contacts' }}
             className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
               isSelectionMode || isDeleting ? 'invisible cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
@@ -560,8 +559,8 @@ export const ContactCard = ({
           >
             {(isPremium || isOnTrial) ? (
               <Link
-                to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
-                state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
+                to={isSelectionMode ? `/contacts?selection=true` : `/contacts/${contact.id}/interactions`}
+                state={isContactsPage ? { fromContact: true } : undefined}
                 className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
                   ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-100 text-gray-400 pointer-events-none cursor-pointer' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
                 title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "View interaction history"}
@@ -571,8 +570,8 @@ export const ContactCard = ({
               </Link>
             ) : (
               <Link
-                to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
-                state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
+                to={isSelectionMode ? `/contacts?selection=true` : `/contacts/${contact.id}/interactions`}
+                state={isContactsPage ? { fromContact: true } : undefined}
                 className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-soft transition-all duration-200
                   ${isSelectionMode ? 'bg-gray-100 text-gray-400 pointer-events-none' : 'text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] hover:shadow-md'}`}
                 title={isSelectionMode ? "Click to select/deselect" : "Upgrade to view interaction history"}

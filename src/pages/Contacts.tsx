@@ -1,7 +1,7 @@
-import { useState, lazy, Suspense, useMemo, useEffect } from 'react';
+import { useState, lazy, Suspense, useMemo, useEffect, useRef } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
-import { Link, useNavigate } from 'react-router-dom';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { supabase } from '../lib/supabase/client';
 import { contactsPaginationService } from '../services/pagination';
@@ -37,11 +37,66 @@ type QuickInteractionParams = {
 
 export const Contacts = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const listRef = useRef<{ scrollToItem: (index: number, align?: string) => void }>(null);
+  const queryClient = useQueryClient();
+  const targetContactId = searchParams.get('contact');
+
+  // Handle contact position lookup and scrolling
+  useEffect(() => {
+    if (!targetContactId || !queryClient) return;
+
+    const lookupContactPosition = async () => {
+      try {
+        const position = await contactsPaginationService.getContactPosition(
+          targetContactId,
+          { field: sortField, order: sortOrder },
+          {
+            search: debouncedSearchQuery,
+            categories: selectedCategories
+          }
+        );
+
+        if (position) {
+          // If contact is beyond current page, fetch pages until we have it
+          const itemsPerPage = 20;
+          const targetPage = Math.floor(position.index / itemsPerPage);
+          
+          for (let page = 0; page <= targetPage; page++) {
+            await queryClient.fetchQuery({
+              queryKey: ['contacts', debouncedSearchQuery, selectedCategories, sortField, sortOrder],
+              queryFn: () => contactsPaginationService.getFilteredContacts(
+                page,
+                { field: sortField, order: sortOrder },
+                {
+                  search: debouncedSearchQuery,
+                  categories: selectedCategories
+                }
+              )
+            });
+          }
+
+          // After loading required pages, scroll to contact
+          if (listRef.current) {
+            listRef.current.scrollToItem(position.index, 'start');
+            // Clear the contact param after scrolling
+            searchParams.delete('contact');
+            setSearchParams(searchParams);
+          }
+        }
+      } catch (error) {
+        console.error('Error looking up contact position:', error);
+      }
+    };
+
+    lookupContactPosition();
+  }, [targetContactId, sortField, sortOrder, debouncedSearchQuery, selectedCategories, queryClient, searchParams, setSearchParams]);
+
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
     contactId: string;
