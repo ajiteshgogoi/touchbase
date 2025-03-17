@@ -1,7 +1,7 @@
-import { useState, lazy, Suspense, useMemo, useEffect } from 'react';
+import { useState, lazy, Suspense, useMemo, useEffect, useRef } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { supabase } from '../lib/supabase/client';
 import { contactsPaginationService } from '../services/pagination';
@@ -43,55 +43,23 @@ export const Contacts = () => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const queryClient = useQueryClient();
   const targetContactId = searchParams.get('contact');
+  const listRef = useRef<any>(null);
 
-  // Handle contact position lookup and scrolling
+  // Clear contact param after the page loads
   useEffect(() => {
-    if (!targetContactId || !queryClient) return;
+    if (targetContactId) {
+      // Clear the contact param after a short delay
+      // to ensure the list has time to load and scroll
+      const timeoutId = setTimeout(() => {
+        searchParams.delete('contact');
+        setSearchParams(searchParams);
+      }, 1000);
 
-    const lookupContactPosition = async () => {
-      try {
-        const position = await contactsPaginationService.getContactPosition(
-          targetContactId,
-          { field: sortField, order: sortOrder },
-          {
-            search: debouncedSearchQuery,
-            categories: selectedCategories
-          }
-        );
-
-        if (position) {
-          // If contact is beyond current page, fetch pages until we have it
-          const itemsPerPage = 20;
-          const targetPage = Math.floor(position.index / itemsPerPage);
-          
-          for (let page = 0; page <= targetPage; page++) {
-            await queryClient.fetchQuery({
-              queryKey: ['contacts', debouncedSearchQuery, selectedCategories, sortField, sortOrder],
-              queryFn: () => contactsPaginationService.getFilteredContacts(
-                page,
-                { field: sortField, order: sortOrder },
-                {
-                  search: debouncedSearchQuery,
-                  categories: selectedCategories
-                }
-              )
-            });
-          }
-
-          // After loading required pages, clear the contact param
-          // This will prevent re-scrolling on re-renders
-          searchParams.delete('contact');
-          setSearchParams(searchParams);
-        }
-      } catch (error) {
-        console.error('Error looking up contact position:', error);
-      }
-    };
-
-    lookupContactPosition();
-  }, [targetContactId, sortField, sortOrder, debouncedSearchQuery, selectedCategories, queryClient, searchParams, setSearchParams]);
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined; // Return undefined for the case when targetContactId is falsy
+  }, [targetContactId, searchParams, setSearchParams]);
 
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
@@ -551,6 +519,7 @@ export const Contacts = () => {
                 </div>
               )}
               <VirtualizedContactList
+                ref={listRef}
                 contacts={contacts}
                 eventsMap={eventsMap}
                 isPremium={isPremium}
@@ -572,6 +541,12 @@ export const Contacts = () => {
                 onToggleSelect={handleToggleSelect}
                 onStartSelectionMode={handleStartSelectionMode}
                 isBulkDeleting={isBulkDeleting}
+                scrollToContactId={targetContactId || undefined}
+                sortConfig={{ field: sortField, order: sortOrder }}
+                filterConfig={{
+                  search: debouncedSearchQuery,
+                  categories: selectedCategories
+                }}
               />
             </>
           )}
