@@ -628,9 +628,11 @@ export const contactsService = {
           name,
           due_date,
           completed,
-          created_at
+          created_at,
+          contact:contacts!inner(name)
         `)
         .order('due_date')
+        .order('contact(name)')
         .range(page * pageSize, (page + 1) * pageSize - 1);
       
       if (contactId) {
@@ -644,7 +646,15 @@ export const contactsService = {
       if (error) throw error;
       if (!data || data.length === 0) break;
 
-      allReminders = [...allReminders, ...data];
+      // Transform the data to match the Reminder type exactly
+      const transformedData = data.map(item => ({
+        ...item,
+        contact: {
+          name: item.contact[0]?.name || ''
+        }
+      }));
+
+      allReminders = [...allReminders, ...transformedData];
 
       // If we got less than pageSize, we've reached the end
       if (data.length < pageSize) break;

@@ -58,6 +58,9 @@ export interface Reminder {
   due_date: string;
   completed: boolean;
   created_at: string;
+  contact: {
+    name: string;
+  };
 }
 
 export interface QuickReminderInput {
