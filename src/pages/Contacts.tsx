@@ -539,6 +539,13 @@ export const Contacts = () => {
                   search: debouncedSearchQuery,
                   categories: selectedCategories
                 }}
+                onScrollComplete={() => {
+                  if (targetContactId) {
+                    const newSearchParams = new URLSearchParams(searchParams);
+                    newSearchParams.delete('contact');
+                    setSearchParams(newSearchParams, { replace: true });
+                  }
+                }}
               />
             </>
           )}
