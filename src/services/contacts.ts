@@ -25,6 +25,42 @@ const formatDueDate = (dueDate: string | null): string => {
 export const contactsService = {
   formatDueDate,
 
+  async getRecentContacts(): Promise<Contact[]> {
+    let query = supabase
+      .from('contacts')
+      .select(`
+        id,
+        user_id,
+        name,
+        phone,
+        social_media_platform,
+        social_media_handle,
+        last_contacted,
+        next_contact_due,
+        preferred_contact_method,
+        notes,
+        contact_frequency,
+        ai_last_suggestion,
+        ai_last_suggestion_date,
+        missed_interactions,
+        created_at,
+        updated_at,
+        important_events (
+          id,
+          type,
+          name,
+          date
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .order('name', { ascending: true })
+      .limit(3);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
   async getContacts(): Promise<Contact[]> {
     const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
 
@@ -57,14 +93,13 @@ export const contactsService = {
 
     // For free tier users, we show the 15 most recent contacts
     // This ensures users have access to their newest and most relevant contacts
+    // Always order consistently first by created_at, then by name for stability
+    query = query
+      .order('created_at', { ascending: false })
+      .order('name', { ascending: true });
+
     if (!isPremium && !isOnTrial) {
-      query = query
-        .order('created_at', { ascending: false })  // Get newest contacts first
-        .limit(15);
-    } else {
-      // For premium/trial users, return all contacts with no specific ordering
-      // The UI components can handle sorting as needed
-      query = query.order('created_at', { ascending: true });
+      query = query.limit(15);
     }
 
     const { data, error } = await query;
