@@ -569,39 +569,72 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
 
   // Handle scrolling to contact when scrollToContactId changes
   useEffect(() => {
-    if (scrollToContactId && listRef.current && sortConfig && filterConfig && !isLoading) {
-      // First try to find contact in current list
-      const index = contacts.findIndex(c => c.id === scrollToContactId);
-      if (index !== -1) {
-        // Calculate total height of items before the target
-        let totalHeight = 0;
-        for (let i = 0; i < index; i++) {
-          totalHeight += getItemSize(i);
-        }
-        
-        // Use scrollTo with align: 'start' to position at top
-        listRef.current.scrollTo(totalHeight);
-        
-        // Expand the contact card after a small delay to ensure proper positioning
-        setTimeout(() => {
-          setExpandedIndices(prev => new Set(prev).add(index));
-        }, 100);
-      } else {
-        // If not in current list, get position from backend
-        contactsPaginationService.getContactPosition(scrollToContactId, {
-          field: sortConfig.field as any,
-          order: sortConfig.order as any
-        }, filterConfig).then(result => {
-          if (result) {
-            // Load more contacts until we reach the target
-            const targetPage = Math.floor(result.index / 20);
-            for (let i = 0; i < targetPage; i++) {
-              loadMore();
-            }
+    let isSubscribed = true;
+
+    const scrollToIndex = async () => {
+      if (scrollToContactId && listRef.current && sortConfig && filterConfig && !isLoading) {
+        // First try to find contact in current list
+        const index = contacts.findIndex(c => c.id === scrollToContactId);
+        if (index !== -1) {
+          // Calculate total height of items before the target
+          let totalHeight = 0;
+          for (let i = 0; i < index; i++) {
+            totalHeight += getItemSize(i);
           }
-        });
+          
+          // Use scrollTo with align: 'start' to position at top
+          listRef.current.scrollTo(totalHeight);
+          
+          // Expand the contact card after a small delay to ensure proper positioning
+          setTimeout(() => {
+            if (isSubscribed) {
+              setExpandedIndices(prev => new Set(prev).add(index));
+            }
+          }, 100);
+        } else {
+          try {
+            // If not in current list, get position from backend
+            const result = await contactsPaginationService.getContactPosition(scrollToContactId, {
+              field: sortConfig.field as any,
+              order: sortConfig.order as any
+            }, filterConfig);
+
+            if (result && isSubscribed) {
+              const targetPage = Math.floor(result.index / 20);
+              // Load all required pages
+              for (let i = 0; i < targetPage && isSubscribed; i++) {
+                await loadMore();
+              }
+              
+              // After loading, find the contact again and scroll
+              const newIndex = contacts.findIndex(c => c.id === scrollToContactId);
+              if (newIndex !== -1 && isSubscribed) {
+                let totalHeight = 0;
+                for (let i = 0; i < newIndex; i++) {
+                  totalHeight += getItemSize(i);
+                }
+                listRef.current?.scrollTo(totalHeight);
+                
+                // Expand the contact card after scrolling
+                setTimeout(() => {
+                  if (isSubscribed) {
+                    setExpandedIndices(prev => new Set(prev).add(newIndex));
+                  }
+                }, 100);
+              }
+            }
+          } catch (error) {
+            console.error('Error scrolling to contact:', error);
+          }
+        }
       }
-    }
+    };
+
+    scrollToIndex();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [scrollToContactId, contacts, sortConfig, filterConfig, isLoading, getItemSize, loadMore]);
 
   const itemData = useMemo(() => ({
