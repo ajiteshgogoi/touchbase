@@ -34,6 +34,7 @@ export interface ImportantEvent {
   type: 'birthday' | 'anniversary' | 'custom';
   name: string | null; // Required for custom events, optional for birthday/anniversary
   date: string;
+  next_occurrence?: string; // Added for optimized event queries
   created_at: string;
   updated_at: string;
 }

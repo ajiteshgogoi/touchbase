@@ -2,10 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useStore } from '../stores/useStore';
-import dayjs from 'dayjs';
 import { useEffect } from 'react';
 import { contactsService } from '../services/contacts';
-import { getNextOccurrence } from '../components/contacts/utils';
 import type { Contact, ImportantEvent } from '../lib/supabase/types';
 import { ImportantEventCard } from '../components/contacts/ImportantEventCard';
 
@@ -36,10 +34,10 @@ export const ImportantEventsPage = () => {
     enabled: !isPremium && !isOnTrial
   });
 
-  // Fetch all important events
+  // Fetch upcoming events with optimized backend query
   const { data: events, isLoading } = useQuery<ImportantEvent[]>({
-    queryKey: ['important-events'],
-    queryFn: () => contactsService.getImportantEvents(),
+    queryKey: ['important-events', 'upcoming'],
+    queryFn: () => contactsService.getUpcomingEvents(12), // Get all events within 12 months
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -53,22 +51,11 @@ export const ImportantEventsPage = () => {
     return contacts?.find(c => c.id === contactId)?.name || 'Unknown';
   };
 
-  // Get visible contact IDs
-  const visibleContactIds = contacts?.map(contact => contact.id) || [];
-
-  // Filter and sort upcoming events for next 12 months using yearly recurrence logic
-  const upcomingEvents = events
-    ?.map(event => ({
-      ...event,
-      nextOccurrence: dayjs(getNextOccurrence(event.date)).toDate()
-    }))
-    .filter(event => {
-      const nextYear = dayjs().add(12, 'months').toDate();
-      return event.nextOccurrence >= new Date() &&
-             event.nextOccurrence <= nextYear &&
-             visibleContactIds.includes(event.contact_id as string);
-    })
-    .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime());
+  // Events are already filtered and sorted by the backend
+  const upcomingEvents = events?.map(event => ({
+    ...event,
+    nextOccurrence: event.next_occurrence ? new Date(event.next_occurrence) : new Date(event.date)
+  }));
 
   // Group events by month using next occurrence date
   const groupedEvents = upcomingEvents?.reduce((groups, event) => {

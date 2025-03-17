@@ -244,25 +244,81 @@ export const contactsService = {
    * @returns Array of important events sorted by date
    */
   async getImportantEvents(contactId?: string): Promise<ImportantEvent[]> {
-    let query = supabase
-      .from('important_events')
-      .select(`
-        id,
-        contact_id,
-        user_id,
-        type,
-        name,
-        date,
-        created_at,
-        updated_at
-      `)
-      .order('date');
-
     if (contactId) {
-      query = query.eq('contact_id', contactId);
+      // If contactId is provided, use the original query for single contact
+      const { data, error } = await supabase
+        .from('important_events')
+        .select(`
+          id,
+          contact_id,
+          user_id,
+          type,
+          name,
+          date,
+          created_at,
+          updated_at
+        `)
+        .eq('contact_id', contactId)
+        .order('date');
+
+      if (error) throw error;
+      return data || [];
     }
 
-    const { data, error } = await query;
+    // Otherwise use the optimized function for upcoming events
+    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+
+    // For free users, get visible contact IDs
+    let visibleContactIds: string[] | null = null;
+    if (!isPremium && !isOnTrial) {
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('id')
+        .order('created_at', { ascending: false })
+        .limit(15);
+      
+      visibleContactIds = (contacts || []).map(c => c.id);
+    }
+
+    const { data, error } = await supabase.rpc('get_upcoming_events', {
+      p_user_id: (await supabase.auth.getUser()).data.user?.id,
+      p_visible_contact_ids: visibleContactIds,
+      p_months_ahead: 12,
+      p_limit: null
+    });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Get upcoming events with optimized date calculations and filtering
+   * @param months Number of months to look ahead (default: 12)
+   * @param limit Maximum number of events to return
+   * @returns Array of upcoming events sorted by next occurrence
+   */
+  async getUpcomingEvents(months: number = 12, limit?: number): Promise<ImportantEvent[]> {
+    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+
+    // For free users, get visible contact IDs
+    let visibleContactIds: string[] | null = null;
+    if (!isPremium && !isOnTrial) {
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('id')
+        .order('created_at', { ascending: false })
+        .limit(15);
+      
+      visibleContactIds = (contacts || []).map(c => c.id);
+    }
+
+    const { data, error } = await supabase.rpc('get_upcoming_events', {
+      p_user_id: (await supabase.auth.getUser()).data.user?.id,
+      p_visible_contact_ids: visibleContactIds,
+      p_months_ahead: months,
+      p_limit: limit
+    });
+
     if (error) throw error;
     return data || [];
   },
