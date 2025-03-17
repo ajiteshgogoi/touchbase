@@ -626,7 +626,10 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
     isSelectionMode,
     onToggleSelect,
     onStartSelectionMode,
-    isBulkDeleting
+    isBulkDeleting,
+    scrollToContactId,
+    sortConfig,
+    filterConfig
   }), [
     contacts,
     eventsMap,
@@ -649,7 +652,10 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
     isSelectionMode,
     onToggleSelect,
     onStartSelectionMode,
-    isBulkDeleting
+    isBulkDeleting,
+    scrollToContactId,
+    sortConfig,
+    filterConfig
   ]);
 
   return (
