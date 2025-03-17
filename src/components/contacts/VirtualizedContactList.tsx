@@ -70,6 +70,9 @@ interface RowProps {
     onToggleSelect?: (contactId: string) => void;
     onStartSelectionMode?: () => void;
     isBulkDeleting?: boolean;
+    scrollToContactId?: string;
+    sortConfig?: { field: string; order: string };
+    filterConfig?: { search?: string; categories?: string[] };
   };
 }
 
