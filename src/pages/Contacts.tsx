@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useMemo, useEffect, useRef } from 'react';
+import { useState, lazy, Suspense, useMemo, useEffect } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -43,7 +43,6 @@ export const Contacts = () => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const listRef = useRef<{ scrollToItem: (index: number, align?: string) => void }>(null);
   const queryClient = useQueryClient();
   const targetContactId = searchParams.get('contact');
 
@@ -81,13 +80,10 @@ export const Contacts = () => {
             });
           }
 
-          // After loading required pages, scroll to contact
-          if (listRef.current) {
-            listRef.current.scrollToItem(position.index, 'start');
-            // Clear the contact param after scrolling
-            searchParams.delete('contact');
-            setSearchParams(searchParams);
-          }
+          // After loading required pages, clear the contact param
+          // This will prevent re-scrolling on re-renders
+          searchParams.delete('contact');
+          setSearchParams(searchParams);
         }
       } catch (error) {
         console.error('Error looking up contact position:', error);
