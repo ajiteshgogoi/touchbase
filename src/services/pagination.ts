@@ -96,7 +96,13 @@ export const contactsPaginationService = {
 
     // Apply search filter if provided
     if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,social_media_handle.ilike.%${filters.search}%`);
+      // Remove parentheses and split into terms
+      const searchTerms = filters.search.replace(/[()]/g, '').trim().toLowerCase().split(/\s+/);
+      
+      // Build AND conditions for name search (each term must match)
+      searchTerms.forEach(term => {
+        query = query.or(`name.ilike.%${term}%,phone.ilike.%${term}%,social_media_handle.ilike.%${term}%`);
+      });
     }
 
     // Apply category filters if provided
@@ -135,10 +141,10 @@ export const contactsPaginationService = {
       let filteredContacts = recentContacts || [];
       if (filters.search) {
         // Remove parentheses from both search term and contact name for comparison
-        const cleanSearch = filters.search!.toLowerCase().replace(/[()]/g, '');
+        const searchTerms = filters.search!.toLowerCase().replace(/[()]/g, '').split(/\s+/);
         filteredContacts = filteredContacts.filter(contact => {
           const cleanName = contact.name.toLowerCase().replace(/[()]/g, '');
-          return cleanName.includes(cleanSearch);
+          return searchTerms.every(term => cleanName.includes(term));
         });
       }
 
