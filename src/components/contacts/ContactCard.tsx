@@ -302,8 +302,8 @@ export const ContactCard = ({
             }`}
             title={isSelectionMode ? "Click to select/deselect" : "Edit contact"}
             onClick={(e) => {
+              e.stopPropagation(); // Stop propagation to prevent card expansion
               if (isSelectionMode && !isBulkDeleting) {
-                e.stopPropagation();
                 onToggleSelect?.(contact.id);
               }
             }}
