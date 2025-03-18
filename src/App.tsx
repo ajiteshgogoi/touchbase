@@ -3,7 +3,7 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Layout } from './components/layout/Layout';
 import { useStore } from './stores/useStore';
@@ -488,6 +488,25 @@ function App() {
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <SpeedInsights />
+          <Helmet>
+            <link 
+              rel="preload"
+              href="/icon.svg"
+              as="image"
+              type="image/svg+xml"
+              fetchPriority="high"
+            />
+            <link 
+              rel="preconnect" 
+              href="https://touchbase.site"
+              crossOrigin="anonymous"
+            />
+            <link 
+              rel="preconnect" 
+              href="https://ztsbrysfvmmlxtzoyvle.supabase.co"
+              crossOrigin="anonymous"
+            />
+          </Helmet>
           <Toaster
             position="top-right"
             toastOptions={{
