@@ -25,45 +25,40 @@ export const ContactForm = () => {
   const queryClient = useQueryClient();
   const { user, isPremium, isOnTrial } = useStore();
   const [showAdvanced, setShowAdvanced] = useState(Boolean(id)); // Show advanced fields by default in edit mode
+  const isEditMode = Boolean(id);
+
+  // Fetch contact and events data in edit mode
+  const { data: contactData, isLoading: isLoadingContact } = useQuery({
+    queryKey: ['contact-with-events', id],
+    queryFn: () => contactsService.getContactWithEvents(id!),
+    enabled: isEditMode,
+  });
+
   const [fromContactsPage, setFromContactsPage] = useState(false);
-  const [contactHash, setContactHash] = useState<string | null>(null);
-
-  // Check if we came from contacts page and get contactHash
-  useEffect(() => {
-    const state = window.history.state?.usr;
-    if (state?.from === '/contacts') {
-      setFromContactsPage(true);
-      setContactHash(id || null);
-    }
-  }, [id]);
-
-  const handleNavigateBack = () => {
-    if (fromContactsPage && contactHash) {
-      // Add the hash to trigger scroll
-      navigate(-1);
-      // Small delay to ensure navigation completes before setting hash
-      setTimeout(() => {
-        window.location.hash = contactHash;
-      }, 0);
-    } else {
-      navigate(-1);
-    }
-  };
+  const [contactName, setContactName] = useState<string | null>(null);
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
   });
   const [errors, setErrors] = useState<FormErrors>(initialErrors);
   const [isValidating, setIsValidating] = useState(false);
-  const isEditMode = Boolean(id);
 
-  // Fetch contact and events data in edit mode
-  // Fetch current contact data in edit mode
-  const { data: contactData, isLoading: isLoadingContact } = useQuery({
-    queryKey: ['contact-with-events', id],
-    queryFn: () => contactsService.getContactWithEvents(id!),
-    enabled: isEditMode,
-  });
+  // Check if we came from contacts page and get contact name
+  useEffect(() => {
+    const state = window.history.state?.usr;
+    if (state?.from === '/contacts' && contactData?.contact) {
+      setFromContactsPage(true);
+      setContactName(contactData.contact.name);
+    }
+  }, [id, contactData]);
+
+  const handleNavigateBack = () => {
+    if (fromContactsPage && contactName) {
+      navigate(`/contacts?search=${encodeURIComponent(contactName)}`);
+    } else {
+      navigate(-1);
+    }
+  };
 
   // Fetch all contacts for hashtag suggestions
   const { data: allContacts = [] } = useQuery({
@@ -113,20 +108,7 @@ export const ContactForm = () => {
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
-
-    // Handle browser's back button
-    const handlePopState = () => {
-      if (fromContactsPage && contactHash) {
-        // Small delay to ensure navigation completes
-        setTimeout(() => {
-          window.location.hash = contactHash;
-        }, 0);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [fromContactsPage, contactHash]);
+  }, []);
 
   // Form validation
   const validateForm = async () => {
