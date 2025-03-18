@@ -134,9 +134,12 @@ export const contactsPaginationService = {
       // Apply search filter if needed
       let filteredContacts = recentContacts || [];
       if (filters.search) {
-        filteredContacts = filteredContacts.filter(contact =>
-          contact.name.toLowerCase().includes(filters.search!.toLowerCase())
-        );
+        // Remove parentheses from both search term and contact name for comparison
+        const cleanSearch = filters.search!.toLowerCase().replace(/[()]/g, '');
+        filteredContacts = filteredContacts.filter(contact => {
+          const cleanName = contact.name.toLowerCase().replace(/[()]/g, '');
+          return cleanName.includes(cleanSearch);
+        });
       }
 
       // Apply category filters if needed
