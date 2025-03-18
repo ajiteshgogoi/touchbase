@@ -81,7 +81,7 @@ export const Login = () => {
                   <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" strokeWidth="1.5"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Simple & Personal</h3>
+              <h3 className="text-lg font-semibold text-gray-700/90 mb-2">Simple & Personal</h3>
               <p className="text-gray-600/90 leading-relaxed">Track important interactions with your loved ones in one space</p>
             </div>
             
@@ -91,7 +91,7 @@ export const Login = () => {
                   <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeWidth="1.5"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Timely Reminders</h3>
+              <h3 className="text-lg font-semibold text-gray-700/90 mb-2">Timely Reminders</h3>
               <p className="text-gray-600/90 leading-relaxed">Get gentle nudges to reconnect before life gets in the way</p>
             </div>
             
@@ -101,13 +101,13 @@ export const Login = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" strokeWidth="1.5"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800/90 mb-2">Helpful Assistant</h3>
+              <h3 className="text-lg font-semibold text-gray-700/90 mb-2">Helpful Assistant</h3>
               <p className="text-gray-600/90 leading-relaxed">Personalised suggestions to make every conversation meaningful</p>
             </div>
           </div>
         </div>
 
-        <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/80 backdrop-blur-sm border border-gray-100/50">
+        <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/90 backdrop-blur-sm border border-gray-100/50">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -189,7 +189,7 @@ export const Login = () => {
 
         <button
           onClick={() => setIsInstallModalOpen(true)}
-          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600 bg-white/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-colors duration-200"
+          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600/90 bg-white/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-colors duration-200"
         >
           <img src="/icon.svg" alt="heart" className="w-5 h-5 text-primary-500" loading="eager" />
           <span>Get TouchBase on your device</span>
