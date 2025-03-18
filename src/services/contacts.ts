@@ -231,6 +231,7 @@ export const contactsService = {
     getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
+    getQueryClient().invalidateQueries({ queryKey: ['contact-hashtags'] });
     
     // Return updated contact with proper next_contact_due
     const updatedContact = await this.getContact(data.id);
@@ -529,6 +530,7 @@ export const contactsService = {
       getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
       getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
       getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
+      getQueryClient().invalidateQueries({ queryKey: ['contact-hashtags'] });
       getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
       getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
       return updatedContact;
@@ -538,6 +540,7 @@ export const contactsService = {
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['contact-hashtags'] });
     getQueryClient().invalidateQueries({ queryKey: ['expanded-contact'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
@@ -579,6 +582,7 @@ export const contactsService = {
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['contact-hashtags'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
@@ -994,6 +998,7 @@ export const contactsService = {
     getQueryClient().invalidateQueries({ queryKey: ['contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['recent-contacts'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-contacts'] });
+    getQueryClient().invalidateQueries({ queryKey: ['contact-hashtags'] });
     getQueryClient().invalidateQueries({ queryKey: ['important-events'] });
     getQueryClient().invalidateQueries({ queryKey: ['reminders'] });
     getQueryClient().invalidateQueries({ queryKey: ['total-reminders'] });
