@@ -4,7 +4,6 @@ import type { VariableSizeList } from 'react-window';
 import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
-import { contactsPaginationService } from '../../services/pagination';
 
 // Calculate dynamic overscan based on viewport height
 const calculateOverscan = (viewportHeight: number): number => {
@@ -39,9 +38,6 @@ interface VirtualizedContactListProps {
   onToggleSelect?: (contactId: string) => void;
   onStartSelectionMode?: () => void;
   isBulkDeleting?: boolean;
-  scrollToContactId?: string;
-  sortConfig?: { field: string; order: string };
-  filterConfig?: { search?: string; categories?: string[] };
 }
 
 interface RowProps {
@@ -283,10 +279,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
   isSelectionMode,
   onToggleSelect,
   onStartSelectionMode,
-  isBulkDeleting,
-  scrollToContactId,
-  sortConfig,
-  filterConfig
+  isBulkDeleting
 }, ref) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
@@ -566,43 +559,6 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
       listRef.current.resetAfterIndex(0);
     }
   }, [expandedIndices]);
-
-  // Handle scrolling to contact when scrollToContactId changes
-  useEffect(() => {
-    if (scrollToContactId && listRef.current && sortConfig && filterConfig && !isLoading) {
-      // First try to find contact in current list
-      const index = contacts.findIndex(c => c.id === scrollToContactId);
-      if (index !== -1) {
-        // Calculate total height of items before the target
-        let totalHeight = 0;
-        for (let i = 0; i < index; i++) {
-          totalHeight += getItemSize(i);
-        }
-        
-        // Use scrollTo with align: 'start' to position at top
-        listRef.current.scrollTo(totalHeight);
-        
-        // Expand the contact card after a small delay to ensure proper positioning
-        setTimeout(() => {
-          setExpandedIndices(prev => new Set(prev).add(index));
-        }, 100);
-      } else {
-        // If not in current list, get position from backend
-        contactsPaginationService.getContactPosition(scrollToContactId, {
-          field: sortConfig.field as any,
-          order: sortConfig.order as any
-        }, filterConfig).then(result => {
-          if (result) {
-            // Load more contacts until we reach the target
-            const targetPage = Math.floor(result.index / 20);
-            for (let i = 0; i < targetPage; i++) {
-              loadMore();
-            }
-          }
-        });
-      }
-    }
-  }, [scrollToContactId, contacts, sortConfig, filterConfig, isLoading, getItemSize, loadMore]);
 
   const itemData = useMemo(() => ({
     contacts,
