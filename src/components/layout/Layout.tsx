@@ -24,7 +24,7 @@ export const Layout = ({ children, user, settings }: LayoutProps) => {
       </main>
       <RatingPrompt user={user} settings={settings} />
       <footer className="text-center pt-2 pb-5 text-gray-600 text-sm">
-        <div className="inline-block min-w-[280px]">
+        <div className="inline-flex justify-center w-[320px]">
           © {new Date().getFullYear()} TouchBase Technologies | {getFullVersion()}
         </div>
       </footer>
