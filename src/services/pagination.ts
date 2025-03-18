@@ -126,14 +126,16 @@ export const contactsPaginationService = {
       const { data: recentContacts } = await supabase
         .from('contacts')
         .select(`
-          id,
-          name,
-          last_contacted,
-          missed_interactions,
-          contact_frequency,
-          next_contact_due,
-          preferred_contact_method
-        `)
+         id,
+         name,
+         last_contacted,
+         missed_interactions,
+         contact_frequency,
+         next_contact_due,
+         preferred_contact_method,
+         phone,
+         social_media_handle
+       `)
         .order('created_at', { ascending: false })
         .limit(15);
 
@@ -144,7 +146,14 @@ export const contactsPaginationService = {
         const searchTerms = filters.search!.toLowerCase().replace(/[()]/g, '').split(/\s+/);
         filteredContacts = filteredContacts.filter(contact => {
           const cleanName = contact.name.toLowerCase().replace(/[()]/g, '');
-          return searchTerms.every(term => cleanName.includes(term));
+          const phone = (contact.phone || '').toLowerCase();
+          const socialHandle = (contact.social_media_handle || '').toLowerCase();
+          
+          return searchTerms.every(term =>
+            cleanName.includes(term) ||
+            phone.includes(term) ||
+            socialHandle.includes(term)
+          );
         });
       }
 
