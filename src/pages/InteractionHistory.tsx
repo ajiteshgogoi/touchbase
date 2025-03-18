@@ -23,21 +23,6 @@ export const InteractionHistory = () => {
   const { fromContact, contactHash } = location.state || {};
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-
-  // Handle browser's back button
-  useEffect(() => {
-    const handlePopState = () => {
-      if (fromContact && contactHash) {
-        // Small delay to ensure navigation completes
-        setTimeout(() => {
-          window.location.hash = contactHash;
-        }, 0);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [fromContact, contactHash]);
   const [editingInteraction, setEditingInteraction] = useState<{
     interaction: Interaction;
     isOpen: boolean;
@@ -158,8 +143,8 @@ export const InteractionHistory = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
-              if (fromContact && contactHash) {
-                navigate(`/contacts#${contactHash}`);
+              if (fromContact && contact) {
+                navigate(`/contacts?search=${encodeURIComponent(contact.name)}`);
               } else {
                 navigate(-1);
               }
@@ -204,8 +189,8 @@ export const InteractionHistory = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
-              if (fromContact && contactHash) {
-                navigate(`/contacts#${contactHash}`);
+              if (fromContact && contact) {
+                navigate(`/contacts?search=${encodeURIComponent(contact.name)}`);
               } else {
                 navigate(-1);
               }

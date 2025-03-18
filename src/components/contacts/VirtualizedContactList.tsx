@@ -559,26 +559,6 @@ export const VirtualizedContactList = ({
     }
   }, [expandedIndices]);
 
-  // Handle hash navigation
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1);
-      if (hash && listRef.current) {
-        const targetIndex = contacts.findIndex(contact => contact.id === hash);
-        if (targetIndex !== -1) {
-          listRef.current.scrollToItem(targetIndex, 'start');
-        }
-      }
-    };
-
-    // Handle initial hash on mount
-    handleHashChange();
-
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [contacts, isSelectionMode]);
-
   const itemData = useMemo(() => ({
     contacts,
     eventsMap,
