@@ -3,10 +3,23 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import { createResponse, handleOptions } from '../_shared/headers.ts'
 
 function isLikelyDefaultAvatar(picture: string, name: string): boolean {
-  if (!picture?.includes('googleusercontent.com')) return false;
+  if (!picture) return false;
+  
+  let url: URL;
+  try {
+    url = new URL(picture);
+    
+    // Validate Google user content domain and HTTPS
+    if (url.protocol !== 'https:' || 
+        !(url.hostname.endsWith('.googleusercontent.com') || 
+          url.hostname === 'googleusercontent.com')) {
+      return false;
+    }
+  } catch (error) {
+    console.error('Invalid URL:', error);
+    return false;
+  }
 
-  // Extract URL params to check for size and crop settings
-  const url = new URL(picture);
   const params = url.search;
   
   // Check name format - default avatars often have:
