@@ -165,7 +165,7 @@ async function sendSingleNotification(
 ): Promise<void> {
   try {
     const response = await fetch(
-      `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID.replace(':', '%3A')}/messages:send`,
+      `https://fcm.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID.replaceAll(':', '%3A')}/messages:send`,
       {
         method: 'POST',
         headers: {
