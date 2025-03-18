@@ -34,8 +34,6 @@ export const ContactForm = () => {
     enabled: isEditMode,
   });
 
-  const [fromContactsPage, setFromContactsPage] = useState(false);
-  const [contactName, setContactName] = useState<string | null>(null);
   const [formData, setFormData] = useState<ContactFormData>({
     ...initialFormData,
     user_id: user?.id || '',
@@ -43,21 +41,8 @@ export const ContactForm = () => {
   const [errors, setErrors] = useState<FormErrors>(initialErrors);
   const [isValidating, setIsValidating] = useState(false);
 
-  // Check if we came from contacts page and get contact name
-  useEffect(() => {
-    const state = window.history.state?.usr;
-    if (state?.from === '/contacts' && contactData?.contact) {
-      setFromContactsPage(true);
-      setContactName(contactData.contact.name);
-    }
-  }, [id, contactData]);
-
   const handleNavigateBack = () => {
-    if (fromContactsPage && contactName) {
-      navigate(`/contacts?search=${encodeURIComponent(contactName)}`);
-    } else {
-      navigate(-1);
-    }
+    navigate(-1);
   };
 
   // Fetch all contacts for hashtag suggestions
