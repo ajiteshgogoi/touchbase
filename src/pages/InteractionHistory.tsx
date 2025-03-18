@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, useMemo, useEffect } from 'react';
+import { useState, lazy, Suspense, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useStore } from '../stores/useStore';
@@ -20,7 +20,7 @@ export const InteractionHistory = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { isPremium, isOnTrial } = useStore();
-  const { fromContact, contactHash } = location.state || {};
+  const { fromContact } = location.state || {};
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [editingInteraction, setEditingInteraction] = useState<{
