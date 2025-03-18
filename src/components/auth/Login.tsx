@@ -1,12 +1,31 @@
+// External imports
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { GoogleIcon, InstagramIcon, RedditIcon, LinkedInIcon } from './icons/AuthIcons';
-const InstallModal = lazy(() => import('./InstallModal'));
-import { UsersSocialProof } from './UsersSocialProof';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../../stores/useStore';
 import { Helmet } from 'react-helmet-async';
 import type { User } from '@supabase/supabase-js';
+
+// Internal imports
+import { GoogleIcon, InstagramIcon, RedditIcon, LinkedInIcon } from './icons/AuthIcons';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { UsersSocialProof } from './UsersSocialProof';
+import { useStore } from '../../stores/useStore';
 import { initiateGoogleLogin } from '../../lib/auth/google';
+
+const InstallModal = lazy(() => import('./InstallModal'));
+
+// Lazy loading component wrapper with error boundary
+const LazyComponent = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <LoadingSpinner />
+      </div>
+    }>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -226,12 +245,12 @@ export const Login = () => {
         </div>
       </main>
 
-      <Suspense fallback={null}>
+      <LazyComponent>
         <InstallModal
           isOpen={isInstallModalOpen}
           onClose={() => setIsInstallModalOpen(false)}
         />
-      </Suspense>
+      </LazyComponent>
     </div>
   );
 };
