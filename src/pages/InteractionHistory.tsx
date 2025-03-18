@@ -8,7 +8,7 @@ import { ClockIcon, TrashIcon, PencilSquareIcon, ChevronUpDownIcon, ArrowLeftIco
 import dayjs from 'dayjs';
 import type { Interaction } from '../lib/supabase/types';
 
-// Lazy load QuickInteraction
+// Lazy load QuickInteraction //
 const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
 
 type SortField = 'date' | 'type' | 'sentiment';
