@@ -579,8 +579,21 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
         // First try to find contact in current list
         const index = contacts.findIndex(c => c.id === scrollToContactId);
         if (index !== -1) {
-          // Use scrollToItem instead of manual height calculation
-          listRef.current.scrollToItem(index, 'start');
+          // Calculate total height of items before the target
+          let totalHeight = 0;
+          for (let i = 0; i < index; i++) {
+            totalHeight += getItemSize(i);
+          }
+          
+          // Use scrollTo with align: 'start' to position at top
+          listRef.current.scrollTo(totalHeight);
+          
+          // Expand the contact card after a small delay to ensure proper positioning
+          setTimeout(() => {
+            if (isSubscribed) {
+              setExpandedIndices(prev => new Set(prev).add(index));
+            }
+          }, 100);
         } else {
           try {
             // If not in current list, get position from backend
@@ -599,7 +612,18 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
               // After loading, find the contact again and scroll
               const newIndex = contacts.findIndex(c => c.id === scrollToContactId);
               if (newIndex !== -1 && isSubscribed) {
-                listRef.current?.scrollToItem(newIndex, 'start');
+                let totalHeight = 0;
+                for (let i = 0; i < newIndex; i++) {
+                  totalHeight += getItemSize(i);
+                }
+                listRef.current?.scrollTo(totalHeight);
+                
+                // Expand the contact card after scrolling
+                setTimeout(() => {
+                  if (isSubscribed) {
+                    setExpandedIndices(prev => new Set(prev).add(newIndex));
+                  }
+                }, 100);
               }
             }
           } catch (error) {
@@ -614,7 +638,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
     return () => {
       isSubscribed = false;
     };
-  }, [scrollToContactId, contacts, sortConfig, filterConfig, isLoading, loadMore]);
+  }, [scrollToContactId, contacts, sortConfig, filterConfig, isLoading, getItemSize, loadMore]);
 
   const itemData = useMemo(() => ({
     contacts,
