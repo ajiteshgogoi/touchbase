@@ -86,13 +86,23 @@ self.addEventListener('fetch', (event) => {
 
   // Handle navigation requests differently
   if (event.request.mode === 'navigate') {
-    // Check if running in Instagram browser using request headers
-  const isInstagram = event.request.headers.get('Sec-Fetch-Dest') === 'document' &&
-                     event.request.headers.get('Sec-Fetch-Mode') === 'navigate' &&
-                     (event.request.referrer.includes('instagram.com') ||
-                      event.request.headers.get('User-Agent')?.includes('Instagram'));
+    // Helper function to safely validate Instagram domains
+    const isInstagramDomain = (url) => {
+      try {
+        const hostname = new URL(url).hostname;
+        return hostname === 'instagram.com' || hostname.endsWith('.instagram.com');
+      } catch {
+        return false;
+      }
+    };
 
-  event.respondWith(
+    // Check if running in Instagram browser using request headers
+    const isInstagram = event.request.headers.get('Sec-Fetch-Dest') === 'document' &&
+                       event.request.headers.get('Sec-Fetch-Mode') === 'navigate' &&
+                       (isInstagramDomain(event.request.referrer) ||
+                        event.request.headers.get('User-Agent')?.includes('Instagram'));
+
+    event.respondWith(
     (async () => {
       if (isInstagram) {
         // For Instagram browser, always use network-first strategy
