@@ -42,7 +42,6 @@ interface VirtualizedContactListProps {
   scrollToContactId?: string;
   sortConfig?: { field: string; order: string };
   filterConfig?: { search?: string; categories?: string[] };
-  onScrollComplete?: () => void;
 }
 
 interface RowProps {
@@ -74,7 +73,6 @@ interface RowProps {
     scrollToContactId?: string;
     sortConfig?: { field: string; order: string };
     filterConfig?: { search?: string; categories?: string[] };
-    onScrollComplete?: () => void;
   };
 }
 
@@ -291,8 +289,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
   isBulkDeleting,
   scrollToContactId,
   sortConfig,
-  filterConfig,
-  onScrollComplete
+  filterConfig
 }, ref) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
@@ -584,8 +581,6 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
         if (index !== -1) {
           // Use scrollToItem instead of manual height calculation
           listRef.current.scrollToItem(index, 'start');
-          // Call onScrollComplete for contacts found in current list
-          onScrollComplete?.();
         } else {
           try {
             // If not in current list, get position from backend
@@ -596,14 +591,8 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
 
             if (result && isSubscribed) {
               const targetPage = Math.floor(result.index / 20);
-              
-              // Update URL with target page before loading
-              const urlSearchParams = new URLSearchParams(window.location.search);
-              urlSearchParams.set('page', targetPage.toString());
-              window.history.replaceState(null, '', `?${urlSearchParams.toString()}`);
-              
               // Load all required pages
-              for (let i = 0; i <= targetPage && isSubscribed; i++) {
+              for (let i = 0; i < targetPage && isSubscribed; i++) {
                 await loadMore();
               }
               
@@ -611,14 +600,10 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
               const newIndex = contacts.findIndex(c => c.id === scrollToContactId);
               if (newIndex !== -1 && isSubscribed) {
                 listRef.current?.scrollToItem(newIndex, 'start');
-                // Call onScrollComplete after scrolling to loaded contact
-                onScrollComplete?.();
               }
             }
           } catch (error) {
             console.error('Error scrolling to contact:', error);
-            // Call onScrollComplete even if there was an error
-            onScrollComplete?.();
           }
         }
       }
@@ -656,8 +641,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
     isBulkDeleting,
     scrollToContactId,
     sortConfig,
-    filterConfig,
-    onScrollComplete,
+    filterConfig
   }), [
     contacts,
     eventsMap,
@@ -683,8 +667,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
     isBulkDeleting,
     scrollToContactId,
     sortConfig,
-    filterConfig,
-    onScrollComplete
+    filterConfig
   ]);
 
   return (

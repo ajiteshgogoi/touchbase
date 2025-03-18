@@ -44,8 +44,22 @@ export const Contacts = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const targetContactId = searchParams.get('contact');
-  const currentPage = parseInt(searchParams.get('page') || '0');
   const listRef = useRef<any>(null);
+
+  // Clear contact param after the page loads
+  useEffect(() => {
+    if (targetContactId) {
+      // Clear the contact param after a short delay
+      // to ensure the list has time to load and scroll
+      const timeoutId = setTimeout(() => {
+        searchParams.delete('contact');
+        setSearchParams(searchParams);
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined; // Return undefined for the case when targetContactId is falsy
+  }, [targetContactId, searchParams, setSearchParams]);
 
   const [quickInteraction, setQuickInteraction] = useState<{
     isOpen: boolean;
@@ -254,21 +268,19 @@ export const Contacts = () => {
   };
 
   // Fetch contacts with infinite scroll
-  type ContactsResponse = {
-    contacts: BasicContact[];
-    hasMore: boolean;
-    total: number;
-  };
-
   const {
     data: contactsData,
     isLoading,
     fetchNextPage,
     hasNextPage,
     refetch
-  } = useInfiniteQuery<ContactsResponse>({
-    queryKey: ['contacts', debouncedSearchQuery, selectedCategories, sortField, sortOrder, currentPage],
-    queryFn: async ({ pageParam = currentPage }) => {
+  } = useInfiniteQuery<{
+    contacts: BasicContact[];
+    hasMore: boolean;
+    total: number;
+  }>({
+    queryKey: ['contacts', debouncedSearchQuery, selectedCategories, sortField, sortOrder],
+    queryFn: async ({ pageParam = 0 }) => {
       const result = await contactsPaginationService.getFilteredContacts(
         pageParam as number,
         { field: sortField, order: sortOrder },
@@ -277,16 +289,12 @@ export const Contacts = () => {
           categories: selectedCategories
         }
       );
-      // Update URL with current page
-      searchParams.set('page', String(pageParam));
-      setSearchParams(searchParams);
       return result;
     },
-    initialPageParam: currentPage,
+    initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasMore) return undefined;
-      const nextPage = allPages.length;
-      return nextPage;
+      return allPages.length;
     },
     staleTime: 5 * 60 * 1000
   });
