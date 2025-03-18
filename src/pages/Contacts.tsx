@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense, useMemo, useEffect } from 'react';
 import { useDebounce } from '../hooks/useDebounce';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { contactsService } from '../services/contacts';
 import { supabase } from '../lib/supabase/client';
@@ -37,9 +37,30 @@ type QuickInteractionParams = {
 
 export const Contacts = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [sortField, setSortField] = useState<SortField>('name');
+
+  // Update URL when search query changes
+  useEffect(() => {
+    const newSearchParams = new URLSearchParams(location.search);
+    if (debouncedSearchQuery) {
+      newSearchParams.set('search', debouncedSearchQuery);
+    } else {
+      newSearchParams.delete('search');
+    }
+    navigate(`${location.pathname}?${newSearchParams.toString()}`, { replace: true });
+  }, [debouncedSearchQuery, location.pathname, navigate]);
+
+  // Sync with URL search param changes
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search') || '';
+    if (searchFromUrl !== searchQuery) {
+      setSearchQuery(searchFromUrl);
+    }
+  }, [location.search]);
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [quickInteraction, setQuickInteraction] = useState<{
