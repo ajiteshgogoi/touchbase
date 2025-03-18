@@ -33,7 +33,7 @@ export const ImportantEventCard = ({ event, contactName }: ImportantEventCardPro
       </div>
       <div className="min-w-0 flex-1 space-y-1">
         <Link
-          to={`/contacts#${event.contact_id}`}
+          to={`/contacts?search=${encodeURIComponent(contactName)}`}
           className="block text-base font-semibold text-primary-500 tracking-[-0.01em] hover:text-primary-600 transition-colors"
         >
           {contactName}

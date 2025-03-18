@@ -123,7 +123,7 @@ export const Analytics = () => {
         >
           <div className="flex flex-col">
             <Link
-              to={`/contacts#${contact.contactId}`}
+              to={`/contacts?search=${encodeURIComponent(contact.contactName)}`}
               className="block text-xl font-semibold text-primary-500 tracking-[-0.01em] mb-3 hover:text-primary-600 transition-colors"
             >
               {contact.contactName}
@@ -318,7 +318,7 @@ export const Analytics = () => {
                       <div className="px-4 py-4">
                         <div className="flex flex-col gap-3.5">
                           <Link
-                            to={`/contacts#${contact.contactId}`}
+                            to={`/contacts?search=${encodeURIComponent(contact.contactName)}`}
                             className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 transition-colors tracking-[-0.01em]"
                           >
                             {contact.contactName}
@@ -386,7 +386,7 @@ export const Analytics = () => {
                             {analytics.neglectedContacts.map(contact => (
                               <Link
                                 key={contact.id}
-                                to={`/contacts#${contact.id}`}
+                              to={`/contacts?search=${encodeURIComponent(contact.name)}`}
                                 className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 transition-colors"
                               >
                                 {contact.name}
