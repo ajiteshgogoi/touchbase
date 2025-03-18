@@ -63,7 +63,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
             <div className="space-y-2">
               <div className="space-y-1.5">
                 <Link
-                  to={`/contacts?contact=${reminder.contact_id}`}
+                  to={`/contacts#${reminder.contact_id}`}
                   className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
                 >
                   {contact?.name || 'Unknown'}

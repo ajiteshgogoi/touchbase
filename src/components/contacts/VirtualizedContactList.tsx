@@ -1,6 +1,5 @@
-import { useCallback, memo, useState, useRef, useEffect, useMemo, Dispatch, SetStateAction, forwardRef } from 'react';
-import { VariableSizeList as List } from 'react-window';
-import type { VariableSizeList } from 'react-window';
+import { useCallback, memo, useState, useRef, useEffect, useMemo, Dispatch, SetStateAction } from 'react';
+import { VariableSizeList as List, VariableSizeList } from 'react-window';
 import { BasicContact, ImportantEvent, Interaction } from '../../lib/supabase/types';
 import { ContactCard } from './ContactCard';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
@@ -264,7 +263,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
 
 Row.displayName = 'ContactRow';
 
-export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedContactListProps>(({
+export const VirtualizedContactList = ({
   contacts,
   eventsMap,
   isPremium,
@@ -280,7 +279,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
   onToggleSelect,
   onStartSelectionMode,
   isBulkDeleting
-}, ref) => {
+}: VirtualizedContactListProps) => {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
   const [loadingStates, setLoadingStates] = useState<Set<number>>(new Set());
   const [heightMap, setHeightMap] = useState<Record<number, number>>({});
@@ -455,7 +454,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
     };
   }, []);
 
-  const listRef = useRef<any>(null);
+  const listRef = useRef<VariableSizeList>(null);
 
   // Callback to update height of an expanded card
   // Batch updates for height measurements
@@ -560,6 +559,26 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
     }
   }, [expandedIndices]);
 
+  // Handle hash navigation
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash && listRef.current) {
+        const targetIndex = contacts.findIndex(contact => contact.id === hash);
+        if (targetIndex !== -1) {
+          listRef.current.scrollToItem(targetIndex, 'start');
+        }
+      }
+    };
+
+    // Handle initial hash on mount
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [contacts, isSelectionMode]);
+
   const itemData = useMemo(() => ({
     contacts,
     eventsMap,
@@ -610,16 +629,7 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
 
   return (
     <List
-      ref={(list: any) => {
-        listRef.current = list;
-        if (ref) {
-          if (typeof ref === 'function') {
-            ref(list);
-          } else {
-            (ref as any).current = list;
-          }
-        }
-      }}
+      ref={listRef}
       height={listHeight}
       itemCount={contacts.length}
       itemSize={getItemSize}
@@ -634,6 +644,4 @@ export const VirtualizedContactList = forwardRef<VariableSizeList, VirtualizedCo
       {Row}
     </List>
   );
-});
-
-VirtualizedContactList.displayName = 'VirtualizedContactList';
+};

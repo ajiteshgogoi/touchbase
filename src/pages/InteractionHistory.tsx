@@ -30,7 +30,7 @@ export const InteractionHistory = () => {
       if (fromContact && contactHash) {
         // Small delay to ensure navigation completes
         setTimeout(() => {
-          navigate(`/contacts?contact=${contactHash}`);
+          window.location.hash = contactHash;
         }, 0);
       }
     };
@@ -159,7 +159,7 @@ export const InteractionHistory = () => {
           <button
             onClick={() => {
               if (fromContact && contactHash) {
-                navigate(`/contacts?contact=${contactHash}`);
+                navigate(`/contacts#${contactHash}`);
               } else {
                 navigate(-1);
               }
@@ -205,7 +205,7 @@ export const InteractionHistory = () => {
           <button
             onClick={() => {
               if (fromContact && contactHash) {
-                navigate(`/contacts?contact=${contactHash}`);
+                navigate(`/contacts#${contactHash}`);
               } else {
                 navigate(-1);
               }

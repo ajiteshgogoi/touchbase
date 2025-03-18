@@ -16,51 +16,6 @@ export type FilterConfig = {
 };
 
 export const contactsPaginationService = {
-  async getContactPosition(
-    contactId: string,
-    sort: SortConfig,
-    filters: FilterConfig
-  ): Promise<{index: number; total: number} | null> {
-    // Get the total count and position of the contact in the sorted list
-    let query = supabase
-      .from('contacts')
-      .select('id', { count: 'exact' });
-
-    // Apply search filter
-    if (filters.search) {
-      query = query.or(`name.ilike.%${filters.search}%,phone.ilike.%${filters.search}%,social_media_handle.ilike.%${filters.search}%`);
-    }
-
-    // Apply category filters
-    if (filters.categories && filters.categories.length > 0) {
-      const categoryConditions = filters.categories
-        .map(category => {
-          const hashtagQuery = category.startsWith('#') ? category : `#${category}`;
-          return `notes.ilike.%${hashtagQuery.toLowerCase()}%`;
-        })
-        .join(',');
-      query = query.or(categoryConditions);
-    }
-
-    // Apply sorting
-    query = query
-      .order(sort.field, { ascending: sort.order === 'asc' })
-      .order('name', { ascending: true });
-
-    const { data, error, count } = await query;
-    
-    if (error || !data || !count) return null;
-
-    // Find the position of the target contact
-    const contactIndex = data.findIndex(c => c.id === contactId);
-    if (contactIndex === -1) return null;
-
-    return {
-      index: contactIndex,
-      total: count
-    };
-  },
-
   async getExpandedContactDetails(contactId: string): Promise<Contact | null> {
     // Check cache first
     const cached = contactCacheService.get(contactId);
