@@ -209,18 +209,18 @@ export const CancellationModal = ({
 
                 <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
                   <button
-                   onClick={onClose}
-                   disabled={isSubmitting}
-                   className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-xl transition-all duration-200 shadow-sm"
-                 >
-                   Keep Subscription
-                 </button>
-                 <button
                    onClick={handleSubmit}
                    disabled={!selectedReason || isSubmitting || (selectedReason === 'other' && !additionalFeedback.trim())}
                    className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 disabled:opacity-50 transition-all duration-200 shadow-sm"
                  >
                    {isSubmitting ? 'Processing...' : 'Confirm Cancellation'}
+                 </button>
+                 <button
+                   onClick={onClose}
+                   disabled={isSubmitting}
+                   className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-xl transition-all duration-200 shadow-sm"
+                 >
+                   Keep Subscription
                  </button>
                 </div>
               </Dialog.Panel>
