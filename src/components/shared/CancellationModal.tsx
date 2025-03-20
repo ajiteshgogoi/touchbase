@@ -10,7 +10,7 @@ const CANCELLATION_REASONS = [
   { id: 'missing_features', label: 'Missing features I need' },
   { id: 'not_using', label: 'Not using it enough' },
   { id: 'found_alternative', label: 'Found a better alternative' },
-  { id: 'temporary', label: 'Temporary break - might return later' },
+  { id: 'temporary', label: 'Temporary break. Might return later' },
   { id: 'other', label: 'Other reason' }
 ];
 
