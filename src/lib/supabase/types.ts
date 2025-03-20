@@ -152,6 +152,83 @@ export interface Feedback {
   created_at: string;
 }
 
+export type NotificationStatus = 'success' | 'error' | 'invalid_token';
+
+export interface Subscription {
+  id: string;
+  user_id: string;
+  plan_id: 'free' | 'premium';
+  status: 'active' | 'canceled' | 'expired';
+  paypal_subscription_id: string | null;
+  google_play_token: string | null;
+  valid_until: string;
+  trial_start_date: string | null;
+  trial_end_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationHistory {
+  id: string;
+  user_id: string;
+  notification_type: 'morning' | 'afternoon' | 'evening';
+  sent_at: string;
+  status: NotificationStatus;
+  error_message: string | null;
+  batch_id: string | null;
+  retry_count: number;
+  created_at: string;
+}
+
+export interface ContactAnalytics {
+  id: string;
+  user_id: string;
+  data: Record<string, any>;
+  generated_at: string;
+  created_at: string;
+}
+
+// Update existing interfaces
+export interface PushSubscription {
+  id: string;
+  user_id: string;
+  fcm_token: string;
+  device_id: string;
+  device_name: string | null;
+  device_type: 'web' | 'android' | 'ios';
+  browser_instance: string;
+  created_at: string;
+  updated_at: string;
+  expires_at: string;
+  last_refresh: string;
+  refresh_count: number;
+  enabled: boolean;
+}
+
+export interface UserPreferences {
+  id: string;
+  user_id: string;
+  notification_enabled: boolean;
+  theme: 'light' | 'dark' | 'system';
+  timezone: string;
+  ai_suggestions_enabled: boolean;
+  has_rated_app: boolean;
+  last_rating_prompt: string | null;
+  install_time: string;
+  onboarding_completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContentReport {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  content: string;
+  content_type: 'suggestion' | 'conversation-prompt';
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -204,6 +281,21 @@ export interface Database {
         Row: Feedback;
         Insert: Omit<Feedback, 'id' | 'created_at'>;
         Update: Partial<Omit<Feedback, 'id' | 'created_at'>>;
+      };
+      subscriptions: {
+        Row: Subscription;
+        Insert: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Subscription, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      notification_history: {
+        Row: NotificationHistory;
+        Insert: Omit<NotificationHistory, 'id' | 'created_at'>;
+        Update: Partial<Omit<NotificationHistory, 'id' | 'created_at'>>;
+      };
+      contact_analytics: {
+        Row: ContactAnalytics;
+        Insert: Omit<ContactAnalytics, 'id' | 'created_at'>;
+        Update: Partial<Omit<ContactAnalytics, 'id' | 'created_at'>>;
       };
     };
   };
