@@ -119,8 +119,8 @@ export const CancellationModal = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl">
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
                   <div>
                     <Dialog.Title className="text-lg font-medium text-gray-900">
                       Cancel Subscription
@@ -139,7 +139,7 @@ export const CancellationModal = ({
                   </button>
                 </div>
 
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                   <div className="space-y-6">
                     {/* Info box */}
                     <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-100/75 text-sm text-gray-600">
@@ -205,7 +205,7 @@ export const CancellationModal = ({
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
+                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
                   <button
                     onClick={onClose}
                     disabled={isSubmitting}
