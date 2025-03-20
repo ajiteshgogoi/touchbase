@@ -306,8 +306,17 @@ create table public.feedback (
     user_id uuid references auth.users not null,
     email text not null,
     feedback text not null,
+    type text check (type in ('general', 'cancellation')) default 'general',
+    reason text,
     created_at timestamp with time zone default now()
 );
+
+-- Add index for type column
+create index if not exists feedback_type_idx on public.feedback(type);
+
+-- Add helpful comments
+comment on column public.feedback.type is 'Type of feedback (general or cancellation)';
+comment on column public.feedback.reason is 'Specific reason category for cancellation feedback';
 
 -- Create indexes
 create index contacts_user_id_idx on public.contacts(user_id);
