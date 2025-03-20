@@ -200,6 +200,11 @@ export interface Database {
         Insert: Omit<PromptGenerationLog, 'id' | 'created_at'>;
         Update: Partial<Omit<PromptGenerationLog, 'id' | 'created_at'>>;
       };
+      feedback: {
+        Row: Feedback;
+        Insert: Omit<Feedback, 'id' | 'created_at'>;
+        Update: Partial<Omit<Feedback, 'id' | 'created_at'>>;
+      };
     };
   };
 }
