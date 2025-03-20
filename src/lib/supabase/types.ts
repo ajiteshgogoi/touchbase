@@ -1,210 +1,83 @@
+/** Custom type for timestamp fields */
+export type Timestamp = string;
+
+/** Notification status enum type as defined in schema */
+export type NotificationStatus = 'success' | 'error' | 'invalid_token';
+
+/** Basic contact information */
 export interface BasicContact {
   id: string;
   name: string;
-  last_contacted: string | null;
-  next_contact_due: string | null;
+  last_contacted: Timestamp | null;
+  next_contact_due: Timestamp | null;
   contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
   missed_interactions: number;
   preferred_contact_method: 'call' | 'message' | 'social' | null;
 }
 
+/** Full contact information */
 export interface Contact extends BasicContact {
-  id: string;
   user_id: string;
-  name: string;
-  phone?: string;
-  social_media_platform?: 'linkedin' | 'instagram' | 'twitter' | null;
-  social_media_handle?: string;
-  last_contacted: string | null;
-  next_contact_due: string | null;
-  preferred_contact_method: 'call' | 'message' | 'social' | null;
+  phone: string | null;
+  social_media_platform: 'linkedin' | 'instagram' | 'twitter' | null;
+  social_media_handle: string | null;
   notes: string | null;
-  contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
   ai_last_suggestion: string | null;
-  ai_last_suggestion_date: string | null;
-  missed_interactions: number;
-  created_at: string;
-  updated_at: string;
+  ai_last_suggestion_date: Timestamp | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
+/** Important events for tracking birthdays, anniversaries, and custom events */
 export interface ImportantEvent {
   id: string;
   contact_id: string;
   user_id: string;
   type: 'birthday' | 'anniversary' | 'custom';
   name: string | null; // Required for custom events, optional for birthday/anniversary
-  date: string;
-  next_occurrence?: string; // Added for optimized event queries
-  created_at: string;
-  updated_at: string;
+  date: Timestamp;
+  next_occurrence?: Timestamp; // Added for optimized event queries
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
+/** Interaction records */
 export interface Interaction {
   id: string;
   user_id: string;
   contact_id: string;
   type: 'call' | 'message' | 'social' | 'meeting';
-  date: string;
+  date: Timestamp;
   notes: string | null;
   sentiment: 'positive' | 'neutral' | 'negative' | null;
-  created_at: string;
+  created_at: Timestamp;
 }
 
+/** Reminder information */
 export interface Reminder {
   id: string;
   contact_id: string;
   user_id: string;
   type: 'call' | 'message' | 'social';
-  name?: string;  // Optional name for quick reminders
-  due_date: string;
+  name: string | null;  // Optional name for quick reminders
+  due_date: Timestamp;
   completed: boolean;
-  created_at: string;
+  created_at: Timestamp;
   contact: {
     name: string;
   };
 }
 
+/** Quick reminder input type */
 export interface QuickReminderInput {
   contact_id: string;
   name: string;
-  due_date: string;
+  due_date: Timestamp;
   type: 'call' | 'message' | 'social';
   is_important?: boolean;
 }
 
-export interface UserPreferences {
-  id: string;
-  user_id: string;
-  notification_enabled: boolean;
-  theme: 'light' | 'dark' | 'system';
-  timezone: string;
-  ai_suggestions_enabled: boolean;
-  onboarding_completed: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PushSubscription {
-  id: string;
-  user_id: string;
-  fcm_token: string;
-  device_id: string;
-  device_name: string | null;
-  device_type: 'web' | 'android' | 'ios';
-  created_at: string;
-  updated_at: string;
-  expires_at: string;
-  last_refresh: string;
-  refresh_count: number;
-  enabled: boolean;
-}
-
-// RPC Function Response Types
-export interface DeviceSubscriptionResponse {
-  fcm_token: string | null;
-  enabled: boolean;
-}
-
-export interface DeviceTokenResponse {
-  device_id: string;
-  device_type: 'web' | 'android' | 'ios';
-  enabled: boolean;
-}
-
-export interface ContactProcessingLog {
-  id: string;
-  contact_id: string;
-  processing_date: string;
-  batch_id: string | null;
-  status: 'pending' | 'success' | 'error' | 'max_retries_exceeded';
-  error_message: string | null;
-  retry_count: number;
-  last_error: string | null;
-  created_at: string;
-}
-
-export interface ContentReport {
-  id: string;
-  user_id: string;
-  contact_id: string;
-  content: string;
-  created_at: string;
-}
-
-export interface PromptGenerationLog {
-  id: string;
-  user_id: string;
-  prompt_text: string;
-  theme: string;
-  subtheme: string;
-  perspective: string;
-  emotional_modifier: string;
-  created_at: string;
-}
-
-export interface Feedback {
-  id: string;
-  user_id: string;
-  email: string;
-  feedback: string;
-  type: 'general' | 'cancellation';
-  reason?: string;
-  created_at: string;
-}
-
-export type NotificationStatus = 'success' | 'error' | 'invalid_token';
-
-export interface Subscription {
-  id: string;
-  user_id: string;
-  plan_id: 'free' | 'premium';
-  status: 'active' | 'canceled' | 'expired';
-  paypal_subscription_id: string | null;
-  google_play_token: string | null;
-  valid_until: string;
-  trial_start_date: string | null;
-  trial_end_date: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface NotificationHistory {
-  id: string;
-  user_id: string;
-  notification_type: 'morning' | 'afternoon' | 'evening';
-  sent_at: string;
-  status: NotificationStatus;
-  error_message: string | null;
-  batch_id: string | null;
-  retry_count: number;
-  created_at: string;
-}
-
-export interface ContactAnalytics {
-  id: string;
-  user_id: string;
-  data: Record<string, any>;
-  generated_at: string;
-  created_at: string;
-}
-
-// Update existing interfaces
-export interface PushSubscription {
-  id: string;
-  user_id: string;
-  fcm_token: string;
-  device_id: string;
-  device_name: string | null;
-  device_type: 'web' | 'android' | 'ios';
-  browser_instance: string;
-  created_at: string;
-  updated_at: string;
-  expires_at: string;
-  last_refresh: string;
-  refresh_count: number;
-  enabled: boolean;
-}
-
+/** User preferences */
 export interface UserPreferences {
   id: string;
   user_id: string;
@@ -213,22 +86,137 @@ export interface UserPreferences {
   timezone: string;
   ai_suggestions_enabled: boolean;
   has_rated_app: boolean;
-  last_rating_prompt: string | null;
-  install_time: string;
+  last_rating_prompt: Timestamp | null;
+  install_time: Timestamp;
   onboarding_completed: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
+/** Push subscription information */
+export interface PushSubscription {
+  id: string;
+  user_id: string;
+  fcm_token: string;
+  device_id: string;
+  device_name: string | null;
+  device_type: 'web' | 'android' | 'ios';
+  browser_instance: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  expires_at: Timestamp;
+  last_refresh: Timestamp;
+  refresh_count: number;
+  enabled: boolean;
+}
+
+/** Device subscription response */
+export interface DeviceSubscriptionResponse {
+  fcm_token: string | null;
+  enabled: boolean;
+}
+
+/** Device token response */
+export interface DeviceTokenResponse {
+  device_id: string;
+  device_type: 'web' | 'android' | 'ios';
+  enabled: boolean;
+}
+
+/** Contact processing log */
+export interface ContactProcessingLog {
+  id: string;
+  contact_id: string;
+  processing_date: Timestamp;
+  batch_id: string | null;
+  status: 'pending' | 'success' | 'error' | 'max_retries_exceeded';
+  error_message: string | null;
+  retry_count: number;
+  last_error: string | null;
+  created_at: Timestamp;
+}
+
+/** Content report information */
 export interface ContentReport {
   id: string;
   user_id: string;
   contact_id: string;
   content: string;
   content_type: 'suggestion' | 'conversation-prompt';
-  created_at: string;
+  created_at: Timestamp;
 }
 
+/** Prompt generation log */
+export interface PromptGenerationLog {
+  id: string;
+  user_id: string;
+  prompt_text: string;
+  theme: string;
+  subtheme: string;
+  perspective: string;
+  emotional_modifier: string;
+  created_at: Timestamp;
+}
+
+/** User feedback */
+export interface Feedback {
+  id: string;
+  user_id: string;
+  email: string;
+  feedback: string;
+  type: 'general' | 'cancellation';
+  reason: string | null;
+  created_at: Timestamp;
+}
+
+/** Subscription information */
+export interface Subscription {
+  id: string;
+  user_id: string;
+  plan_id: 'free' | 'premium';
+  status: 'active' | 'canceled' | 'expired';
+  paypal_subscription_id: string | null;
+  google_play_token: string | null;
+  valid_until: Timestamp;
+  trial_start_date: Timestamp | null;
+  trial_end_date: Timestamp | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+/** Notification history */
+export interface NotificationHistory {
+  id: string;
+  user_id: string;
+  notification_type: 'morning' | 'afternoon' | 'evening';
+  sent_at: Timestamp;
+  status: NotificationStatus;
+  error_message: string | null;
+  batch_id: string | null;
+  retry_count: number;
+  created_at: Timestamp;
+}
+
+/** Contact analytics data */
+export interface ContactAnalytics {
+  id: string;
+  user_id: string;
+  data: {
+    contactCount: number;
+    interactionStats: {
+      total: number;
+      byType: Record<string, number>;
+      byMonth: Record<string, number>;
+    };
+    contactFrequencyDistribution: Record<string, number>;
+    missedInteractions: number;
+    upcomingEvents: number;
+  };
+  generated_at: Timestamp;
+  created_at: Timestamp;
+}
+
+/** Database schema type definitions */
 export interface Database {
   public: {
     Tables: {
