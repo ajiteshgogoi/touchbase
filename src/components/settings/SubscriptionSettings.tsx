@@ -5,6 +5,7 @@ import { useStore } from '../../stores/useStore';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { formatDateWithTimezone } from '../../utils/date';
 import { PaymentMethodModal } from '../shared/PaymentMethodModal';
+import { CancellationModal } from '../shared/CancellationModal';
 import { paymentService, SUBSCRIPTION_PLANS } from '../../services/payment';
 import { paymentEvents, PAYMENT_EVENTS } from '../../services/payment/payment-events';
 
@@ -61,46 +62,48 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
       setIsModalOpen(false);
     }
   };
+const [showCancellationModal, setShowCancellationModal] = useState(false);
 
-  const handleCancelSubscription = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription?')) return;
-    if (!confirm('You will lose access to premium features at the end of your billing period. Are you absolutely sure?')) return;
+const handleCancelSubscription = () => {
+  setShowCancellationModal(true);
+};
+
+const processCancellation = async () => {
+  const currentSubscription = queryClient.getQueryData<Subscription>(['subscription', user?.id]);
+  
+  try {
+    console.log('[Cancel] Subscription details:', {
+      hasGooglePlayToken: Boolean(subscription?.google_play_token),
+      hasPayPalId: Boolean(subscription?.paypal_subscription_id),
+      status: subscription?.status
+    });
     
-    const currentSubscription = queryClient.getQueryData<Subscription>(['subscription', user?.id]);
+    const optimisticSubscription: Subscription = {
+      ...(currentSubscription as Subscription),
+      status: 'canceled'
+    };
     
-    try {
-      console.log('[Cancel] Subscription details:', {
-        hasGooglePlayToken: Boolean(subscription?.google_play_token),
-        hasPayPalId: Boolean(subscription?.paypal_subscription_id),
-        status: subscription?.status
-      });
-      
-      const optimisticSubscription: Subscription = {
-        ...(currentSubscription as Subscription),
-        status: 'canceled'
-      };
-      
-      queryClient.setQueryData(['subscription', user?.id], optimisticSubscription);
-      useStore.getState().setIsPremium(false);
+    queryClient.setQueryData(['subscription', user?.id], optimisticSubscription);
+    useStore.getState().setIsPremium(false);
 
-      await paymentService.cancelSubscription('paypal');
-      
-      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
-    } catch (error: any) {
-      console.error('[Cancel] Error details:', {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
-      });
+    await paymentService.cancelSubscription('paypal');
+    
+    await queryClient.invalidateQueries({ queryKey: ['subscription'] });
+  } catch (error: any) {
+    console.error('[Cancel] Error details:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
 
-      queryClient.setQueryData(['subscription', user?.id], currentSubscription);
-      useStore.getState().setIsPremium(isPremium);
+    queryClient.setQueryData(['subscription', user?.id], currentSubscription);
+    useStore.getState().setIsPremium(isPremium);
 
-      toast.error(error.message || 'Failed to cancel subscription');
-    }
-  };
+    throw error;
+  }
+};
 
-  const handleResumeSubscription = () => {
+const handleResumeSubscription = () => {
     setIsModalOpen(true);
   };
 
@@ -202,11 +205,19 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
         </div>
       </div>
 
-      <PaymentMethodModal 
+      <PaymentMethodModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSelect={(method) => handleSubscribe(method as PaymentMethod)}
         isProcessing={isSubscribing}
+      />
+
+      <CancellationModal
+        isOpen={showCancellationModal}
+        onClose={() => setShowCancellationModal(false)}
+        onConfirmCancel={processCancellation}
+        validUntil={subscription?.valid_until || ''}
+        timezone={timezone}
       />
     </>
   );

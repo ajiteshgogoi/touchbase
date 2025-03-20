@@ -26,7 +26,8 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
         .insert({
           user_id: user.id,
           email: user.email,
-          feedback: feedback.trim()
+          feedback: feedback.trim(),
+          type: 'general'
         });
 
       if (error) throw error;
