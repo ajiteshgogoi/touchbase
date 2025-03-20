@@ -185,12 +185,16 @@ export const CancellationModal = ({
                     {/* Additional feedback */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Additional feedback (optional)
+                        {selectedReason === 'other' ? 'Please specify your reason' : 'Additional feedback (optional)'}
                       </label>
                       <textarea
                         value={additionalFeedback}
                         onChange={(e) => setAdditionalFeedback(e.target.value.slice(0, maxLength))}
-                        placeholder="Help us understand how we can improve..."
+                        placeholder={
+                          selectedReason === 'other'
+                            ? "Please tell us why you're cancelling..."
+                            : "Help us understand how we can improve..."
+                        }
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
                         rows={4}
                       />
@@ -213,7 +217,7 @@ export const CancellationModal = ({
                   </button>
                   <button
                     onClick={handleSubmit}
-                    disabled={!selectedReason || isSubmitting}
+                    disabled={!selectedReason || isSubmitting || (selectedReason === 'other' && !additionalFeedback.trim())}
                     className="px-4 py-2.5 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 disabled:opacity-50 transition-all duration-200 shadow-sm"
                   >
                     {isSubmitting ? 'Processing...' : 'Confirm Cancellation'}
