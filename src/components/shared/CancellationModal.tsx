@@ -3,7 +3,6 @@ import { Dialog, Transition, RadioGroup } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { supabase } from '../../lib/supabase/client';
 import { useStore } from '../../stores/useStore';
-import toast from 'react-hot-toast';
 
 const CANCELLATION_REASONS = [
   { id: 'too_expensive', label: 'Too expensive' },
@@ -72,11 +71,10 @@ export const CancellationModal = ({
       // Process the actual cancellation
       await onConfirmCancel();
       
-      toast.success('Your subscription has been cancelled');
       onClose();
     } catch (error) {
       console.error('Failed to process cancellation:', error);
-      toast.error('Failed to cancel subscription. Please try again.');
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
