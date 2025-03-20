@@ -1,6 +1,13 @@
 /** Custom type for timestamp fields */
 export type Timestamp = string;
 
+/**
+ * Note: Database UUIDs are represented as strings in TypeScript
+ * This is because UUIDs are converted to strings when transported over JSON
+ * and are typically handled as strings in frontend code.
+ */
+export type UUID = string;
+
 /** Notification status enum type as defined in schema */
 export type NotificationStatus = 'success' | 'error' | 'invalid_token';
 
@@ -63,6 +70,10 @@ export interface Reminder {
   due_date: Timestamp;
   completed: boolean;
   created_at: Timestamp;
+}
+
+/** Reminder with contact information */
+export interface ReminderWithContact extends Reminder {
   contact: {
     name: string;
   };
