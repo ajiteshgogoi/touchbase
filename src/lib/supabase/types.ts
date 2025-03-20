@@ -142,6 +142,16 @@ export interface PromptGenerationLog {
   created_at: string;
 }
 
+export interface Feedback {
+  id: string;
+  user_id: string;
+  email: string;
+  feedback: string;
+  type: 'general' | 'cancellation';
+  reason?: string;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
