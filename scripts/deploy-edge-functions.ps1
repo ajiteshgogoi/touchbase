@@ -1,10 +1,23 @@
 # Supabase Edge Functions Deployment Script
 # Usage: .\scripts\deploy-edge-functions.ps1
 
+# Load environment variables from .env file
+if (Test-Path ".env") {
+    Get-Content ".env" | ForEach-Object {
+        $line = $_.Trim()
+        if ($line -and !$line.StartsWith("#")) {
+            $key, $value = $line.Split('=', 2)
+            if ($key -and $value) {
+                [Environment]::SetEnvironmentVariable($key.Trim(), $value.Trim(), "Process")
+            }
+        }
+    }
+}
+
 $ProjectId = $env:SUPABASE_PROJECT_ID
 if (-not $ProjectId) {
-    Write-Host "Error: SUPABASE_PROJECT_ID environment variable is not set" -ForegroundColor Red
-    Write-Host "Please set the environment variable with your Supabase project ID" -ForegroundColor Red
+    Write-Host "Error: SUPABASE_PROJECT_ID environment variable is not set in .env file" -ForegroundColor Red
+    Write-Host "Please set SUPABASE_PROJECT_ID=your-project-id in .env" -ForegroundColor Red
     exit 1
 }
 
