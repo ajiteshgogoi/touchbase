@@ -77,8 +77,8 @@
     "social",
     "productivity"
   ],
-  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
-  "prefer_related_applications": false,
+  "iarc_rating_id": "92303f3c-5164-45ce-b9c9-90230b75bd9e",
+  "prefer_related_applications": true,
   "related_applications": [
     {
       "platform": "play",
