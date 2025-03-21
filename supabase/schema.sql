@@ -449,7 +449,7 @@ create policy "Read user preferences"
     to public
     using (
         -- Service role has full read access, users can only read their own
-        auth.role() = 'service_role' OR user_id = auth.uid()
+        (select auth.role()) = 'service_role' OR user_id = (select auth.uid())
     );
 
 create policy "Users can insert their own preferences"
@@ -482,9 +482,9 @@ create policy "Manage push subscriptions"
     for all
     to public
     using (
-        auth.role() = 'service_role' OR
-        auth.uid() = '2f4815b5-d303-4d91-80d9-5ec8576a3b19'::uuid OR
-        auth.uid() = user_id
+        (select auth.role()) = 'service_role' OR
+        (select auth.uid()) = '2f4815b5-d303-4d91-80d9-5ec8576a3b19'::uuid OR
+        (select auth.uid()) = user_id
     );
 
 -- Note: Using (select auth.<function>()) pattern to prevent re-evaluation for each row
