@@ -245,6 +245,7 @@ create table public.notification_history (
 
 -- Add indexes for notification tracking
 create index if not exists idx_notification_batch on public.notification_history(batch_id);
+create index if not exists idx_notification_batch_id_cover on public.notification_history(batch_id) INCLUDE (id);
 create index if not exists idx_notification_status on public.notification_history(status);
 
 -- Add column descriptions
