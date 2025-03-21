@@ -1,9 +1,14 @@
 # Supabase Edge Functions Deployment Script
 # Usage: .\scripts\deploy-edge-functions.ps1
 
-$ProjectId = "ztsbrysfvmmlxtzoyvle"
+$ProjectId = $env:SUPABASE_PROJECT_ID
+if (-not $ProjectId) {
+    Write-Host "Error: SUPABASE_PROJECT_ID environment variable is not set" -ForegroundColor Red
+    Write-Host "Please set the environment variable with your Supabase project ID" -ForegroundColor Red
+    exit 1
+}
 
-Write-Host "Deploying Edge Functions..." -ForegroundColor Green
+Write-Host "Deploying Edge Functions to project $ProjectId..." -ForegroundColor Green
 
 # List of Edge Functions to deploy
 $functions = @(
