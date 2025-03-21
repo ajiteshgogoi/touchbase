@@ -322,12 +322,14 @@ comment on column public.feedback.reason is 'Specific reason category for cancel
 create index contacts_user_id_idx on public.contacts(user_id);
 create index contacts_last_contacted_idx on public.contacts(last_contacted);
 create index contacts_next_contact_due_idx on public.contacts(next_contact_due);
+create index contacts_created_at_name_idx on public.contacts(created_at DESC, name ASC);
 create index interactions_contact_id_idx on public.interactions(contact_id);
 create index interactions_user_id_idx on public.interactions(user_id);
 create index interactions_date_idx on public.interactions(date);
 create index reminders_contact_id_idx on public.reminders(contact_id);
 create index reminders_user_id_idx on public.reminders(user_id);
 create index reminders_due_date_idx on public.reminders(due_date);
+create index reminders_due_date_contact_id_idx on public.reminders(due_date, contact_id);
 create index contact_processing_logs_date_idx on public.contact_processing_logs(processing_date);
 create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
 create index contact_processing_logs_batch_id_idx on public.contact_processing_logs(batch_id);
