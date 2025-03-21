@@ -1,22 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const workerUrl = import.meta.env.VITE_WORKER_URL;
+const clientSecret = import.meta.env.VITE_CLIENT_SECRET;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!workerUrl || !clientSecret) {
+  throw new Error('Missing worker configuration');
 }
 
 export const supabase = createClient<Database>(
-  supabaseUrl, 
-  supabaseAnonKey,
+  workerUrl,
+  'dummy-key', // The real anon key is in the worker
   {
+    global: {
+      headers: {
+        'X-Client-Secret': clientSecret
+      }
+    },
     auth: {
-      persistSession: true, // Keep the session alive between page refreshes
-      autoRefreshToken: true, // Automatically refresh the token before it expires
-      detectSessionInUrl: true, // Required for OAuth sign-in
-      storage: localStorage // Use localStorage for session persistence
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: localStorage
     }
   }
 );
