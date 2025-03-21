@@ -34,6 +34,8 @@ export default {
         return new Response('ok', { headers });
       }
 
+      const url = new URL(request.url);
+
       // Public function endpoints
       const publicEndpoints = ['/functions/v1/get-user-stats'];
 
@@ -51,8 +53,6 @@ export default {
           });
         }
       }
-
-      const url = new URL(request.url);
 
       // Allow auth/v1 and rest/functions routes
       if (!url.pathname.match(/^\/(auth\/v1|rest\/v1|functions\/v1)\//)) {
