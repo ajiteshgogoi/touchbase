@@ -7,6 +7,7 @@ import { contactsService } from '../services/contacts';
 import { ClockIcon, TrashIcon, PencilSquareIcon, ChevronUpDownIcon, ArrowLeftIcon } from '@heroicons/react/24/outline/esm/index.js';
 import dayjs from 'dayjs';
 import type { Interaction } from '../lib/supabase/types';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 
 // Lazy load QuickInteraction //
 const QuickInteraction = lazy(() => import('../components/contacts/QuickInteraction'));
@@ -25,6 +26,7 @@ export const InteractionHistory = () => {
     interaction: Interaction;
     isOpen: boolean;
   } | null>(null);
+  const [deletingInteractionId, setDeletingInteractionId] = useState<string | null>(null);
 
   const { data: contact, isLoading: isLoadingContact } = useQuery({
     queryKey: ['contact', contactId],
@@ -44,6 +46,7 @@ export const InteractionHistory = () => {
     }
 
     try {
+      setDeletingInteractionId(interaction.id);
       // Update the contact's last_contacted if we're deleting their most recent interaction
       const allInteractions = interactions || [];
       const isLatestInteraction = !allInteractions.find(
@@ -75,6 +78,8 @@ export const InteractionHistory = () => {
       ]);
     } catch (error) {
       console.error('Error deleting interaction:', error);
+    } finally {
+      setDeletingInteractionId(null);
     }
   };
 
@@ -262,17 +267,29 @@ export const InteractionHistory = () => {
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => setEditingInteraction({ interaction, isOpen: true })}
-                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
-                          title="Edit interaction"
+                          className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
+                            deletingInteractionId === interaction.id ? 'invisible' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
+                          }`}
+                          title={deletingInteractionId === interaction.id ? "Cannot edit while deleting" : "Edit interaction"}
                         >
                           <PencilSquareIcon className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteInteraction(interaction)}
-                          className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete interaction"
+                          className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
+                            deletingInteractionId === interaction.id ? 'text-gray-400 cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                          }`}
+                          title={deletingInteractionId === interaction.id ? "Deleting interaction..." : "Delete interaction"}
                         >
-                          <TrashIcon className="h-4 w-4" />
+                          {deletingInteractionId === interaction.id ? (
+                            <div className="h-4 w-4 flex items-center justify-center">
+                              <div className="transform scale-50 -m-2">
+                                <LoadingSpinner />
+                              </div>
+                            </div>
+                          ) : (
+                            <TrashIcon className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </div>
