@@ -441,9 +441,16 @@ create policy "Users can delete their own reminders"
     on public.reminders for delete
     using (user_id = (select auth.uid()));
 
-create policy "Users can view their own preferences"
-    on public.user_preferences for select
-    using (user_id = (select auth.uid()));
+-- User preferences policies
+-- Note: Consolidating multiple permissive SELECT policies into a single policy for better performance
+create policy "Read user preferences"
+    on public.user_preferences
+    for select
+    to public
+    using (
+        -- Service role has full read access, users can only read their own
+        auth.role() = 'service_role' OR user_id = auth.uid()
+    );
 
 create policy "Users can insert their own preferences"
     on public.user_preferences for insert
@@ -529,10 +536,6 @@ create policy "Users can insert their own feedback"
     on public.feedback for insert
     with check (user_id = (select auth.uid()));
 
--- Allow service role to read necessary tables for push notifications
-create policy "Service role can read user preferences"
-    on public.user_preferences for select
-    using (true);
 
 create policy "Service role can read push subscriptions"
     on public.push_subscriptions for select
