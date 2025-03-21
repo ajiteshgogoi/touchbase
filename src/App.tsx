@@ -231,7 +231,7 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading || isInitialLoad) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[600px]">
         <LoadingSpinner />
       </div>
     );
