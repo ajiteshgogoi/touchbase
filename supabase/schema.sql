@@ -476,14 +476,15 @@ create policy "Users can update their own subscription"
 
 -- Push subscription policies
 -- Note: Consolidating multiple permissive policies into a single policy for better performance
--- This handles both admin access (2f4815b5-d303-4d91-80d9-5ec8576a3b19) and user-specific access
+-- This handles admin access, service role access, and user-specific access
 create policy "Manage push subscriptions"
     on public.push_subscriptions
     for all
     to public
     using (
-        (auth.uid() = '2f4815b5-d303-4d91-80d9-5ec8576a3b19'::uuid) OR
-        (auth.uid() = user_id)
+        auth.role() = 'service_role' OR
+        auth.uid() = '2f4815b5-d303-4d91-80d9-5ec8576a3b19'::uuid OR
+        auth.uid() = user_id
     );
 
 -- Note: Using (select auth.<function>()) pattern to prevent re-evaluation for each row
@@ -537,9 +538,6 @@ create policy "Users can insert their own feedback"
     with check (user_id = (select auth.uid()));
 
 
-create policy "Service role can read push subscriptions"
-    on public.push_subscriptions for select
-    using (true);
 
 create policy "Service role can insert notification history"
     on public.notification_history for insert
