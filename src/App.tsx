@@ -503,7 +503,7 @@ function App() {
             />
             <link 
               rel="preconnect" 
-              href="https://ztsbrysfvmmlxtzoyvle.supabase.co"
+              href="https://api.touchbase.site"
               crossOrigin="anonymous"
             />
           </Helmet>
