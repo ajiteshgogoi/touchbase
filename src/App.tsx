@@ -226,7 +226,26 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   // Handle timeout case
   if (hasTimedOut) {
     localStorage.clear(); // Clear any stale auth state
-    return <Navigate to="/login" state={{ from: location }} />;
+    
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[600px] gap-4">
+        <div className="text-gray-700 text-lg">
+          Authentication is taking longer than expected
+        </div>
+        <div className="text-gray-600">
+          Redirecting to login page...
+        </div>
+        <div className="mt-2">
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600"
+          >
+            Retry Now
+          </button>
+        </div>
+        <Navigate to="/login" state={{ from: location }} />
+      </div>
+    );
   }
 
   if (isLoading || isInitialLoad) {
