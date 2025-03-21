@@ -53,6 +53,8 @@ env:
   RETRY_BATCH_DELAY: 1
   # Flag to identify retry runs (every 5 minutes)
   IS_RETRY_RUN: ${{ github.event.schedule == '*/5 * * * *' }}
+  # Base URL for Supabase API calls
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
 
 jobs:
   verify-security:
@@ -113,7 +115,7 @@ jobs:
             
             # Add retry parameter for retry runs
             response=$(curl --request POST \
-              --url 'https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/users' \
+              --url "$SUPABASE_URL/functions/v1/users" \
               --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
               --header 'Content-Type: application/json' \
               --data "{\"page\": $page, \"batchId\": \"$BATCH_ID\", \"isRetry\": $IS_RETRY_RUN}" \
@@ -162,7 +164,7 @@ jobs:
             (
               echo "Processing user $user_id for window $window_type"
               response=$(curl --request POST \
-                --url "https://ztsbrysfvmmlxtzoyvle.supabase.co/functions/v1/push-notifications" \
+                --url "$SUPABASE_URL/functions/v1/push-notifications" \
                 --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
                 --header "Content-Type: application/json" \
                 --data "{\"userId\": \"$user_id\", \"windowType\": \"$window_type\", \"batchId\": \"$BATCH_ID\"}" \
