@@ -467,22 +467,17 @@ create policy "Users can update their own subscription"
     using (user_id = (select auth.uid()))
     with check (user_id = (select auth.uid()));
 
-create policy "Users can view their own push subscriptions"
-    on public.push_subscriptions for select
-    using (user_id = (select auth.uid()));
-
-create policy "Users can insert their own push subscriptions"
-    on public.push_subscriptions for insert
-    with check (user_id = (select auth.uid()));
-
-create policy "Users can update their own push subscriptions"
-    on public.push_subscriptions for update
-    using (user_id = (select auth.uid()))
-    with check (user_id = (select auth.uid()));
-
-create policy "Users can delete their own push subscriptions"
-    on public.push_subscriptions for delete
-    using (user_id = (select auth.uid()));
+-- Push subscription policies
+-- Note: Consolidating multiple permissive policies into a single policy for better performance
+-- This handles both admin access (2f4815b5-d303-4d91-80d9-5ec8576a3b19) and user-specific access
+create policy "Manage push subscriptions"
+    on public.push_subscriptions
+    for all
+    to public
+    using (
+        (auth.uid() = '2f4815b5-d303-4d91-80d9-5ec8576a3b19'::uuid) OR
+        (auth.uid() = user_id)
+    );
 
 -- Note: Using (select auth.<function>()) pattern to prevent re-evaluation for each row
 -- This improves query performance at scale by avoiding unnecessary function calls
