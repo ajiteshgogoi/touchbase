@@ -406,15 +406,17 @@ function App() {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
-        
-        // Set user immediately
-        setUser(session?.user ?? null);
-        
-        // Check premium status in background if user exists
+
+        // Check premium status first if user exists
         if (session?.user) {
-          checkPremiumStatus();
-          checkNotificationsAndTimezone(session.user.id);
+          await checkPremiumStatus();
+          await checkNotificationsAndTimezone(session.user.id);
+        } else {
+          setIsPremium(false);
         }
+        
+        // Set user after premium status is checked
+        setUser(session?.user ?? null);
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mounted) {

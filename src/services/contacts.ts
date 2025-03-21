@@ -2,8 +2,8 @@ import { supabase } from '../lib/supabase/client';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Contact, Interaction, Reminder, ImportantEvent, QuickReminderInput } from '../lib/supabase/types';
-import { paymentService } from './payment';
 import { getQueryClient } from '../utils/queryClient';
+import { useStore } from '../stores/useStore';
 import { calculateNextContactDate, ContactFrequency } from '../utils/date';
 import { contactCacheService } from './contact-cache';
 
@@ -62,7 +62,8 @@ export const contactsService = {
   },
 
   async getContacts(): Promise<Contact[]> {
-    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+    // Use global store for premium status
+    const { isPremium, isOnTrial } = useStore.getState();
 
     let query = supabase
       .from('contacts')
@@ -179,7 +180,7 @@ export const contactsService = {
   },
 
   async checkContactLimit(): Promise<void> {
-    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+    const { isPremium, isOnTrial } = useStore.getState();
     if (isPremium || isOnTrial) return;
 
     const contacts = await this.getContacts();
@@ -267,7 +268,7 @@ export const contactsService = {
     }
 
     // Otherwise use the optimized function for upcoming events
-    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+    const { isPremium, isOnTrial } = useStore.getState();
 
     // For free users, get visible contact IDs
     let visibleContactIds: string[] | null = null;
@@ -299,7 +300,7 @@ export const contactsService = {
    * @returns Array of upcoming events sorted by next occurrence
    */
   async getUpcomingEvents(months: number = 12, limit?: number): Promise<ImportantEvent[]> {
-    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+    const { isPremium, isOnTrial } = useStore.getState();
 
     // For free users, get visible contact IDs
     let visibleContactIds: string[] | null = null;
@@ -696,7 +697,7 @@ export const contactsService = {
   },
 
   async getReminders(contactId?: string): Promise<Reminder[]> {
-    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+    const { isPremium, isOnTrial } = useStore.getState();
     
     // For free users, get the IDs of their 15 most recent contacts
     // This ensures reminders align with the visible contacts in their list

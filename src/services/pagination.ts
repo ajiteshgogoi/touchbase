@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase/client';
 import type { BasicContact, Contact } from '../lib/supabase/types';
-import { paymentService } from './payment';
+import { useStore } from '../stores/useStore';
 import { contactCacheService } from './contact-cache';
 
 const PAGE_SIZE = 20;
@@ -77,7 +77,7 @@ export const contactsPaginationService = {
     sort: SortConfig,
     filters: FilterConfig
   ): Promise<{ contacts: BasicContact[]; hasMore: boolean; total: number }> {
-    const { isPremium, isOnTrial } = await paymentService.getSubscriptionStatus();
+    const { isPremium, isOnTrial } = useStore.getState();
     const offset = page * PAGE_SIZE;
 
     // Start building the query
