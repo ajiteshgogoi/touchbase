@@ -374,163 +374,163 @@ alter table public.important_events enable row level security;
 -- Create policies
 create policy "Users can view their own contacts"
     on public.contacts for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own contacts"
     on public.contacts for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own contacts"
     on public.contacts for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can delete their own contacts"
     on public.contacts for delete
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 -- Important events policies
 create policy "Users can view their own important events"
     on public.important_events for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own important events"
     on public.important_events for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own important events"
     on public.important_events for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can delete their own important events"
     on public.important_events for delete
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can view their own interactions"
     on public.interactions for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own interactions"
     on public.interactions for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own interactions"
     on public.interactions for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can delete their own interactions"
     on public.interactions for delete
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can view their own reminders"
     on public.reminders for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own reminders"
     on public.reminders for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own reminders"
     on public.reminders for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can delete their own reminders"
     on public.reminders for delete
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can view their own preferences"
     on public.user_preferences for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own preferences"
     on public.user_preferences for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own preferences"
     on public.user_preferences for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can view their own subscription"
     on public.subscriptions for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own subscription"
     on public.subscriptions for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own subscription"
     on public.subscriptions for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can view their own push subscriptions"
     on public.push_subscriptions for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own push subscriptions"
     on public.push_subscriptions for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own push subscriptions"
     on public.push_subscriptions for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can delete their own push subscriptions"
     on public.push_subscriptions for delete
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can view their own notification history"
     on public.notification_history for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can view their own analytics"
     on public.contact_analytics for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own analytics"
     on public.contact_analytics for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can update their own analytics"
     on public.contact_analytics for update
-    using (auth.uid() = user_id)
-    with check (auth.uid() = user_id);
+    using (user_id = (select auth.uid()))
+    with check (user_id = (select auth.uid()));
 
 create policy "Users can delete their own analytics"
     on public.contact_analytics for delete
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 -- Prompt generation logs policies
 create policy "Users can view their own prompt generation logs"
     on public.prompt_generation_logs for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own prompt generation logs"
     on public.prompt_generation_logs for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 -- Content reports policies
 create policy "Users can view their own content reports"
     on public.content_reports for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert content reports"
     on public.content_reports for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 -- Feedback policies
 create policy "Users can view their own feedback"
     on public.feedback for select
-    using (auth.uid() = user_id);
+    using (user_id = (select auth.uid()));
 
 create policy "Users can insert their own feedback"
     on public.feedback for insert
-    with check (auth.uid() = user_id);
+    with check (user_id = (select auth.uid()));
 
 -- Allow service role to read necessary tables for push notifications
 create policy "Service role can read user preferences"
