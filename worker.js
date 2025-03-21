@@ -2,6 +2,7 @@
 // - SUPABASE_URL: Your Supabase project URL (kept secret)
 // - CLIENT_SECRET: A custom secret for additional auth
 // - SUPABASE_ANON_KEY: Your Supabase anon key (kept secret)
+// - SUPABASE_SERVICE_ROLE_KEY: Your Supabase service role key (kept secret, needed for admin functions)
 
 function addCorsHeaders(headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
@@ -33,16 +34,22 @@ export default {
         return new Response('ok', { headers });
       }
 
-      // Validate client secret
-      const clientSecret = request.headers.get("X-Client-Secret");
-      if (!clientSecret || clientSecret !== env.CLIENT_SECRET) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { 
-          status: 401,
-          headers: {
-            "Content-Type": "application/json",
-            ...Object.fromEntries(addCorsHeaders(new Headers())),
-          }
-        });
+      // Public function endpoints
+      const publicEndpoints = ['/functions/v1/get-user-stats'];
+
+      // Skip client secret validation for public endpoints
+      const isPublicEndpoint = publicEndpoints.some(endpoint => url.pathname === endpoint);
+      if (!isPublicEndpoint) {
+        const clientSecret = request.headers.get("X-Client-Secret");
+        if (!clientSecret || clientSecret !== env.CLIENT_SECRET) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              ...Object.fromEntries(addCorsHeaders(new Headers())),
+            }
+          });
+        }
       }
 
       const url = new URL(request.url);
@@ -69,10 +76,33 @@ export default {
       headers.set("apikey", env.SUPABASE_ANON_KEY);
       headers.delete("X-Client-Secret");
 
-      // Ensure authorization header is present
+      // Handle authorization for different endpoints
       const authorization = headers.get("Authorization");
-      if (!authorization && headers.get("apikey")) {
-        headers.set("Authorization", `Bearer ${headers.get("apikey")}`);
+      
+      // List of service-role endpoints that require elevated access
+      const serviceEndpoints = ['/functions/v1/get-user-stats'];
+      
+      if (url.pathname.startsWith('/functions/v1/')) {
+        if (serviceEndpoints.includes(url.pathname)) {
+          // For service endpoints, use service role key
+          headers.set("Authorization", `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`);
+        } else {
+          // For protected functions, ensure JWT token is present
+          if (!authorization) {
+            return new Response(JSON.stringify({ error: "Unauthorized - No token provided" }), {
+              status: 401,
+              headers: {
+                "Content-Type": "application/json",
+                ...Object.fromEntries(addCorsHeaders(new Headers())),
+              }
+            });
+          }
+        }
+      } else {
+        // For non-function endpoints, use anon key if no auth present
+        if (!authorization) {
+          headers.set("Authorization", `Bearer ${env.SUPABASE_ANON_KEY}`);
+        }
       }
       
       const supabaseRequest = new Request(supabaseUrl, {
@@ -85,9 +115,13 @@ export default {
       const response = await fetch(supabaseRequest);
       const responseHeaders = new Headers(response.headers);
       
-      // Add our headers
+      // Add CORS headers
       addCorsHeaders(responseHeaders);
-      addSecurityHeaders(responseHeaders);
+      
+      // Only add security headers for non-function endpoints
+      if (!url.pathname.startsWith('/functions/v1/')) {
+        addSecurityHeaders(responseHeaders);
+      }
       
       // Add caching headers for rate limiting
       responseHeaders.set("Cache-Control", "public, max-age=10");
