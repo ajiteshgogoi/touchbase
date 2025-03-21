@@ -10,7 +10,7 @@ if (!workerUrl || !clientSecret) {
 
 export const supabase = createClient<Database>(
   workerUrl,
-  'dummy-key', // The real anon key is in the worker
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvbWVyZWYiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY4NDc0MjAxOSwiZXhwIjoxODQyNTA4ODE5fQ.tJQ1kmXjQUL8Ku22GcZFlF0tPAQy9S99M8KGSDJoGFA', // API key for client initialization
   {
     global: {
       headers: {
