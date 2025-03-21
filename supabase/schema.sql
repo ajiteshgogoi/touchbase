@@ -541,7 +541,7 @@ create policy "Users can insert their own feedback"
 
 create policy "Service role can insert notification history"
     on public.notification_history for insert
-    with check (auth.role() = (select 'service_role'::text));
+    with check ((select auth.role()) = 'service_role'::text);
 
 -- Create functions
 create or replace function public.handle_updated_at()
