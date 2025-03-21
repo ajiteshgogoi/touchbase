@@ -202,6 +202,13 @@ $$;
 create index if not exists important_events_next_occurrence_idx
   on important_events (calculate_next_occurrence(date));
 
+-- Add optimized indexes for get_upcoming_events function
+create index if not exists important_events_user_lookup_idx
+  on important_events (user_id, calculate_next_occurrence(date));
+
+create index if not exists important_events_contact_lookup_idx
+  on important_events (user_id, contact_id, calculate_next_occurrence(date));
+
 -- Add device limit trigger
 create or replace function check_device_limit()
 returns trigger as $$
@@ -329,10 +336,16 @@ create index contacts_created_at_name_idx on public.contacts(created_at DESC, na
 create index interactions_contact_id_idx on public.interactions(contact_id);
 create index interactions_user_id_idx on public.interactions(user_id);
 create index interactions_date_idx on public.interactions(date);
+-- Optimized indexes for reminders pagination query
 create index reminders_contact_id_idx on public.reminders(contact_id);
 create index reminders_user_id_idx on public.reminders(user_id);
 create index reminders_due_date_idx on public.reminders(due_date);
 create index reminders_due_date_contact_id_idx on public.reminders(due_date, contact_id);
+create index reminders_due_date_covering_idx on public.reminders(due_date)
+  include (id, contact_id, user_id, type, name, completed, created_at);
+create index contacts_reminder_join_idx on public.contacts(id)
+  include (name)
+  where id in (select contact_id from public.reminders);
 create index contact_processing_logs_date_idx on public.contact_processing_logs(processing_date);
 create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
 create index contact_processing_logs_batch_id_idx on public.contact_processing_logs(batch_id);
