@@ -121,23 +121,78 @@ export default {
         headers.set("Authorization", `Bearer ${env.SUPABASE_ANON_KEY}`);
       }
       
-      // Forward request to Supabase
+      // Forward request to Supabase with optimized handling
       const supabaseRequest = new Request(supabaseUrl, {
         method: request.method,
         headers: headers,
         body: request.body,
       });
 
-      // Get response from Supabase
-      const response = await fetch(supabaseRequest);
+      // Get cache instance
+      const cache = caches.default;
+      let response;
+
+      // Only cache GET requests
+      if (request.method === 'GET') {
+        // Create a cache key from the request URL
+        const cacheKey = new Request(url.toString(), request);
+        
+        // Try to get the cached response
+        response = await cache.match(cacheKey);
+        
+        if (response) {
+          // Add debug header to indicate cache hit
+          response = new Response(response.body, response);
+          response.headers.set('X-Cache', 'HIT');
+          console.log('Cache hit for:', url.pathname);
+        } else {
+          // Cache miss - fetch from Supabase
+          response = await fetch(supabaseRequest);
+          console.log('Cache miss for:', url.pathname);
+          
+          // Only cache successful responses
+          if (response.status === 200) {
+            // Clone the response since we'll use it twice (cache and return)
+            const clonedResponse = response.clone();
+            
+            // Create a new response with cache headers
+            response = new Response(response.body, response);
+            response.headers.set('Cache-Control', 's-maxage=60'); // Cache for 1 minute
+            response.headers.set('X-Cache', 'MISS');
+            
+            // Store in cache asynchronously
+            cache.put(cacheKey, clonedResponse).catch(err => {
+              console.error('Cache put error:', err);
+            });
+          }
+        }
+      } else {
+        // Non-GET requests are not cached
+        response = await fetch(supabaseRequest);
+      }
 
       // Forward response with Supabase headers plus CORS
       const responseHeaders = new Headers(response.headers);
       setCorsHeaders(responseHeaders, request);
 
+      // Return response with streaming and optimization enabled
       return new Response(response.body, {
         status: response.status,
-        headers: responseHeaders
+        headers: responseHeaders,
+        cf: {
+          // Enable streaming for faster Time To First Byte
+          stream: true,
+          // Enable Cloudflare's automatic response minification
+          minify: {
+            html: true,
+            css: true,
+            javascript: true
+          },
+          // Cache everything at the edge
+          caching: {
+            maxAge: 60
+          }
+        }
       });
 
     } catch (err) {
