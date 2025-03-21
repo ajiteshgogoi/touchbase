@@ -239,19 +239,17 @@ export const Help = () => {
       content: (
         <div className="space-y-6">
           <div className="space-y-2">
+            <p className="font-medium">Android:</p>
+            <ol className="list-decimal list-inside space-y-2 ml-4">
+              <li>Get TouchBase from the <a href="https://play.google.com/store/apps/details?id=app.touchbase.site.twa" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600">Google Play Store</a></li>
+            </ol>
+          </div>
+          <div className="space-y-2">
             <p className="font-medium">iOS:</p>
             <ol className="list-decimal list-inside space-y-2 ml-4">
               <li>On Safari, tap the <span className="text-primary-500">Share</span> button</li>
               <li>Select <span className="text-primary-500">Add to Home Screen</span></li>
               <li>Tap <span className="text-primary-500">Add</span> to install</li>
-            </ol>
-          </div>
-          <div className="space-y-2">
-            <p className="font-medium">Android:</p>
-            <ol className="list-decimal list-inside space-y-2 ml-4">
-              <li>Tap the <span className="text-primary-500">Install</span> prompt when it appears, or</li>
-              <li>Open menu (3 dots on top right corner)</li>
-              <li>Select <span className="text-primary-500">Install app</span> or <span className="text-primary-500">Add to home screen</span></li>
             </ol>
           </div>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
