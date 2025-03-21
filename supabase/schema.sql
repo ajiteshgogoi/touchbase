@@ -484,6 +484,8 @@ create policy "Users can delete their own push subscriptions"
     on public.push_subscriptions for delete
     using (user_id = (select auth.uid()));
 
+-- Note: Using (select auth.<function>()) pattern to prevent re-evaluation for each row
+-- This improves query performance at scale by avoiding unnecessary function calls
 create policy "Users can view their own notification history"
     on public.notification_history for select
     using (user_id = (select auth.uid()));
@@ -543,7 +545,7 @@ create policy "Service role can read push subscriptions"
 
 create policy "Service role can insert notification history"
     on public.notification_history for insert
-    with check (true);
+    with check (auth.role() = (select 'service_role'::text));
 
 -- Create functions
 create or replace function public.handle_updated_at()
