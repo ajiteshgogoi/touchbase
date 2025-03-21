@@ -94,12 +94,13 @@ export const InstallModal = ({ isOpen, onClose }: InstallModalProps) => {
                           href="https://play.google.com/store/apps/details?id=app.touchbase.site.twa"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                          className="inline-block hover:opacity-90 active:scale-[0.98] transition-all duration-200"
                         >
-                          <svg className="w-6 h-6 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <path d="M17.9,2.6L9.5,10.2L7.9,8.6L16.3,1L17.9,2.6z M22,12c0-0.9-0.3-1.9-0.9-2.7l-2.6,2.6l2.6,2.6C21.7,13.9,22,13,22,12z M12.4,11.5l7.5,7.5l-1.6,1.6l-7.5-7.5L12.4,11.5z M2,12c0,1,0.3,1.9,0.9,2.7l2.6-2.6L2.9,9.4C2.3,10.1,2,11.1,2,12z M12,22 c3.2,0,6-1.7,7.5-4.3l-2.6-2.6C15.8,17,14,18,12,18c-3.3,0-6-2.7-6-6s2.7-6,6-6c2,0,3.8,1,4.9,2.9l2.6-2.6C17.9,3.7,15.2,2,12,2 C6.5,2,2,6.5,2,12S6.5,22,12,22z"/>
-                          </svg>
-                          Get it on Google Play
+                          <img
+                            src="/google_play_badge.png"
+                            alt="Get it on Google Play"
+                            className="h-[48px] w-auto"
+                          />
                         </a>
                       </div>
                     </div>
