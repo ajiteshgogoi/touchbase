@@ -77,6 +77,33 @@ export const InstallModal = ({ isOpen, onClose }: InstallModalProps) => {
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                   <div className="space-y-6">
+                    {/* Android Instructions */}
+                    <div className="p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 shadow-soft space-y-4">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path d="M17.6,9.48l1.84-3.18c0.16-0.31,0.04-0.69-0.26-0.85c-0.29-0.15-0.65-0.06-0.83,0.22l-1.88,3.24 c-2.86-1.21-6.08-1.21-8.94,0L5.65,5.67c-0.19-0.29-0.58-0.38-0.87-0.2C4.5,5.65,4.41,6.01,4.56,6.3L6.4,9.48 C3.3,11.25,1.28,14.44,1,18h22C22.72,14.44,20.7,11.25,17.6,9.48z M7,15.25c-0.69,0-1.25-0.56-1.25-1.25 c0-0.69,0.56-1.25,1.25-1.25S8.25,13.31,8.25,14C8.25,14.69,7.69,15.25,7,15.25z M17,15.25c-0.69,0-1.25-0.56-1.25-1.25 c0-0.69,0.56-1.25,1.25-1.25s1.25,0.56,1.25,1.25C18.25,14.69,17.69,15.25,17,15.25z" fill="currentColor"/>
+                        </svg>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-gray-900">Android Installation</h4>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center text-center py-6">
+                        <h4 className="text-lg font-medium text-gray-900 mb-2">Download TouchBase</h4>
+                        <p className="text-sm text-gray-600 mb-6">Get the official app from Google Play Store for the best experience</p>
+                        <a
+                          href="https://play.google.com/store/apps/details?id=app.touchbase.site.twa"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                        >
+                          <svg className="w-6 h-6 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M17.9,2.6L9.5,10.2L7.9,8.6L16.3,1L17.9,2.6z M22,12c0-0.9-0.3-1.9-0.9-2.7l-2.6,2.6l2.6,2.6C21.7,13.9,22,13,22,12z M12.4,11.5l7.5,7.5l-1.6,1.6l-7.5-7.5L12.4,11.5z M2,12c0,1,0.3,1.9,0.9,2.7l2.6-2.6L2.9,9.4C2.3,10.1,2,11.1,2,12z M12,22 c3.2,0,6-1.7,7.5-4.3l-2.6-2.6C15.8,17,14,18,12,18c-3.3,0-6-2.7-6-6s2.7-6,6-6c2,0,3.8,1,4.9,2.9l2.6-2.6C17.9,3.7,15.2,2,12,2 C6.5,2,2,6.5,2,12S6.5,22,12,22z"/>
+                          </svg>
+                          Get it on Google Play
+                        </a>
+                      </div>
+                    </div>
+
                     {/* iOS Instructions */}
                     <div className="p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 shadow-soft space-y-4">
                       <div className="flex items-start gap-3">
@@ -103,31 +130,6 @@ export const InstallModal = ({ isOpen, onClose }: InstallModalProps) => {
                       </div>
                     </div>
 
-                    {/* Android Instructions */}
-                    <div className="p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/50 shadow-soft space-y-4">
-                      <div className="flex items-start gap-3">
-                        <svg className="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path d="M17.6,9.48l1.84-3.18c0.16-0.31,0.04-0.69-0.26-0.85c-0.29-0.15-0.65-0.06-0.83,0.22l-1.88,3.24 c-2.86-1.21-6.08-1.21-8.94,0L5.65,5.67c-0.19-0.29-0.58-0.38-0.87-0.2C4.5,5.65,4.41,6.01,4.56,6.3L6.4,9.48 C3.3,11.25,1.28,14.44,1,18h22C22.72,14.44,20.7,11.25,17.6,9.48z M7,15.25c-0.69,0-1.25-0.56-1.25-1.25 c0-0.69,0.56-1.25,1.25-1.25S8.25,13.31,8.25,14C8.25,14.69,7.69,15.25,7,15.25z M17,15.25c-0.69,0-1.25-0.56-1.25-1.25 c0-0.69,0.56-1.25,1.25-1.25s1.25,0.56,1.25,1.25C18.25,14.69,17.69,15.25,17,15.25z" fill="currentColor"/>
-                        </svg>
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900">Android Installation</h4>
-                        </div>
-                      </div>
-                      <div className="space-y-3 pl-8">
-                        <div className="flex gap-3 items-start">
-                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-50/90 text-primary-600 flex items-center justify-center font-medium text-sm">1</div>
-                          <p className="text-sm text-gray-600 mt-1">Tap the <span className="text-primary-600 font-[500]">Install</span> prompt when it appears</p>
-                        </div>
-                        <div className="flex gap-3 items-start">
-                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-50/90 text-primary-600 flex items-center justify-center font-medium text-sm">2</div>
-                          <p className="text-sm text-gray-600 mt-1">Or open menu (3 dots on top right)</p>
-                        </div>
-                        <div className="flex gap-3 items-start">
-                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-50/90 text-primary-600 flex items-center justify-center font-medium text-sm">3</div>
-                          <p className="text-sm text-gray-600 mt-1">Select <span className="text-primary-600 font-[500]">Install app</span></p>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
