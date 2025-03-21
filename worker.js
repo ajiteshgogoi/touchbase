@@ -6,7 +6,7 @@
 function addCorsHeaders(headers = new Headers()) {
   headers.set('Access-Control-Allow-Origin', '*');
   headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type, x-client-secret');
+  headers.set('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
   headers.set('Access-Control-Max-Age', '86400');
   headers.set('Access-Control-Allow-Credentials', 'true');
   return headers;
@@ -14,7 +14,7 @@ function addCorsHeaders(headers = new Headers()) {
 
 function addSecurityHeaders(headers = new Headers()) {
   headers.set('X-Frame-Options', 'SAMEORIGIN');
-  headers.set('Content-Security-Policy', "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.groq.com https://*.brevo.com https://api.brevo.com https://api.openai.com https://api.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseapp.com https://*.appspot.com https://analytics.google.com https://iid-keyserver.googleapis.com https://*.paypal.com https://api-m.paypal.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://play.google.com https://www.gstatic.com/firebasejs/ wss://*.firebaseio.com https://oauth2.googleapis.com https://androidpublisher.googleapis.com https://fcm.googleapis.com https://deno.land https://esm.sh https://cdn.esm.sh https://fcmregistrations.googleapis.com https://api.touchbase.site https://touchbase-proxy.az-ajitesh.workers.dev");
+  headers.set('Content-Security-Policy', "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.groq.com https://*.brevo.com https://api.brevo.com https://api.openai.com https://api.openrouter.ai https://openrouter.ai https://*.googleapis.com https://*.firebaseapp.com https://*.appspot.com https://analytics.google.com https://iid-keyserver.googleapis.com https://*.paypal.com https://api-m.paypal.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://play.google.com https://www.gstatic.com/firebasejs/ wss://*.firebaseio.com https://oauth2.googleapis.com https://androidpublisher.googleapis.com https://fcm.googleapis.com https://deno.land https://esm.sh https://cdn.esm.sh https://fcmregistrations.googleapis.com https://api.touchbase.site https://touchbase-proxy.az-ajitesh.workers.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://va.vercel-scripts.com https://*.firebaseapp.com https://*.googleapis.com https://www.gstatic.com https://play.google.com https://www.gstatic.com/firebasejs/ https://deno.land https://esm.sh https://cdn.esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https://* blob:; font-src 'self' data:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; frame-src https://*.paypal.com https://api-m.paypal.com https://*.firebaseapp.com https://play.google.com; worker-src 'self' blob: https://www.gstatic.com/firebasejs/; child-src 'self' blob:; manifest-src 'self'; media-src 'self'");
   headers.set('Permissions-Policy', "geolocation=self, payment=*, camera=self, microphone=self, magnetometer=self, accelerometer=self, gyroscope=self");
   headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   headers.set('X-Content-Type-Options', 'nosniff');
@@ -30,7 +30,7 @@ export default {
         const headers = new Headers();
         addCorsHeaders(headers);
         addSecurityHeaders(headers);
-        return new Response(null, { headers });
+        return new Response('ok', { headers });
       }
 
       // Validate client secret
@@ -47,8 +47,8 @@ export default {
 
       const url = new URL(request.url);
 
-      // Only allow /rest/v1/* and /functions/v1/* routes
-      if (!url.pathname.match(/^\/(rest|functions)\/v1\//)) {
+      // Allow auth/v1 and rest/functions routes
+      if (!url.pathname.match(/^\/(auth\/v1|rest\/v1|functions\/v1)\//)) {
         return new Response(JSON.stringify({ error: "Not Found" }), { 
           status: 404,
           headers: {
@@ -63,16 +63,21 @@ export default {
       supabaseUrl.search = url.search;
 
       // Forward the request to Supabase
+      const headers = new Headers(request.headers);
+      
+      // Add/override required headers
+      headers.set("apikey", env.SUPABASE_ANON_KEY);
+      headers.delete("X-Client-Secret");
+
+      // Ensure authorization header is present
+      const authorization = headers.get("Authorization");
+      if (!authorization && headers.get("apikey")) {
+        headers.set("Authorization", `Bearer ${headers.get("apikey")}`);
+      }
+      
       const supabaseRequest = new Request(supabaseUrl, {
         method: request.method,
-        headers: new Headers({
-          // Forward original headers
-          ...Object.fromEntries(request.headers),
-          // Add/override required headers
-          "apikey": env.SUPABASE_ANON_KEY,
-          // Remove client secret from forwarded request
-          "X-Client-Secret": null,
-        }),
+        headers: headers,
         body: request.body,
       });
 
