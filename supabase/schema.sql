@@ -1,5 +1,6 @@
 -- Enable necessary extensions
 create extension if not exists "uuid-ossp";
+create extension if not exists "pg_trgm";
 
 -- Add notification status enum type
 create type public.notification_status as enum ('success', 'error', 'invalid_token');
@@ -332,6 +333,7 @@ comment on column public.feedback.reason is 'Specific reason category for cancel
 create index contacts_user_id_idx on public.contacts(user_id);
 create index contacts_name_idx on public.contacts(name ASC);
 create index contacts_name_include_idx on public.contacts(name ASC) INCLUDE (id, last_contacted, missed_interactions, contact_frequency, next_contact_due);
+create index contacts_name_trgm_idx ON public.contacts USING GIN (name gin_trgm_ops);
 create index contacts_last_contacted_idx on public.contacts(last_contacted);
 create index contacts_next_contact_due_idx on public.contacts(next_contact_due);
 create index contacts_created_at_name_idx on public.contacts(created_at DESC, name ASC);
