@@ -367,6 +367,10 @@ create index push_subscriptions_device_lookup_idx on public.push_subscriptions(d
 create index notification_history_user_time_idx on public.notification_history(user_id, sent_at);
 create index contact_analytics_user_id_idx on public.contact_analytics(user_id);
 create index contact_analytics_generated_at_idx on public.contact_analytics(generated_at);
+-- Add compound index for user_id and generated_at for better query performance
+create index contact_analytics_user_generated_idx on public.contact_analytics(user_id, generated_at);
+-- Add GIN index on JSONB data for faster JSON operations
+create index contact_analytics_data_gin_idx on public.contact_analytics using gin(data);
 create index prompt_generation_logs_user_id_idx on public.prompt_generation_logs(user_id);
 create index prompt_generation_logs_created_at_idx on public.prompt_generation_logs(created_at);
 create index content_reports_user_id_idx on public.content_reports(user_id);
