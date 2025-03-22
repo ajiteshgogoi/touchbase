@@ -163,13 +163,19 @@ function isValidDate(dateStr: string): boolean {
 }
 
 async function checkDuplicateContacts(names: string[], supabase: any, userId: string): Promise<Set<string>> {
+  // Create exact case-insensitive match conditions
+  const filters = names.map(name => `name.ilike.${name.replace(/[%_]/g, '\\$&')}`);
+  
   const { data: duplicates } = await supabase
     .from('contacts')
     .select('name')
     .eq('user_id', userId)
-    .in('name', names);
+    .or(filters.join(','));
 
-  return new Set(duplicates?.map(d => d.name.toLowerCase()) || []);
+  // Use exact lowercase comparison for final filtering
+  return new Set(duplicates
+    ?.filter(d => names.some(n => n.toLowerCase() === d.name.toLowerCase()))
+    ?.map(d => d.name.toLowerCase()) || []);
 }
 
 async function* parseCSVChunks(file: File, batchSize: number = 50): AsyncGenerator<any[]> {
