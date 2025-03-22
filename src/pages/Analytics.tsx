@@ -22,6 +22,7 @@ dayjs.extend(relativeTime);
 // Import optimized components
 import { HeatmapChart } from '../components/analytics/HeatmapChart';
 import { ProgressMetric } from '../components/analytics/ProgressMetric';
+import { NeglectedContactsList } from '../components/analytics/NeglectedContactsList';
 
 export const Analytics = () => {
   const navigate = useNavigate();
@@ -383,15 +384,7 @@ export const Analytics = () => {
                             <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Needs Attention</span>
                           </div>
                           <div className="px-3 py-2 space-y-2">
-                            {analytics.neglectedContacts.map(contact => (
-                              <Link
-                                key={contact.id}
-                              to={`/contacts?search=${encodeURIComponent(contact.name)}`}
-                                className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 transition-colors"
-                              >
-                                {contact.name}
-                              </Link>
-                            ))}
+                            <NeglectedContactsList contacts={analytics.neglectedContacts} />
                           </div>
                         </div>
                       )}
