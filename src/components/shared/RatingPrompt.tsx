@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { StarIcon } from '@heroicons/react/24/outline';
 import { platform } from '../../utils/platform';
@@ -21,17 +21,23 @@ interface RatingPromptProps {
 export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
   const [showPrompt, setShowPrompt] = useState(false);
   const { updateRatingStatus, updateLastPromptTime } = useRatingSettings();
+  const depsReadyRef = useRef(false);
 
   useEffect(() => {
-    console.log('Rating prompt effect running');
+    // Only run the effect once both user and settings are available
+    if (!user || !settings) {
+      return;
+    }
+
+    // Skip if we've already processed these deps
+    if (depsReadyRef.current) {
+      return;
+    }
+
+    depsReadyRef.current = true;
     
     // Only show for authenticated users in TWA
-    if (!platform.isTWA() || !user || !settings) {
-      console.log('Early return - Requirements not met:', {
-        isTWA: platform.isTWA(),
-        hasUser: !!user,
-        hasSettings: !!settings
-      });
+    if (!platform.isTWA()) {
       return;
     }
 
