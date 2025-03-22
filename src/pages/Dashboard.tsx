@@ -5,10 +5,12 @@ import { contactsService } from '../services/contacts';
 import { useStore } from '../stores/useStore';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { OnboardingModal } from '../components/onboarding/OnboardingModal';
+import { RatingPrompt } from '../components/shared/RatingPrompt';
 import {
   UserPlusIcon
 } from '@heroicons/react/24/outline/esm/index.js';
 import type { Contact } from '../lib/supabase/types';
+import type { NotificationSettings } from '../types/settings';
 
 // Lazy load components
 const DashboardMetrics = lazy(() => import('../components/dashboard/DashboardMetrics'));
@@ -24,7 +26,18 @@ const LoadingFallback = () => (
 );
 
 export const Dashboard = () => {
-  const { user, isPremium, isOnTrial, trialDaysRemaining } = useStore();
+  const { user, isPremium, isOnTrial, trialDaysRemaining, preferences } = useStore();
+  
+  // Convert UserPreferences to NotificationSettings
+  const settings: NotificationSettings | undefined = preferences ? {
+    notification_enabled: preferences.notification_enabled,
+    theme: preferences.theme,
+    timezone: preferences.timezone,
+    ai_suggestions_enabled: preferences.ai_suggestions_enabled,
+    has_rated_app: preferences.has_rated_app,
+    last_rating_prompt: preferences.last_rating_prompt || undefined,
+    install_time: preferences.install_time
+  } : undefined;
   const { shouldShow: showOnboarding, markCompleted: markOnboardingCompleted } = useOnboarding();
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
@@ -50,6 +63,7 @@ export const Dashboard = () => {
         isOpen={showOnboarding}
         onClose={markOnboardingCompleted}
       />
+      <RatingPrompt user={user} settings={settings} />
       {!isPremium && isOnTrial && trialDaysRemaining !== null && (
         <Suspense fallback={<LoadingFallback />}>
           <TrialBanner daysRemaining={trialDaysRemaining} />
