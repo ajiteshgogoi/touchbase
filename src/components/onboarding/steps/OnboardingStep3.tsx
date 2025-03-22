@@ -31,7 +31,14 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
     frequency: 'monthly'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const [error, setError] = useState('');
+
+  const handleSkip = async () => {
+    setIsSkipping(true);
+    await onComplete();
+    setIsSkipping(false);
+  };
 
   const handleSubmit = async () => {
     if (!form.name.trim()) {
@@ -148,11 +155,15 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
           )}
         </button>
         <button
-          onClick={onComplete}
-          className="w-full px-6 py-3 text-gray-600 bg-gray-50 rounded-xl font-medium 
-            hover:bg-gray-100 transition-all duration-200"
+          onClick={handleSkip}
+          disabled={isSkipping}
+          className="w-full px-6 py-3 text-gray-600 bg-gray-50 rounded-xl font-medium
+            hover:bg-gray-100 transition-all duration-200
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50"
         >
-          Skip For Now
+          <span className="min-w-[90px] inline-block text-center">
+            {isSkipping ? 'Skipping...' : 'Skip For Now'}
+          </span>
         </button>
         <button
           onClick={onBack}
