@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase/client';
 
 const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -135,15 +135,9 @@ const emotionalModifiers: string[] = [
 const defaultStarters = ['how', 'what'];
 
 export class ConversationPromptGenerator {
-  private supabase;
   private groqApiKey: string;
 
-  constructor(
-    supabaseUrl: string,
-    supabaseKey: string,
-    groqApiKey: string
-  ) {
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+  constructor(groqApiKey: string) {
     this.groqApiKey = groqApiKey;
   }
 
@@ -162,7 +156,7 @@ export class ConversationPromptGenerator {
     // Check rate limit first
     const now = new Date();
 
-    const { data: promptLogs, error: logsError } = await this.supabase
+    const { data: promptLogs, error: logsError } = await supabase
       .from('prompt_generation_logs')
       .select('created_at')
       .eq('user_id', userId)
@@ -339,7 +333,7 @@ Example of a good question:
     }
 
     // Log the generation
-    const { error: logError } = await this.supabase
+    const { error: logError } = await supabase
       .from('prompt_generation_logs')
       .insert({
         user_id: userId,
@@ -350,7 +344,7 @@ Example of a good question:
         emotional_modifier: emotionalModifier
       });
 
-    if (logError) throw new Error('Something went wrong saving your question. Please try again.');
+    if (logError) throw new Error('Error while generating your question. Please try again.');
 
     return {
       question,

@@ -55,8 +55,6 @@ const ConversationPrompts: React.FC = () => {
       }
 
       const promptGenerator = new ConversationPromptGenerator(
-        import.meta.env.VITE_SUPABASE_URL!,
-        import.meta.env.VITE_SUPABASE_ANON_KEY!,
         import.meta.env.VITE_GROQ_API_KEY!
       );
 
