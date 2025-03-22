@@ -134,8 +134,9 @@ export const contactsPaginationService = {
          next_contact_due,
          preferred_contact_method,
          phone,
-         social_media_handle
-       `)
+         social_media_handle,
+         notes
+        `)
         .order('created_at', { ascending: false })
         .limit(15);
 
@@ -159,8 +160,16 @@ export const contactsPaginationService = {
 
       // Apply category filters if needed
       if (filters.categories && filters.categories.length > 0) {
-        // Note: We'd need to fetch notes for this filtering
-        // This might need optimization in a real implementation
+        filteredContacts = filteredContacts.filter(contact => {
+          // Skip contacts without notes
+          if (!contact.notes) return false;
+          
+          // Check if any of the selected hashtags exist in the notes
+          return filters.categories!.some(category => {
+            const hashtagQuery = category.startsWith('#') ? category.toLowerCase() : `#${category.toLowerCase()}`;
+            return contact.notes.toLowerCase().includes(hashtagQuery);
+          });
+        });
       }
 
       // Apply user's preferred sorting
