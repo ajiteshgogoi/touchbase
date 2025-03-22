@@ -113,7 +113,7 @@ export const Contacts = () => {
   // Handle select all
   const handleSelectAll = async () => {
     try {
-      if (selectedContacts.size === totalCount) {
+      if (selectedContacts.size === filteredCount) {
         setSelectedContacts(new Set());
       } else {
         const allContactIds = new Set<string>();
@@ -306,7 +306,20 @@ export const Contacts = () => {
     contactsData?.pages?.flatMap(page => page.contacts) || [],
     [contactsData?.pages]
   );
-  const totalCount = contactsData?.pages?.[0]?.total || 0;
+  // Get filtered count for display
+  const filteredCount = contactsData?.pages?.[0]?.total || 0;
+
+  // Get total contacts count (unfiltered) for limit checking
+  const { data: totalContacts } = useQuery({
+    queryKey: ['total-contacts'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('contacts')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+    staleTime: 5 * 60 * 1000
+  });
 
   // Get important events
   const { data: importantEvents } = useQuery<ImportantEvent[]>({
@@ -354,7 +367,7 @@ export const Contacts = () => {
   };
 
   const contactLimit = isPremium || isOnTrial ? Infinity : 15;
-  const canAddMore = totalCount < contactLimit;
+  const canAddMore = (totalContacts || 0) < contactLimit;
 
   return (
     <div className="space-y-6">
@@ -402,7 +415,7 @@ export const Contacts = () => {
               className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 disabled:text-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <CheckCircleIcon className="h-5 w-5 mr-2" />
-              {selectedContacts.size === totalCount ? 'Deselect All' : 'Select All'}
+              {selectedContacts.size === filteredCount ? 'Deselect All' : 'Select All'}
             </button>
             <button
               onClick={handleBulkDelete}
@@ -509,14 +522,14 @@ export const Contacts = () => {
             </div>
           ) : (
             <>
-              {!isPremium && !isOnTrial && totalCount > 15 && (
+              {!isPremium && !isOnTrial && (totalContacts || 0) > 15 && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                   <p className="text-sm text-amber-800">
                     You're seeing your 15 most recent contacts. {' '}
                     <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
                       Upgrade to Premium
                     </Link>{' '}
-                    to manage all {totalCount} of your contacts.
+                    to manage all {totalContacts} of your contacts.
                   </p>
                 </div>
               )}
