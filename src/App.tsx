@@ -403,7 +403,7 @@ function App() {
   useEffect(() => {
     let mounted = true;
 
-    // Initialize auth state
+    // Initialize auth state //
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
