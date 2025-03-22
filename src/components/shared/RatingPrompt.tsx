@@ -24,22 +24,28 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
   const depsReadyRef = useRef(false);
 
   useEffect(() => {
-    // Only run the effect once both user and settings are available
-    if (!user || !settings) {
+    console.log('Rating prompt effect running');
+
+    // Reset ref when deps change
+    depsReadyRef.current = false;
+    
+    // Only show for authenticated users in TWA
+    if (!platform.isTWA() || !user || !settings) {
+      console.log('Early return - Requirements not met:', {
+        isTWA: platform.isTWA(),
+        hasUser: !!user,
+        hasSettings: !!settings
+      });
       return;
     }
 
     // Skip if we've already processed these deps
     if (depsReadyRef.current) {
+      console.log('Skip - Already processed these deps');
       return;
     }
 
     depsReadyRef.current = true;
-    
-    // Only show for authenticated users in TWA
-    if (!platform.isTWA()) {
-      return;
-    }
 
     // Don't show if already rated
     if (settings.has_rated_app) {
@@ -79,7 +85,7 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
     } else {
       console.log('Not enough time passed since last prompt');
     }
-  }, [user, settings, updateLastPromptTime]);
+  }, [user?.id, settings?.install_time, settings?.has_rated_app, settings?.last_rating_prompt, updateLastPromptTime]);
 
   const handleRate = async () => {
     const packageName = 'app.touchbase.site.twa';
