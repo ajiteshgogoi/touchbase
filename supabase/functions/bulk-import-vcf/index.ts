@@ -279,21 +279,7 @@ async function* parseVCFChunks(file: File, timezone: string, chunkSize: number =
   }
 }
 
-async function checkDuplicateContacts(names: string[], supabase: any, userId: string): Promise<Set<string>> {
-  // Create exact case-insensitive match conditions
-  const filters = names.map(name => `name.ilike.${name.replace(/[%_]/g, '\\$&')}`);
-  
-  const { data: duplicates } = await supabase
-    .from('contacts')
-    .select('name')
-    .eq('user_id', userId)
-    .or(filters.join(','));
-
-  // Use exact lowercase comparison for final filtering
-  return new Set(duplicates
-    ?.filter(d => names.some(n => n.toLowerCase() === d.name.toLowerCase()))
-    ?.map(d => d.name.toLowerCase()) || []);
-}
+// Remove checkDuplicateContacts as we'll use upsert instead
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -381,12 +367,8 @@ serve(async (req) => {
 
       if (validContacts.length === 0) continue;
 
-      // Check duplicates in batch
-      const validNames = validContacts.map(c => c.name.trim().toLowerCase());
-      const duplicateNames = await checkDuplicateContacts(validNames, supabaseClient, user.id);
-      
-      // Prepare batch inserts for non-duplicate contacts
-      const contactsToInsert = validContacts.filter(c => !duplicateNames.has(c.name.trim().toLowerCase())).map(contact => ({
+      // Prepare batch upserts for contacts
+      const contactsToUpsert = validContacts.map(contact => ({
         user_id: user.id,
         name: contact.name.trim(),
         phone: contact.phone || null,
@@ -401,23 +383,15 @@ serve(async (req) => {
         notes: ''
       }));
 
-      // Update result for duplicate contacts
-      validContacts.forEach((contact) => {
-        if (duplicateNames.has(contact.name.trim().toLowerCase())) {
-          result.failureCount++;
-          result.errors.push({
-            row: result.successCount + result.failureCount,
-            errors: [`Contact with name '${contact.name}' already exists`]
-          });
-        }
-      });
+      if (contactsToUpsert.length === 0) continue;
 
-      if (contactsToInsert.length === 0) continue;
-
-      // Bulk insert contacts
+      // Bulk upsert contacts - use DO NOTHING on conflict since we want to preserve existing data
       const { data: newContacts, error: insertError } = await supabaseClient
         .from('contacts')
-        .insert(contactsToInsert)
+        .upsert(contactsToUpsert, {
+          onConflict: 'user_id,name',
+          ignoreDuplicates: true
+        })
         .select();
 
       if (insertError || !newContacts) {

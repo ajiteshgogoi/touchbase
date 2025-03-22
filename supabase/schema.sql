@@ -21,7 +21,9 @@ create table public.contacts (
     ai_last_suggestion_date timestamp with time zone,
     missed_interactions integer default 0,
     created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now()
+    updated_at timestamp with time zone default now(),
+    -- Add constraint to prevent duplicate names per user
+    constraint unique_user_contact_name unique (user_id, name)
 );
 
 -- Important events table for tracking birthdays, anniversaries, and custom events

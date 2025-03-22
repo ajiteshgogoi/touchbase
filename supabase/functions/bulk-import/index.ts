@@ -162,21 +162,7 @@ function isValidDate(dateStr: string): boolean {
   return date instanceof Date && !isNaN(date.getTime())
 }
 
-async function checkDuplicateContacts(names: string[], supabase: any, userId: string): Promise<Set<string>> {
-  // Create exact case-insensitive match conditions
-  const filters = names.map(name => `name.ilike.${name.replace(/[%_]/g, '\\$&')}`);
-  
-  const { data: duplicates } = await supabase
-    .from('contacts')
-    .select('name')
-    .eq('user_id', userId)
-    .or(filters.join(','));
-
-  // Use exact lowercase comparison for final filtering
-  return new Set(duplicates
-    ?.filter(d => names.some(n => n.toLowerCase() === d.name.toLowerCase()))
-    ?.map(d => d.name.toLowerCase()) || []);
-}
+// Remove checkDuplicateContacts as we'll use upsert instead
 
 async function* parseCSVChunks(file: File, batchSize: number = 50): AsyncGenerator<any[]> {
   const decoder = new TextDecoder();
@@ -342,45 +328,30 @@ serve(async (req) => {
 
         if (validRecords.length === 0) continue;
 
-        // Check duplicates in batch
-        const validNames = validRecords.map(r => r.name.trim().toLowerCase());
-        const duplicateNames = await checkDuplicateContacts(validNames, supabaseClient, user.id);
+        // Prepare data for bulk upsert
+        const contactsToUpsert = validRecords.map(record => ({
+          user_id: user.id,
+          name: record.name.trim(),
+          contact_frequency: record.contact_frequency,
+          phone: record.phone || null,
+          social_media_platform: record.social_media_platform || null,
+          social_media_handle: record.social_media_handle || null,
+          preferred_contact_method: record.preferred_contact_method || 'message',
+          notes: record.notes || '',
+          next_contact_due: now.toISOString(),
+          last_contacted: now.toISOString(),
+          missed_interactions: 0
+        }));
 
-        // Prepare data for bulk insert
-        const contactsToInsert = [];
-        const skippedRecords = [];
+        if (contactsToUpsert.length === 0) continue;
 
-        validRecords.forEach(record => {
-          if (duplicateNames.has(record.name.trim().toLowerCase())) {
-            result.failureCount++;
-            result.errors.push({
-              row: result.successCount + result.failureCount,
-              errors: [`Contact with name '${record.name}' already exists`]
-            });
-            skippedRecords.push(record);
-          } else {
-            contactsToInsert.push({
-              user_id: user.id,
-              name: record.name.trim(),
-              contact_frequency: record.contact_frequency,
-              phone: record.phone || null,
-              social_media_platform: record.social_media_platform || null,
-              social_media_handle: record.social_media_handle || null,
-              preferred_contact_method: record.preferred_contact_method || 'message',
-              notes: record.notes || '',
-              next_contact_due: now.toISOString(),
-              last_contacted: now.toISOString(),
-              missed_interactions: 0
-            });
-          }
-        });
-
-        if (contactsToInsert.length === 0) continue;
-
-        // Bulk insert contacts
+        // Bulk upsert contacts - use DO NOTHING on conflict since we want to preserve existing data
         const { data: newContacts, error: insertError } = await supabaseClient
           .from('contacts')
-          .insert(contactsToInsert)
+          .upsert(contactsToUpsert, {
+            onConflict: 'user_id,name',
+            ignoreDuplicates: true
+          })
           .select();
 
         if (insertError || !newContacts) {
