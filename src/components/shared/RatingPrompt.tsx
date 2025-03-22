@@ -23,29 +23,55 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
   const { updateRatingStatus, updateLastPromptTime } = useRatingSettings();
 
   useEffect(() => {
+    console.log('Rating prompt effect running');
+    
     // Only show for authenticated users in TWA
-    if (!platform.isTWA() || !user || !settings) return;
+    if (!platform.isTWA() || !user || !settings) {
+      console.log('Early return - Requirements not met:', {
+        isTWA: platform.isTWA(),
+        hasUser: !!user,
+        hasSettings: !!settings
+      });
+      return;
+    }
 
     // Don't show if already rated
-    if (settings.has_rated_app) return;
+    if (settings.has_rated_app) {
+      console.log('User has already rated app');
+      return;
+    }
 
     const now = Date.now();
     const installDate = new Date(settings.install_time || Date.now()).getTime();
     const lastPrompt = settings.last_rating_prompt ? new Date(settings.last_rating_prompt).getTime() : null;
 
+    console.log('Checking prompt timing:', {
+      now: new Date(now).toISOString(),
+      installDate: new Date(installDate).toISOString(),
+      lastPrompt: lastPrompt ? new Date(lastPrompt).toISOString() : 'never',
+      daysSinceInstall: Math.floor((now - installDate) / (24 * 60 * 60 * 1000)),
+      daysSinceLastPrompt: lastPrompt ? Math.floor((now - lastPrompt) / (24 * 60 * 60 * 1000)) : 'n/a'
+    });
+
     // First time check: Wait 10 days after installation
     if (!lastPrompt) {
       if (now - installDate >= INITIAL_WAIT_PERIOD) {
+        console.log('Showing first prompt after installation');
         setShowPrompt(true);
         updateLastPromptTime(user.id);
+      } else {
+        console.log('Not enough time passed since installation');
       }
       return;
     }
 
     // Subsequent checks: Show every 30 days if dismissed
     if (now - lastPrompt >= REPEAT_INTERVAL) {
+      console.log('Showing repeat prompt');
       setShowPrompt(true);
       updateLastPromptTime(user.id);
+    } else {
+      console.log('Not enough time passed since last prompt');
     }
   }, [user, settings, updateLastPromptTime]);
 

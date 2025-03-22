@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Layout } from './components/layout/Layout';
+import { AppLayout } from './components/layout/AppLayout';
 import { useStore } from './stores/useStore';
 import { supabase } from './lib/supabase/client';
 import { setQueryClient } from './utils/queryClient';
@@ -265,7 +265,7 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
-  const { setUser, setIsLoading, setIsPremium, setTrialStatus } = useStore();
+  const { setUser, setIsLoading, setIsPremium, setTrialStatus, setPreferences } = useStore();
 
   // Separate premium status check
   const checkPremiumStatus = async () => {
@@ -305,13 +305,18 @@ function App() {
       const hasPermission = await notificationService.checkPermission();
       
       // Get or create user preferences
-      const { data: prefs } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+     console.log('[Preferences] Fetching preferences for user:', userId);
+     const { data: prefs } = await supabase
+       .from('user_preferences')
+       .select('*')
+       .eq('user_id', userId)
+       .single();
 
-      if (prefs) {
+     console.log('[Preferences] Fetched preferences:', prefs);
+
+     if (prefs) {
+       // Set preferences in store
+       setPreferences(prefs);
         // Update timezone if changed
         const updates: { timezone?: string; notification_enabled?: boolean } = {};
         if (prefs.timezone !== currentTimezone) {
@@ -517,7 +522,7 @@ function App() {
             }}
           />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <Layout>
+            <AppLayout>
               <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
@@ -674,7 +679,7 @@ function App() {
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" />} />
               </Routes>
-            </Layout>
+            </AppLayout>
           </BrowserRouter>
         </QueryClientProvider>
       </HelmetProvider>
