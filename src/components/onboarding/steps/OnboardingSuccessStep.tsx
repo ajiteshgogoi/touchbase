@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 
 interface OnboardingSuccessStepProps {
@@ -5,6 +6,14 @@ interface OnboardingSuccessStepProps {
 }
 
 export const OnboardingSuccessStep = ({ onClose }: OnboardingSuccessStepProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleClose = async () => {
+    setIsSubmitting(true);
+    await onClose();
+    setIsSubmitting(false);
+  };
+
   return (
     <div className="space-y-6 py-4">
       <div className="flex flex-col items-center space-y-4 text-center">
@@ -23,10 +32,16 @@ export const OnboardingSuccessStep = ({ onClose }: OnboardingSuccessStepProps) =
 
       <div className="pt-4">
         <button
-          onClick={onClose}
-          className="w-full px-6 py-3 text-white bg-primary-500 rounded-xl font-medium hover:bg-primary-600 transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.98]"
+          onClick={handleClose}
+          disabled={isSubmitting}
+          className="w-full px-6 py-3 text-white bg-primary-500 rounded-xl font-medium
+            hover:bg-primary-600 transition-all duration-200 shadow-sm hover:shadow-md
+            active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
+            disabled:hover:bg-primary-500 disabled:hover:shadow-sm disabled:active:scale-100"
         >
-          Get Started
+          <span className="min-w-[80px] inline-block text-center">
+            {isSubmitting ? 'Starting...' : 'Get Started'}
+          </span>
         </button>
       </div>
     </div>

@@ -48,6 +48,13 @@ if (FEATURES.length === 0) {
 
 export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Props) => {
   const [activeFeature, setActiveFeature] = useState(0);
+  const [isSkipping, setIsSkipping] = useState(false);
+
+  const handleSkip = async () => {
+    setIsSkipping(true);
+    await onSkip();
+    setIsSkipping(false);
+  };
 
   // Auto-advance features
   useEffect(() => {
@@ -126,11 +133,16 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
           Get Started
         </button>
         <button
-          onClick={onSkip}
-          className="w-full px-6 py-3 text-gray-600 bg-gray-50 rounded-xl font-medium 
-            hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          onClick={handleSkip}
+          disabled={isSkipping}
+          className="w-full px-6 py-3 text-gray-600 bg-gray-50 rounded-xl font-medium
+            hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50
+            disabled:hover:scale-100 disabled:active:scale-100"
         >
-          Skip Tour
+          <span className="min-w-[70px] inline-block text-center">
+            {isSkipping ? 'Skipping...' : 'Skip Tour'}
+          </span>
         </button>
       </div>
     </div>
