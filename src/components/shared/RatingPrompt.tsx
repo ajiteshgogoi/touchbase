@@ -110,11 +110,7 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
         await window.chrome.googlePlayReview.requestReview();
         return;
       } catch (e) {
-        console.error('[TWA-Rating] Error showing native review dialog:', {
-          error: e,
-          errorType: e instanceof Error ? 'Error' : typeof e,
-          errorMessage: e instanceof Error ? e.message : String(e)
-        });
+        console.error('[TWA-Rating] Error showing native review dialog:', e);
       }
     }
   
