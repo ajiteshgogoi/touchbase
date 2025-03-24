@@ -14,9 +14,6 @@ declare global {
       app?: {
         window?: unknown;
       };
-      googlePlayReview?: {
-        requestReview(): Promise<void>;
-      };
     };
     google?: {
       payments: {
@@ -26,6 +23,9 @@ declare global {
           cancel(token: string): Promise<void>;
         };
       };
+    };
+    ReviewInfo?: {
+      launchReview(): Promise<void>;
     };
   }
 }
