@@ -14,9 +14,6 @@ declare global {
       app?: {
         window?: unknown;
       };
-      googlePlayReview?: {
-        requestReview(): Promise<void>;
-      };
     };
     google?: {
       play?: {
