@@ -358,6 +358,10 @@ create index reminders_due_date_covering_idx on public.reminders(due_date)
 create index contacts_reminder_join_idx on public.contacts(id)
   include (name)
   where id in (select contact_id from public.reminders);
+-- Optimized index for incomplete reminders with sorting
+create index reminders_due_date_contact_name_idx on public.reminders(due_date ASC)
+  include (contact_id, user_id, type, name, completed, created_at)
+  where completed = false;
 create index contact_processing_logs_date_idx on public.contact_processing_logs(processing_date);
 create index contact_processing_logs_contact_id_idx on public.contact_processing_logs(contact_id);
 create index contact_processing_logs_batch_id_idx on public.contact_processing_logs(batch_id);
