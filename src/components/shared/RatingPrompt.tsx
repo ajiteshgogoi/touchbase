@@ -87,21 +87,35 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
     }
   }, [user?.id, settings?.install_time, settings?.has_rated_app, settings?.last_rating_prompt, updateLastPromptTime]);
 
+  const isNativeReviewAvailable = (): boolean => {
+    return !!window.chrome?.googlePlayReview?.requestReview;
+  };
+
   const handleRate = async () => {
     const packageName = 'app.touchbase.site.twa';
+    console.log('Rating: Checking native review availability');
     
+    try {
+      if (isNativeReviewAvailable()) {
+        console.log('Rating: Native review API available, attempting to show review dialog');
+        // Using optional chaining to safely access the API
+        await window.chrome?.googlePlayReview?.requestReview?.();
+        console.log('Rating: Native review dialog shown successfully');
+      } else {
+        console.log('Rating: Native review not available, falling back to Play Store URL');
+        window.location.href = `market://details?id=${packageName}`;
+      }
+    } catch (e) {
+      console.error('Rating: Error showing review dialog, falling back to web URL', e);
+      window.location.href = `https://play.google.com/store/apps/details?id=${packageName}`;
+    }
+
     // Update rating status in database
     if (user) {
       await updateRatingStatus(user.id);
     }
 
     setShowPrompt(false);
-    
-    try {
-      window.location.href = `market://details?id=${packageName}`;
-    } catch (e) {
-      window.location.href = `https://play.google.com/store/apps/details?id=${packageName}`;
-    }
   };
 
   const handleLater = () => {
