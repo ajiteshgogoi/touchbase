@@ -90,24 +90,13 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
   const handleRate = async () => {
     const packageName = 'app.touchbase.site.twa';
     
-    // Update rating status in database first
+    // Update rating status in database
     if (user) {
       await updateRatingStatus(user.id);
     }
-  
+
     setShowPrompt(false);
     
-    // Try to show native rating dialog first
-    if (window.ReviewInfo) {
-      try {
-        await window.ReviewInfo.launchReview();
-        return;
-      } catch (e) {
-        console.log('Native rating dialog failed, falling back to Play Store');
-      }
-    }
-  
-    // Fallback to Play Store if native dialog is not available or fails
     try {
       window.location.href = `market://details?id=${packageName}`;
     } catch (e) {
