@@ -170,7 +170,7 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
                   </button>
                   <button
                     onClick={handleRate}
-                    className="px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-sm"
+                    className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-all duration-200 shadow-sm"
                   >
                     Rate Now
                   </button>
