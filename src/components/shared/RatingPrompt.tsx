@@ -88,48 +88,32 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
   }, [user?.id, settings?.install_time, settings?.has_rated_app, settings?.last_rating_prompt, updateLastPromptTime]);
 
   const tryNativeReview = () => {
-    console.log('[Rating] Checking AndroidInterface availability');
     if (typeof (window as any).AndroidInterface?.requestInAppReview === 'function') {
-      console.log('[Rating] AndroidInterface.requestInAppReview is available, calling it');
       (window as any).AndroidInterface.requestInAppReview();
       return true;
     }
-    console.log('[Rating] AndroidInterface.requestInAppReview is NOT available');
-    console.log('[Rating] window.AndroidInterface:', (window as any).AndroidInterface);
     return false;
   };
 
   const handleRate = async () => {
     const packageName = 'app.touchbase.site.twa';
-    console.log('[Rating] Rate button clicked');
     
     // Update rating status in database
     if (user) {
-      console.log('[Rating] Updating rating status in database');
       await updateRatingStatus(user.id);
     }
 
     setShowPrompt(false);
     
     // Try native review first
-    if (platform.isTWA()) {
-      console.log('[Rating] Running in TWA, attempting native review');
-      const nativeReviewStarted = tryNativeReview();
-      if (nativeReviewStarted) {
-        console.log('[Rating] Native review flow started successfully');
-        return;
-      }
-      console.log('[Rating] Native review failed, falling back to Play Store');
-    } else {
-      console.log('[Rating] Not in TWA environment');
+    if (platform.isTWA() && tryNativeReview()) {
+      return;
     }
 
     // Fallback to Play Store
     try {
-      console.log('[Rating] Trying market:// URL');
       window.location.href = `market://details?id=${packageName}`;
     } catch (e) {
-      console.log('[Rating] market:// URL failed, falling back to web URL');
       window.location.href = `https://play.google.com/store/apps/details?id=${packageName}`;
     }
   };
