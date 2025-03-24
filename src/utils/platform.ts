@@ -19,6 +19,11 @@ declare global {
       };
     };
     google?: {
+      play?: {
+        review?: {
+          requestReview(): Promise<void>;
+        };
+      };
       payments: {
         subscriptions: {
           subscribe(sku: string): Promise<{ purchaseToken: string }>;
