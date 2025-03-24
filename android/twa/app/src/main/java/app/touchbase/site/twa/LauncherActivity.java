@@ -24,79 +24,12 @@ import android.Manifest;
 import android.content.SharedPreferences;
 import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
-import com.google.android.play.core.review.ReviewInfo;
-import com.google.android.play.core.review.ReviewManager;
-import com.google.android.play.core.review.ReviewManagerFactory;
-import com.google.android.gms.tasks.Task;
-import android.webkit.JavascriptInterface;
-import android.webkit.WebView;
-import android.webkit.WebSettings;
 
-public class LauncherActivity extends com.google.androidbrowserhelper.trusted.LauncherActivity {
+public class LauncherActivity
+        extends com.google.androidbrowserhelper.trusted.LauncherActivity {
 
-    private WebView webView;
     private boolean permissionHandled = false;
     private boolean splashShown = false;
-    private ReviewManager reviewManager;
-
-    // JavaScript interface class for in-app review
-    public class WebAppInterface {
-        @JavascriptInterface
-        public void requestInAppReview() {
-            webView.post(() -> {
-                webView.evaluateJavascript("console.log('[In-App Review] Starting review request');", null);
-                if (reviewManager == null) {
-                    reviewManager = ReviewManagerFactory.create(LauncherActivity.this);
-                }
-
-                Task<ReviewInfo> request = reviewManager.requestReviewFlow();
-                request.addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        webView.evaluateJavascript("console.log('[In-App Review] Got review info successfully');", null);
-                        ReviewInfo reviewInfo = task.getResult();
-                        Task<Void> flow = reviewManager.launchReviewFlow(LauncherActivity.this, reviewInfo);
-                        
-                        flow.addOnCompleteListener(reviewTask -> {
-                            String resultMsg = reviewTask.isSuccessful()
-                                ? "'[In-App Review] Review flow completed successfully'"
-                                : "'[In-App Review] Review flow failed to complete'";
-                            webView.evaluateJavascript("console.log(" + resultMsg + ");", null);
-                        });
-
-                        flow.addOnFailureListener(exception -> {
-                            String errorMsg = "'[In-App Review] Error launching review: " + exception.getMessage() + "'";
-                            webView.evaluateJavascript("console.log(" + errorMsg + ");", null);
-                        });
-                    } else {
-                        String errorMsg = "'[In-App Review] Error getting review info: " + task.getException().getMessage() + "'";
-                        webView.evaluateJavascript("console.log(" + errorMsg + ");", null);
-                    }
-                });
-
-                request.addOnFailureListener(exception -> {
-                    String errorMsg = "'[In-App Review] Failed to request review: " + exception.getMessage() + "'";
-                    webView.evaluateJavascript("console.log(" + errorMsg + ");", null);
-                });
-            });
-        }
-    }
-
-    private void launchReview() {
-        if (reviewManager == null) {
-            reviewManager = ReviewManagerFactory.create(this);
-        }
-
-        Task<ReviewInfo> request = reviewManager.requestReviewFlow();
-        request.addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                ReviewInfo reviewInfo = task.getResult();
-                reviewManager.launchReviewFlow(this, reviewInfo).addOnCompleteListener(reviewTask -> {
-                    // The flow has finished. The API does not indicate whether the user
-                    // reviewed or not, or even whether the review dialog was shown.
-                });
-            }
-        });
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,17 +94,6 @@ public class LauncherActivity extends com.google.androidbrowserhelper.trusted.La
         }
 
         // Permission is handled or not needed, load URL
-
-        // Initialize WebView
-        webView = new WebView(this);
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-
-        // Add JavaScript interface
-        WebAppInterface webAppInterface = new WebAppInterface();
-        webView.addJavascriptInterface(webAppInterface, "AndroidInterface");
-
-        // Load the TWA
         super.launchTwa();
     }
 }
