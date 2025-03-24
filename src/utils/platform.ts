@@ -24,6 +24,9 @@ declare global {
         };
       };
     };
+    ReviewInfo?: {
+      launchReview(): Promise<void>;
+    };
   }
 }
 
