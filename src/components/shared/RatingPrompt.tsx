@@ -101,15 +101,13 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
     console.log('[TWA-Rating] Environment check:', {
       isTWA: platform.isTWA(),
       hasGooglePlay: !!window.google?.play,
-      hasInAppReview: !!window.google?.play?.inAppReview
+      hasReviewAPI: !!window.google?.play?.review
     });
 
-    if (platform.isTWA() && window.google?.play?.inAppReview) {
+    if (platform.isTWA() && window.google?.play?.review) {
       try {
-        console.log('[TWA-Rating] API is available, requesting review flow...');
-        await window.google.play.inAppReview.requestReviewFlow();
-        console.log('[TWA-Rating] Launching review flow...');
-        await window.google.play.inAppReview.launchReviewFlow();
+        console.log('[TWA-Rating] API is available, requesting native review dialog...');
+        await window.google.play.review.requestReview();
         return;
       } catch (e) {
         console.error('[TWA-Rating] Error showing native review dialog:', {
