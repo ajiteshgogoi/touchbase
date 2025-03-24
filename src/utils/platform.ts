@@ -20,8 +20,9 @@ declare global {
     };
     google?: {
       play?: {
-        review?: {
-          requestReview(): Promise<void>;
+        inAppReview?: {
+          requestReviewFlow(): Promise<void>;
+          launchReviewFlow(): Promise<void>;
         };
       };
       payments: {

@@ -249,6 +249,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
 
+    // Google Play In-App Review
+    implementation 'com.google.android.play:review:2.0.1'
+    implementation 'com.google.android.play:review-ktx:2.0.1'
+
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:33.10.0')
 
