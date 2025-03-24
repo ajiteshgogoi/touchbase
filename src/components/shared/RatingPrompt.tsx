@@ -87,6 +87,14 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
     }
   }, [user?.id, settings?.install_time, settings?.has_rated_app, settings?.last_rating_prompt, updateLastPromptTime]);
 
+  const tryNativeReview = () => {
+    if (typeof (window as any).AndroidInterface?.requestInAppReview === 'function') {
+      (window as any).AndroidInterface.requestInAppReview();
+      return true;
+    }
+    return false;
+  };
+
   const handleRate = async () => {
     const packageName = 'app.touchbase.site.twa';
     
@@ -97,6 +105,12 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
 
     setShowPrompt(false);
     
+    // Try native review first
+    if (platform.isTWA() && tryNativeReview()) {
+      return;
+    }
+
+    // Fallback to Play Store
     try {
       window.location.href = `market://details?id=${packageName}`;
     } catch (e) {
