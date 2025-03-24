@@ -22,7 +22,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.Manifest;
 import android.content.SharedPreferences;
-import android.view.ViewGroup;
 import androidx.core.content.ContextCompat;
 import androidx.core.app.ActivityCompat;
 import com.google.android.play.core.review.ReviewInfo;
@@ -161,34 +160,18 @@ public class LauncherActivity extends com.google.androidbrowserhelper.trusted.La
             return;
         }
 
-        // Permission is handled or not needed
+        // Permission is handled or not needed, load URL
 
-        if (webView == null) {
-            // Initialize WebView only once
-            webView = new WebView(this);
-            WebSettings webSettings = webView.getSettings();
-            webSettings.setJavaScriptEnabled(true);
+        // Initialize WebView
+        webView = new WebView(this);
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
 
-            // Add JavaScript interface
-            WebAppInterface webAppInterface = new WebAppInterface();
-            webView.addJavascriptInterface(webAppInterface, "AndroidInterface");
-
-            // Add WebView to activity (with zero size to keep it invisible)
-            webView.setLayoutParams(new ViewGroup.LayoutParams(1, 1));
-            addContentView(webView, webView.getLayoutParams());
-        }
+        // Add JavaScript interface
+        WebAppInterface webAppInterface = new WebAppInterface();
+        webView.addJavascriptInterface(webAppInterface, "AndroidInterface");
 
         // Load the TWA
         super.launchTwa();
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (webView != null) {
-            webView.removeAllViews();
-            webView.destroy();
-            webView = null;
-        }
-        super.onDestroy();
     }
 }
