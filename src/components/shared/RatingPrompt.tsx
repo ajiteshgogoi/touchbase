@@ -96,14 +96,15 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
     }
   
     setShowPrompt(false);
-    
-    // Try to show native rating dialog first
-    if (window.ReviewInfo) {
+
+    // Try to show native rating dialog for TWA
+    if (platform.isTWA() && window.chrome?.googlePlayReview) {
       try {
-        await window.ReviewInfo.launchReview();
+        console.log('[TWA-Rating] Requesting native review dialog...');
+        await window.chrome.googlePlayReview.requestReview();
         return;
       } catch (e) {
-        console.log('Native rating dialog failed, falling back to Play Store');
+        console.error('[TWA-Rating] Error showing native review dialog:', e);
       }
     }
   
