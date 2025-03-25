@@ -33,6 +33,7 @@ $functions = @(
     "check-duplicate-contact",
     "create-subscription",
     "delete-user",
+    "export-data",
     "get-user-stats",
     "google-play-webhooks",
     "paypal-webhooks",
