@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 import { useStore } from '../stores/useStore';
 import { supabase } from '../lib/supabase/client';
@@ -18,6 +18,7 @@ const NotificationSettings = lazy(() => import('../components/settings/Notificat
 const SubscriptionSettings = lazy(() => import('../components/settings/SubscriptionSettings').then(m => ({ default: m.SubscriptionSettings })));
 const AISettings = lazy(() => import('../components/settings/AISettings').then(m => ({ default: m.AISettings })));
 const FeedbackModal = lazy(() => import('../components/shared/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
+const DataExportModal = lazy(() => import('../components/settings/DataExportModal').then(m => ({ default: m.DataExportModal })));
 
 // Loading fallback component
 const SectionLoader = () => (
@@ -31,6 +32,7 @@ export const Settings = () => {
   const { user, isPremium } = useStore();
   const queryClient = useQueryClient();
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
     theme: 'light',
@@ -40,8 +42,6 @@ export const Settings = () => {
   });
 
   // Get subscription details
-  // Get subscription details
-  // Get subscription details with automatic store sync
   const { data: subscription } = useQuery({
     queryKey: ['subscription', user?.id] as const,
     queryFn: async () => {
@@ -435,6 +435,25 @@ export const Settings = () => {
           </div>
         </div>
 
+        {/* Export Data Section */}
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
+          <h2 className="text-xl font-semibold text-primary-500 mb-6">
+            Export Your Data
+          </h2>
+          <div className="space-y-4">
+            <p className="text-gray-600/90">
+              Download all your contacts, interactions, events and reminders in CSV format.
+            </p>
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200"
+            >
+              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+              Export Data
+            </button>
+          </div>
+        </div>
+
         {/* Account Deletion */}
         <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
           <h2 className="text-xl font-semibold text-gray-600/90 mb-6">
@@ -479,6 +498,13 @@ export const Settings = () => {
           <FeedbackModal
             isOpen={isFeedbackModalOpen}
             onClose={() => setIsFeedbackModalOpen(false)}
+          />
+        </Suspense>
+
+        <Suspense fallback={null}>
+          <DataExportModal
+            isOpen={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
           />
         </Suspense>
       </div>
