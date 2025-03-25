@@ -49,44 +49,45 @@ serve(async (req) => {
     const timezone = userPref?.timezone || 'UTC'
 
     // Fetch all user data
+    // Get all contacts first to build a lookup map
+    const { data: contacts } = await supabaseClient
+      .from('contacts')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('name');
+
+    // Create a contact name lookup
+    const contactMap = new Map(contacts?.map(c => [c.id, c.name]) || []);
+
+    // Get other data
     const [
-      { data: contacts },
       { data: interactions },
       { data: importantEvents },
       { data: reminders }
     ] = await Promise.all([
       supabaseClient
-        .from('contacts')
+        .from('interactions')
         .select('*')
         .eq('user_id', user.id)
-        .order('name'),
-      
-      supabaseClient
-        .from('interactions')
-        .select('interactions.*, contacts.name as contact_name')
-        .eq('interactions.user_id', user.id)
-        .join('contacts', { foreignKey: 'contact_id' })
         .order('date'),
       
       supabaseClient
         .from('important_events')
-        .select('important_events.*, contacts.name as contact_name')
-        .eq('important_events.user_id', user.id)
-        .join('contacts', { foreignKey: 'contact_id' })
+        .select('*')
+        .eq('user_id', user.id)
         .order('date'),
       
       supabaseClient
         .from('reminders')
-        .select('reminders.*, contacts.name as contact_name')
-        .eq('reminders.user_id', user.id)
-        .join('contacts', { foreignKey: 'contact_id' })
+        .select('*')
+        .eq('user_id', user.id)
         .order('due_date')
-    ])
+    ]);
 
     // Create CSV content for each type
     const contactsCSV = [
       'name,phone,social_media_platform,social_media_handle,last_contacted,next_contact_due,preferred_contact_method,notes,contact_frequency',
-      ...(contacts || []).map(c => 
+      ...(contacts || []).map(c =>
         `"${c.name}","${c.phone || ''}","${c.social_media_platform || ''}","${c.social_media_handle || ''}","${new Date(c.last_contacted).toLocaleString('en-US', { timeZone: timezone })}","${new Date(c.next_contact_due).toLocaleString('en-US', { timeZone: timezone })}","${c.preferred_contact_method || ''}","${(c.notes || '').replace(/"/g, '""')}","${c.contact_frequency}"`
       )
     ].join('\n')
@@ -94,21 +95,21 @@ serve(async (req) => {
     const interactionsCSV = [
       'contact_name,type,date,notes,sentiment',
       ...(interactions || []).map(i =>
-        `"${i.contact_name}","${i.type}","${new Date(i.date).toLocaleString('en-US', { timeZone: timezone })}","${(i.notes || '').replace(/"/g, '""')}","${i.sentiment || ''}"`
+        `"${contactMap.get(i.contact_id) || ''}","${i.type}","${new Date(i.date).toLocaleString('en-US', { timeZone: timezone })}","${(i.notes || '').replace(/"/g, '""')}","${i.sentiment || ''}"`
       )
     ].join('\n')
 
     const eventsCSV = [
       'contact_name,type,name,date',
       ...(importantEvents || []).map(e =>
-        `"${e.contact_name}","${e.type}","${(e.name || '').replace(/"/g, '""')}","${new Date(e.date).toLocaleString('en-US', { timeZone: timezone })}"`
+        `"${contactMap.get(e.contact_id) || ''}","${e.type}","${(e.name || '').replace(/"/g, '""')}","${new Date(e.date).toLocaleString('en-US', { timeZone: timezone })}"`
       )
     ].join('\n')
 
     const remindersCSV = [
       'contact_name,type,due_date,completed,name',
       ...(reminders || []).map(r =>
-        `"${r.contact_name}","${r.type}","${new Date(r.due_date).toLocaleString('en-US', { timeZone: timezone })}","${r.completed}","${(r.name || '').replace(/"/g, '""')}"`
+        `"${contactMap.get(r.contact_id) || ''}","${r.type}","${new Date(r.due_date).toLocaleString('en-US', { timeZone: timezone })}","${r.completed}","${(r.name || '').replace(/"/g, '""')}"`
       )
     ].join('\n')
 
