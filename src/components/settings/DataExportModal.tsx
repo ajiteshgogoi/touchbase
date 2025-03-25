@@ -63,8 +63,8 @@ export const DataExportModal = ({ isOpen, onClose }: Props) => {
         // Generate random increment between 2-8%
         const increment = Math.random() * 6 + 2;
         progressRef.current += increment;
-        // Cap at 93% to leave room for completion
-        setProgress(Math.min(93, progressRef.current));
+        // Cap at 89% to leave room for completion
+        setProgress(Math.min(89, progressRef.current));
       }
     }, 500);
     setProgressInterval(interval);
