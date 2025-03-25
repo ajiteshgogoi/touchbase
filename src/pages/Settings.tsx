@@ -417,6 +417,37 @@ export const Settings = () => {
           </>
         )}
 
+        {/* Export Data Section */}
+        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-primary-500">
+              Export Your Data
+            </h2>
+            {!(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-600">
+                Premium Only
+              </span>
+            )}
+          </div>
+          <div className="space-y-4">
+            <p className={isPremium ? "text-gray-600/90" : "text-gray-400"}>
+              Download all your contacts, interactions, events and reminders in CSV format.
+            </p>
+            <button
+              onClick={() => isPremium && setIsExportModalOpen(true)}
+              disabled={!isPremium}
+              className={`inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] transition-all duration-200 ${
+                isPremium
+                  ? 'text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg cursor-pointer'
+                  : 'text-gray-400 bg-gray-100 cursor-not-allowed'
+              }`}
+            >
+              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+              Export Data
+            </button>
+          </div>
+        </div>
+
         {/* Feedback Section */}
         <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
           <h2 className="text-xl font-semibold text-primary-500 mb-6">
@@ -431,25 +462,6 @@ export const Settings = () => {
               className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200"
             >
               Send Feedback
-            </button>
-          </div>
-        </div>
-
-        {/* Export Data Section */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
-          <h2 className="text-xl font-semibold text-primary-500 mb-6">
-            Export Your Data
-          </h2>
-          <div className="space-y-4">
-            <p className="text-gray-600/90">
-              Download all your contacts, interactions, events and reminders in CSV format.
-            </p>
-            <button
-              onClick={() => setIsExportModalOpen(true)}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200"
-            >
-              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-              Export Data
             </button>
           </div>
         </div>
