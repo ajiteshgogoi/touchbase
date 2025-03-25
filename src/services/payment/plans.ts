@@ -47,6 +47,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Contact interaction history',      
       'Advanced AI suggestions',
       'Relationship insights',
+      'Data export to CSV',
       'Priority support'
     ]
   }

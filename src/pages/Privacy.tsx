@@ -108,6 +108,7 @@ export const Privacy = () => {
           </p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 space-y-1">
             <li>Access and modify your stored data</li>
+            <li>Export and download your stored data</li>
             <li>Report inappropriate AI suggestions</li>
             <li>Delete your account and data instantly</li>
           </ul>
