@@ -48,67 +48,76 @@ serve(async (req) => {
 
     const timezone = userPref?.timezone || 'UTC'
 
-    // Fetch all user data
-    // Get all contacts first to build a lookup map
-    const { data: contacts } = await supabaseClient
-      .from('contacts')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('name');
+    // Helper function to fetch paginated data
+    async function fetchAllData<T>(
+      table: string,
+      orderColumn: string,
+      ascending: boolean = true
+    ): Promise<T[]> {
+      let allData: T[] = [];
+      let page = 0;
+      const pageSize = 950; // Stay well under 1000 limit
+      
+      while (true) {
+        const { data, error } = await supabaseClient
+          .from(table)
+          .select('*')
+          .eq('user_id', user.id)
+          .order(orderColumn, { ascending })
+          .range(page * pageSize, (page + 1) * pageSize - 1);
 
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        
+        allData = [...allData, ...data];
+        
+        // If we got less than pageSize, we've reached the end
+        if (data.length < pageSize) break;
+        
+        page++;
+      }
+      
+      return allData;
+    }
+
+    // Fetch all data with pagination
+    const contacts = await fetchAllData('contacts', 'name');
+    
     // Create a contact name lookup
     const contactMap = new Map(contacts?.map(c => [c.id, c.name]) || []);
 
-    // Get other data
-    const [
-      { data: interactions },
-      { data: importantEvents },
-      { data: reminders }
-    ] = await Promise.all([
-      supabaseClient
-        .from('interactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date'),
-      
-      supabaseClient
-        .from('important_events')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date'),
-      
-      supabaseClient
-        .from('reminders')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('due_date')
+    // Get other data with pagination
+    const [interactions, importantEvents, reminders] = await Promise.all([
+      fetchAllData('interactions', 'date'),
+      fetchAllData('important_events', 'date'),
+      fetchAllData('reminders', 'due_date')
     ]);
 
     // Create CSV content for each type
     const contactsCSV = [
       'name,phone,social_media_platform,social_media_handle,last_contacted,next_contact_due,preferred_contact_method,notes,contact_frequency',
-      ...(contacts || []).map(c =>
+      ...contacts.map(c =>
         `"${c.name}","${c.phone || ''}","${c.social_media_platform || ''}","${c.social_media_handle || ''}","${new Date(c.last_contacted).toLocaleString('en-US', { timeZone: timezone })}","${new Date(c.next_contact_due).toLocaleString('en-US', { timeZone: timezone })}","${c.preferred_contact_method || ''}","${(c.notes || '').replace(/"/g, '""')}","${c.contact_frequency}"`
       )
     ].join('\n')
 
     const interactionsCSV = [
       'contact_name,type,date,notes,sentiment',
-      ...(interactions || []).map(i =>
+      ...interactions.map(i =>
         `"${contactMap.get(i.contact_id) || ''}","${i.type}","${new Date(i.date).toLocaleString('en-US', { timeZone: timezone })}","${(i.notes || '').replace(/"/g, '""')}","${i.sentiment || ''}"`
       )
     ].join('\n')
 
     const eventsCSV = [
       'contact_name,type,name,date',
-      ...(importantEvents || []).map(e =>
+      ...importantEvents.map(e =>
         `"${contactMap.get(e.contact_id) || ''}","${e.type}","${(e.name || '').replace(/"/g, '""')}","${new Date(e.date).toLocaleString('en-US', { timeZone: timezone })}"`
       )
     ].join('\n')
 
     const remindersCSV = [
       'contact_name,type,due_date,completed,name',
-      ...(reminders || []).map(r =>
+      ...reminders.map(r =>
         `"${contactMap.get(r.contact_id) || ''}","${r.type}","${new Date(r.due_date).toLocaleString('en-US', { timeZone: timezone })}","${r.completed}","${(r.name || '').replace(/"/g, '""')}"`
       )
     ].join('\n')
