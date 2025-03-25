@@ -147,14 +147,12 @@ Export date: ${new Date().toLocaleString('en-US', { timeZone: timezone })}
     const zipBlob = await zip.generateAsync({ type: 'blob' })
     const zipBuffer = await zipBlob.arrayBuffer()
 
-    // Return ZIP file
-    return new Response(zipBuffer, {
-      headers: {
-        'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="touchbase_export_${new Date().toISOString().split('T')[0]}.zip"`,
-        ...Object.fromEntries(createResponse({}).headers.entries())
-      }
-    })
+    // Return ZIP file with simplified filename for mobile compatibility
+    const headers = new Headers(createResponse({}).headers)
+    headers.set('Content-Type', 'application/zip')
+    headers.set('Content-Disposition', 'attachment; filename=touchbase_export.zip')
+    
+    return new Response(zipBuffer, { headers })
 
   } catch (error) {
     console.error('Error in export:', error)
