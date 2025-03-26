@@ -104,6 +104,21 @@ const publicPages = [
     url: '/alternatives/networking-management-software',
     changefreq: 'monthly',
     priority: 0.8
+  },
+  {
+    url: '/alternatives/best-crm-for-friends',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/best-crm-for-personal-use',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/best-personal-relationship-crm',
+    changefreq: 'monthly',
+    priority: 0.8
   }
 ];
 
