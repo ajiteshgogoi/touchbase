@@ -27,6 +27,27 @@ const publicPages = [
     url: '/support',
     changefreq: 'monthly',
     priority: 0.8
+  },
+  // Feature pages
+  {
+    url: '/features/smart-contact-management',
+    changefreq: 'monthly',
+    priority: 0.9
+  },
+  {
+    url: '/features/intelligent-reminders',
+    changefreq: 'monthly',
+    priority: 0.9
+  },
+  {
+    url: '/features/personalized-suggestions',
+    changefreq: 'monthly',
+    priority: 0.9
+  },
+  {
+    url: '/features/conversation-prompts',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
