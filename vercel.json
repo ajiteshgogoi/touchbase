@@ -84,6 +84,17 @@
       ],
       "dest": "/features/$1.html"
     },
+   {
+      "src": "/alternatives/(best-personal-crm|best-relationship-manager|best-contact-organizer|best-relationship-management-app|personal-crm-tool|contact-management-software|relationship-tracking-tool|networking-management-software)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*\\b(AhrefsBot|AhrefsSiteAudit|Googlebot|bingbot|barkrowler|dotbot|YandexBot|DuckDuckBot|Slurp|SemrushBot|MJ12bot|Baiduspider)\\b.*"
+        }
+      ],
+      "dest": "/alternatives/$1.html"
+    },
     {
       "src": "^/?$",
       "has": [
@@ -106,6 +117,10 @@
     {
       "src": "/features/(smart-contact-management|intelligent-reminders|personalized-suggestions|conversation-prompts|bulk-import-export|important-events|relationship-insights)",
       "dest": "/features/$1.html"
+    },
+   {
+      "src": "/alternatives/.*\\.html$",
+      "headers": { "cache-control": "public, max-age=3600" }
     },
     {
       "src": "/(.*)",

@@ -63,6 +63,47 @@ const publicPages = [
     url: '/features/relationship-insights',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  // Alternative pages
+  {
+    url: '/alternatives/best-personal-crm',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/best-relationship-manager',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/best-contact-organizer',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/best-relationship-management-app',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/personal-crm-tool',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/contact-management-software',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/relationship-tracking-tool',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/alternatives/networking-management-software',
+    changefreq: 'monthly',
+    priority: 0.8
   }
 ];
 
