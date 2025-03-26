@@ -48,6 +48,11 @@ const publicPages = [
     url: '/features/conversation-prompts',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  {
+    url: '/features/bulk-import-export',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
