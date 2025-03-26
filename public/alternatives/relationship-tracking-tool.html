@@ -150,47 +150,170 @@
                   Compare relationship tracking capabilities across different tools:
                 </p>
                 <div class="overflow-x-auto rounded-xl border border-gray-200/50 shadow-sm">
-                  <table class="min-w-full divide-y divide-gray-100/50">
-                    <thead class="bg-gray-50/80 backdrop-blur-sm">
-                      <tr>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">Feature</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">TouchBase</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">Monica</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">Dex</th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">Clay</th>
-                      </tr>
-                    </thead>
-                    <tbody class="bg-white/80 divide-y divide-gray-100/50">
-                      <tr class="even:bg-gray-50/50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Interaction Logging</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Advanced</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Basic</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Advanced</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Advanced</td>
-                      </tr>
-                      <tr class="even:bg-gray-50/50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Analytics</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Comprehensive</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Limited</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Basic</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Advanced</td>
-                      </tr>
-                      <tr class="even:bg-gray-50/50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Smart Reminders</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">AI-Powered</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Basic</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Advanced</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Basic</td>
-                      </tr>
-                      <tr class="even:bg-gray-50/50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Relationship Scoring</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Yes</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">No</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Yes</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Yes</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                    <table class="min-w-full divide-y divide-gray-100/50">
+                        <thead class="bg-gray-50/80 backdrop-blur-sm">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">
+                                    Feature
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">
+                                    TouchBase
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">
+                                    Monica
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">
+                                    Dex
+                                </th>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-[650] text-gray-700/90 uppercase tracking-wider">
+                                    Clay
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white/80 divide-y divide-gray-100/50">
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-700">
+                                    Contact Limit (Free Plan)
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-600">15 contacts</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-600">10 contacts</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100/70 text-yellow-800">No free plan</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-sm text-gray-600">1,000 contacts</span>
+                                </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap">Interaction Tracking</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-white">Advanced</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/70 text-blue-800">Basic</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-white">Advanced</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-white">Advanced</span>
+                                </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap">Analytics & Insights</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-white">Comprehensive</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100/70 text-yellow-800">Limited</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/70 text-blue-800">Basic</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-white">Advanced</span>
+                                </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap">Smart Reminders</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-white">AI-Powered</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/70 text-blue-800">Basic</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/70 text-green-800">Advanced</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/70 text-blue-800">Basic</span>
+                                </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-700">Relationship Scoring</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/70 text-green-800">Yes</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100/70 text-gray-800">No</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/70 text-green-800">Yes</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/70 text-green-800">Yes</span>
+                                </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-700">Ease of Use</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500 text-white">High</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/70 text-blue-800">Moderate</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/70 text-green-800">Good</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100/70 text-yellow-800">Complex</span>
+                                </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                               <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-700">Data Import/Export</td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="text-sm text-gray-600">Google Contacts, CSV, VCF</span>
+                               </td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="text-sm text-gray-600">CSV, VCF</span>
+                               </td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="text-sm text-gray-600">Social Media, CSV</span>
+                               </td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="text-sm text-gray-600">Social Media, CSV</span>
+                               </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                               <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-700">Best For</td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/70 text-green-800">Personal</span>
+                               </td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100/70 text-green-800">Personal</span>
+                               </td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/70 text-blue-800">Business</span>
+                               </td>
+                               <td class="px-6 py-4 whitespace-nowrap">
+                                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100/70 text-blue-800">Business</span>
+                               </td>
+                            </tr>
+                            <tr class="even:bg-gray-50/50 hover:bg-gray-100/50 transition-colors duration-150">
+                               <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-700">Pricing</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100/70 text-primary-800">Freemium</span>
+                                    <span class="text-sm text-gray-600 block mt-1">$3/month for Premium</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100/70 text-primary-800">Freemium</span>
+                                    <span class="text-sm text-gray-600 block mt-1">$9/month for Pro</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100/70 text-yellow-800">Paid Only</span>
+                                    <span class="text-sm text-gray-600 block mt-1">$12/month</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100/70 text-primary-800">Freemium</span>
+                                    <span class="text-sm text-gray-600 block mt-1">$10/month for Pro</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
               </section>
 
