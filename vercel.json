@@ -74,7 +74,7 @@
       "dest": "/$1.html"
     },
     {
-      "src": "/features/(smart-contact-management|intelligent-reminders|personalized-suggestions|conversation-prompts|bulk-import-export)",
+      "src": "/features/(smart-contact-management|intelligent-reminders|personalized-suggestions|conversation-prompts|bulk-import-export|important-events|relationship-insights)",
       "has": [
         {
           "type": "header",
@@ -104,7 +104,7 @@
       "headers": { "cache-control": "public, max-age=3600" }
     },
     {
-      "src": "/features/(smart-contact-management|intelligent-reminders|personalized-suggestions|conversation-prompts|bulk-import-export)",
+      "src": "/features/(smart-contact-management|intelligent-reminders|personalized-suggestions|conversation-prompts|bulk-import-export|important-events|relationship-insights)",
       "dest": "/features/$1.html"
     },
     {
