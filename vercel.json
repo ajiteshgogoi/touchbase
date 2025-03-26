@@ -74,6 +74,17 @@
       "dest": "/$1.html"
     },
     {
+      "src": "/features/(smart-contact-management|intelligent-reminders|personalized-suggestions|conversation-prompts)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*\\b(AhrefsBot|AhrefsSiteAudit|Googlebot|bingbot|barkrowler|dotbot|YandexBot|DuckDuckBot|Slurp|SemrushBot|MJ12bot|Baiduspider)\\b.*"
+        }
+      ],
+      "dest": "/features/$1.html"
+    },
+    {
       "src": "^/?$",
       "has": [
         {
@@ -87,6 +98,14 @@
     {
       "src": "/(login|terms|privacy|support)\\.html",
       "headers": { "cache-control": "public, max-age=3600" }
+    },
+    {
+      "src": "/features/.*\\.html$",
+      "headers": { "cache-control": "public, max-age=3600" }
+    },
+    {
+      "src": "/features/(smart-contact-management|intelligent-reminders|personalized-suggestions|conversation-prompts)",
+      "dest": "/features/$1.html"
     },
     {
       "src": "/(.*)",
