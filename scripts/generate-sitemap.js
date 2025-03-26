@@ -53,6 +53,16 @@ const publicPages = [
     url: '/features/bulk-import-export',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  {
+    url: '/features/important-events',
+    changefreq: 'monthly',
+    priority: 0.9
+  },
+  {
+    url: '/features/relationship-insights',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
