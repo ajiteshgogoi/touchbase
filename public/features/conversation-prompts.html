@@ -180,8 +180,11 @@
       </main>
 
       <footer class="text-center pt-2 pb-5 text-gray-600 text-sm">
-        © 2025 TouchBase Technologies
+        © <span id="currentYear"></span> TouchBase Technologies
       </footer>
     </div>
+    <script>
+      document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
   </body>
 </html>
