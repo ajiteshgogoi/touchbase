@@ -8,6 +8,7 @@ Allow: /terms
 Allow: /support
 Allow: /features/
 Allow: /alternatives/
+Allow: /compare/
 Allow: /assets/
 Allow: /*.css
 Allow: /*.js
