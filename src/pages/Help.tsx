@@ -252,6 +252,14 @@ export const Help = () => {
               <li>Tap <span className="text-primary-500">Add</span> to install</li>
             </ol>
           </div>
+          <div className="space-y-2">
+            <p className="font-medium">Web App:</p>
+            <ol className="list-decimal list-inside space-y-2 ml-4">
+              <li>Visit <a href="https://touchbase.site" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600">https://touchbase.site</a> on desktop Chrome</li>
+              <li>Click the install icon (computer monitor with down arrow) in the address bar</li>
+              <li>Click <span className="text-primary-500">Install</span> to add to your device</li>
+            </ol>
+          </div>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
             <strong className="text-primary-700">Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen and push-notifications.
           </div>
