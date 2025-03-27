@@ -135,6 +135,11 @@ const publicPages = [
     url: '/compare/clay-personal-crm-vs-touchbase',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  {
+    url: '/compare/cloze-personal-crm-vs-touchbase',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
