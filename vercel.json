@@ -96,7 +96,7 @@
       "dest": "/alternatives/$1.html"
     },
     {
-      "src": "/compare/(monica-personal-crm-vs-touchbase|dex-personal-crm-vs-touchbase|clay-personal-crm-vs-touchbase|cloze-personal-crm-vs-touchbase)",
+      "src": "/compare/(monica-personal-crm-vs-touchbase|dex-personal-crm-vs-touchbase|clay-personal-crm-vs-touchbase|cloze-personal-crm-vs-touchbase|notion-personal-crm-vs-touchbase)",
       "has": [
         {
           "type": "header",
@@ -142,7 +142,7 @@
      "headers": { "cache-control": "public, max-age=3600" }
    },
    {
-     "src": "/compare/(monica-personal-crm-vs-touchbase|dex-personal-crm-vs-touchbase|clay-personal-crm-vs-touchbase|cloze-personal-crm-vs-touchbase)",
+     "src": "/compare/(monica-personal-crm-vs-touchbase|dex-personal-crm-vs-touchbase|clay-personal-crm-vs-touchbase|cloze-personal-crm-vs-touchbase|notion-personal-crm-vs-touchbase)",
      "dest": "/compare/$1.html"
    },
     {

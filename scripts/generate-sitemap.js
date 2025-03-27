@@ -140,6 +140,11 @@ const publicPages = [
     url: '/compare/cloze-personal-crm-vs-touchbase',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  {
+    url: '/compare/notion-personal-crm-vs-touchbase',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
