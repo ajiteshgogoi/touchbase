@@ -145,6 +145,11 @@ const publicPages = [
     url: '/compare/notion-personal-crm-vs-touchbase',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  {
+    url: '/compare/airtable-personal-crm-vs-touchbase',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
