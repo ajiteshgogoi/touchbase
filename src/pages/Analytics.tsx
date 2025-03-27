@@ -64,9 +64,21 @@ export const Analytics = () => {
   }, [isPremium, isOnTrial, refetchAnalytics]);
 
   const canGenerate = useMemo(() => {
+    // Wait for both queries to complete before enabling
+    if (hasEnoughDataForAnalysis === undefined) return false;
+    
+    // Must have enough data as base requirement
+    if (!hasEnoughDataForAnalysis) return false;
+
+    // If analytics is still loading, keep disabled
+    if (analytics === undefined) return false;
+    
+    // If no previous analytics, allow generation
     if (!analytics) return true;
+
+    // Check if enough time has passed since last generation
     return dayjs().isAfter(dayjs(analytics.nextGenerationAllowed));
-  }, [analytics]);
+  }, [analytics, hasEnoughDataForAnalysis]);
 
   const handleReportContent = async (contactId: string, content: string) => {
     if (confirm('Report this AI insight as inappropriate?')) {
