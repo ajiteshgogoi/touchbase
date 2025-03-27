@@ -125,6 +125,11 @@ const publicPages = [
     url: '/compare/monica-personal-crm-vs-touchbase',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  {
+    url: '/compare/dex-personal-crm-vs-touchbase',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
