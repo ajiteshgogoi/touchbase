@@ -1,5 +1,6 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getMessaging, onMessage, getToken, Messaging } from "firebase/messaging";
+import { getAnalytics } from "firebase/analytics";
 import { supabase } from "../supabase/client";
 import { firebaseConfig, fcmSettings } from "./config";
 import { platform } from "../../utils/platform";
@@ -9,6 +10,7 @@ const DEBUG_PREFIX = '🔥 [Firebase Init]';
 
 // Initialize Firebase app once and validate configuration
 let app: FirebaseApp;
+let analytics: any;
 try {
   // Validate required Firebase config
   const requiredKeys: (keyof typeof firebaseConfig)[] = ['apiKey', 'authDomain', 'projectId', 'messagingSenderId', 'appId'];
@@ -23,13 +25,16 @@ try {
   }
 
   app = initializeApp(firebaseConfig);
-  console.log(`${DEBUG_PREFIX} Firebase initialized successfully`);
+  
+  // Initialize Analytics
+  analytics = getAnalytics(app);
+  console.log(`${DEBUG_PREFIX} Firebase initialized successfully with analytics`);
 } catch (error) {
   console.error(`${DEBUG_PREFIX} Firebase initialization failed:`, error);
   throw error;
 }
 
-export { app };
+export { app, analytics };
 
 // Manage messaging instance with initialization delay
 let messagingInstance: Messaging | null = null;
