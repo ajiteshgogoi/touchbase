@@ -1,6 +1,6 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getMessaging, onMessage, getToken, Messaging } from "firebase/messaging";
-import { getAnalytics } from "firebase/analytics";
+import { Analytics } from "firebase/analytics";
 import { supabase } from "../supabase/client";
 import { firebaseConfig, fcmSettings } from "./config";
 import { platform } from "../../utils/platform";
@@ -10,7 +10,6 @@ const DEBUG_PREFIX = '🔥 [Firebase Init]';
 
 // Initialize Firebase app once and validate configuration
 let app: FirebaseApp;
-let analytics: any;
 try {
   // Validate required Firebase config
   const requiredKeys: (keyof typeof firebaseConfig)[] = ['apiKey', 'authDomain', 'projectId', 'messagingSenderId', 'appId'];
@@ -25,16 +24,31 @@ try {
   }
 
   app = initializeApp(firebaseConfig);
-  
-  // Initialize Analytics
-  analytics = getAnalytics(app);
-  console.log(`${DEBUG_PREFIX} Firebase initialized successfully with analytics`);
+  console.log(`${DEBUG_PREFIX} Firebase initialized successfully`);
 } catch (error) {
   console.error(`${DEBUG_PREFIX} Firebase initialization failed:`, error);
   throw error;
 }
 
-export { app, analytics };
+// Lazy load analytics
+let analyticsInstance: Analytics | null = null;
+export const initializeAnalytics = async (): Promise<Analytics> => {
+  if (analyticsInstance) {
+    return analyticsInstance;
+  }
+
+  try {
+    const { getAnalytics } = await import('firebase/analytics');
+    analyticsInstance = getAnalytics(app);
+    console.log(`${DEBUG_PREFIX} Analytics initialized successfully`);
+    return analyticsInstance;
+  } catch (error) {
+    console.error(`${DEBUG_PREFIX} Analytics initialization failed:`, error);
+    throw error;
+  }
+};
+
+export { app };
 
 // Manage messaging instance with initialization delay
 let messagingInstance: Messaging | null = null;

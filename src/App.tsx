@@ -414,6 +414,15 @@ function App() {
         if (session?.user) {
           await checkPremiumStatus();
           await checkNotificationsAndTimezone(session.user.id);
+          
+          // Initialize analytics after auth and critical features
+          requestIdleCallback(() => {
+            import('./lib/firebase').then(({ initializeAnalytics }) => {
+              initializeAnalytics().catch(error => {
+                console.error('Error initializing analytics:', error);
+              });
+            });
+          });
         } else {
           setIsPremium(false);
         }
