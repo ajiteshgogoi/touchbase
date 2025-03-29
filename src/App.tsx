@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AppLayout } from './components/layout/AppLayout';
 import { useStore } from './stores/useStore';
 import { supabase } from './lib/supabase/client';
@@ -493,7 +492,6 @@ function App() {
     >
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <SpeedInsights />
           <Helmet>
             <link 
               rel="preload"
