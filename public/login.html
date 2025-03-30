@@ -18,13 +18,40 @@
         var html = document.documentElement;
         var ua = navigator.userAgent || '';
         var isIOS = /iPad|iPhone|iPod/.test(ua);
-        var isInstagram = /Instagram/.test(ua);
-        var isThreads = /Threads/.test(ua);
-        var isMetaInAppBrowser = isInstagram || isThreads ||
-          (isIOS && (/FBAN/.test(ua) || /FBAV/.test(ua) || /FBIOS/.test(ua)));
 
-        // Set a placeholder for Instagram/Threads browser
-        if (isMetaInAppBrowser) {
+        // Feature detection for in-app browser limitations
+        function detectInAppBrowser() {
+          try {
+            // Test for common in-app browser limitations
+            var hasLimitations =
+              // Limited storage access
+              !window.localStorage ||
+              // Restricted service worker
+              !('serviceWorker' in navigator) ||
+              // Limited sharing capabilities
+              !navigator.share ||
+              // Restricted clipboard access
+              !navigator.clipboard ||
+              // Storage access limitations
+              !navigator.storage ||
+              // Limited IndexedDB access
+              !window.indexedDB;
+
+            return hasLimitations;
+          } catch (e) {
+            // If we get errors checking these features, likely in a restricted browser
+            return true;
+          }
+        }
+
+        // Check both UA strings and feature detection
+        var isMetaBrowser = /Instagram/.test(ua) ||
+          (isIOS && (/FBAN/.test(ua) || /FBAV/.test(ua) || /FBIOS/.test(ua)));
+        
+        var isInAppBrowser = isMetaBrowser || detectInAppBrowser();
+
+        // Set a placeholder for in-app browser
+        if (isInAppBrowser) {
           
           // Create a basic UI that works without React
           var style = document.createElement('style');
