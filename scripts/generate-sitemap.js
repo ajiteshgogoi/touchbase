@@ -121,6 +121,11 @@ const publicPages = [
     priority: 0.8
   },
   {
+    url: '/alternatives/personal-crm-system',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
     url: '/alternatives/best-crm-for-personal-life',
     changefreq: 'monthly',
     priority: 0.8
