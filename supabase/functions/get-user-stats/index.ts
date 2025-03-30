@@ -60,7 +60,7 @@ serve(async (req) => {
 
     // Get users ordered by most recent first
     const { data: { users }, error: usersError } = await supabaseClient.auth.admin.listUsers({
-      perPage: 30,
+      perPage: 50,
       page: 1,
       sortBy: {
         column: 'created_at',
@@ -121,7 +121,10 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocKlVRbgZNuyLfkjCrfHNqOwmMApXpesMEe9-gmPNwbSU2LIGg=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocKofIop6oNouMc5AHhTKkWiCAZ31s5iDVP9tuoPO3KmCLrjaw=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocI5Q328iTvVUEaOXu2oiEq1U0Lhkel7Qowt_4yRLvCI4wAq3Mo=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocKchIO_H9eBRBJuPx76o_KV_sz_y7LH_YdjeQMHE9i81zdmAQ=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocKchIO_H9eBRBJuPx76o_KV_sz_y7LH_YdjeQMHE9i81zdmAQ=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocLAMBh2PQIjgAfWXFYxTwNUijIOdaXKI80p3eSGJ4S23JtSJQ=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocLWYiy_0yEP5xkDXi3ml4zqm96oVFF3zQcThq8fXnFrlmmDIw=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocK_dRDoQ-tgeE2X8bJu5tr7C9GLfXUyAPTJdgl42mzHRemoTQ=s96-c'
 
     ];
 
