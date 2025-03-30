@@ -86,11 +86,13 @@
         var html = document.documentElement;
         var ua = navigator.userAgent || '';
         var isIOS = /iPad|iPhone|iPod/.test(ua);
-        var isInstagram = /Instagram/.test(ua) ||
+        var isInstagram = /Instagram/.test(ua);
+        var isThreads = /Threads/.test(ua);
+        var isMetaInAppBrowser = isInstagram || isThreads ||
           (isIOS && (/FBAN/.test(ua) || /FBAV/.test(ua) || /FBIOS/.test(ua)));
 
-        // Set a placeholder for Instagram browser
-       if (isInstagram) {
+        // Set a placeholder for Instagram/Threads browser
+       if (isMetaInAppBrowser) {
          
          // Create a basic UI that works without React
          var style = document.createElement('style');
@@ -151,7 +153,7 @@
          div.className = 'ig-overlay';
          div.innerHTML = `
            <div class="ig-message">
-             <div class="ig-heading">TouchBase cannot run in Instagram's browser</div>
+             <div class="ig-heading">TouchBase cannot run in this in-app browser</div>
              <br><br>
              Please follow the steps below to open in your phone's browser:
            </div>
@@ -173,8 +175,9 @@
           });
 
           // Store detection results
-          html.setAttribute('data-ig-browser', 'true');
-          html.setAttribute('data-ig-platform', isIOS ? 'ios' : 'android');
+          html.setAttribute('data-meta-browser', 'true');
+          html.setAttribute('data-meta-app', isInstagram ? 'instagram' : 'threads');
+          html.setAttribute('data-meta-platform', isIOS ? 'ios' : 'android');
         }
         
         // Handle app initialization
