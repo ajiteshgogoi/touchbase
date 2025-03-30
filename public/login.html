@@ -128,14 +128,26 @@
             </div>
           `;
            
-          // Add banner when DOM is ready
-          document.addEventListener('DOMContentLoaded', function() {
+          // Add banner with robust DOM ready check
+          if (document.body) {
             document.body.appendChild(div);
-          });
+          } else {
+            // Ensure banner is added even if DOMContentLoaded doesn't fire
+            var addBanner = function() {
+              document.body.appendChild(div);
+            };
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+              addBanner();
+            } else {
+              document.addEventListener('DOMContentLoaded', addBanner);
+              // Fallback if DOMContentLoaded doesn't fire
+              window.setTimeout(addBanner, 2000);
+            }
+          }
 
           // Store detection results
           html.setAttribute('data-meta-browser', 'true');
-          html.setAttribute('data-meta-app', isInstagram ? 'instagram' : 'threads');
+          html.setAttribute('data-meta-app', /Instagram/.test(ua) ? 'instagram' : 'meta');
           html.setAttribute('data-meta-platform', isIOS ? 'ios' : 'android');
         }
         
