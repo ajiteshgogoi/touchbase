@@ -514,9 +514,14 @@ function App() {
               href="https://touchbase.site"
               crossOrigin="anonymous"
             />
-            <link 
-              rel="preconnect" 
+            <link
+              rel="preconnect"
               href="https://api.touchbase.site"
+              crossOrigin="anonymous"
+            />
+            <link
+              rel="preconnect"
+              href="https://oauth.touchbase.site"
               crossOrigin="anonymous"
             />
           </Helmet>
