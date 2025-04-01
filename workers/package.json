@@ -1,16 +1,20 @@
 {
-  "name": "workers",
+  "name": "@touchbase/workers",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "type": "module",
+  "workspaces": [
+    "touchbase-proxy",
+    "touchbase-oauth"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy:proxy": "wrangler deploy --config touchbase-proxy/wrangler.toml",
+    "deploy:oauth": "wrangler deploy --config touchbase-oauth/wrangler.toml",
+    "deploy:all": "npm run deploy:proxy && npm run deploy:oauth"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "devDependencies": {
-    "wrangler": "^4.6.0"
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0",
+    "@cloudflare/workers-types": "^4.0.0"
   }
 }

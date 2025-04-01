@@ -1,0 +1,27 @@
+name = "touchbase-oauth"
+main = "worker.ts"
+compatibility_date = "2024-03-21"
+
+# Production
+[env.production]
+vars = { 
+  ALLOWED_ORIGINS = "https://touchbase.site,https://touchbase-git-staging-ajiteshgogois-projects.vercel.app"
+  ENVIRONMENT = "production"
+}
+
+# Route pattern to trigger the worker
+routes = [
+  { pattern = "oauth.touchbase.site", custom_domain = true }
+]
+
+# Development 
+[env.development]
+vars = { 
+  ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:3000"
+  ENVIRONMENT = "development"
+}
+
+# Secrets that need to be set:
+# - GOOGLE_CLIENT_ID
+# - GOOGLE_CLIENT_SECRET
+# - WORKER_API_KEY

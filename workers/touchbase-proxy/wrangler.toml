@@ -1,15 +1,12 @@
 name = "touchbase-proxy"
-main = "worker.js"
+main = "worker.ts"
 compatibility_date = "2024-03-21"
 
 # Production
 [env.production]
-# Define vars that should be accessible at runtime
-# These will be set through Cloudflare Dashboard
 vars = { ENVIRONMENT = "production" }
 
 # Route pattern to trigger the worker
-# Replace touchbase.example.com with your actual domain
 routes = [
   { pattern = "api.touchbase.site", custom_domain = true }
 ]
