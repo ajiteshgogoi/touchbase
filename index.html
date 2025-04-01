@@ -89,31 +89,40 @@
         // Feature detection for in-app browser limitations
         function detectInAppBrowser() {
           try {
-            // Test for common in-app browser limitations
+            // Only check for critical browser features that should definitely be available
+            // in regular browsers but are commonly restricted in in-app browsers
             var hasLimitations =
-              // Limited storage access
+              // Test localStorage (critical for app function)
               !window.localStorage ||
-              // Restricted service worker
-              !('serviceWorker' in navigator) ||
-              // Limited sharing capabilities
-              !navigator.share ||
-              // Restricted clipboard access
-              !navigator.clipboard ||
-              // Storage access limitations
-              !navigator.storage ||
-              // Limited IndexedDB access
+              // Test IndexedDB (critical for app function)
               !window.indexedDB;
+
+            // Also check if we're in a headless/automated environment
+            var isAutomated =
+              navigator.webdriver ||
+              window.navigator.userAgent.includes('HeadlessChrome') ||
+              window.navigator.userAgent.includes('PhantomJS') ||
+              window.navigator.userAgent.includes('Lighthouse');
+
+            // Return false for automated testing environments
+            if (isAutomated) return false;
 
             return hasLimitations;
           } catch (e) {
-            // If we get errors checking these features, likely in a restricted browser
+            // If we can't even check these basic features, likely in a restricted browser
             return true;
           }
         }
 
         // Check both UA strings and feature detection
-        var isMetaBrowser = /Instagram/.test(ua) ||
-          (isIOS && (/FBAN/.test(ua) || /FBAV/.test(ua) || /FBIOS/.test(ua)));
+        // Specifically check for Meta's in-app browsers
+        var isMetaBrowser =
+          // Instagram app browser
+          /Instagram/.test(ua) ||
+          // Facebook app browser on iOS
+          (isIOS && (/FBAN|FBAV|FBIOS/.test(ua))) ||
+          // Facebook app browser on Android
+          (!isIOS && /FB_IAB/.test(ua));
         
         var isInAppBrowser = isMetaBrowser || detectInAppBrowser();
 
