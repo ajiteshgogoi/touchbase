@@ -9,3 +9,7 @@ ALLOWED_ORIGINS = "https://touchbase.site,https://touchbase-git-staging-ajiteshg
 # - GOOGLE_CLIENT_ID
 # - GOOGLE_CLIENT_SECRET  
 # - WORKER_API_KEY
+
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
