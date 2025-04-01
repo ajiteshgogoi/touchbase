@@ -1,0 +1,11 @@
+name = "touchbase-oauth-worker"
+main = "touchbase-oauth-worker.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://touchbase.site,https://touchbase-git-staging-ajiteshgogois-projects.vercel.app,http://localhost:5173,http://localhost:3000"
+
+# Secrets that need to be set using 'wrangler secret put':
+# - GOOGLE_CLIENT_ID
+# - GOOGLE_CLIENT_SECRET  
+# - WORKER_API_KEY
