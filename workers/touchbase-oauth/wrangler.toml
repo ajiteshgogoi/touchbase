@@ -3,10 +3,8 @@ main = "worker.ts"
 compatibility_date = "2024-03-21"
 
 # Production
-[env.production]
-vars = { ENVIRONMENT = "production" }
-# Using ALLOWED_ORIGINS as a separate var to avoid inline array syntax
 [env.production.vars]
+ENVIRONMENT = "production"
 ALLOWED_ORIGINS = "https://touchbase.site,https://touchbase-git-staging-ajiteshgogois-projects.vercel.app"
 
 # Route pattern to trigger the worker
@@ -15,9 +13,8 @@ routes = [
 ]
 
 # Development 
-[env.development]
-vars = { ENVIRONMENT = "development" }
 [env.development.vars]
+ENVIRONMENT = "development"
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:3000"
 
 # Secrets that need to be set:

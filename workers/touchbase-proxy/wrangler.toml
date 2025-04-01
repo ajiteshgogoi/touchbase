@@ -3,8 +3,8 @@ main = "worker.ts"
 compatibility_date = "2024-03-21"
 
 # Production
-[env.production]
-vars = { ENVIRONMENT = "production" }
+[env.production.vars]
+ENVIRONMENT = "production"
 
 # Route pattern to trigger the worker
 routes = [
@@ -12,11 +12,15 @@ routes = [
 ]
 
 # Development 
-[env.development]
-vars = { ENVIRONMENT = "development" }
+[env.development.vars]
+ENVIRONMENT = "development"
 
 # Secrets that need to be set:
 # - SUPABASE_URL
 # - SUPABASE_ANON_KEY
 # - SUPABASE_SERVICE_ROLE_KEY
 # - CLIENT_SECRET
+
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
