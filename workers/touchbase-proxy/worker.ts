@@ -13,7 +13,7 @@ const allowedOrigins = [
 ];
 
 // Helper function to set CORS headers
-function setCorsHeaders(headers = new Headers(), request) {
+function setCorsHeaders(headers = new Headers(), request: Request) {
   const origin = request.headers.get('Origin');
   
   // Only allow requests from our allowed origins
@@ -45,7 +45,7 @@ function setCorsHeaders(headers = new Headers(), request) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request: Request, env: any) {
     try {
       // Handle preflight requests
       if (request.method === "OPTIONS") {
