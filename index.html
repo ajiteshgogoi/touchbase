@@ -89,15 +89,7 @@
         // Feature detection for in-app browser limitations
         function detectInAppBrowser() {
           try {
-            // Only check for critical browser features that should definitely be available
-            // in regular browsers but are commonly restricted in in-app browsers
-            var hasLimitations =
-              // Test localStorage (critical for app function)
-              !window.localStorage ||
-              // Test IndexedDB (critical for app function)
-              !window.indexedDB;
-
-            // Also check if we're in a headless/automated environment
+            // Check if we're in a headless/automated environment first
             var isAutomated =
               navigator.webdriver ||
               window.navigator.userAgent.includes('HeadlessChrome') ||
@@ -107,9 +99,41 @@
             // Return false for automated testing environments
             if (isAutomated) return false;
 
-            return hasLimitations;
+            // Check for features that are commonly restricted in in-app browsers
+            // but should be available in regular browsers
+            var restrictedFeatures = [
+              // Storage APIs
+              !window.localStorage,
+              !window.indexedDB,
+              // Service Worker capability (should be available in modern browsers)
+              !('serviceWorker' in navigator),
+              // Critical Web APIs
+              typeof window.Notification === 'undefined',
+              !window.history || !window.history.pushState,
+              // Additional APIs commonly restricted in in-app browsers
+              typeof window.orientation !== 'undefined' && !window.DeviceOrientationEvent,
+              // Cross-origin restrictions (common in in-app browsers)
+              !window.crossOriginIsolated && !document.hasStorageAccess,
+              // Biometric API not available (often blocked in in-app browsers)
+              !window.PublicKeyCredential,
+              // Restricted clipboard access
+              !navigator.clipboard,
+              // WebAuthn API restricted
+              typeof window.PublicKeyCredential === 'undefined',
+              // Push API restricted
+              !('PushManager' in window),
+              // Storage estimation API restricted
+              !navigator.storage || typeof navigator.storage.estimate !== 'function'
+            ];
+
+            // Count how many restrictions we hit
+            var restrictionCount = restrictedFeatures.filter(Boolean).length;
+            
+            // If more than 4 restrictions are found, likely an in-app browser
+            // Increased threshold to avoid false positives
+            return restrictionCount >= 4;
           } catch (e) {
-            // If we can't even check these basic features, likely in a restricted browser
+            // If we get errors checking these features, likely in a restricted browser
             return true;
           }
         }
@@ -119,10 +143,12 @@
         var isMetaBrowser =
           // Instagram app browser
           /Instagram/.test(ua) ||
+          // Threads app browser
+          /Threads/.test(ua) ||
           // Facebook app browser on iOS
           (isIOS && (/FBAN|FBAV|FBIOS/.test(ua))) ||
-          // Facebook app browser on Android
-          (!isIOS && /FB_IAB/.test(ua));
+          // Facebook/Threads app browser on Android
+          (!isIOS && (/FB_IAB|FBAN|FBAV|threads/i.test(ua)));
         
         var isInAppBrowser = isMetaBrowser || detectInAppBrowser();
 
