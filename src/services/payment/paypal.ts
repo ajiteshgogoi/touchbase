@@ -6,11 +6,12 @@ export class PayPalService {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription`, {
+      const response = await fetch(`https://api.touchbase.site/functions/v1/create-subscription`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${session.access_token}`,
+          'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
         },
         body: JSON.stringify({ planId }),
       });
@@ -44,11 +45,12 @@ export class PayPalService {
 
   async cancelSubscription(accessToken: string): Promise<void> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`, {
+      const response = await fetch(`https://api.touchbase.site/functions/v1/cancel-subscription`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          'Authorization': `Bearer ${accessToken}`,
+          'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
         }
       });
 

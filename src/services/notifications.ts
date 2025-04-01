@@ -386,11 +386,12 @@ export class NotificationService {
       await this.subscribeToPushNotifications(userId, true);
       
       console.log(`${DEBUG_PREFIX} Making test notification request...`);
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/push-notifications/test`, {
+      const response = await fetch(`https://api.touchbase.site/functions/v1/push-notifications/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
         },
         body: JSON.stringify({
           userId,

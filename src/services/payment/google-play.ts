@@ -475,11 +475,13 @@ export class GooglePlayService {
         throw new Error('No active session');
       }
 
-      const backendResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-google-purchase`, {
+      const backendResponse = await fetch(`https://api.touchbase.site/functions/v1/verify-google-purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${session.access_token}`,
+          'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
+
         },
         body: JSON.stringify({ 
           purchaseToken,
@@ -539,11 +541,13 @@ async cancelSubscription(): Promise<void> {
 
     console.log('Processing cancelation with token:', subscription.google_play_token);
 console.log('Notifying backend of cancelation...');
-const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-google-subscription`, {
+const response = await fetch(`https://api.touchbase.site/functions/v1/cancel-google-subscription`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${session.access_token}`
+    'Authorization': `Bearer ${session.access_token}`,
+    'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
+
   },
   body: JSON.stringify({ token: subscription.google_play_token })
 });

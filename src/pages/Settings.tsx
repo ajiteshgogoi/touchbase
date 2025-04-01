@@ -180,11 +180,12 @@ export const Settings = () => {
           // Update Zustand store
           useStore.getState().setIsPremium(true);
 
-          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-subscription`, {
+          const response = await fetch(`https://api.touchbase.site/functions/v1/activate-subscription`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`
+              'Authorization': `Bearer ${session.access_token}`,
+              'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
             },
             body: JSON.stringify({ baToken: subscriptionId })
           });
