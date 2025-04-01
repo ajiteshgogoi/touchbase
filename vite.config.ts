@@ -142,7 +142,7 @@ export default defineConfig({
     },
     terserOptions: {
       compress: {
-        drop_console: false,
+        drop_console: true,
         ecma: 2020,
         passes: 3,
         pure_getters: true,
