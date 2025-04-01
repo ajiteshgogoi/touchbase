@@ -10,8 +10,6 @@ interface Props {
   onClose: () => void;
 }
 
-// Get the Edge Function URL from environment variables
-const EDGE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co');
 
 export const DataExportModal = ({ isOpen, onClose }: Props) => {
   const [isExporting, setIsExporting] = useState(false);
@@ -104,14 +102,12 @@ export const DataExportModal = ({ isOpen, onClose }: Props) => {
         throw new Error('No authentication token found');
       }
 
-      if (!EDGE_FUNCTION_URL) {
-        throw new Error('Edge function URL not configured');
-      }
 
-      const response = await fetch(`${EDGE_FUNCTION_URL}/export-data`, {
+      const response = await fetch('https://api.touchbase.site/functions/v1/export-data', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${session.access_token}`,
+          'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
         }
       });
 

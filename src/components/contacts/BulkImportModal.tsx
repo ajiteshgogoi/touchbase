@@ -77,8 +77,6 @@ const IMPORT_METHODS: ImportMethod[] = [
   }
 ];
 
-// Get the Edge Function URL from environment variables
-const EDGE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co');
 
 export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
   const { } = useStore(); // Keep useStore for future use
@@ -212,15 +210,13 @@ export const BulkImportModal = ({ isOpen, onClose, onSelect }: Props) => {
         throw new Error('No authentication token found');
       }
 
-      if (!EDGE_FUNCTION_URL) {
-        throw new Error('Edge function URL not configured');
-      }
 
       const endpoint = fileExt === 'vcf' ? 'bulk-import-vcf' : 'bulk-import';
-      const response = await fetch(`${EDGE_FUNCTION_URL}/${endpoint}`, {
+      const response = await fetch(`https://api.touchbase.site/functions/v1/${endpoint}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${session.access_token}`,
+          'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
         },
         body: formData
       });

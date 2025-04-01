@@ -1,7 +1,5 @@
 import { supabase } from '../lib/supabase/client';
 
-// Get the Edge Function URL from environment variables
-const EDGE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co');
 
 export const deleteUserService = {
   async deleteAccount(): Promise<void> {
@@ -10,15 +8,13 @@ export const deleteUserService = {
       throw new Error('Not authenticated');
     }
 
-    if (!EDGE_FUNCTION_URL) {
-      throw new Error('Edge function URL not configured');
-    }
 
-    const response = await fetch(`${EDGE_FUNCTION_URL}/delete-user`, {
+    const response = await fetch('https://api.touchbase.site/functions/v1/delete-user', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET
       },
     });
 
