@@ -14,3 +14,9 @@ routes = [
 # Development 
 [env.development]
 vars = { ENVIRONMENT = "development" }
+
+# Secrets that need to be set:
+# - SUPABASE_URL
+# - SUPABASE_ANON_KEY
+# - SUPABASE_SERVICE_ROLE_KEY
+# - CLIENT_SECRET
