@@ -1,5 +1,8 @@
 import { supabase } from '../lib/supabase/client';
 
+// Get the Edge Function URL from environment variables
+const EDGE_FUNCTION_URL = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co');
+
 export const deleteUserService = {
   async deleteAccount(): Promise<void> {
     const { data: { session } } = await supabase.auth.getSession();
@@ -7,12 +10,15 @@ export const deleteUserService = {
       throw new Error('Not authenticated');
     }
 
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+    if (!EDGE_FUNCTION_URL) {
+      throw new Error('Edge function URL not configured');
+    }
+
+    const response = await fetch(`${EDGE_FUNCTION_URL}/delete-user`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+        'Content-Type': 'application/json'
       },
     });
 
