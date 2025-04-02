@@ -1,8 +1,8 @@
 import React from 'react';
-import { renderToString } from 'react-dom/server'; // Import renderToString
+import { renderToString } from 'react-dom/server';
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
-import { PortableText } from '@portabletext/react';
+import { PortableText, PortableTextComponents } from '@portabletext/react';
 import fs from 'fs/promises';
 import path from 'path';
 import { marked } from 'marked'; // For converting portable text to plain text
@@ -143,8 +143,33 @@ async function generateBlogPost(post: SanityPost) {
     <img src="${mainImage}" alt="${post.title}" class="rounded-lg object-cover w-full h-full" />
   ` : '';
 
+  // Configure PortableText components
+  const components: PortableTextComponents = {
+    block: {
+      normal: ({ children }) => <p>{children}</p>,
+      h1: ({ children }) => <h1 className="text-3xl font-bold mt-8 mb-4">{children}</h1>,
+      h2: ({ children }) => <h2 className="text-2xl font-bold mt-6 mb-3">{children}</h2>,
+      h3: ({ children }) => <h3 className="text-xl font-bold mt-4 mb-2">{children}</h3>,
+      blockquote: ({ children }) => <blockquote className="border-l-4 pl-4 italic my-4">{children}</blockquote>
+    },
+    marks: {
+      strong: ({ children }) => <strong>{children}</strong>,
+      em: ({ children }) => <em>{children}</em>,
+      code: ({ children }) => <code className="bg-gray-100 px-1 rounded">{children}</code>,
+      link: ({ value, children }) => (
+        <a href={value?.href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+          {children}
+        </a>
+      )
+    },
+    list: {
+      bullet: ({ children }) => <ul className="list-disc pl-6 my-4">{children}</ul>,
+      number: ({ children }) => <ol className="list-decimal pl-6 my-4">{children}</ol>
+    }
+  };
+
   // Convert Portable Text to HTML
-  const portableTextHtml = renderToString(<PortableText value={post.body} />);
+  const portableTextHtml = renderToString(<PortableText value={post.body} components={components} />);
 
   let html = template
     .replace(/POST_TITLE/g, post.title)
@@ -177,15 +202,37 @@ async function generateBlogPost(post: SanityPost) {
 
 async function main() {
   try {
+    console.log('Creating directories...');
     await ensureDirectories();
+    
+    console.log('Fetching blog posts from Sanity...');
     const posts = await getAllPosts();
+    console.log(`Found ${posts.length} posts to generate`);
 
     // Generate blog list page
+    console.log('Generating blog list page...');
     await generateBlogList(posts);
+    console.log('Blog list page generated successfully');
 
     // Generate individual blog posts
+    console.log('Generating individual blog posts...');
     for (const post of posts) {
-      await generateBlogPost(post);
+      try {
+        console.log(`Generating post: ${post.title}...`);
+        await generateBlogPost(post);
+        console.log(`Generated: ${post.slug.current}`);
+      } catch (error) {
+        console.error(`Error generating post ${post.slug.current}:`, error);
+        // Continue with other posts even if one fails
+      }
+    }
+
+    // Verify the files were created
+    try {
+      const blogFiles = await fs.readdir(BLOG_DIR);
+      console.log('Generated blog files:', blogFiles);
+    } catch (error) {
+      console.error('Error reading blog directory:', error);
     }
 
     console.log('Successfully generated static blog pages!');
