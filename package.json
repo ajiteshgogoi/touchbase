@@ -4,7 +4,7 @@
   "private": true,
   "version": "2.5.7.0",
   "scripts": {
-    "predev": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js",
+    "predev": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && node scripts/generate-blog-static.js",
     "dev": "vite",
     "prebuild": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && node scripts/generate-blog-static.js",
     "build": "tsc && vite build",

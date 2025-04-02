@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { BlogPost } from '../../lib/blog/types';
+import type { BlogPost } from '../../lib/blog/types';
+import { getBlogPost } from '../../lib/blog/utils';
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -14,24 +15,38 @@ export default function BlogPostPage() {
       
       setLoading(true);
       try {
+        // Try static file first (production)
         const response = await fetch(`/blog/${slug}.json`);
-        if (!response.ok) {
-          throw new Error('Post not found');
+        if (response.ok) {
+          const data = await response.json();
+          setPost({
+            slug,
+            title: data.title,
+            date: data.date,
+            description: data.description,
+            content: data.content,
+            tags: data.tags || []
+          });
+          return;
         }
-        const data = await response.json();
-        setPost({
-          slug,
-          title: data.title,
-          date: data.date,
-          description: data.description,
-          content: data.content,
-          tags: data.tags || []
-        });
+      } catch (error) {
+        console.log('Falling back to direct post loading');
+      }
+
+      // Development mode: use utils
+      try {
+        const postData = await getBlogPost(slug);
+        if (postData) {
+          setPost(postData);
+        } else {
+          setPost(null);
+        }
       } catch (error) {
         console.error('Error loading blog post:', error);
         setPost(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadPost();
