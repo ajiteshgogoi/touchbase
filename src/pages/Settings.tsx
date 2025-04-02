@@ -424,7 +424,7 @@ export const Settings = () => {
             <h2 className="text-xl font-semibold text-primary-500">
               Export Your Data
             </h2>
-            {!(isPremium || (subscription?.trial_end_date && new Date(subscription.trial_end_date) > new Date())) && (
+            {!(isPremium || useStore.getState().isOnTrial) && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-600">
                 Premium Only
               </span>
@@ -435,10 +435,10 @@ export const Settings = () => {
               Download all your contacts, interactions, events and reminders in CSV format.
             </p>
             <button
-              onClick={() => isPremium && setIsExportModalOpen(true)}
-              disabled={!isPremium}
+              onClick={() => (isPremium || useStore.getState().isOnTrial) && setIsExportModalOpen(true)}
+              disabled={!(isPremium || useStore.getState().isOnTrial)}
               className={`inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] transition-all duration-200 ${
-                isPremium
+                isPremium || useStore.getState().isOnTrial
                   ? 'text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg cursor-pointer'
                   : 'text-gray-400 bg-gray-100 cursor-not-allowed'
               }`}
