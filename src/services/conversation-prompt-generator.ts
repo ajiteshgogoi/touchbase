@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { supabase } from '../lib/supabase/client';
 
-const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const PROXY_API_URL = 'https://api.touchbase.site/api/openrouter';
 
 // Types
 interface Theme {
@@ -135,11 +135,7 @@ const emotionalModifiers: string[] = [
 const defaultStarters = ['how', 'what'];
 
 export class ConversationPromptGenerator {
-  private groqApiKey: string;
-
-  constructor(groqApiKey: string) {
-    this.groqApiKey = groqApiKey;
-  }
+  constructor() {}
 
   private getRandomElement<T>(arr: NonNullable<T[]>): NonNullable<T> {
     if (!Array.isArray(arr) || arr.length === 0) {
@@ -225,16 +221,8 @@ Example of a good question:
     for (let attempt = 1; attempt <= maxRetries && !validQuestionFound; attempt++) {
       try {
         const response = await Promise.race<any>([
-          axios.post<{
-            data: {
-              choices: Array<{
-                message: {
-                  content: string
-                }
-              }>
-            }
-          }>(
-            GROQ_API_URL,
+          axios.post(
+            PROXY_API_URL,
             {
               model: 'google/gemini-2.0-flash-001',
               messages: [
@@ -252,8 +240,8 @@ Example of a good question:
             },
             {
               headers: {
-                Authorization: `Bearer ${this.groqApiKey}`,
                 'Content-Type': 'application/json',
+                'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET!
               },
             }
           ),
@@ -288,7 +276,7 @@ Example of a good question:
           Return only the refined question:`;
 
           const refinementResponse = await axios.post(
-            GROQ_API_URL,
+            PROXY_API_URL,
             {
               model: 'google/gemini-2.0-flash-001',
               messages: [
@@ -306,8 +294,8 @@ Example of a good question:
             },
             {
               headers: {
-                Authorization: `Bearer ${this.groqApiKey}`,
                 'Content-Type': 'application/json',
+                'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET!
               },
             }
           );

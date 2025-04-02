@@ -43,7 +43,7 @@ export interface AnalyticsData {
 
 const GENERATION_COOLDOWN_DAYS = 7;
 const MIN_INTERACTIONS_FOR_ANALYSIS = 5;
-const GROQ_API_URL = 'https://openrouter.ai/api/v1/chat/completions'; // Set LLM API URL here //
+const GROQ_API_URL = 'https://api.touchbase.site/api/openrouter'; // Use worker proxy
 
 export const analyticsService = {
   async getLastAnalytics(): Promise<AnalyticsData | null> {
@@ -208,8 +208,8 @@ export const analyticsService = {
           },
           {
             headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'X-Client-Secret': import.meta.env.VITE_CLIENT_SECRET!
             }
           }
         );

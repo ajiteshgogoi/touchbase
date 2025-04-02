@@ -2,6 +2,7 @@
 // - SUPABASE_URL: Your Supabase project URL (kept secret)
 // - CLIENT_SECRET: A custom secret for additional auth
 // - SUPABASE_ANON_KEY: Your Supabase anon key (kept secret)
+// - GROQ_API_KEY: Your OpenRouter/GROQ API key (kept secret)
 // - SUPABASE_SERVICE_ROLE_KEY: Your Supabase service role key (kept secret, needed for admin functions)
 
 // List of allowed origins
@@ -72,11 +73,51 @@ export default {
         }
       }
 
+      // Handle OpenRouter API proxy
+      if (url.pathname === '/api/openrouter') {
+        if (request.method !== 'POST') {
+          const headers = new Headers({ "Content-Type": "application/json" });
+          setCorsHeaders(headers, request);
+          return new Response(JSON.stringify({ error: "Method not allowed" }), {
+            status: 405,
+            headers
+          });
+        }
+
+        // Forward to OpenRouter API
+        const openRouterRequest = new Request('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${env.GROQ_API_KEY}`
+          },
+          body: request.body
+        });
+
+        try {
+          const response = await fetch(openRouterRequest);
+          const responseHeaders = new Headers(response.headers);
+          setCorsHeaders(responseHeaders, request);
+          return new Response(response.body, {
+            status: response.status,
+            headers: responseHeaders
+          });
+        } catch (error) {
+          console.error('OpenRouter API error:', error);
+          const headers = new Headers({ "Content-Type": "application/json" });
+          setCorsHeaders(headers, request);
+          return new Response(JSON.stringify({ error: "OpenRouter API error" }), {
+            status: 500,
+            headers
+          });
+        }
+      }
+
       // Allow auth/v1 and rest/functions routes
-      if (!url.pathname.match(/^\/(auth\/v1|rest\/v1|functions\/v1)\//)) {
+      if (!url.pathname.match(/^\/(auth\/v1|rest\/v1|functions\/v1|api\/openrouter)\//)) {
         const headers = new Headers({ "Content-Type": "application/json" });
         setCorsHeaders(headers, request);
-        return new Response(JSON.stringify({ error: "Not Found" }), { 
+        return new Response(JSON.stringify({ error: "Not Found" }), {
           status: 404,
           headers
         });

@@ -54,9 +54,7 @@ const ConversationPrompts: React.FC = () => {
         throw new Error('No internet connection. Please check your network and try again.');
       }
 
-      const promptGenerator = new ConversationPromptGenerator(
-        import.meta.env.VITE_GROQ_API_KEY!
-      );
+      const promptGenerator = new ConversationPromptGenerator();
 
       const result = await promptGenerator.generatePrompt(user.id);
       

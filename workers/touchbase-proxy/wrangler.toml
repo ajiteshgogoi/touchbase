@@ -20,6 +20,7 @@ ENVIRONMENT = "development"
 # - SUPABASE_ANON_KEY
 # - SUPABASE_SERVICE_ROLE_KEY
 # - CLIENT_SECRET
+# - GROQ_API_KEY        # For OpenRouter/GROQ API proxy
 
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
