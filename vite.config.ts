@@ -37,7 +37,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
         globIgnores: ['**/firebase-messaging-sw.js'],  // Don't let Workbox handle Firebase SW
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//, /firebase-messaging-sw\.js/],  // Don't handle Firebase SW URLs
+        navigateFallbackDenylist: [/^\/api\//, /^\/blog\//, /firebase-messaging-sw\.js/], // Exclude API, Blog, and Firebase SW URLs
         runtimeCaching: [
           {
             urlPattern: /manifest\.json$/i,
