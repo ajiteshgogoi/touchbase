@@ -33,6 +33,7 @@ export const Settings = () => {
   const queryClient = useQueryClient();
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
     theme: 'light',
@@ -481,6 +482,7 @@ export const Settings = () => {
                 if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
                 if (!confirm('This will permanently delete all your contacts and interaction history. Are you absolutely sure?')) return;
                 
+                setIsDeleting(true);
                 try {
                   await import('../services/delete-user').then(m => m.deleteUserService.deleteAccount());
                   toast.success('Account deleted successfully');
@@ -488,11 +490,16 @@ export const Settings = () => {
                 } catch (error) {
                   console.error('Delete account error:', error);
                   toast.error('Failed to delete account');
+                } finally {
+                  setIsDeleting(false);
                 }
               }}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200"
+              disabled={isDeleting}
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
-              Delete Account
+              <span className="min-w-[108px] inline-block text-center">
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </span>
             </button>
           </div>
         </div>
