@@ -125,7 +125,8 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocLAMBh2PQIjgAfWXFYxTwNUijIOdaXKI80p3eSGJ4S23JtSJQ=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocLWYiy_0yEP5xkDXi3ml4zqm96oVFF3zQcThq8fXnFrlmmDIw=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocK_dRDoQ-tgeE2X8bJu5tr7C9GLfXUyAPTJdgl42mzHRemoTQ=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocIZzxebyi0hwoyiSleWp8nb-MVPvvDGDiyoErPD_wzTzHLSbQ=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocIZzxebyi0hwoyiSleWp8nb-MVPvvDGDiyoErPD_wzTzHLSbQ=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJa12bBiWwTgDq0rb0foKqFxdcFKOm7c4qB8w11gds43xlT2ay8=s96-c'
 
     ];
 
