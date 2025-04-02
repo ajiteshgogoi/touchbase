@@ -7,8 +7,9 @@ export default defineConfig({
   title: 'TouchBase Blog',
   projectId: import.meta.env.VITE_SANITY_PROJECT_ID,
   dataset: import.meta.env.VITE_SANITY_DATASET,
+  basePath: '/studio', // Mount Sanity Studio at /studio
   plugins: [
-    deskTool(),
+    deskTool()
   ],
   schema: {
     types: schemaTypes,
