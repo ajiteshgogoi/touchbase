@@ -1,32 +1,24 @@
 import { marked } from 'marked';
 import matter from 'gray-matter';
+import fs from 'fs';
+import path from 'path';
 import { BlogPost, BlogMeta } from './types';
 
-// Use Vite's import.meta.glob for development
-const blogFiles = Object.entries(import.meta.glob('/src/content/blog/*.md', {
-  eager: true,
-  query: '?raw',
-  import: 'default'
-})) as [string, string][];
+const BLOG_DIR = path.join(process.cwd(), 'src/content/blog');
 
 export async function getBlogPost(slug: string): Promise<BlogPost | null> {
   try {
-    const file = blogFiles.find(([path]) => path.includes(slug));
-    
-    if (!file) {
-      throw new Error(`Blog post not found: ${slug}`);
-    }
-
-    const fileContent = file[1];
-    const { data, content: markdown } = matter(fileContent);
-    const parsedContent = await marked(markdown);
+    const filePath = path.join(BLOG_DIR, `${slug}.md`);
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const { data, content } = matter(fileContent);
+    const parsedContent = await marked(content);
     
     return {
       slug,
-      title: data.title as string,
-      date: data.date as string,
-      description: data.description as string,
-      tags: (data.tags as string[]) || [],
+      title: data.title,
+      date: data.date,
+      description: data.description,
+      tags: data.tags || [],
       content: parsedContent
     };
   } catch (error) {
@@ -37,17 +29,21 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
 
 export function getAllBlogPosts(): BlogMeta[] {
   try {
-    return blogFiles
-      .map(([path, content]) => {
-        const slug = path.split('/').pop()?.replace('.md', '') || '';
-        const { data } = matter(content);
+    const files = fs.readdirSync(BLOG_DIR);
+    return files
+      .filter(file => file.endsWith('.md'))
+      .map(file => {
+        const slug = file.replace('.md', '');
+        const filePath = path.join(BLOG_DIR, file);
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const { data } = matter(fileContent);
         
         return {
           slug,
-          title: data.title as string,
-          date: data.date as string,
-          description: data.description as string,
-          tags: (data.tags as string[]) || []
+          title: data.title,
+          date: data.date,
+          description: data.description,
+          tags: data.tags || []
         };
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -59,8 +55,10 @@ export function getAllBlogPosts(): BlogMeta[] {
 
 export function generateStaticPaths(): string[] {
   try {
-    return blogFiles
-      .map(([path]) => path.split('/').pop()?.replace('.md', '') || '');
+    const files = fs.readdirSync(BLOG_DIR);
+    return files
+      .filter(file => file.endsWith('.md'))
+      .map(file => file.replace('.md', ''));
   } catch (error) {
     console.error('Error generating static paths:', error);
     return [];
