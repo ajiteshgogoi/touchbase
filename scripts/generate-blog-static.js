@@ -1,4 +1,5 @@
-import React from 'react'; // Import React
+import React from 'react';
+import { renderToString } from 'react-dom/server'; // Import renderToString
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 import { PortableText } from '@portabletext/react';
@@ -6,7 +7,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { marked } from 'marked'; // For converting portable text to plain text
 import dotenv from 'dotenv';
-
 // Load environment variables
 dotenv.config();
 
@@ -111,7 +111,7 @@ async function generateBlogPost(post) {
   ` : '';
 
   // Convert Portable Text to HTML
-  const portableTextHtml = await PortableText({ value: post.body });
+  const portableTextHtml = renderToString(<PortableText value={post.body} />);
 
   let html = template
     .replace(/POST_TITLE/g, post.title)
