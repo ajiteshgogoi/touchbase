@@ -18,7 +18,7 @@ const client = createClient({
 });
 
 const builder = imageUrlBuilder(client);
-const urlFor = (source) => builder.image(source);
+const urlFor = (source: any) => builder.image(source); // Added 'any' type for source
 
 const DIST_DIR = 'dist';
 const BLOG_DIR = path.join(DIST_DIR, 'blog');
@@ -32,7 +32,40 @@ function getSiteUrl() {
   return process.env.SITE_URL || 'https://touchbase.com';
 }
 
-async function getAllPosts() {
+// Define basic types for Sanity data (replace with more specific types if available)
+interface SanityImageSource {
+  _type: 'image';
+  asset: {
+    _ref: string;
+    _type: 'reference';
+  };
+  // Add other image properties if needed
+}
+
+interface SanitySlug {
+  _type: 'slug';
+  current: string;
+}
+
+interface SanityAuthor {
+  name: string;
+  image?: SanityImageSource;
+}
+
+interface SanityPost {
+  _id: string;
+  title: string;
+  slug: SanitySlug;
+  mainImage?: SanityImageSource;
+  publishedAt: string;
+  _updatedAt: string;
+  excerpt?: string;
+  body: any[]; // Portable Text content
+  categories?: string[];
+  author?: SanityAuthor;
+}
+
+async function getAllPosts(): Promise<SanityPost[]> {
   return client.fetch(`
     *[_type == "post"] {
       _id,
@@ -52,20 +85,20 @@ async function getAllPosts() {
   `);
 }
 
-function processPortableText(blocks) {
+function processPortableText(blocks: any[]): string {
   // Convert Portable Text to plain text for SEO
   return blocks
     .map(block => {
       if (block._type !== 'block' || !block.children) {
         return '';
       }
-      return block.children.map(child => child.text).join('');
+      return block.children.map((child: any) => child.text).join('');
     })
     .join(' ')
     .trim();
 }
 
-async function generateBlogList(posts) {
+async function generateBlogList(posts: SanityPost[]) {
   const template = await fs.readFile(
     path.join('src', 'templates', 'blog-list.html'),
     'utf-8'
@@ -84,7 +117,7 @@ async function generateBlogList(posts) {
   await fs.writeFile(path.join(BLOG_DIR, 'index.html'), html);
 }
 
-async function generateBlogPost(post) {
+async function generateBlogPost(post: SanityPost) {
   const template = await fs.readFile(
     path.join('src', 'templates', 'blog-post.html'),
     'utf-8'
@@ -146,7 +179,7 @@ async function main() {
   try {
     await ensureDirectories();
     const posts = await getAllPosts();
-    
+
     // Generate blog list page
     await generateBlogList(posts);
 

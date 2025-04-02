@@ -4,9 +4,9 @@
   "private": true,
   "version": "2.5.7.0",
   "scripts": {
-    "predev": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && node scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
+    "predev": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && npm run build:scripts && node dist/scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
     "dev": "vite",
-    "prebuild": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && node scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
+    "prebuild": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && npm run build:scripts && node dist/scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
     "build": "tsc && vite build",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -19,7 +19,7 @@
     "supabase:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
     "daily-check": "node dist/services/daily-check.js",
     "sync-users-to-brevo": "node scripts/sync-existing-users-to-brevo.js",
-    "generate:blog": "node scripts/generate-blog-static.js",
+    "generate:blog": "npm run build:scripts && node dist/scripts/generate-blog-static.js",
     "import:blog": "node scripts/import-blog-to-sanity.js"
   },
   "dependencies": {
