@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import matter from 'gray-matter';
 import { marked } from 'marked';
-import { markdownToBlocks } from '@portabletext/block-tools';
+import { getMarkdownModule } from '@portabletext/block-tools';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -55,7 +55,8 @@ async function importBlogPosts() {
       const { data: frontmatter, content: markdown } = matter(content);
 
       // Convert markdown content to Portable Text blocks
-      const blocks = markdownToBlocks(markdown, blockContentType);
+      const markdownModule = getMarkdownModule(blockContentType);
+      const blocks = markdownModule.blockContentToBlocks(markdown);
 
       // Create default category if it doesn't exist
       for (const categoryName of frontmatter.categories) {
