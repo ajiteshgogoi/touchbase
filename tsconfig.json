@@ -40,7 +40,16 @@
     "noImplicitOverride": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Types */
+    "types": [
+      "node",
+      "@types/react-is"
+    ]
   },
+
+  /* Source Files */
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
@@ -49,7 +58,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "supabase/functions"
+    "supabase/functions",
+    "scripts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

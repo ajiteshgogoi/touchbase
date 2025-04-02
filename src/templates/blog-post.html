@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- These will be replaced during build -->
+    <title>POST_TITLE | Touchbase Blog</title>
+    <meta name="description" content="POST_EXCERPT">
+    <meta property="og:title" content="POST_TITLE | Touchbase Blog">
+    <meta property="og:description" content="POST_EXCERPT">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="POST_IMAGE">
+    <meta property="article:published_time" content="POST_DATE">
+    <meta property="article:author" content="POST_AUTHOR">
+    <meta property="article:section" content="POST_CATEGORY">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="POST_TITLE">
+    <meta name="twitter:description" content="POST_EXCERPT">
+    <meta name="twitter:image" content="POST_IMAGE">
+    <link href="/static.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism.min.css">
+    
+    <!-- Schema.org JSON-LD structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "POST_TITLE",
+      "description": "POST_EXCERPT",
+      "image": "POST_IMAGE",
+      "datePublished": "POST_DATE",
+      "dateModified": "POST_MODIFIED_DATE",
+      "author": {
+        "@type": "Person",
+        "name": "POST_AUTHOR",
+        "image": "AUTHOR_IMAGE"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Touchbase",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "SITE_LOGO"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "POST_URL"
+      },
+      "keywords": "POST_KEYWORDS",
+      "articleSection": "POST_CATEGORY",
+      "articleBody": "POST_CONTENT_PLAIN"
+    }
+    </script>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <article itemscope itemtype="https://schema.org/BlogPosting" class="py-12">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav aria-label="Breadcrumb" class="mb-8">
+                <ol class="flex items-center space-x-2 text-gray-600" itemscope itemtype="https://schema.org/BreadcrumbList">
+                    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                        <a href="/" itemprop="item" class="hover:text-blue-600">
+                            <span itemprop="name">Home</span>
+                        </a>
+                        <meta itemprop="position" content="1" />
+                    </li>
+                    <li class="text-gray-400">/</li>
+                    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                        <a href="/blog" itemprop="item" class="hover:text-blue-600">
+                            <span itemprop="name">Blog</span>
+                        </a>
+                        <meta itemprop="position" content="2" />
+                    </li>
+                    <li class="text-gray-400">/</li>
+                    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                        <span itemprop="name" class="text-gray-800">POST_TITLE</span>
+                        <meta itemprop="position" content="3" />
+                    </li>
+                </ol>
+            </nav>
+
+            <header class="mb-8">
+                <h1 itemprop="headline" class="text-4xl font-bold text-gray-900 mb-4">
+                    POST_TITLE
+                </h1>
+
+                <div class="flex items-center text-gray-600 mb-6">
+                    <div id="author-section" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                        AUTHOR_SECTION
+                    </div>
+                    <time itemprop="datePublished" datetime="POST_DATE" class="block text-sm">
+                        POST_DATE_FORMATTED
+                    </time>
+                    <meta itemprop="dateModified" content="POST_MODIFIED_DATE" />
+                </div>
+
+                <div id="categories" class="flex space-x-2">
+                    CATEGORIES_SECTION
+                </div>
+            </header>
+
+            <div id="main-image" class="relative h-96 mb-8" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+                MAIN_IMAGE
+                <meta itemprop="url" content="POST_IMAGE" />
+                <meta itemprop="width" content="1200" />
+                <meta itemprop="height" content="675" />
+            </div>
+
+            <div class="prose prose-blue max-w-none" id="post-content" itemprop="articleBody">
+                POST_CONTENT
+            </div>
+
+            <footer class="mt-8 pt-8 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-500">
+                        Published under: 
+                        <span itemprop="articleSection">POST_CATEGORY</span>
+                    </div>
+                    <div class="text-sm">
+                        <a href="/blog" class="text-blue-600 hover:text-blue-800">
+                            ← Back to blog
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </article>
+
+    <!-- Add syntax highlighting if needed -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
