@@ -1,3 +1,4 @@
+import React from 'react'; // Import React
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 import { PortableText } from '@portabletext/react';
