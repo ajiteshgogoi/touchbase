@@ -31,7 +31,7 @@ try {
 }
 
 const cssPath = cssFile ? `/assets/${cssFile}` : '/src/index.css';
-const OUTPUT_DIR = join(__dirname, '../dist/blog');
+const OUTPUT_DIR = join(__dirname, '../public/blog');
 
 async function generateStaticBlogFiles() {
   console.log('Starting blog static file generation...');
