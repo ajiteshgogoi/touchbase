@@ -142,7 +142,10 @@ export default {
 
       // Handle authorization
       const authorization = headers.get("Authorization");
-      const serviceEndpoints = ['/functions/v1/get-user-stats'];
+      const serviceEndpoints = [
+        '/functions/v1/get-user-stats',
+        '/functions/v1/delete-user'  // Add delete-user to service role endpoints
+      ];
       
       if (url.pathname.startsWith('/functions/v1/')) {
         if (serviceEndpoints.includes(url.pathname)) {
