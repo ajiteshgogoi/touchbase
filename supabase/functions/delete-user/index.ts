@@ -131,6 +131,39 @@ serve(async (req) => {
       throw subscriptionError;
     }
 
+    // Delete prompt_generation_logs (no dependencies)
+    const { error: promptLogsError } = await supabase
+      .from('prompt_generation_logs')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (promptLogsError) {
+      console.error('Error deleting prompt generation logs:', promptLogsError);
+      throw promptLogsError;
+    }
+
+    // Delete content_reports (no dependencies)
+    const { error: contentReportsError } = await supabase
+      .from('content_reports')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (contentReportsError) {
+      console.error('Error deleting content reports:', contentReportsError);
+      throw contentReportsError;
+    }
+
+    // Delete feedback (no dependencies)
+    const { error: feedbackError } = await supabase
+      .from('feedback')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (feedbackError) {
+      console.error('Error deleting feedback:', feedbackError);
+      throw feedbackError;
+    }
+
     // Delete all interactions
     const { error: interactionsError } = await supabase
       .from('interactions')
