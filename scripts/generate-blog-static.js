@@ -4,6 +4,10 @@ import { PortableText } from '@portabletext/react';
 import fs from 'fs/promises';
 import path from 'path';
 import { marked } from 'marked'; // For converting portable text to plain text
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const client = createClient({
   projectId: process.env.VITE_SANITY_PROJECT_ID,
