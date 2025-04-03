@@ -171,10 +171,11 @@ async function generateBlogList(posts: SanityPost[]) {
 }
 
 async function generateBlogPost(post: SanityPost) {
-  const template = await fs.readFile(
+  let template = await fs.readFile(
     path.join('src', 'templates', 'blog-post.html'),
     'utf-8'
   );
+
 
   const postUrl = `${getSiteUrl()}/blog/${post.slug.current}`;
   const mainImage = post.mainImage ? urlFor(post.mainImage).width(1200).height(675).url() : '';
@@ -235,6 +236,16 @@ function escapeHtml(unsafe: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+// Debug logging
+const formattedDate = new Date(post.publishedAt).toLocaleString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC'
+});
+console.log('Date to format:', post.publishedAt);
+console.log('Formatted date:', formattedDate);
+console.log('Template excerpt:', template.substring(template.indexOf('POST_DATE_FORMATTED') - 10, template.indexOf('POST_DATE_FORMATTED') + 30));
 
 let html = template
   .replace(/POST_TITLE/g, escapeHtml(post.title))
@@ -253,7 +264,7 @@ let html = template
   .replace(/POST_CATEGORY/g, escapeHtml(post.categories?.[0] || ''))
   .replace(/POST_CONTENT_PLAIN/g, escapeHtml(plainTextContent))
   .replace(/SITE_LOGO/g, `${getSiteUrl()}/icon-192.png`)
-  .replace(/POST_DATE_FORMATTED/g, new Date(post.publishedAt).toLocaleDateString('en-US', {
+  .replace('POST_DATE_FORMATTED', new Date(post.publishedAt).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
