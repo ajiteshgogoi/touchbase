@@ -142,7 +142,8 @@ async function generateBlogList(posts: SanityPost[]) {
         "name": post.author.name
       } : {
         "@type": "Organization",
-        "name": "TouchBase Technologies"
+        "name": "TouchBase Technologies",
+        "url": "https://touchbase.site"
       },
       "publisher": {
         "@type": "Organization",
