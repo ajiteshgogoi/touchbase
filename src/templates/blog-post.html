@@ -98,9 +98,20 @@
                         </span>
                     </a>
                     <div class="flex items-center">
-                        <a href="/login" class="w-[120px] bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out">
-                            Sign In
-                        </a>
+                        <button
+                            onclick="handleSignIn()"
+                            id="signInButton"
+                            class="w-[120px] bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center gap-2 px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span>Sign In</span>
+                        </button>
+                        <script>
+                            function handleSignIn() {
+                                const button = document.getElementById('signInButton');
+                                button.disabled = true;
+                                window.location.href = '/api/auth/google/authorize';
+                            }
+                        </script>
                     </div>
                 </div>
             </div>
