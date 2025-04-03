@@ -690,10 +690,6 @@ function App() {
               }
             />
 
-              {/* Blog routes - let the server handle these */}
-              <Route path="/blog" element={null} />
-              <Route path="/blog/*" element={null} />
-
               {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" />} />
               </Routes>
