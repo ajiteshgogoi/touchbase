@@ -226,8 +226,8 @@
 
     function renderPosts() {
         const grid = document.getElementById('posts-grid');
-        
-        const postsToRender = filteredPosts.length > 0 ? filteredPosts : sortedPosts;
+        // When searching or filtering, use filteredPosts; otherwise use sortedPosts
+        const postsToRender = (searchTerm || selectedCategory) ? filteredPosts : sortedPosts;
 
         // Debug log to check posts data
         console.log('Posts data:', postsToRender);
