@@ -48,7 +48,7 @@ async function updateFiles() {
     const packageJson = JSON.parse(await fs.readFile(packagePath, 'utf8'));
     packageJson.version = `${APP_VERSION}.0`;
     await fs.writeFile(packagePath, JSON.stringify(packageJson, null, 2));
-    console.log(`✓ Updated package.json to version ${APP_VERSION}.0`);
+    console.log(`✓ Updated package.json to version ${APP_VERSION}`);
 
     // Update src/constants/version.js
     const constantsVersionPath = './src/constants/version.js';

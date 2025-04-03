@@ -2,7 +2,7 @@
   "name": "touchbase",
   "type": "module",
   "private": true,
-  "version": "2.5.7.0",
+  "version": "2.5.7",
   "scripts": {
     "predev": "node scripts/update-version.js && npm run build:scripts && node dist/scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
     "dev": "vite",
