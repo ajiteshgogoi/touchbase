@@ -127,7 +127,7 @@ async function generateBlogList(posts: SanityPost[]) {
     "@type": "ListItem",
     "position": index + 1,
     "item": {
-      "@type": "Article",
+      "@type": "BlogPosting",
       "headline": post.title,
       "description": post.description || post.excerpt || "",
       "datePublished": post.publishedAt,
