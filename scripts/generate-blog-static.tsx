@@ -210,7 +210,11 @@ async function generateBlogPost(post: SanityPost) {
   // Configure PortableText components
   const components: PortableTextComponents = {
     types: {
-      span: ({ value }) => <span>{value.text}</span>  // Handle span type explicitly
+      span: ({ value }) => <span>{value.text}</span>,  // Handle span type explicitly
+      rawHtml: ({ value }) => {
+        // Allows raw HTML to be rendered directly
+        return <div dangerouslySetInnerHTML={{ __html: value.html }} />;
+      }
     },
     block: {
       normal: ({ children }) => <p>{children}</p>,
