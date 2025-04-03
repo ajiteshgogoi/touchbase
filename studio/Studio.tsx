@@ -7,7 +7,7 @@ const Studio = () => {
     if (projectId) {
       const studioUrl = `https://${projectId}.sanity.studio/`;
       console.log('Redirecting to Sanity Studio:', studioUrl);
-      window.location.assign(studioUrl);
+      window.location.replace(studioUrl);
     } else {
       console.error('Missing Sanity Project ID');
     }
