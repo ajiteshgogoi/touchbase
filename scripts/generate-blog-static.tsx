@@ -148,7 +148,7 @@ async function generateBlogList(posts: SanityPost[]) {
       "publisher": {
         "@type": "Organization",
         "name": "TouchBase Technologies",
-        "url": getSiteUrl(),
+        "url": "https://touchbase.site",
         "logo": {
           "@type": "ImageObject",
           "url": `${getSiteUrl()}/icon-192.png`
