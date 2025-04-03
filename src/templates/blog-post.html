@@ -107,48 +107,50 @@
         </nav>
 
         <main role="main" class="min-h-[80vh] flex flex-col px-4 py-16">
-            <div class="max-w-4xl mx-auto space-y-12 w-full">
-                <article itemscope itemtype="https://schema.org/BlogPosting">
-                    <div class="text-center space-y-4 mb-8">
-                        <nav aria-label="Breadcrumb" class="mb-4">
-                            <ol class="flex items-center justify-center space-x-2 text-gray-600" itemscope itemtype="https://schema.org/BreadcrumbList">
-                                <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                                    <a href="/" itemprop="item" class="text-primary-500 hover:text-primary-600 transition-colors">
-                                        <span itemprop="name">Home</span>
-                                    </a>
-                                    <meta itemprop="position" content="1" />
-                                </li>
-                                <li class="text-gray-400">/</li>
-                                <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                                    <a href="/blog" itemprop="item" class="text-primary-500 hover:text-primary-600 transition-colors">
-                                        <span itemprop="name">Blog</span>
-                                    </a>
-                                    <meta itemprop="position" content="2" />
-                                </li>
-                            </ol>
-                        </nav>
+          <div class="max-w-4xl mx-auto w-full">
+            <article itemscope itemtype="https://schema.org/BlogPosting">
+              <div class="text-center space-y-4 mb-12">
+                <nav aria-label="Breadcrumb" class="mb-4">
+                  <ol class="flex items-center justify-center space-x-2 text-gray-600" itemscope itemtype="https://schema.org/BreadcrumbList">
+                    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                      <a href="/" itemprop="item" class="text-primary-500 hover:text-primary-600 transition-colors">
+                        <span itemprop="name">Home</span>
+                      </a>
+                      <meta itemprop="position" content="1" />
+                    </li>
+                    <li class="text-gray-400">/</li>
+                    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                      <a href="/blog" itemprop="item" class="text-primary-500 hover:text-primary-600 transition-colors">
+                        <span itemprop="name">Blog</span>
+                      </a>
+                      <meta itemprop="position" content="2" />
+                    </li>
+                  </ol>
+                </nav>
 
-                        <h1 itemprop="headline" class="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em] py-1.5">
-                            POST_TITLE
-                        </h1>
+                <h1 itemprop="headline" class="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em] py-2">
+                  <span class="inline-flex flex-col sm:block items-center leading-[1.4] sm:leading-snug">
+                    <span>POST_TITLE</span>
+                  </span>
+                </h1>
 
-                        <div class="flex flex-wrap items-center justify-center gap-4 text-gray-600/90">
-                            <div class="flex flex-col sm:flex-row items-center">
-                                <div id="author-section" itemprop="author" itemscope itemtype="https://schema.org/Person" class="flex flex-col sm:flex-row items-center text-[15px] font-[450] text-primary-500">
-                                    AUTHOR_SECTION
-                                </div>
-                                <span class="hidden sm:inline text-gray-400 mx-3">•</span>
-                                <time itemprop="datePublished" datetime="POST_DATE" class="text-[15px] font-[450]">
-                                    POST_DATE_FORMATTED
-                                </time>
-                            </div>
-                            <meta itemprop="dateModified" content="POST_MODIFIED_DATE" />
-                        </div>
-
-                        <div id="categories" class="flex justify-center space-x-2">
-                            CATEGORIES_SECTION
-                        </div>
+                <div class="flex flex-wrap items-center justify-center gap-4 text-gray-600/90">
+                  <div class="flex flex-col sm:flex-row items-center">
+                    <div id="author-section" itemprop="author" itemscope itemtype="https://schema.org/Person" class="flex flex-col sm:flex-row items-center text-[15px] font-[450] text-primary-500">
+                      AUTHOR_SECTION
                     </div>
+                    <span class="hidden sm:inline text-gray-400 mx-3">•</span>
+                    <time itemprop="datePublished" datetime="POST_DATE" class="text-[15px] font-[450]">
+                      POST_DATE_FORMATTED
+                    </time>
+                  </div>
+                  <meta itemprop="dateModified" content="POST_MODIFIED_DATE" />
+                </div>
+
+                <div id="categories" class="flex justify-center space-x-2">
+                  CATEGORIES_SECTION
+                </div>
+              </div>
         <div id="main-image" class="relative h-96 mb-8 rounded-2xl overflow-hidden shadow-sm" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
             MAIN_IMAGE
             <meta itemprop="url" content="POST_IMAGE" />
@@ -156,43 +158,44 @@
             <meta itemprop="height" content="675" />
         </div>
 
-
-                    <div class="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm prose prose-blue max-w-none" id="post-content" itemprop="articleBody">
-                        <style>
-                            .prose a {
-                                color: #0EA5E9;
-                                text-decoration: none;
-                                transition: color 0.2s;
-                            }
-                            .prose a:hover {
-                                color: #0284C7;
-                            }
-                            .prose p {
-                                margin-top: 0em;
-                                margin-bottom: 0.75em;
-                            }
-                            .prose > :first-child {
-                                margin-top: 0;
-                            }
-                            .prose > :last-child {
-                                margin-bottom: 0;
-                            }
-                            .prose h2 {
-                                margin-top: 2em;
-                                margin-bottom: 1.5em;
-                            }
-                            .prose h3 {
-                                margin-top: 1.75em;
-                                margin-bottom: 1em;
-                            }
-                        </style>
-                        POST_CONTENT
-                    </div>
-                    <footer class="mt-8 pt-8 text-center">
-                        <a href="/blog" class="inline-flex items-center px-6 py-3 rounded-xl text-base font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200">
-                            ← Back to Blog
-                        </a>
-                    </footer>
+              <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft" id="post-content" itemprop="articleBody">
+                <div class="p-6 prose prose-blue max-w-none">
+                  <style>
+                    .prose a {
+                      color: #0EA5E9;
+                      text-decoration: none;
+                      transition: color 0.2s;
+                    }
+                    .prose a:hover {
+                      color: #0284C7;
+                    }
+                    .prose p {
+                      margin-top: 0em;
+                      margin-bottom: 0.75em;
+                    }
+                    .prose > :first-child {
+                      margin-top: 0;
+                    }
+                    .prose > :last-child {
+                      margin-bottom: 0;
+                    }
+                    .prose h2 {
+                      margin-top: 2em;
+                      margin-bottom: 1.5em;
+                    }
+                    .prose h3 {
+                      margin-top: 1.75em;
+                      margin-bottom: 1em;
+                    }
+                  </style>
+                  POST_CONTENT
+                </div>
+              </div>
+              <div class="mt-8 pt-8 text-center">
+                <a href="/blog" class="inline-flex items-center px-6 py-2 rounded-lg text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out">
+                  ← Back to Blog
+                </a>
+              </div>
                 </article>
             </div>
         </main>
