@@ -9,8 +9,8 @@ type SanityConfig = {
 };
 
 const config: SanityConfig = {
-  projectId: process.env.VITE_SANITY_PROJECT_ID || '',
-  dataset: process.env.VITE_SANITY_DATASET || 'production'
+  projectId: import.meta.env.VITE_SANITY_PROJECT_ID || '',
+  dataset: import.meta.env.VITE_SANITY_DATASET || 'production'
 };
 
 export default defineConfig({
