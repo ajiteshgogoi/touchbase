@@ -92,6 +92,7 @@ html, body {
 .font-semibold { font-weight: 600; }
 .text-base { font-size: 1rem; line-height: 1.5rem; }
 .text-\[14px\] { font-size: 14px; }
+.text-\[15px\] { font-size: 15px; }
 
 /* Icon sizes */
 .h-5 { height: 1.25rem; }
@@ -189,4 +190,78 @@ html, body {
   }
   .md\:w-12 { width: 3rem; }
   .md\:h-12 { height: 3rem; }
+}
+
+/* Blog post specific styles */
+/* Breadcrumb styles */
+.breadcrumb-link {
+  color: rgb(107, 114, 128);
+  transition: color 0.2s ease;
+}
+.breadcrumb-link:hover {
+  color: var(--primary-500);
+}
+
+@media (max-width: 640px) {
+  nav[aria-label="Breadcrumb"] ol li:last-child span {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+  }
+}
+
+/* Prose styles */
+.prose {
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: none;
+}
+.prose a {
+  color: var(--primary-500);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.prose a:hover {
+  color: var(--primary-600);
+  text-decoration: none;
+}
+.prose p {
+  margin-top: 0;
+  margin-bottom: 1em;
+  text-align: justify;
+  color: rgba(55, 65, 81, 0.9);
+}
+.prose > :first-child {
+  margin-top: 0;
+}
+.prose > :last-child {
+  margin-bottom: 0;
+}
+.prose h2 {
+  font-size: 2em;
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  color: rgba(17, 24, 39, 0.9);
+}
+.prose h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  color: rgba(17, 24, 39, 0.9);
+}
+.prose ul {
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+  list-style-type: disc;
+}
+.prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+  color: rgba(55, 65, 81, 0.9);
 }

@@ -210,39 +210,34 @@ async function generateBlogPost(post: SanityPost) {
   // Configure PortableText components
   const components: PortableTextComponents = {
     types: {
-      span: ({ value }) => <span>{value.text}</span>,  // Handle span type explicitly
-      rawHtml: ({ value }) => {
-        // Value is an object with html field
-        return <div dangerouslySetInnerHTML={{ __html: value.html }} />;
-        // Allows raw HTML to be rendered directly
-        return <div dangerouslySetInnerHTML={{ __html: value.html }} />;
-      }
+      span: ({ value }) => <span>{value.text}</span>,
+      rawHtml: ({ value }) => <div dangerouslySetInnerHTML={{ __html: value.html }} />
     },
     block: {
       normal: ({ children }) => <p>{children}</p>,
-      h1: ({ children }) => <h1 className="text-3xl font-bold mt-8 mb-4">{children}</h1>,
-      h2: ({ children }) => <h2 className="text-2xl font-bold mt-6 mb-3">{children}</h2>,
-      h3: ({ children }) => <h3 className="text-xl font-bold mt-4 mb-2">{children}</h3>,
-      blockquote: ({ children }) => <blockquote className="border-l-4 pl-4 italic my-4">{children}</blockquote>
+      h1: ({ children }) => <h1 className="prose h1">{children}</h1>,
+      h2: ({ children }) => <h2 className="prose h2">{children}</h2>,
+      h3: ({ children }) => <h3 className="prose h3">{children}</h3>,
+      blockquote: ({ children }) => <blockquote className="border-l-4 border-primary-500/20 pl-4 italic my-4 text-gray-600/90">{children}</blockquote>
     },
     marks: {
-      strong: ({ children }) => <strong>{children}</strong>,
+      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
       em: ({ children }) => <em>{children}</em>,
-      code: ({ children }) => <code className="bg-gray-100 px-1 rounded">{children}</code>,
+      code: ({ children }) => <code className="bg-gray-100/80 px-1.5 py-0.5 rounded text-[14px] text-gray-800">{children}</code>,
       link: ({ value, children }) => (
-        <a href={value?.href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+        <a href={value?.href} className="text-primary-500 hover:text-primary-600 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
           {children}
         </a>
       ),
       internalLink: ({ value, children }) => (
-        <a href={`/blog/${value?.slug}`} className="text-blue-600 hover:underline">
+        <a href={`/blog/${value?.slug}`} className="text-primary-500 hover:text-primary-600 transition-colors duration-200">
           {children}
         </a>
       )
     },
     list: {
-      bullet: ({ children }) => <ul className="list-disc pl-6 my-4">{children}</ul>,
-      number: ({ children }) => <ol className="list-decimal pl-6 my-4">{children}</ol>
+      bullet: ({ children }) => <ul className="prose ul">{children}</ul>,
+      number: ({ children }) => <ol className="prose ol">{children}</ol>
     }
   };
 
