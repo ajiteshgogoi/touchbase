@@ -18,8 +18,6 @@ import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
 
-// Import Studio component
-const Studio = lazy(() => import('./pages/studio'));
 // Lazy loading component wrapper with error boundary
 const LazyComponent = ({ children }: { children: React.ReactNode }) => (
   <ErrorBoundary>
@@ -546,7 +544,6 @@ function App() {
               <Route path="/terms" element={<LazyComponent><Terms /></LazyComponent>} />
               <Route path="/privacy" element={<LazyComponent><Privacy /></LazyComponent>} />
               <Route path="/support" element={<LazyComponent><Support /></LazyComponent>} />
-              <Route path="/studio" element={<LazyComponent><Studio /></LazyComponent>} />
 
               {/* Protected Routes */}
               <Route

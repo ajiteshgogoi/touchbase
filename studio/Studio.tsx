@@ -1,23 +1,27 @@
-import React, { useEffect } from 'react';
-import { client } from '../src/lib/sanity/client';
+import { useEffect } from 'react';
 
-const Studio = () => {
+function StudioPage() {
   useEffect(() => {
-    const { projectId } = client.config();
+    // Redirect to Sanity Studio
+    const projectId = process.env.VITE_SANITY_PROJECT_ID;
     if (projectId) {
       const studioUrl = `https://${projectId}.sanity.studio/`;
-      console.log('Redirecting to Sanity Studio:', studioUrl);
-      window.location.replace(studioUrl);
+      window.location.href = studioUrl;
     } else {
-      console.error('Missing Sanity Project ID');
+      console.error('Sanity Project ID not found in environment variables');
     }
   }, []);
 
   return (
-    <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      Redirecting to Sanity Studio...
+    <div style={{ 
+      height: '100vh', 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center' 
+    }}>
+      <p>Redirecting to Sanity Studio...</p>
     </div>
   );
-};
+}
 
-export default Studio;
+export default StudioPage;
