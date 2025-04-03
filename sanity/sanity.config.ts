@@ -5,10 +5,10 @@ import {schemaTypes} from './schemaTypes'
 
 export default defineConfig({
   name: 'default',
-  title: 'TouchBase',
-
-  projectId: 'p0u3uh48',
-  dataset: 'production',
+  title: 'TouchBase Blog',
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID || '',
+  dataset: process.env.SANITY_STUDIO_DATASET || 'production',
+  basePath: '/studio', // Mount Sanity Studio at /studio
 
   plugins: [structureTool(), visionTool()],
 
