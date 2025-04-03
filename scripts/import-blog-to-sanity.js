@@ -147,7 +147,19 @@ async function importBlogPosts() {
   try {
     // Read all markdown files from the blog content directory
     const contentDir = path.join(process.cwd(), 'src', 'content', 'blog');
+    
+    try {
+      await fs.access(contentDir);
+    } catch (err) {
+      console.log('No blog directory found, skipping import');
+      return;
+    }
+
     const files = await fs.readdir(contentDir);
+    if (files.length === 0) {
+      console.log('No blog posts found, skipping import');
+      return;
+    }
     const mdFiles = files.filter(file => file.endsWith('.md'));
 
     for (const file of mdFiles) {
