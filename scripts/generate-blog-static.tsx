@@ -212,6 +212,8 @@ async function generateBlogPost(post: SanityPost) {
     types: {
       span: ({ value }) => <span>{value.text}</span>,  // Handle span type explicitly
       rawHtml: ({ value }) => {
+        // Value is an object with html field
+        return <div dangerouslySetInnerHTML={{ __html: value.html }} />;
         // Allows raw HTML to be rendered directly
         return <div dangerouslySetInnerHTML={{ __html: value.html }} />;
       }

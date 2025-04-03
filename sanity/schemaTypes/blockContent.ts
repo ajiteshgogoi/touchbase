@@ -80,5 +80,18 @@ export default defineType({
       type: 'image',
       options: {hotspot: true},
     }),
+    defineArrayMember({
+      title: 'Raw HTML',
+      name: 'rawHtml',
+      type: 'object',
+      fields: [
+        {
+          title: 'HTML Content',
+          name: 'html',
+          type: 'text',
+          validation: Rule => Rule.required()
+        }
+      ]
+    }),
   ],
 })
