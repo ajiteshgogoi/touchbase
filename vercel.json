@@ -145,6 +145,38 @@
      "src": "/compare/(monica-personal-crm-vs-touchbase|dex-personal-crm-vs-touchbase|clay-personal-crm-vs-touchbase|cloze-personal-crm-vs-touchbase|notion-personal-crm-vs-touchbase|airtable-personal-crm-vs-touchbase)",
      "dest": "/compare/$1.html"
    },
+  {
+     "src": "/blog/.*\\.html$",
+    "headers": {
+      "cache-control": "public, max-age=3600"
+    }
+  },
+  {
+     "src": "/blog/?$",
+     "has": [
+      {
+        "type": "header",
+        "key": "user-agent",
+        "value": "(?i).*\\b(AhrefsBot|AhrefsSiteAudit|Googlebot|bingbot|barkrowler|dotbot|YandexBot|DuckDuckBot|Slurp|SemrushBot|MJ12bot|Baiduspider)\\b.*"
+      }
+     ],
+    "dest": "/blog/index.html"
+   },
+  {
+    "src": "/blog/([^/]+)/?$",
+     "has": [
+       {
+        "type": "header",
+        "key": "user-agent",
+        "value": "(?i).*\\b(AhrefsBot|AhrefsSiteAudit|Googlebot|bingbot|barkrowler|dotbot|YandexBot|DuckDuckBot|Slurp|SemrushBot|MJ12bot|Baiduspider)\\b.*"
+      }
+     ],
+     "dest": "/blog/$1.html"
+   },
+  {
+    "src": "/blog/([^/]+)/?$",
+    "dest": "/blog/$1.html"
+   },    
     {
        "src": "/(.*)",
        "dest": "/index.html"
