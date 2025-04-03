@@ -315,7 +315,7 @@ let html = template
   .replace(/POST_CATEGORY/g, escapeHtml(post.categories?.[0] || ''))
   .replace(/POST_CONTENT_PLAIN/g, escapeHtml(plainTextContent))
   .replace(/SITE_LOGO/g, `${getSiteUrl()}/icon-192.png`)
-  .replace(/\$\{readingTime\}/g, readingTime.toString())
+  .replace(/READING_TIME/g, readingTime.toString())
   .replace('AUTHOR_SECTION', authorSection)
   .replace('CATEGORIES_SECTION', categoriesSection)
   .replace('MAIN_IMAGE', mainImageSection)
