@@ -378,3 +378,40 @@ nav[aria-label="Breadcrumb"] ol li > * {
     flex-shrink: 0;
   }
 }
+
+/* Nested list styling */
+.prose ul ul,
+.prose ol ul {
+  list-style-type: circle;
+  margin-top: 0.25em; /* Adjust spacing for nested lists */
+  margin-bottom: 0.25em;
+}
+
+.prose ul ul ul,
+.prose ol ul ul,
+.prose ul ol ul,
+.prose ol ol ul {
+  list-style-type: square;
+}
+
+.prose ol ol,
+.prose ul ol {
+  list-style-type: lower-alpha;
+  margin-top: 0.25em; /* Adjust spacing for nested lists */
+  margin-bottom: 0.25em;
+}
+
+.prose ol ol ol,
+.prose ul ol ol,
+.prose ol ul ol,
+.prose ul ul ol {
+  list-style-type: lower-roman;
+}
+
+/* Ensure nested lists also have appropriate padding */
+.prose ul ul,
+.prose ul ol,
+.prose ol ul,
+.prose ol ol {
+  padding-left: 1.5em; /* Maintain indentation */
+}
