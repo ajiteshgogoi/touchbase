@@ -214,13 +214,11 @@ async function generateBlogPost(post: SanityPost) {
         'const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;' +
         // Handle case where height is 0 or less (no scrollbar)
         'const scrolled = height > 0 ? (winScroll / height) * 100 : 0;' +
-        'console.log("Scroll:", winScroll, "Height:", height, "Scrolled:", scrolled);' + // Log values
         'const progressBar = document.getElementById("readingProgress");' +
         'if (progressBar) {' +
           // Ensure width doesn't exceed 100%
           'const newWidth = Math.min(scrolled, 100);' +
           'progressBar.style.width = newWidth + "%";' +
-          'console.log("Setting width to:", newWidth + "%");' + // Log width update
         '}' +
       '};' +
       'window.addEventListener("scroll", updateProgress);' +
