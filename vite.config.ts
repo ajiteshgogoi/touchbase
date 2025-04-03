@@ -152,6 +152,7 @@ export default defineConfig({
     target: 'esnext',
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
+    emptyOutDir: false,
     modulePreload: {
       polyfill: true
     },
