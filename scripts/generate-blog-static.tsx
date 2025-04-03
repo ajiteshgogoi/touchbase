@@ -182,18 +182,18 @@ async function generateBlogPost(post: SanityPost) {
   const plainTextContent = processPortableText(post.body);
 
   const authorSection = post.author ? `
-    <img src="${authorImage}" alt="${post.author.name}" class="rounded-full w-10 h-10 mr-3" />
-    <span itemprop="name" class="font-medium">${post.author.name}</span>
+    <img src="${encodeURI(authorImage)}" alt="${escapeHtml(post.author.name)}" class="rounded-full w-10 h-10 mr-3" />
+    <span itemprop="name" class="font-medium">${escapeHtml(post.author.name)}</span>
   ` : '';
 
   const categoriesSection = post.categories?.length ? post.categories.map(category => `
     <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-      ${category}
+      ${escapeHtml(category)}
     </span>
   `).join('') : '';
 
   const mainImageSection = mainImage ? `
-    <img src="${mainImage}" alt="${post.title}" class="rounded-lg object-cover w-full h-full" />
+    <img src="${encodeURI(mainImage)}" alt="${escapeHtml(post.title)}" class="rounded-lg object-cover w-full h-full" />
   ` : '';
 
   // Configure PortableText components
@@ -226,22 +226,32 @@ async function generateBlogPost(post: SanityPost) {
 
   // Convert Portable Text to HTML
   const portableTextHtml = renderToString(<PortableText value={post.body} components={components} />);
+// Helper function to escape HTML content
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 let html = template
-  .replace(/POST_TITLE/g, post.title)
-  .replace(/POST_META_DESCRIPTION/g, post.description || post.excerpt || '')
-  .replace(/POST_KEYWORDS/g, post.keywords?.join(', ') || post.categories?.join(', ') || '')
-  .replace(/POST_CANONICAL_URL/g, post.canonicalUrl || postUrl)
-  .replace(/POST_OG_TITLE/g, post.ogTitle || post.title)
-  .replace(/POST_OG_DESCRIPTION/g, post.ogDescription || post.description || post.excerpt || '')
-  .replace(/POST_OG_IMAGE/g, post.ogImage ? urlFor(post.ogImage).width(1200).height(630).url() : mainImage)
-  .replace(/POST_IMAGE/g, mainImage)
+  .replace(/POST_TITLE/g, escapeHtml(post.title))
+  .replace(/POST_META_DESCRIPTION/g, escapeHtml(post.description || post.excerpt || ''))
+  .replace(/POST_KEYWORDS/g, escapeHtml(post.keywords?.join(', ') || post.categories?.join(', ') || ''))
+  .replace(/POST_CANONICAL_URL/g, encodeURI(post.canonicalUrl || postUrl))
+  .replace(/POST_OG_TITLE/g, escapeHtml(post.ogTitle || post.title))
+  .replace(/POST_OG_DESCRIPTION/g, escapeHtml(post.ogDescription || post.description || post.excerpt || ''))
+  .replace(/POST_OG_IMAGE/g, encodeURI(post.ogImage ? urlFor(post.ogImage).width(1200).height(630).url() : mainImage))
+  .replace(/POST_IMAGE/g, encodeURI(mainImage))
   .replace(/POST_DATE/g, post.publishedAt)
   .replace(/POST_MODIFIED_DATE/g, post._updatedAt)
-  .replace(/POST_AUTHOR/g, post.author?.name || '')
-  .replace(/AUTHOR_IMAGE/g, authorImage)
-  .replace(/POST_URL/g, postUrl)
-  .replace(/POST_CATEGORY/g, post.categories?.[0] || '')
-  .replace(/POST_CONTENT_PLAIN/g, plainTextContent)
+  .replace(/POST_AUTHOR/g, escapeHtml(post.author?.name || ''))
+  .replace(/AUTHOR_IMAGE/g, encodeURI(authorImage))
+  .replace(/POST_URL/g, encodeURI(postUrl))
+  .replace(/POST_CATEGORY/g, escapeHtml(post.categories?.[0] || ''))
+  .replace(/POST_CONTENT_PLAIN/g, escapeHtml(plainTextContent))
   .replace(/SITE_LOGO/g, `${getSiteUrl()}/icon-192.png`)
   .replace(/POST_DATE_FORMATTED/g, new Date(post.publishedAt).toLocaleDateString('en-US', {
       year: 'numeric',
