@@ -133,15 +133,31 @@
 
 <script>
     // This will be replaced with actual data during build
-    const posts = POSTS_DATA.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    const posts = POSTS_DATA;
+    
+    // Sort posts by date (latest first)
+    const sortedPosts = Array.isArray(posts) ?
+        posts
+            .filter(post => post && post.publishedAt)
+            .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
+        : [];
     const postsPerPage = 10;
     let currentPage = 1;
     
     function renderPosts() {
         const grid = document.getElementById('posts-grid');
+        
+        // Debug log to check posts data
+        console.log('Posts data:', sortedPosts);
+        
+        if (!sortedPosts || sortedPosts.length === 0) {
+            grid.innerHTML = '<div class="text-center text-gray-500">No posts available</div>';
+            return;
+        }
+        
         const startIndex = (currentPage - 1) * postsPerPage;
         const endIndex = startIndex + postsPerPage;
-        const currentPosts = posts.slice(startIndex, endIndex);
+        const currentPosts = sortedPosts.slice(startIndex, endIndex);
         
         // Remove existing pagination if present
         const existingPagination = document.querySelector('#posts-grid + div');
@@ -182,8 +198,8 @@
         `).join('');
 
         // Add pagination if there are more posts
-        if (posts.length > postsPerPage) {
-            const totalPages = Math.ceil(posts.length / postsPerPage);
+        if (sortedPosts.length > postsPerPage) {
+            const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
             const paginationHtml = `
                 <div class="flex justify-center gap-3 mt-8">
                     ${Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => `
