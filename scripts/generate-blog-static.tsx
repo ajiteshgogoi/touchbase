@@ -145,6 +145,9 @@ async function generateBlogPost(post: SanityPost) {
 
   // Configure PortableText components
   const components: PortableTextComponents = {
+    types: {
+      span: ({ value }) => <span>{value.text}</span>  // Handle span type explicitly
+    },
     block: {
       normal: ({ children }) => <p>{children}</p>,
       h1: ({ children }) => <h1 className="text-3xl font-bold mt-8 mb-4">{children}</h1>,
