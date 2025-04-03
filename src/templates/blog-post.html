@@ -161,6 +161,10 @@
               <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft" id="post-content" itemprop="articleBody">
                 <div class="p-6 prose prose-blue max-w-none">
                   <style>
+                    .prose {
+                      font-size: 15px;
+                      line-height: 1.6;
+                    }
                     .prose a {
                       color: #0EA5E9;
                       text-decoration: none;
@@ -170,8 +174,10 @@
                       color: #0284C7;
                     }
                     .prose p {
-                      margin-top: 0em;
-                      margin-bottom: 0.75em;
+                      margin-top: 0;
+                      margin-bottom: 1em;
+                      text-align: justify;
+                      color: rgba(55, 65, 81, 0.9);
                     }
                     .prose > :first-child {
                       margin-top: 0;
@@ -180,12 +186,28 @@
                       margin-bottom: 0;
                     }
                     .prose h2 {
+                      font-size: 1.4em;
+                      font-weight: 600;
                       margin-top: 2em;
-                      margin-bottom: 1.5em;
+                      margin-bottom: 1em;
+                      color: rgba(17, 24, 39, 0.9);
                     }
                     .prose h3 {
+                      font-size: 1.2em;
+                      font-weight: 600;
                       margin-top: 1.75em;
+                      margin-bottom: 0.75em;
+                      color: rgba(17, 24, 39, 0.9);
+                    }
+                    .prose ul {
+                      margin-top: 0.5em;
                       margin-bottom: 1em;
+                      padding-left: 1.5em;
+                    }
+                    .prose li {
+                      margin-top: 0.25em;
+                      margin-bottom: 0.25em;
+                      color: rgba(55, 65, 81, 0.9);
                     }
                   </style>
                   POST_CONTENT
