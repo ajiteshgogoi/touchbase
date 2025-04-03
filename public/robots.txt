@@ -10,6 +10,7 @@ Allow: /features/
 Allow: /alternatives/
 Allow: /compare/
 Allow: /assets/
+Allow: /blog/
 Allow: /*.css
 Allow: /*.js
 Allow: /*.png
