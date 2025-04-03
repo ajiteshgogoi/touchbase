@@ -178,6 +178,11 @@
     "dest": "/blog/$1.html"
    },    
     {
+       "src": "/404",
+       "dest": "/404.html",
+       "headers": { "cache-control": "public, max-age=3600" }
+    },
+    {
        "src": "/(.*)",
        "dest": "/index.html"
     }
