@@ -22,17 +22,6 @@
     <meta name="twitter:image" content="https://touchbase.site/og.png">
     
     <link href="/static.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Breadcrumb hover styles */
-        .breadcrumb-link {
-            color: rgb(107, 114, 128);
-            transition: color 0.2s ease;
-        }
-        .breadcrumb-link:hover {
-            color: #0EA5E9;
-        }
-    </style>
 
     <!-- Schema.org JSON-LD structured data -->
     <script type="application/ld+json">
@@ -161,36 +150,27 @@
         }
 
         grid.innerHTML = currentPosts.map(post => `
-            <a href="/blog/${post.slug.current}"
-               class="flex flex-col sm:flex-row rounded-xl overflow-hidden transition-transform hover:transform hover:scale-[1.01] bg-white/60 backdrop-blur-xl border border-gray-100/50 shadow-soft">
+            <a href="/blog/${post.slug.current}" class="blog-post-card">
                 ${post.mainImage ? `
                     <div class="sm:w-64 flex-shrink-0">
-                        <img class="h-48 w-full sm:h-full sm:w-64 object-cover"
-                             src="${post.mainImage}"
-                             alt="${post.title}">
+                        <img class="blog-post-image" src="${post.mainImage}" alt="${post.title}">
                     </div>
                 ` : ''}
-                <div class="flex-1 p-6 flex flex-col justify-between">
+                <div class="blog-post-content">
                     <div class="flex-1">
                         ${post.categories && post.categories.length ? `
                             <div class="flex flex-wrap gap-2 mb-3">
                                 ${post.categories.map(category => `
-                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                        ${category}
-                                    </span>
+                                    <span class="blog-post-tag">${category}</span>
                                 `).join('')}
                             </div>
                         ` : ''}
-                        <h3 class="text-xl font-semibold text-gray-900 mb-2">
-                            ${post.title}
-                        </h3>
+                        <h3 class="blog-post-title">${post.title}</h3>
                         ${post.excerpt ? `
-                            <p class="text-[15px] text-gray-600/90 line-clamp-2">
-                                ${post.excerpt}
-                            </p>
+                            <p class="blog-post-excerpt">${post.excerpt}</p>
                         ` : ''}
                     </div>
-                    <div class="mt-4 text-sm text-gray-500 font-[450]">
+                    <div class="blog-post-date">
                         ${new Date(post.publishedAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
@@ -205,13 +185,12 @@
         if (posts.length > postsPerPage) {
             const totalPages = Math.ceil(posts.length / postsPerPage);
             const paginationHtml = `
-                <div class="mt-8 flex justify-center space-x-4">
+                <div class="flex justify-center gap-3 mt-8">
                     ${Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => `
                         <button
-                            class="px-4 py-2 rounded-lg ${pageNum === currentPage
-                                ? 'bg-primary-500 text-white'
-                                : 'bg-white/60 text-gray-600 hover:bg-gray-50'}
-                                font-medium transition-colors duration-200"
+                            class="px-4 py-2 rounded-lg font-medium transition-all duration-200 ${pageNum === currentPage
+                                ? 'bg-primary-500 text-white shadow-soft'
+                                : 'bg-white/60 backdrop-blur-sm text-gray-600/90 hover:bg-gray-50/80 shadow-sm'}"
                             onclick="changePage(${pageNum})"
                         >
                             ${pageNum}

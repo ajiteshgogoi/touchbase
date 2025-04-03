@@ -198,7 +198,7 @@ async function generateBlogPost(post: SanityPost) {
   ` : '';
 
   const categoriesSection = post.categories?.length ? post.categories.map(category => `
-    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+    <span class="blog-post-tag">
       ${escapeHtml(category)}
     </span>
   `).join('') : '';
