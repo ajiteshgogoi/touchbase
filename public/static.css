@@ -304,7 +304,6 @@ html, body {
   flex-direction: column;
   justify-content: space-between;
 }
-
 .blog-post-tag {
   display: inline-flex;
   align-items: center;
@@ -313,9 +312,16 @@ html, body {
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
-  background-color: var(--gray-300);
+  background-color: var(--primary-50);
+  color: var(--primary-700);
+  transition: all 0.2s ease;
+}
+
+.blog-post-tag:hover {
+  background-color: var(--primary-100);
   color: var(--primary-800);
 }
+
 
 .blog-post-title {
   font-size: 1.25rem;
