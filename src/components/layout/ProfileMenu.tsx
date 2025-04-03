@@ -180,8 +180,7 @@ export const ProfileMenu = () => {
             </MenuItem>
             <Menu.Item>
               {({ active }) => (
-                <a href="https://blog.touchbase.site/"
-                   target="_blank"
+                <a href="/blog"                   
                    rel="noopener noreferrer"
                    className={`${menuStyles.base} ${active ? menuStyles.active : menuStyles.inactive}`}>
                   <Suspense fallback={<IconFallback />}>

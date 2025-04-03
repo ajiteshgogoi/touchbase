@@ -79,7 +79,7 @@ export const Support = () => {
         <section className="p-6">
           <h2 className="text-xl font-[600] text-gray-900/90 mb-4">Additional Resources</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90">
-            Check out our <a href="https://blog.touchbase.site/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 font-[500]">blog</a> for tips and updates.
+            Check out our <a href="/blog" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 font-[500]">blog</a> for tips and updates.
           </p>
         </section>
       </div>
