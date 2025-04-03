@@ -133,7 +133,7 @@
 
 <script>
     // This will be replaced with actual data during build
-    const posts = POSTS_DATA;
+    const posts = POSTS_DATA.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
     const postsPerPage = 10;
     let currentPage = 1;
     
