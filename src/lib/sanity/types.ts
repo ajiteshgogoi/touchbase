@@ -23,6 +23,13 @@ export interface Post {
   body?: any; // This will be Portable Text
   categories?: string[];
   author?: Author;
+  // SEO fields
+  description?: string;
+  keywords?: string[];
+  canonicalUrl?: string;
+  ogImage?: SanityImage;
+  ogTitle?: string;
+  ogDescription?: string;
 }
 
 export interface PostListItem {

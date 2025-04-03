@@ -39,7 +39,13 @@ export async function getPost(slug: string) {
       body,
       publishedAt,
       "categories": categories[]->title,
-      "author": author->{name, image}
+      "author": author->{name, image},
+      description,
+      keywords,
+      canonicalUrl,
+      ogImage,
+      ogTitle,
+      ogDescription
     }
   `, { slug });
 }

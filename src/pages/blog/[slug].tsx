@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { PortableText } from '@portabletext/react';
 import { getPost, urlFor } from '../../lib/sanity/client';
 import { Post } from '../../lib/sanity/types';
@@ -62,7 +63,30 @@ export default function BlogPost() {
   }
 
   return (
-    <article className="min-h-screen bg-gray-50 py-12">
+    <>
+      <Helmet>
+        <title>{post.title}</title>
+        <meta name="description" content={post.description || ''} />
+        {post.keywords?.length && (
+          <meta name="keywords" content={post.keywords.join(', ')} />
+        )}
+        {post.canonicalUrl && (
+          <link rel="canonical" href={post.canonicalUrl} />
+        )}
+        
+        {/* Open Graph / Social Media */}
+        <meta property="og:title" content={post.ogTitle || post.title} />
+        <meta property="og:description" content={post.ogDescription || post.description || ''} />
+        {post.ogImage ? (
+          <meta property="og:image" content={urlFor(post.ogImage).width(1200).height(630).url()} />
+        ) : post.mainImage && (
+          <meta property="og:image" content={urlFor(post.mainImage).width(1200).height(630).url()} />
+        )}
+        <meta property="og:type" content="article" />
+        <meta property="article:published_time" content={post.publishedAt} />
+      </Helmet>
+      
+      <article className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link 
           to="/blog" 
@@ -127,5 +151,6 @@ export default function BlogPost() {
         </div>
       </div>
     </article>
+    </>
   );
 }
