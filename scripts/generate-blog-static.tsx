@@ -106,6 +106,12 @@ async function getAllPosts(): Promise<SanityPost[]> {
   `);
 }
 
+function calculateReadingTime(text: string): number {
+  const wordsPerMinute = 200;
+  const wordCount = text.split(/\s+/).length;
+  return Math.ceil(wordCount / wordsPerMinute);
+}
+
 function processPortableText(blocks: any[]): string {
   // Convert Portable Text to plain text for SEO
   return blocks
@@ -125,10 +131,16 @@ async function generateBlogList(posts: SanityPost[]) {
     'utf-8'
   );
 
-  const processedPosts = posts.map(post => ({
-    ...post,
-    mainImage: post.mainImage ? urlFor(post.mainImage).width(600).url() : null,
-  }));
+  const processedPosts = posts.map(post => {
+    const plainText = processPortableText(post.body);
+    const readingTime = calculateReadingTime(plainText);
+    return {
+      ...post,
+      mainImage: post.mainImage ? urlFor(post.mainImage).width(600).url() : null,
+      readingTime,
+      plainText
+    };
+  });
 
   // Generate structured data for blog posts list
   const postsListSchema = posts.map((post, index) => ({
@@ -191,6 +203,30 @@ async function generateBlogPost(post: SanityPost) {
   const mainImage = post.mainImage ? urlFor(post.mainImage).width(1200).height(675).url() : '';
   const authorImage = post.author?.image ? urlFor(post.author.image).width(40).height(40).url() : '';
   const plainTextContent = processPortableText(post.body);
+  const readingTime = calculateReadingTime(plainTextContent);
+
+  // Add progress bar script
+  const progressBarScript =
+    '<script>' +
+    'document.addEventListener("DOMContentLoaded", () => {' +
+      'const updateProgress = () => {' +
+        'const winScroll = window.pageYOffset || document.documentElement.scrollTop;' +
+        'const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;' +
+        // Handle case where height is 0 or less (no scrollbar)
+        'const scrolled = height > 0 ? (winScroll / height) * 100 : 0;' +
+        'console.log("Scroll:", winScroll, "Height:", height, "Scrolled:", scrolled);' + // Log values
+        'const progressBar = document.getElementById("readingProgress");' +
+        'if (progressBar) {' +
+          // Ensure width doesn't exceed 100%
+          'const newWidth = Math.min(scrolled, 100);' +
+          'progressBar.style.width = newWidth + "%";' +
+          'console.log("Setting width to:", newWidth + "%");' + // Log width update
+        '}' +
+      '};' +
+      'window.addEventListener("scroll", updateProgress);' +
+      'updateProgress();' + // Initialize progress on load
+    '});' +
+    '</script>';
 
   const authorSection = post.author ? `
     <img src="${encodeURI(authorImage)}" alt="${escapeHtml(post.author.name)}" class="rounded-full w-10 h-10 mr-3" />
@@ -281,10 +317,12 @@ let html = template
   .replace(/POST_CATEGORY/g, escapeHtml(post.categories?.[0] || ''))
   .replace(/POST_CONTENT_PLAIN/g, escapeHtml(plainTextContent))
   .replace(/SITE_LOGO/g, `${getSiteUrl()}/icon-192.png`)
-    .replace('AUTHOR_SECTION', authorSection)
-    .replace('CATEGORIES_SECTION', categoriesSection)
-    .replace('MAIN_IMAGE', mainImageSection)
-    .replace('POST_CONTENT', portableTextHtml);
+  .replace(/\$\{readingTime\}/g, readingTime.toString())
+  .replace('AUTHOR_SECTION', authorSection)
+  .replace('CATEGORIES_SECTION', categoriesSection)
+  .replace('MAIN_IMAGE', mainImageSection)
+  .replace('POST_CONTENT', portableTextHtml)
+  .replace('PROGRESS_BAR_SCRIPT', progressBarScript);
 
   await fs.writeFile(
     path.join(BLOG_DIR, `${post.slug.current}.html`),

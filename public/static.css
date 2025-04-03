@@ -343,12 +343,23 @@ html, body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-.blog-post-date {
+.blog-post-meta {
   margin-top: 1rem;
   font-size: 0.875rem;
   color: rgba(107, 114, 128, 0.9);
   font-weight: 450;
+  display: flex;
+  align-items: center;
+}
+
+/* Remove old relative positioning rule for nav container */
+
+#readingProgress {
+  /* Styles remain largely the same, but positioning context is now the fixed container */
+  width: 0%;
+  height: 100%;
+  background-color: var(--primary-500);
+  transition: width 0.1s linear;
 }
 
 @media (min-width: 640px) {
