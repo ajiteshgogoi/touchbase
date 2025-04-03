@@ -4,16 +4,6 @@ export default defineType({
   name: 'post',
   title: 'Post',
   type: 'document',
-  groups: [
-    {
-      name: 'content',
-      title: 'Content',
-    },
-    {
-      name: 'seo',
-      title: 'SEO & Metadata',
-    },
-  ],
   fields: [
     defineField({
       name: 'title',
@@ -61,51 +51,10 @@ export default defineType({
     }),
     defineField({
       name: 'description',
-      title: 'Meta Description',
+      title: 'Description',
       type: 'text',
-      description: 'Brief description for search results (recommended: 150-160 characters)',
+      description: 'Brief description of the post (used for search results and social media)',
       validation: Rule => Rule.max(160),
-      group: 'seo',
-    }),
-    defineField({
-      name: 'keywords',
-      title: 'Keywords',
-      type: 'array',
-      of: [{type: 'string'}],
-      description: 'Main keywords describing the post content',
-      group: 'seo',
-    }),
-    defineField({
-      name: 'canonicalUrl',
-      title: 'Canonical URL',
-      type: 'url',
-      description: 'The preferred version of this page for search engines',
-      group: 'seo',
-    }),
-    defineField({
-      name: 'ogImage',
-      title: 'Social Media Image',
-      type: 'image',
-      description: 'Image for social media sharing (recommended: 1200x630 pixels)',
-      options: {
-        hotspot: true,
-      },
-      group: 'seo',
-    }),
-    defineField({
-      name: 'ogTitle',
-      title: 'Social Media Title',
-      type: 'string',
-      description: 'Custom title for social media sharing (if different from post title)',
-      group: 'seo',
-    }),
-    defineField({
-      name: 'ogDescription',
-      title: 'Social Media Description',
-      type: 'text',
-      description: 'Custom description for social media sharing (if different from meta description)',
-      validation: Rule => Rule.max(200),
-      group: 'seo',
     }),
   ],
 
