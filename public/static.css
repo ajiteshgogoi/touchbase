@@ -358,12 +358,22 @@ nav[aria-label="Breadcrumb"] ol li > * {
 
 /* Remove old relative positioning rule for nav container */
 
+/* Progress bar styles */
+#progressBarContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 50;
+  background-color: var(--gray-100);
+}
+
 #readingProgress {
-  /* Styles remain largely the same, but positioning context is now the fixed container */
   width: 0%;
   height: 100%;
   background-color: var(--primary-500);
-  transition: width 0.1s linear;
+  transition: width 0.1s ease-out;
 }
 
 @media (min-width: 640px) {
