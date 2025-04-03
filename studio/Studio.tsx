@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 function StudioPage() {
   useEffect(() => {
     // Redirect to Sanity Studio
-    const projectId = process.env.VITE_SANITY_PROJECT_ID;
+    const projectId = import.meta.env.VITE_SANITY_PROJECT_ID;
     if (projectId) {
       const studioUrl = `https://${projectId}.sanity.studio/`;
       window.location.href = studioUrl;
