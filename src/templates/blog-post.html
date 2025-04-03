@@ -106,7 +106,7 @@
             <article itemscope itemtype="https://schema.org/BlogPosting">
               <div class="text-center space-y-4 mb-12">
                 <nav aria-label="Breadcrumb" class="mb-4">
-                  <ol class="flex items-center justify-center space-x-2 text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
+                  <ol class="flex flex-wrap items-center justify-center gap-2 text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
                     <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
                       <a href="/" itemprop="item" class="breadcrumb-link">
                         <span itemprop="name">Home</span>
@@ -161,14 +161,26 @@
               <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft" id="post-content" itemprop="articleBody">
                 <div class="p-6 prose prose-blue max-w-none">
                    <style>
-                     /* Breadcrumb hover styles */
-                     .breadcrumb-link {
-                       color: rgb(107, 114, 128);
-                       transition: color 0.2s ease;
-                     }
-                     .breadcrumb-link:hover {
-                       color: #0EA5E9;
-                     }
+                      /* Breadcrumb hover styles */
+                      .breadcrumb-link {
+                        color: rgb(107, 114, 128);
+                        transition: color 0.2s ease;
+                      }
+                      .breadcrumb-link:hover {
+                        color: #0EA5E9;
+                      }
+
+                      /* Mobile breadcrumb truncation */
+                      @media (max-width: 640px) {
+                        nav[aria-label="Breadcrumb"] ol li:last-child span {
+                          max-width: 200px;
+                          white-space: nowrap;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          display: inline-block;
+                          vertical-align: middle;
+                        }
+                      }
 
                     .prose {
                       font-size: 15px;

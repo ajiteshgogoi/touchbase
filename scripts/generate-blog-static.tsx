@@ -256,6 +256,7 @@ let html = template
   .replace(/POST_OG_DESCRIPTION/g, escapeHtml(post.ogDescription || post.description || post.excerpt || ''))
   .replace(/POST_OG_IMAGE/g, encodeURI(post.ogImage ? urlFor(post.ogImage).width(1200).height(630).url() : mainImage))
   .replace(/POST_IMAGE/g, encodeURI(mainImage))
+  .replace(/POST_DATE_FORMATTED/g, formattedDate)  // Use pre-formatted date
   .replace(/POST_DATE/g, post.publishedAt)
   .replace(/POST_MODIFIED_DATE/g, post._updatedAt)
   .replace(/POST_AUTHOR/g, escapeHtml(post.author?.name || ''))
@@ -264,11 +265,6 @@ let html = template
   .replace(/POST_CATEGORY/g, escapeHtml(post.categories?.[0] || ''))
   .replace(/POST_CONTENT_PLAIN/g, escapeHtml(plainTextContent))
   .replace(/SITE_LOGO/g, `${getSiteUrl()}/icon-192.png`)
-  .replace('POST_DATE_FORMATTED', new Date(post.publishedAt).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }))
     .replace('AUTHOR_SECTION', authorSection)
     .replace('CATEGORIES_SECTION', categoriesSection)
     .replace('MAIN_IMAGE', mainImageSection)
