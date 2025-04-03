@@ -113,14 +113,14 @@
                         <nav aria-label="Breadcrumb" class="mb-4">
                             <ol class="flex items-center justify-center space-x-2 text-gray-600" itemscope itemtype="https://schema.org/BreadcrumbList">
                                 <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                                    <a href="/" itemprop="item" class="hover:text-primary-600">
+                                    <a href="/" itemprop="item" class="text-primary-500 hover:text-primary-600 transition-colors">
                                         <span itemprop="name">Home</span>
                                     </a>
                                     <meta itemprop="position" content="1" />
                                 </li>
                                 <li class="text-gray-400">/</li>
                                 <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                                    <a href="/blog" itemprop="item" class="hover:text-primary-600">
+                                    <a href="/blog" itemprop="item" class="text-primary-500 hover:text-primary-600 transition-colors">
                                         <span itemprop="name">Blog</span>
                                     </a>
                                     <meta itemprop="position" content="2" />
@@ -132,12 +132,12 @@
                             POST_TITLE
                         </h1>
 
-                        <div class="flex items-center justify-center space-x-4 text-gray-600/90">
-                            <div id="author-section" itemprop="author" itemscope itemtype="https://schema.org/Person" class="font-[450]">
+                        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-gray-600/90">
+                            <div id="author-section" itemprop="author" itemscope itemtype="https://schema.org/Person" class="text-[15px] font-[450] text-primary-500">
                                 AUTHOR_SECTION
                             </div>
-                            <span class="text-gray-400">•</span>
-                            <time itemprop="datePublished" datetime="POST_DATE" class="text-sm font-[450]">
+                            <span class="hidden sm:inline text-gray-400">•</span>
+                            <time itemprop="datePublished" datetime="POST_DATE" class="text-[15px] font-[450]">
                                 POST_DATE_FORMATTED
                             </time>
                             <meta itemprop="dateModified" content="POST_MODIFIED_DATE" />
@@ -156,6 +156,16 @@
 
 
                     <div class="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm prose prose-blue max-w-none" id="post-content" itemprop="articleBody">
+                        <style>
+                            .prose a {
+                                color: #0EA5E9;
+                                text-decoration: none;
+                                transition: color 0.2s;
+                            }
+                            .prose a:hover {
+                                color: #0284C7;
+                            }
+                        </style>
                         POST_CONTENT
                     </div>
                     <footer class="mt-8 pt-8 text-center">
