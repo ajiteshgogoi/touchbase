@@ -1,7 +1,30 @@
 import fs from 'fs';
 import path from 'path';
+import { createClient } from '@sanity/client';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const baseUrl = 'https://touchbase.site';
+
+// Initialize Sanity client
+const client = createClient({
+  projectId: process.env.VITE_SANITY_PROJECT_ID,
+  dataset: process.env.VITE_SANITY_DATASET,
+  useCdn: true,
+  apiVersion: '2024-04-03',
+});
+
+// Fetch all blog posts from Sanity
+async function getBlogPosts() {
+  return client.fetch(`
+    *[_type == "post"] {
+      slug,
+      _updatedAt
+    }
+  `);
+}
 const publicPages = [
   {
     url: '/',
@@ -163,33 +186,67 @@ const publicPages = [
   }
 ];
 
-const generateSitemap = () => {
-  const today = new Date().toISOString().split('T')[0];
-  
-  const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+// Add blog to public pages
+publicPages.push({
+  url: '/blog',
+  changefreq: 'daily',
+  priority: 0.9
+});
+
+const generateSitemap = async () => {
+  try {
+    console.log('Fetching blog posts...');
+    const blogPosts = await getBlogPosts();
+    
+    // Generate URLs for all pages including blog posts
+    const allUrls = [
+      // Static pages
+      ...publicPages.map(page => ({
+        loc: `${baseUrl}${page.url}`,
+        lastmod: new Date().toISOString().split('T')[0],
+        changefreq: page.changefreq,
+        priority: page.priority
+      })),
+      // Blog posts
+      ...blogPosts.map(post => ({
+        loc: `${baseUrl}/blog/${post.slug.current}`,
+        lastmod: post._updatedAt.split('T')[0],
+        changefreq: 'monthly',
+        priority: 0.8
+      }))
+    ];
+
+    const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${publicPages.map(page => `  <url>
-    <loc>${baseUrl}${page.url}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
+${allUrls.map(url => `  <url>
+    <loc>${url.loc}</loc>
+    <lastmod>${url.lastmod}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
   </url>`).join('\n')}
 </urlset>`;
 
-  // Ensure public directory exists
-  const publicDir = path.resolve('public');
-  if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir, { recursive: true });
+    // Ensure public directory exists
+    const publicDir = path.resolve('public');
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+
+    // Write sitemap
+    fs.writeFileSync(
+      path.join(publicDir, 'sitemap.xml'),
+      sitemapContent,
+      'utf-8'
+    );
+
+    console.log('Sitemap generated successfully!');
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    process.exit(1);
   }
-
-  // Write sitemap
-  fs.writeFileSync(
-    path.join(publicDir, 'sitemap.xml'),
-    sitemapContent,
-    'utf-8'
-  );
-
-  console.log('Sitemap generated successfully!');
 };
 
-generateSitemap();
+// Convert generateSitemap into an async IIFE
+(async () => {
+  await generateSitemap();
+})();
