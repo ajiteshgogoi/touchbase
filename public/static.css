@@ -203,6 +203,11 @@ html, body {
   color: var(--primary-500);
 }
 
+/* Ensure vertical alignment for all breadcrumb items */
+nav[aria-label="Breadcrumb"] ol li > * {
+  vertical-align: middle;
+}
+
 @media (max-width: 640px) {
   nav[aria-label="Breadcrumb"] ol li:last-child span {
     max-width: 200px;
