@@ -23,6 +23,16 @@
     
     <link href="/static.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Breadcrumb hover styles */
+        .breadcrumb-link {
+            color: rgb(107, 114, 128);
+            transition: color 0.2s ease;
+        }
+        .breadcrumb-link:hover {
+            color: #0EA5E9;
+        }
+    </style>
 
     <!-- Schema.org JSON-LD structured data -->
     <script type="application/ld+json">
@@ -90,6 +100,22 @@
 
         <main role="main" class="min-h-[80vh] flex flex-col px-4 py-16">
             <div class="max-w-4xl mx-auto w-full">
+                <nav aria-label="Breadcrumb" class="mb-8">
+                    <ol class="flex flex-wrap items-center justify-center gap-2 text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
+                        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                            <a href="/" itemprop="item" class="breadcrumb-link">
+                                <span itemprop="name">Home</span>
+                            </a>
+                            <meta itemprop="position" content="1" />
+                        </li>
+                        <li>/</li>
+                        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                            <span itemprop="name" class="text-gray-500">Blog</span>
+                            <meta itemprop="position" content="2" />
+                        </li>
+                    </ol>
+                </nav>
+                
                 <div class="text-center mb-12">
                     <h1 class="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em] py-2">TouchBase Blog</h1>
                     <p class="mt-3 text-xl text-gray-600/90">

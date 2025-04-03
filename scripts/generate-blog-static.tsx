@@ -127,7 +127,7 @@ async function generateBlogList(posts: SanityPost[]) {
     "@type": "ListItem",
     "position": index + 1,
     "item": {
-      "@type": "BlogPosting",
+      "@type": "Article",
       "headline": post.title,
       "description": post.description || post.excerpt || "",
       "datePublished": post.publishedAt,
@@ -138,6 +138,7 @@ async function generateBlogList(posts: SanityPost[]) {
       "url": post.canonicalUrl || `${getSiteUrl()}/blog/${post.slug.current}`,
       "author": post.author ? {
         "@type": "Organization",
+        "url": "https://touchbase.site",
         "name": post.author.name
       } : {
         "@type": "Organization",
