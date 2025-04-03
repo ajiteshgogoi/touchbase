@@ -3,13 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog | Touchbase</title>
-    <meta name="description" content="Latest posts and updates from Touchbase">
-    <meta property="og:title" content="Blog | Touchbase">
-    <meta property="og:description" content="Latest posts and updates from Touchbase">
+    <title>TouchBase Blog</title>
+    <meta name="description" content="Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships">
+    <link rel="canonical" href="https://touchbase.site/blog">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="TouchBase Blog">
+    <meta property="og:description" content="Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://touchbase.site/og.png">
+    <meta property="og:url" content="https://touchbase.site/blog">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TouchBase Blog">
+    <meta name="twitter:description" content="Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships">
+    <meta name="twitter:image" content="https://touchbase.site/og.png">
+    
     <link href="/static.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Schema.org JSON-LD structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "TouchBase Blog",
+      "description": "Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships",
+      "url": "https://touchbase.site/blog",
+      "publisher": {
+        "@type": "Organization",
+        "name": "TouchBase Technologies",
+        "url": "https://touchbase.site",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://touchbase.site/icon.svg"
+        }
+      },
+      "mainEntity": {
+        "@type": "SoftwareApplication",
+        "name": "TouchBase",
+        "applicationCategory": "PersonalCRM",
+        "operatingSystem": "Web, iOS, Android",
+        "offers": {
+          "@type": "Offer",
+          "price": "3",
+          "priceCurrency": "USD",
+          "priceValidUntil": "2025-12-31"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "ratingCount": "261"
+        },
+        "featureList": [
+          "Smart Contact Management",
+          "Interaction History Tracking",
+          "Intelligent Reminders",
+          "Relationship Insights",
+          "Personalised Suggestions",
+          "Conversation Prompt Generator",
+          "Cross-Platform Support",
+          "Privacy-Focused Design"
+        ]
+      }
+    }
+    </script>
 </head>
 <body class="min-h-screen bg-gray-50">
     <div class="py-12">
@@ -26,9 +86,17 @@
             </div>
         </div>
     </div>
+<!-- Schema.org ItemList for blog posts -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": BLOG_POSTS_LIST_SCHEMA
+}
+</script>
 
-    <script>
-        // This will be replaced with actual data during build
+<script>
+    // This will be replaced with actual data during build
         const posts = POSTS_DATA;
         
         function renderPosts() {

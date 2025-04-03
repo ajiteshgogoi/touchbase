@@ -29,7 +29,7 @@ async function ensureDirectories() {
 }
 
 function getSiteUrl() {
-  return process.env.SITE_URL || 'https://touchbase.com';
+  return process.env.SITE_URL || 'https://touchbase.site';
 }
 
 // Define basic types for Sanity data (replace with more specific types if available)
@@ -122,10 +122,50 @@ async function generateBlogList(posts: SanityPost[]) {
     mainImage: post.mainImage ? urlFor(post.mainImage).width(600).url() : null,
   }));
 
-  const html = template.replace(
-    'const posts = POSTS_DATA;',
-    `const posts = ${JSON.stringify(processedPosts, null, 2)};`
-  );
+  // Generate structured data for blog posts list
+  const postsListSchema = posts.map((post, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "item": {
+      "@type": "BlogPosting",
+      "headline": post.title,
+      "description": post.description || post.excerpt || "",
+      "datePublished": post.publishedAt,
+      "dateModified": post._updatedAt,
+      "image": post.ogImage ? urlFor(post.ogImage).width(1200).height(630).url()
+              : post.mainImage ? urlFor(post.mainImage).width(1200).url()
+              : `${getSiteUrl()}/og.png`,
+      "url": post.canonicalUrl || `${getSiteUrl()}/blog/${post.slug.current}`,
+      "author": post.author ? {
+        "@type": "Organization",
+        "name": post.author.name
+      } : {
+        "@type": "Organization",
+        "name": "TouchBase Technologies"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "TouchBase Technologies",
+        "url": getSiteUrl(),
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${getSiteUrl()}/icon-192.png`
+        }
+      },
+      "keywords": post.keywords?.join(', ') || post.categories?.join(', ') || "",
+      "articleSection": post.categories?.[0] || ""
+    }
+  }));
+
+  let html = template
+    .replace(
+      'const posts = POSTS_DATA;',
+      `const posts = ${JSON.stringify(processedPosts, null, 2)};`
+    )
+    .replace(
+      'BLOG_POSTS_LIST_SCHEMA',
+      JSON.stringify(postsListSchema, null, 2)
+    );
 
   await fs.writeFile(path.join(BLOG_DIR, 'index.html'), html);
 }

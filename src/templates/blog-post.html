@@ -29,20 +29,21 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "BlogPosting",
+      "@type": "Article",
       "headline": "POST_TITLE",
-      "description": "POST_EXCERPT",
+      "description": "POST_META_DESCRIPTION",
       "image": "POST_IMAGE",
       "datePublished": "POST_DATE",
       "dateModified": "POST_MODIFIED_DATE",
       "author": {
-        "@type": "Person",
+        "@type": "Organization",
         "name": "POST_AUTHOR",
-        "image": "AUTHOR_IMAGE"
+        "url": "https://touchbase.site"
       },
       "publisher": {
         "@type": "Organization",
-        "name": "Touchbase",
+        "name": "Touchbase Technologies",
+        "url": "https://touchbase.site",
         "logo": {
           "@type": "ImageObject",
           "url": "SITE_LOGO"
@@ -54,7 +55,34 @@
       },
       "keywords": "POST_KEYWORDS",
       "articleSection": "POST_CATEGORY",
-      "articleBody": "POST_CONTENT_PLAIN"
+      "articleBody": "POST_CONTENT_PLAIN",
+      "mainEntity": {
+        "@type": "SoftwareApplication",
+        "name": "TouchBase",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "offers": {
+          "@type": "Offer",
+          "price": "3",
+          "priceCurrency": "USD",
+          "priceValidUntil": "2025-12-31"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.8",
+          "ratingCount": "261"
+        },
+        "featureList": [
+          "Smart Contact Management",
+          "Interaction History Tracking",
+          "Intelligent Reminders",
+          "Relationship Insights",
+          "Personalised Suggestions",
+          "Conversation Prompt Generator",
+          "Cross-Platform Support",
+          "Privacy-Focused Design"
+        ]
+      }
     }
     </script>
 </head>
