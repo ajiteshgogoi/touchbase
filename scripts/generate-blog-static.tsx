@@ -82,7 +82,15 @@ async function getAllPosts(): Promise<SanityPost[]> {
       publishedAt,
       _updatedAt,
       excerpt,
-      body,
+      body[]{
+        ...,
+        markDefs[]{
+          ...,
+          _type == "internalLink" => {
+            "slug": reference->slug.current
+          }
+        }
+      },
       "categories": categories[]->title,
       "author": author->{
         name,
@@ -217,6 +225,11 @@ async function generateBlogPost(post: SanityPost) {
       code: ({ children }) => <code className="bg-gray-100 px-1 rounded">{children}</code>,
       link: ({ value, children }) => (
         <a href={value?.href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+          {children}
+        </a>
+      ),
+      internalLink: ({ value, children }) => (
+        <a href={`/blog/${value?.slug}`} className="text-blue-600 hover:underline">
           {children}
         </a>
       )

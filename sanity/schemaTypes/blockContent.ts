@@ -53,6 +53,23 @@ export default defineType({
               },
             ],
           },
+          {
+            title: 'Internal Post Link',
+            name: 'internalLink',
+            type: 'object',
+            icon: () => '⭐',
+            fields: [
+              {
+                title: 'Reference',
+                name: 'reference',
+                type: 'reference',
+                to: [{ type: 'post' }],
+                options: {
+                  disableNew: true,
+                },
+              },
+            ],
+          },
         ],
       },
     }),
