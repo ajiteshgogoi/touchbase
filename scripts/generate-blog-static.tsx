@@ -243,7 +243,7 @@ let html = template
   .replace(/POST_CATEGORY/g, post.categories?.[0] || '')
   .replace(/POST_CONTENT_PLAIN/g, plainTextContent)
   .replace(/SITE_LOGO/g, `${getSiteUrl()}/icon-192.png`)
-  .replace('POST_DATE_FORMATTED', new Date(post.publishedAt).toLocaleDateString('en-US', {
+  .replace(/POST_DATE_FORMATTED/g, new Date(post.publishedAt).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
