@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TouchBase Blog</title>
-    <meta name="description" content="Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships">
+    <meta name="description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships">
     <link rel="canonical" href="https://touchbase.site/blog">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- Open Graph -->
     <meta property="og:title" content="TouchBase Blog">
-    <meta property="og:description" content="Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships">
+    <meta property="og:description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://touchbase.site/og.png">
     <meta property="og:url" content="https://touchbase.site/blog">
@@ -18,7 +18,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="TouchBase Blog">
-    <meta name="twitter:description" content="Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships">
+    <meta name="twitter:description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships">
     <meta name="twitter:image" content="https://touchbase.site/og.png">
     
     <link href="/static.css" rel="stylesheet">
@@ -30,7 +30,7 @@
       "@context": "https://schema.org",
       "@type": "Blog",
       "name": "TouchBase Blog",
-      "description": "Latest posts and updates from TouchBase - Your Personal CRM for meaningful relationships",
+      "description": "Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships",
       "url": "https://touchbase.site/blog",
       "publisher": {
         "@type": "Organization",
@@ -44,7 +44,7 @@
       "mainEntity": {
         "@type": "SoftwareApplication",
         "name": "TouchBase",
-        "applicationCategory": "PersonalCRM",
+        "applicationCategory": "UtilitiesApplication",
         "operatingSystem": "Web, iOS, Android",
         "offers": {
           "@type": "Offer",
@@ -71,20 +71,41 @@
     }
     </script>
 </head>
-<body class="min-h-screen bg-gray-50">
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl">Blog</h1>
-                <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-                    Latest posts and updates
-                </p>
+<body class="bg-gray-50">
+    <div id="root">
+        <nav class="bg-white/60 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100/50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-14">
+                    <div class="flex-1 flex items-center justify-between">
+                        <a href="/" class="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200">
+                            <img src="/icon.svg" alt="Blue heart icon" class="h-7 w-7 mr-0.5 group-hover:scale-105 group-hover:brightness-90 transition-all duration-200 translate-y-[5px]">
+                            <span class="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
+                                TouchBase
+                            </span>
+                        </a>
+                    </div>
+                </div>
             </div>
-            
-            <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3" id="posts-grid">
-                <!-- Posts will be injected here -->
+        </nav>
+
+        <main role="main" class="min-h-[80vh] flex flex-col px-4 py-16">
+            <div class="max-w-4xl mx-auto w-full">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em] py-2">TouchBase Blog</h1>
+                    <p class="mt-3 text-xl text-gray-600/90">
+                        Latest posts and updates
+                    </p>
+                </div>
+                
+                <div class="space-y-8" id="posts-grid">
+                    <!-- Posts will be injected here -->
+                </div>
             </div>
-        </div>
+        </main>
+
+        <footer class="text-center pt-2 pb-5 text-gray-600 text-sm">
+            © <span id="currentYear"></span> TouchBase Technologies
+        </footer>
     </div>
 <!-- Schema.org ItemList for blog posts -->
 <script type="application/ld+json">
@@ -97,53 +118,95 @@
 
 <script>
     // This will be replaced with actual data during build
-        const posts = POSTS_DATA;
+    const posts = POSTS_DATA;
+    const postsPerPage = 10;
+    let currentPage = 1;
+    
+    function renderPosts() {
+        const grid = document.getElementById('posts-grid');
+        const startIndex = (currentPage - 1) * postsPerPage;
+        const endIndex = startIndex + postsPerPage;
+        const currentPosts = posts.slice(startIndex, endIndex);
         
-        function renderPosts() {
-            const grid = document.getElementById('posts-grid');
-            grid.innerHTML = posts.map(post => `
-                <a href="/blog/${post.slug.current}" 
-                   class="flex flex-col rounded-lg shadow-lg overflow-hidden transition-transform hover:transform hover:scale-105">
-                    ${post.mainImage ? `
-                        <div class="flex-shrink-0">
-                            <img class="h-48 w-full object-cover" 
-                                 src="${post.mainImage}" 
-                                 alt="${post.title}">
-                        </div>
-                    ` : ''}
-                    <div class="flex-1 bg-white p-6 flex flex-col justify-between">
-                        <div class="flex-1">
-                            ${post.categories && post.categories.length ? `
-                                <div class="flex space-x-2 mb-3">
-                                    ${post.categories.map(category => `
-                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                            ${category}
-                                        </span>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">
-                                ${post.title}
-                            </h3>
-                            ${post.excerpt ? `
-                                <p class="text-base text-gray-500 line-clamp-3">
-                                    ${post.excerpt}
-                                </p>
-                            ` : ''}
-                        </div>
-                        <div class="mt-4 text-sm text-gray-500">
-                            ${new Date(post.publishedAt).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            })}
-                        </div>
-                    </div>
-                </a>
-            `).join('');
+        // Remove existing pagination if present
+        const existingPagination = document.querySelector('#posts-grid + div');
+        if (existingPagination) {
+            existingPagination.remove();
         }
 
+        grid.innerHTML = currentPosts.map(post => `
+            <a href="/blog/${post.slug.current}"
+               class="flex flex-col sm:flex-row rounded-xl overflow-hidden transition-transform hover:transform hover:scale-[1.01] bg-white/60 backdrop-blur-xl border border-gray-100/50 shadow-soft">
+                ${post.mainImage ? `
+                    <div class="sm:w-64 flex-shrink-0">
+                        <img class="h-48 w-full sm:h-full sm:w-64 object-cover"
+                             src="${post.mainImage}"
+                             alt="${post.title}">
+                    </div>
+                ` : ''}
+                <div class="flex-1 p-6 flex flex-col justify-between">
+                    <div class="flex-1">
+                        ${post.categories && post.categories.length ? `
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                ${post.categories.map(category => `
+                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        ${category}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                            ${post.title}
+                        </h3>
+                        ${post.excerpt ? `
+                            <p class="text-[15px] text-gray-600/90 line-clamp-2">
+                                ${post.excerpt}
+                            </p>
+                        ` : ''}
+                    </div>
+                    <div class="mt-4 text-sm text-gray-500 font-[450]">
+                        ${new Date(post.publishedAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })}
+                    </div>
+                </div>
+            </a>
+        `).join('');
+
+        // Add pagination if there are more posts
+        if (posts.length > postsPerPage) {
+            const totalPages = Math.ceil(posts.length / postsPerPage);
+            const paginationHtml = `
+                <div class="mt-8 flex justify-center space-x-4">
+                    ${Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => `
+                        <button
+                            class="px-4 py-2 rounded-lg ${pageNum === currentPage
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-white/60 text-gray-600 hover:bg-gray-50'}
+                                font-medium transition-colors duration-200"
+                            onclick="changePage(${pageNum})"
+                        >
+                            ${pageNum}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            grid.insertAdjacentHTML('afterend', paginationHtml);
+        }
+    }
+
+    function changePage(pageNum) {
+        currentPage = pageNum;
         renderPosts();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    renderPosts();
+    
+    // Update current year in footer
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
 </body>
 </html>
