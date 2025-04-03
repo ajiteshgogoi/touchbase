@@ -1,11 +1,4 @@
 import { useEffect } from 'react';
-import { defineConfig } from 'sanity';
-import config from './sanity.config';
-
-const studioConfig = defineConfig({
-  ...config,
-  basePath: '/studio'
-});
 
 function StudioPage() {
   useEffect(() => {
