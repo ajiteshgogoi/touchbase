@@ -3,10 +3,10 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "outDir": "dist", // Keep output directory
-    "rootDir": "src",
+    "outDir": "dist",
+    "rootDir": ".", // Allow compilation of files outside src (needed for scripts directory)
     "esModuleInterop": true,
-    "jsx": "react", // Enable JSX processing
+    "jsx": "react",
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
@@ -16,6 +16,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/services/**/*", "src/utils/**/*", "src/lib/**/*", "scripts/**/*.ts*"], // Include scripts directory
-  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]
+  "include": ["src/services/**/*", "src/utils/**/*", "src/lib/**/*", "scripts/**/*.ts*"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts", "node_modules"]
 }
