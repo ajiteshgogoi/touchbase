@@ -81,7 +81,6 @@ async function getAllPosts(): Promise<SanityPost[]> {
       mainImage,
       publishedAt,
       _updatedAt,
-      excerpt,
       body[]{
         ...,
         markDefs[]{
@@ -135,10 +134,13 @@ async function generateBlogList(posts: SanityPost[]) {
     const plainText = processPortableText(post.body);
     const readingTime = calculateReadingTime(plainText);
     return {
-      ...post,
+      _id: post._id,
+      title: post.title,
+      slug: post.slug,
+      publishedAt: post.publishedAt,
+      categories: post.categories,
       mainImage: post.mainImage ? urlFor(post.mainImage).width(600).url() : null,
-      readingTime,
-      plainText
+      readingTime
     };
   });
 
