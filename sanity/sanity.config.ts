@@ -9,7 +9,7 @@ import React, { FC } from 'react'
 const Logo: FC = () => {
   return React.createElement('img', {
     src: 'favicon.svg',
-    alt: 'TouchBase',
+    alt: 'Blue Heart Logo for TouchBase Personal CRM',
     style: { height: '2em' }
   })
 }
