@@ -232,9 +232,9 @@ async function generateBlogPost(post: SanityPost) {
   ` : '';
 
   const categoriesSection = post.categories?.length ? post.categories.map(category => `
-    <span class="blog-post-tag">
+    <a href="/blog?category=${encodeURIComponent(category)}" class="blog-post-tag">
       ${escapeHtml(category)}
-    </span>
+    </a>
   `).join('') : '';
 
   const mainImageSection = mainImage ? `
