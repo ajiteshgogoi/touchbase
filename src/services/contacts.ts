@@ -611,18 +611,27 @@ export const contactsService = {
   },
 
   async addInteraction(interaction: Omit<Interaction, 'id' | 'created_at'>): Promise<Interaction> {
-    // Record the interaction
-    const { data: interactionData, error: interactionError } = await supabase
+    // Use the new combined function to log interaction and update contact
+    const { data, error } = await supabase
+      .rpc('log_interaction_and_update_contact', {
+        p_contact_id: interaction.contact_id,
+        p_user_id: interaction.user_id,
+        p_type: interaction.type,
+        p_date: interaction.date,
+        p_notes: interaction.notes || null,
+        p_sentiment: interaction.sentiment || null
+      });
+
+    if (error) throw error;
+
+    // Get the created interaction data
+    const { data: interactionData, error: fetchError } = await supabase
       .from('interactions')
-      .insert(interaction)
       .select()
+      .eq('id', data[0].interaction_id)
       .single();
-    
-    if (interactionError) throw interactionError;
 
-    // Recalculate next due date considering important events
-    await this.recalculateNextContactDue(interaction.contact_id);
-
+    if (fetchError) throw fetchError;
     return interactionData;
   },
 
