@@ -20,7 +20,7 @@ if (document.documentElement.getAttribute('data-ig-browser') === 'true' &&
     );
   } catch (error) {
     console.error('Failed to initialize app:', error);
-    // Fallback message if React fails to load //
+    // Fallback message if React fails to load
     root.innerHTML = '<div class="p-4">Unable to load application. Please try refreshing the page.</div>';
   }
 }
