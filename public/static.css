@@ -309,6 +309,15 @@ nav[aria-label="Breadcrumb"] ol li > * {
   flex-direction: column;
   justify-content: space-between;
 }
+/* Category tags container */
+#categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
 .blog-post-tag {
   display: inline-flex;
   align-items: center;
@@ -320,6 +329,7 @@ nav[aria-label="Breadcrumb"] ol li > * {
   background-color: var(--primary-50);
   color: var(--primary-700);
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .blog-post-tag:hover {
