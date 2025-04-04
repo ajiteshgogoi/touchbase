@@ -13,7 +13,7 @@ import { notificationService } from './services/notifications';
 import { platform } from './utils/platform';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
-// Eagerly load critical components //
+// Eagerly load critical components
 import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
