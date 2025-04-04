@@ -229,9 +229,6 @@
         // When searching or filtering, use filteredPosts; otherwise use sortedPosts
         const postsToRender = (searchTerm || selectedCategory) ? filteredPosts : sortedPosts;
 
-        // Debug log to check posts data
-        console.log('Posts data:', postsToRender);
-        
         if (!postsToRender || postsToRender.length === 0) {
             grid.innerHTML = '<div class="text-center text-gray-500 mt-12 text-lg">No posts found</div>';
             return;
@@ -247,11 +244,12 @@
             existingPagination.remove();
         }
 
-        grid.innerHTML = currentPosts.map(post => `
+        // Prioritize rendering first 3 posts
+        const renderPost = (post) => `
             <a href="/blog/${post.slug.current}" class="blog-post-card">
                 ${post.mainImage ? `
                     <div class="sm:w-64 flex-shrink-0">
-                        <img class="blog-post-image" src="${post.mainImage}" alt="${post.title}">
+                        <img class="blog-post-image" ${post.priority ? '' : 'loading="lazy"'} src="${post.mainImage}" alt="${post.title}">
                     </div>
                 ` : ''}
                 <div class="blog-post-content">
@@ -281,7 +279,15 @@
                     </div>
                 </div>
             </a>
-        `).join('');
+        `;
+
+        // Mark first 3 posts as priority for eager loading
+        const html = currentPosts.map((post, index) => {
+            post.priority = index < 3;
+            return renderPost(post);
+        }).join('');
+        
+        grid.innerHTML = html;
         // Add pagination if there are more posts
         if (postsToRender.length > postsPerPage) {
             const totalPages = Math.ceil(postsToRender.length / postsPerPage);
