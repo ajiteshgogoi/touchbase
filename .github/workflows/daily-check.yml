@@ -79,4 +79,4 @@ jobs:
           MAX_RETRY_DELAY: ${{ env.MAX_RETRY_DELAY }}
           BACKOFF_MULTIPLIER: ${{ env.BACKOFF_MULTIPLIER }}
           RATE_LIMIT_STATUS_CODES: ${{ env.RATE_LIMIT_STATUS_CODES }}
-        run: node dist/services/daily-check.js
+        run: node dist/src/services/daily-check.js
