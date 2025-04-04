@@ -130,7 +130,12 @@ async function generateBlogList(posts: SanityPost[]) {
     'utf-8'
   );
 
-  const processedPosts = posts.map(post => {
+  // Sort posts by date (latest first) before processing
+  const sortedPosts = [...posts].sort((a, b) =>
+    new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  );
+
+  const processedPosts = sortedPosts.map(post => {
     const plainText = processPortableText(post.body);
     const readingTime = calculateReadingTime(plainText);
     return {
@@ -181,6 +186,11 @@ async function generateBlogList(posts: SanityPost[]) {
     }
   }));
 
+  // Add preload tag for first post's image if it exists
+  const firstPost = processedPosts[0];
+  const preloadTag = firstPost?.mainImage ?
+    `\n    <link rel="preload" as="image" href="${firstPost.mainImage}" fetchpriority="high">` : '';
+
   let html = template
     .replace(
       'const posts = POSTS_DATA;',
@@ -189,7 +199,8 @@ async function generateBlogList(posts: SanityPost[]) {
     .replace(
       'BLOG_POSTS_LIST_SCHEMA',
       JSON.stringify(postsListSchema, null, 2)
-    );
+    )
+    .replace('</head>', `${preloadTag}\n</head>`);
 
   await fs.writeFile(path.join(BLOG_DIR, 'index.html'), html);
 }
