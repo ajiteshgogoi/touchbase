@@ -181,8 +181,8 @@ async function generateBlogList(posts: SanityPost[]) {
 
   let html = template
     .replace(
-      'window.POSTS_DATA = POSTS_DATA;',
-      `window.POSTS_DATA = ${JSON.stringify(processedPosts, null, 2)};`
+      'const posts = POSTS_DATA;',
+      `const posts = ${JSON.stringify(processedPosts, null, 2)};`
     )
     .replace(
       'BLOG_POSTS_LIST_SCHEMA',
