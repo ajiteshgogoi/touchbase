@@ -144,7 +144,7 @@ async function generateBlogList(posts: SanityPost[]) {
       slug: post.slug,
       publishedAt: post.publishedAt,
       categories: post.categories,
-      mainImage: post.mainImage ? urlFor(post.mainImage).width(600).url() : null,
+      mainImage: post.mainImage ? urlFor(post.mainImage).width(600).auto('format').url() : null,
       readingTime
     };
   });
@@ -159,8 +159,8 @@ async function generateBlogList(posts: SanityPost[]) {
       "description": post.description || post.excerpt || "",
       "datePublished": post.publishedAt,
       "dateModified": post._updatedAt,
-      "image": post.ogImage ? urlFor(post.ogImage).width(1200).height(630).url()
-              : post.mainImage ? urlFor(post.mainImage).width(1200).url()
+      "image": post.ogImage ? urlFor(post.ogImage).width(1200).height(630).auto('format').url()
+              : post.mainImage ? urlFor(post.mainImage).width(1200).auto('format').url()
               : `${getSiteUrl()}/og.png`,
       "url": post.canonicalUrl || `${getSiteUrl()}/blog/${post.slug.current}`,
       "author": post.author ? {
@@ -213,8 +213,8 @@ async function generateBlogPost(post: SanityPost) {
 
 
   const postUrl = `${getSiteUrl()}/blog/${post.slug.current}`;
-  const mainImage = post.mainImage ? urlFor(post.mainImage).width(1200).height(675).url() : '';
-  const authorImage = post.author?.image ? urlFor(post.author.image).width(40).height(40).url() : '';
+  const mainImage = post.mainImage ? urlFor(post.mainImage).width(1200).height(675).auto('format').url() : '';
+  const authorImage = post.author?.image ? urlFor(post.author.image).width(40).height(40).auto('format').url() : '';
   const plainTextContent = processPortableText(post.body);
   const readingTime = calculateReadingTime(plainTextContent);
 
@@ -317,7 +317,7 @@ let html = template
   .replace(/POST_CANONICAL_URL/g, encodeURI(post.canonicalUrl || postUrl))
   .replace(/POST_OG_TITLE/g, escapeHtml(post.ogTitle || post.title))
   .replace(/POST_OG_DESCRIPTION/g, escapeHtml(post.ogDescription || post.description || post.excerpt || ''))
-  .replace(/POST_OG_IMAGE/g, encodeURI(post.ogImage ? urlFor(post.ogImage).width(1200).height(630).url() : mainImage))
+  .replace(/POST_OG_IMAGE/g, encodeURI(post.ogImage ? urlFor(post.ogImage).width(1200).height(630).auto('format').url() : mainImage))
   .replace(/POST_IMAGE/g, encodeURI(mainImage))
   .replace(/POST_DATE_FORMATTED/g, formattedDate)  // Use pre-formatted date
   .replace(/POST_DATE/g, post.publishedAt)
