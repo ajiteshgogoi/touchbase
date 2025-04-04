@@ -93,7 +93,7 @@ function renderPosts() {
                     ${post.categories && post.categories.length ? `
                         <div class="flex flex-wrap gap-2 mb-3">
                             ${post.categories.map(category => `
-                                <span class="blog-post-tag" role="button" onclick="event.stopPropagation(); event.preventDefault(); selectCategory('${category}')">${category}</span>
+                                <span class="blog-post-tag">${category}</span>
                             `).join('')}
                         </div>
                     ` : ''}
@@ -147,13 +147,6 @@ function changePage(pageNum) {
     currentPage = pageNum;
     renderPosts();
     window.scrollTo({top: 0, behavior: 'smooth'});
-}
-
-function selectCategory(category) {
-    const categoryFilter = document.getElementById('category-filter');
-    categoryFilter.value = category;
-    selectedCategory = category;
-    filterPosts();
 }
 
 filteredPosts = [...sortedPosts];
