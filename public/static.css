@@ -112,23 +112,6 @@ html, body {
   color: transparent;
 }
 
-/* Blog title optimized */
-.blog-title {
-  font-size: 2rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  padding: 0.5rem 0;
-  color: var(--primary-600);
-  font-display: swap;
-}
-
-@media (min-width: 640px) {
-  .blog-title {
-    font-size: 2.5rem;
-  }
-}
-
 /* Social proof styles */
 .rounded-full { border-radius: 9999px; }
 .border-\[2\.5px\] { border-width: 2.5px; }
@@ -327,7 +310,6 @@ nav[aria-label="Breadcrumb"] ol li > * {
   flex-direction: column;
   justify-content: space-between;
 }
-
 /* Category tags container */
 #categories {
   display: flex;
@@ -356,6 +338,7 @@ nav[aria-label="Breadcrumb"] ol li > * {
   color: var(--primary-800);
 }
 
+
 .blog-post-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -372,6 +355,8 @@ nav[aria-label="Breadcrumb"] ol li > * {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   box-orient: vertical;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .blog-post-meta {
@@ -382,6 +367,8 @@ nav[aria-label="Breadcrumb"] ol li > * {
   display: flex;
   align-items: center;
 }
+
+/* Remove old relative positioning rule for nav container */
 
 /* Progress bar styles */
 #progressBarContainer {
