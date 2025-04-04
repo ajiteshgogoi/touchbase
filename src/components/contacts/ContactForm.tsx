@@ -95,7 +95,7 @@ export const ContactForm = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Form validation
+  // Form validation //
   const validateForm = async () => {
     if (!user?.id) {
       console.error('No user ID available');
