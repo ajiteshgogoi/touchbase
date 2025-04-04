@@ -8,6 +8,16 @@ const sortedPosts = Array.isArray(posts) ?
         .filter(post => post && post.publishedAt)
         .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
     : [];
+
+// Preload the first post's image for better LCP
+if (sortedPosts.length > 0 && sortedPosts[0].mainImage) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = sortedPosts[0].mainImage;
+    link.fetchPriority = 'high';
+    document.head.appendChild(link);
+}
 const postsPerPage = 10;
 let currentPage = 1;
 
