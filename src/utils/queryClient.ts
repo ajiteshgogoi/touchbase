@@ -4,6 +4,7 @@ const queryClientConfig = {
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30,   // 30 minutes garbage collection
       retry: 3, // Increased from 1 to 3 retries
       retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
     },
