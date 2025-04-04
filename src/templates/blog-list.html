@@ -311,8 +311,19 @@
 
     filteredPosts = [...sortedPosts];
     initializeCategoryFilter();
-    renderPosts();
-    
+
+    // Check URL parameters for initial category filter
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryParam = urlParams.get('category');
+    if (categoryParam) {
+        const categoryFilter = document.getElementById('category-filter');
+        categoryFilter.value = categoryParam;
+        selectedCategory = categoryParam;
+        filterPosts();
+    } else {
+        renderPosts();
+    }
+
     // Update current year in footer
     document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
