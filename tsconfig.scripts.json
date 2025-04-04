@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "dist", // Keep output directory
-    // "rootDir": "src", // Remove rootDir as scripts are outside src
+    "rootDir": "src",
     "esModuleInterop": true,
     "jsx": "react", // Enable JSX processing
     "strict": true,
