@@ -27,7 +27,7 @@ export async function handleCallback(code: string) {
   }
 
   try {
-    // Exchange code through our secure worker
+    // Exchange code through our secure worker 
     const tokenResponse = await fetch(import.meta.env.VITE_OAUTH_WORKER_URL, {
       method: 'POST',
       headers: {
