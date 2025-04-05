@@ -161,7 +161,7 @@ export const platform = {
   },
 
   getDeviceInfo(): DeviceInfo {
-    // First check basic platform types
+    // First check basic platform types //
     if (this.isAndroid()) {
       const isTWAApp = this.isTWA();
       const isPWAApp = this.isPWA();
