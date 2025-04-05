@@ -6,6 +6,9 @@ import { marked } from 'marked';
 import dotenv from 'dotenv';
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
+import chalk from 'chalk';
+import { validateBlogContent } from './validate-blog-content.js';
+
 
 // Load environment variables
 dotenv.config();
@@ -197,6 +200,15 @@ function createLink(href) {
 }
 
 async function importBlogPosts() {
+  console.log(chalk.blue('Validating blog content...'));
+  try {
+    await validateBlogContent();
+    console.log(chalk.green('Validation successful! Proceeding with import...'));
+  } catch (error) {
+    console.error(chalk.red('Blog content validation failed. Please fix the issues before importing.'));
+    process.exit(1);
+  }
+
   // Store image asset references for reuse
   const imageReferences = {};
 
