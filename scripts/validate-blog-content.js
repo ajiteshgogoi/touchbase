@@ -42,9 +42,16 @@ const rules = {
         // Don't change if it's a complete sentence
         if (content.match(/^[A-Z].*[.!?]$/)) return match;
         
-        return `"${content}"`.trim() + '.';
+        return `"${content}"` + '.';
       });
     }
+  },
+
+  // Preserve spacing after colons
+  colonSpacing: {
+    pattern: /:\s+/g,
+    message: 'Preserve space after colon',
+    fix: (text) => text // Return text unchanged to preserve existing spacing
   },
 
   // Additional British English checks
