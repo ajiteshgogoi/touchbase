@@ -2,7 +2,7 @@
 export type Timestamp = string;
 
 /**
- * Note: Database UUIDs are represented as strings in TypeScript
+ * Note: Database UUIDs are represented as strings in TypeScript 
  * This is because UUIDs are converted to strings when transported over JSON
  * and are typically handled as strings in frontend code.
  */
