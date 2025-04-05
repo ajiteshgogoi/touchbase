@@ -12,26 +12,36 @@ const __dirname = dirname(__filename);
 const rules = {
   // Check for Oxford commas (not allowed in British English)
   oxfordComma: {
-    pattern: /,\s+(and|or)\s+(?:[^,\n]+(,\s+)?)*[^,\n]+$/gm,
+    // Only match Oxford commas in actual lists, not in other contexts
+    pattern: /,(\s+)(and|or)(?=\s+[^,]+(?:\s*[.?!]|$))/g,
     message: (match) => `Remove Oxford comma before "${match.includes('and') ? 'and' : 'or'}"`,
-    fix: (text) => {
-      // Handle both 'and' and 'or' cases, but only at the end of lists
-      return text
-        .replace(/,(\s+and\s+(?:[^,\n]+(,\s+)?)*[^,\n]+$)/gm, '$1')
-        .replace(/,(\s+or\s+(?:[^,\n]+(,\s+)?)*[^,\n]+$)/gm, '$1');
-    }
+    fix: (text) => text.replace(/,(\s+)(and|or)(?=\s+[^,]+(?:\s*[.?!]|$))/g, '$1$2')
   },
 
   // Check for American-style punctuation with quotes
   americanQuotePunctuation: {
-    pattern: /["'].+?\.['"]/g,
+    pattern: /["']([^.!?"']+)\.["']/g,
     message: 'Move full stop outside quotation marks unless part of the quote',
     fix: (text) => {
-      return text.replace(/["'](.+?)\.["']/g, (match, content) => {
+      return text.replace(/["']([^.!?"']+)\.["']/g, (match, content) => {
+        // Skip markdown links
+        if (match.match(/\[.*\]\(.*\)/)) return match;
+        
+        // Don't modify if it contains ellipsis
+        if (match.includes('...')) return match;
+        
+        // Don't modify markdown formatting
+        if (match.match(/[*_`].*[*_`]/)) return match;
+        
+        // Don't modify if it's a technical term, title, or contains special formatting
+        if (content.match(/^[A-Z].*:|^\*\*.*\*\*$|^`.*`$|^_.*_$/)) return match;
+        
         // Don't change if the period is part of an abbreviation
         if (content.match(/\b[A-Z]\./)) return match;
+        
         // Don't change if it's a complete sentence
         if (content.match(/^[A-Z].*[.!?]$/)) return match;
+        
         return `"${content}"`.trim() + '.';
       });
     }
@@ -55,6 +65,7 @@ async function validateFile(filePath) {
   const { data: frontmatter, content: markdown } = matter(content);
   const issues = [];
   let fixedContent = markdown;
+  const processedLocations = new Set(); // Track processed locations to avoid duplicates
 
   // Check each rule
   for (const [ruleName, rule] of Object.entries(rules)) {
@@ -64,31 +75,51 @@ async function validateFile(filePath) {
         const matches = [...markdown.matchAll(pattern.find)];
         if (matches.length > 0) {
           matches.forEach(match => {
-            const line = getLineNumber(markdown, match.index);
-            issues.push({
-              line,
-              message: pattern.message,
-              original: match[0],
-              suggested: match[0].replace(pattern.find, pattern.replace)
-            });
+            const location = `${match.index}-${match[0].length}`;
+            if (!processedLocations.has(location)) {
+              processedLocations.add(location);
+              const line = getLineNumber(markdown, match.index);
+              const context = getContext(markdown, match.index);
+              if (!context.isCodeBlock && !context.isYamlFrontmatter) {
+                issues.push({
+                  line,
+                  message: pattern.message,
+                  original: match[0],
+                  suggested: match[0].replace(pattern.find, pattern.replace)
+                });
+                fixedContent = fixedContent.replace(pattern.find, pattern.replace);
+              }
+            }
           });
-          fixedContent = fixedContent.replace(pattern.find, pattern.replace);
         }
       }
     } else {
+      // Get all matches first
       // Handle other rules
       const matches = [...markdown.matchAll(rule.pattern)];
       if (matches.length > 0) {
         matches.forEach(match => {
-          const line = getLineNumber(markdown, match.index);
-          issues.push({
-            line,
-            message: rule.message,
-            original: match[0],
-            suggested: rule.fix(match[0])
-          });
+          const location = `${match.index}-${match[0].length}`;
+          if (!processedLocations.has(location)) {
+            processedLocations.add(location);
+            const line = getLineNumber(markdown, match.index);
+            const context = getContext(markdown, match.index);
+            if (!context.isCodeBlock && !context.isYamlFrontmatter) {
+              const message = typeof rule.message === 'function' ?
+                rule.message(match[0]) : rule.message;
+              issues.push({
+                line,
+                message,
+                original: match[0],
+                suggested: rule.fix(match[0])
+              });
+            }
+          }
         });
-        fixedContent = rule.fix(fixedContent);
+        // Only apply fixes if there are valid issues
+        if (issues.length > issues.length - matches.length) {
+          fixedContent = rule.fix(fixedContent);
+        }
       }
     }
   }
@@ -97,6 +128,51 @@ async function validateFile(filePath) {
     filePath,
     issues,
     fixedContent: issues.length > 0 ? matter.stringify(fixedContent, frontmatter) : null
+  };
+}
+
+function getContext(text, index) {
+  let currentPos = 0;
+  let inCodeBlock = false;
+  let inFrontmatter = false;
+  let codeBlockMarkers = 0;
+  let lineStart = 0;
+
+  // Get the line containing the index
+  const lines = text.split('\n');
+  for (const [i, line] of lines.entries()) {
+    if (currentPos <= index && currentPos + line.length >= index) {
+      // Check code block markers
+      if (line.trim().startsWith('```')) {
+        codeBlockMarkers++;
+        inCodeBlock = codeBlockMarkers % 2 !== 0;
+      }
+      
+      // Check frontmatter
+      if (i === 0 && line.trim() === '---') {
+        inFrontmatter = true;
+      } else if (inFrontmatter && line.trim() === '---') {
+        inFrontmatter = false;
+      }
+
+      // Check for inline code
+      if (!inCodeBlock) {
+        const lineOffset = index - currentPos;
+        const beforeText = line.slice(0, lineOffset);
+        const backtickCount = (beforeText.match(/`/g) || []).length;
+        if (backtickCount % 2 !== 0) {
+          inCodeBlock = true;
+        }
+      }
+
+      break;
+    }
+    currentPos += line.length + 1;
+  }
+
+  return {
+    isCodeBlock: inCodeBlock,
+    isYamlFrontmatter: inFrontmatter
   };
 }
 

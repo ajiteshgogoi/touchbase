@@ -217,6 +217,6 @@ While conflict can be uncomfortable, it can also be an opportunity for growth an
 
 ## Conclusion
 
-Conflict is an unavoidable part of life, but it doesn't have to be destructive. By understanding the nature of conflict, developing essential communication skills and following a structured approach to resolution, you can turn potential flashpoints into opportunities for growth, connection and positive change. Remember to prioritise active listening, assertive communication, empathy and emotional regulation. Avoid common pitfalls, and always strive to find solutions that meet everyone's needs.
+Conflict is an unavoidable part of life, but it doesn't have to be destructive. By understanding the nature of conflict, developing essential communication skills and following a structured approach to resolution, you can turn potential flashpoints into opportunities for growth, connection and positive change. Remember to prioritise active listening, assertive communication, empathy and emotional regulation. Avoid common pitfalls and always strive to find solutions that meet everyone's needs.
 
 Ready to strengthen your relationships and navigate conflict with confidence? Try TouchBase today and start nurturing the connections that matter most. With TouchBase, you can remember important details, stay in touch effortlessly and build stronger, more meaningful relationships. Don't let conflict hold you back – embrace it as an opportunity to grow and connect. Visit our website to learn more and start your free trial!
