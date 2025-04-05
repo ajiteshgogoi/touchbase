@@ -5,6 +5,7 @@ import matter from 'gray-matter';
 import { marked } from 'marked';
 import dotenv from 'dotenv';
 import { JSDOM } from 'jsdom';
+import fetch from 'node-fetch';
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +19,7 @@ const client = createClient({
 });
 
 function markdownToPortableText(markdown) {
-  const html = marked.parse(markdown);
+  const html = marked.parse(markdown, { xhtml: true }); // Use XHTML for proper self-closing tags
   const dom = new JSDOM(html);
   const document = dom.window.document;
   const blocks = [];
@@ -26,7 +27,11 @@ function markdownToPortableText(markdown) {
   const blockElements = document.body.children;
   for (const element of blockElements) {
     const block = processElement(element);
-    if (block) blocks.push(block);
+    if (Array.isArray(block)) {
+      blocks.push(...block);
+    } else if (block) {
+      blocks.push(block);
+    }
   }
 
   return blocks;
@@ -36,8 +41,13 @@ function processElement(element) {
   const tagName = element.tagName.toLowerCase();
   
   switch (tagName) {
-    case 'p':
+    case 'p': {
+      const img = element.querySelector('img');
+      if (img) {
+        return createImageBlock(img);
+      }
       return createBlock('normal', processChildren(element));
+    }
     case 'h1':
     case 'h2':
     case 'h3':
@@ -46,14 +56,25 @@ function processElement(element) {
     case 'blockquote':
       return createBlock('blockquote', processChildren(element));
     case 'ul':
-      return createBlock('normal', processListItems(element), 'bullet');
+      return processListItems(element, 'bullet');
     case 'ol':
-      return createBlock('normal', processListItems(element), 'number');
-    case 'pre':
-      if (element.querySelector('code')) {
-        return createCodeBlock(element.textContent);
+      return processListItems(element, 'number');
+    case 'pre': {
+      const code = element.querySelector('code');
+      if (code) {
+        const language = code.className.replace('language-', '') || 'text';
+        return createCodeBlock(code.textContent, language);
       }
       return createBlock('normal', processChildren(element));
+    }
+    case 'img':
+      return createImageBlock(element);
+    case 'div':
+      if (element.classList.contains('raw-html')) {
+        return createRawHtmlBlock(element.innerHTML);
+      }
+      // Process div contents as regular blocks
+      return Array.from(element.children).map(child => processElement(child)).filter(Boolean);
     default:
       return null;
   }
@@ -91,14 +112,31 @@ function processChildren(element) {
   return children;
 }
 
-function processListItems(element) {
-  const children = [];
+function processListItems(element, listType) {
+  const blocks = [];
+  let currentLevel = 1;
+
+  const processLi = (li, level) => {
+    const block = createBlock('normal', processChildren(li), listType);
+    block.level = level;
+    blocks.push(block);
+
+    // Process nested lists
+    const nestedList = li.querySelector('ul, ol');
+    if (nestedList) {
+      const nestedType = nestedList.tagName.toLowerCase() === 'ul' ? 'bullet' : 'number';
+      const nestedItems = processListItems(nestedList, nestedType);
+      blocks.push(...nestedItems.map(item => ({ ...item, level: level + 1 })));
+    }
+  };
+
   for (const li of element.children) {
     if (li.tagName.toLowerCase() === 'li') {
-      children.push(createSpan(li.textContent));
+      processLi(li, currentLevel);
     }
   }
-  return children;
+
+  return blocks;
 }
 
 function createBlock(style, children, listItem = undefined) {
@@ -124,15 +162,30 @@ function createSpan(text, marks = []) {
   };
 }
 
-function createCodeBlock(content) {
+function createCodeBlock(content, language) {
   return {
-    _type: 'block',
-    style: 'normal',
-    children: [{
-      _type: 'span',
-      text: content.trim(),
-      marks: ['code']
-    }]
+    _type: 'code',
+    language: language,
+    code: content.trim()
+  };
+}
+
+function createImageBlock(imgElement) {
+  return {
+    _type: 'image',
+    asset: {
+      _type: 'reference',
+      _ref: `image-${imgElement.src.split('/').pop()}-${imgElement.width}x${imgElement.height}`
+    },
+    alt: imgElement.alt || '',
+    caption: imgElement.title || ''
+  };
+}
+
+function createRawHtmlBlock(html) {
+  return {
+    _type: 'rawHtml',
+    html: html
   };
 }
 
@@ -144,6 +197,9 @@ function createLink(href) {
 }
 
 async function importBlogPosts() {
+  // Store image asset references for reuse
+  const imageReferences = {};
+
   try {
     // Read all markdown files from the blog content directory
     const contentDir = path.join(process.cwd(), 'src', 'content', 'blog');
@@ -189,6 +245,22 @@ async function importBlogPosts() {
         }
       }
 
+      // Upload any images found in the content
+      const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+      const imageMatches = [...markdown.matchAll(imageRegex)];
+      
+      for (const match of imageMatches) {
+        const [, alt, src] = match;
+        try {
+          // Upload image to Sanity
+          const imageAsset = await client.assets.upload('image', fetch(src));
+          // Store the image reference for use in the content
+          imageReferences[src] = imageAsset._id;
+        } catch (err) {
+          console.warn(`Warning: Couldn't upload image ${src}:`, err.message);
+        }
+      }
+
       // Prepare the document
       const doc = {
         _type: 'post',
@@ -196,7 +268,18 @@ async function importBlogPosts() {
         title: frontmatter.title,
         slug: { _type: 'slug', current: frontmatter.slug },
         publishedAt: frontmatter.publishedAt,
-        excerpt: frontmatter.excerpt,
+        description: frontmatter.excerpt?.substring(0, 160) || '', // Enforce 160 char limit
+        author: frontmatter.author ? {
+          _type: 'reference',
+          _ref: `author-${frontmatter.author.toLowerCase()}`
+        } : undefined,
+        mainImage: frontmatter.mainImage ? {
+          _type: 'image',
+          asset: {
+            _type: 'reference',
+            _ref: imageReferences[frontmatter.mainImage]
+          }
+        } : undefined,
         categories: frontmatter.categories.map(category => ({
           _type: 'reference',
           _ref: `category-${category.toLowerCase()}`,
