@@ -284,19 +284,22 @@ async function importBlogPosts() {
         }
       }
 
-      // Prepare the document
+      // Prepare the document with safe fallbacks for all fields
       const doc = {
         _type: 'post',
-        _id: `post-${frontmatter.slug}`,
-        title: frontmatter.title,
-        slug: { _type: 'slug', current: frontmatter.slug },
-        publishedAt: frontmatter.publishedAt,
-        description: frontmatter.excerpt?.substring(0, 160) || '', // Enforce 160 char limit
+        _id: `post-${frontmatter.slug || Date.now()}`,
+        title: frontmatter.title || 'Untitled',
+        slug: {
+          _type: 'slug',
+          current: frontmatter.slug || `post-${Date.now()}`
+        },
+        publishedAt: frontmatter.publishedAt || new Date().toISOString(),
+        description: frontmatter.excerpt?.substring(0, 160) || frontmatter.description?.substring(0, 160) || '', // Try both excerpt and description
         author: frontmatter.author ? {
           _type: 'reference',
           _ref: `author-${frontmatter.author.toLowerCase()}`
         } : undefined,
-        mainImage: frontmatter.mainImage ? {
+        mainImage: frontmatter.mainImage && imageReferences[frontmatter.mainImage] ? {
           _type: 'image',
           asset: {
             _type: 'reference',
@@ -309,6 +312,8 @@ async function importBlogPosts() {
         })),
         body: blocks,
       };
+
+      console.log(chalk.dim(`  Processing: ${frontmatter.title || 'Untitled'}`));
 
       // Create or update document in Sanity
       const result = await client.createOrReplace(doc);
