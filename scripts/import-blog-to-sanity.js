@@ -7,8 +7,12 @@ import dotenv from 'dotenv';
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
 import chalk from 'chalk';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { validateBlogContent } from './validate-blog-content.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load environment variables
 dotenv.config();
@@ -214,7 +218,7 @@ async function importBlogPosts() {
 
   try {
     // Read all markdown files from the blog content directory
-    const contentDir = path.join(process.cwd(), 'src', 'content', 'blog');
+    const contentDir = path.join(dirname(dirname(__filename)), 'src', 'content', 'blog');
     
     try {
       await fs.access(contentDir);

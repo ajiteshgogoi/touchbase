@@ -2,6 +2,11 @@ import fs from 'fs/promises';
 import path from 'path';
 import matter from 'gray-matter';
 import chalk from 'chalk';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Validation rules
 const rules = {
@@ -102,7 +107,7 @@ function getLineNumber(text, index) {
 
 async function validateBlogContent() {
   try {
-    const contentDir = path.join(process.cwd(), 'src', 'content', 'blog');
+    const contentDir = path.join(dirname(dirname(__filename)), 'src', 'content', 'blog');
     
     try {
       await fs.access(contentDir);
