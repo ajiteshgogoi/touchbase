@@ -278,8 +278,14 @@
         var hasAssetLinks = document.head.querySelector('link[rel="assetlinks.json"]') !== null;
         var isTWA = isTrustedWebActivity || (isStandaloneAndroid && hasAssetLinks);
 
-        if (!isTWA) {
-          // Redirect to Play Store if not in TWA
+        // Skip redirect for auth callbacks and same-domain navigation
+        var currentUrl = window.location.href;
+        var isAuthCallback = currentUrl.includes('/callback') || currentUrl.includes('code=');
+        var isInternalNavigation = document.referrer &&
+          (new URL(document.referrer).host === window.location.host);
+
+        if (!isTWA && !isAuthCallback && !isInternalNavigation) {
+          // Redirect to Play Store if not in TWA and not in excluded scenarios
           window.location.href = 'https://play.google.com/store/apps/details?id=app.touchbase.site.twa';
         }
       })();
