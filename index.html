@@ -256,6 +256,24 @@
         // Handle app initialization
         window.__TB.ready = true;
       })();
+
+      // Android Play Store redirection
+      (function() {
+        // Skip if already in meta browser or TWA
+        if (document.documentElement.getAttribute('data-meta-browser') === 'true' ||
+            document.referrer.includes('android-app://')) {
+          return;
+        }
+
+        // Check if on Android
+        var ua = navigator.userAgent;
+        var isAndroid = /Android/i.test(ua);
+        
+        if (isAndroid) {
+          // Redirect to Play Store immediately
+          window.location.href = 'https://play.google.com/store/apps/details?id=app.touchbase.site.twa';
+        }
+      })();
     </script>
     <meta name="theme-color" content="#0EA5E9" />
     <meta name="description" content="Stay connected with the people who matter most. TouchBase is a simple personal CRM that helps you nurture meaningful relationships." />
