@@ -259,9 +259,8 @@
 
       // Android Play Store redirection
       (function() {
-        // Skip if already in meta browser or TWA
-        if (document.documentElement.getAttribute('data-meta-browser') === 'true' ||
-            document.referrer.includes('android-app://')) {
+        // Skip if in meta browser
+        if (document.documentElement.getAttribute('data-meta-browser') === 'true') {
           return;
         }
 
@@ -269,8 +268,18 @@
         var ua = navigator.userAgent;
         var isAndroid = /Android/i.test(ua);
         
-        if (isAndroid) {
-          // Redirect to Play Store immediately
+        if (!isAndroid) {
+          return;
+        }
+
+        // Robust TWA detection based on platform.ts
+        var isTrustedWebActivity = document.referrer.includes('android-app://');
+        var isStandaloneAndroid = window.matchMedia('(display-mode: standalone)').matches;
+        var hasAssetLinks = document.head.querySelector('link[rel="assetlinks.json"]') !== null;
+        var isTWA = isTrustedWebActivity || (isStandaloneAndroid && hasAssetLinks);
+
+        if (!isTWA) {
+          // Redirect to Play Store if not in TWA
           window.location.href = 'https://play.google.com/store/apps/details?id=app.touchbase.site.twa';
         }
       })();
