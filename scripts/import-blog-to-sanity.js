@@ -204,14 +204,18 @@ function createLink(href) {
 }
 
 async function importBlogPosts() {
-  console.log(chalk.blue('Validating blog content...'));
+  // Step 1: Validate content
+  console.log(chalk.blue('\n=== Step 1: Content Validation ==='));
   try {
     await validateBlogContent();
-    console.log(chalk.green('Validation successful! Proceeding with import...'));
+    console.log(chalk.green('\n✓ Validation successful!'));
   } catch (error) {
-    console.error(chalk.red('Blog content validation failed. Please fix the issues before importing.'));
+    console.error(chalk.red('\n✗ Content validation failed. Please fix the issues before importing.'));
     process.exit(1);
   }
+
+  // Step 2: Import to Sanity
+  console.log(chalk.blue('\n=== Step 2: Sanity Import ==='));
 
   // Store image asset references for reuse
   const imageReferences = {};
@@ -305,10 +309,11 @@ async function importBlogPosts() {
 
       // Create or update document in Sanity
       const result = await client.createOrReplace(doc);
-      console.log(`✓ Imported: ${frontmatter.title}`);
+      console.log(chalk.green(`  ✓ Imported: ${frontmatter.title}`));
     }
 
-    console.log('\nAll blog posts imported successfully!');
+    console.log(chalk.green(`\n✓ Success! ${mdFiles.length} blog post${mdFiles.length === 1 ? '' : 's'} imported to Sanity`));
+    console.log(chalk.dim('   View your content at: https://www.sanity.io/manage'));
   } catch (error) {
     console.error('Error importing blog posts:', error);
     process.exit(1);
