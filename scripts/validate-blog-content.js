@@ -229,12 +229,21 @@ async function validateBlogContent() {
         await fs.writeFile(file.path, file.content, 'utf-8');
         console.log(chalk.green(`✓ Fixed: ${path.basename(file.path)}`));
       }
-      // Exit with error code 1 to indicate changes were made
+      
       console.log(chalk.yellow('\nContent was fixed. Please commit the changes and run the build again.'));
-      process.exit(1);
+      
+      // Only exit if running as main module
+      if (import.meta.url === `file://${process.argv[1]}`) {
+        process.exit(1);
+      } else {
+        throw new Error('Content fixes were applied');
+      }
     } else {
       console.log(chalk.green('\nAll blog posts follow British English conventions!'));
-      process.exit(0);
+      // Don't exit when running as a module
+      if (import.meta.url === `file://${process.argv[1]}`) {
+        process.exit(0);
+      }
     }
 
   } catch (error) {
