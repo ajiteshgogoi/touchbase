@@ -246,8 +246,11 @@ async function importBlogPosts() {
       // Convert markdown to Portable Text blocks
       const blocks = markdownToPortableText(markdown);
 
+      // Ensure categories is an array
+      const categories = Array.isArray(frontmatter.categories) ? frontmatter.categories : [];
+
       // Create default category if it doesn't exist
-      for (const categoryName of frontmatter.categories) {
+      for (const categoryName of categories) {
         const category = {
           _id: `category-${categoryName.toLowerCase()}`,
           _type: 'category',
@@ -300,7 +303,7 @@ async function importBlogPosts() {
             _ref: imageReferences[frontmatter.mainImage]
           }
         } : undefined,
-        categories: frontmatter.categories.map(category => ({
+        categories: categories.map(category => ({
           _type: 'reference',
           _ref: `category-${category.toLowerCase()}`,
         })),
