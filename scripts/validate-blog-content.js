@@ -112,6 +112,10 @@ async function validateFile(filePath) {
             const line = getLineNumber(markdown, match.index);
             const context = getContext(markdown, match.index);
             if (!context.isCodeBlock && !context.isYamlFrontmatter) {
+              // Skip if it's just a colon followed by space(s)
+              if (match[0].match(/^:\s+$/)) {
+                return;
+              }
               const message = typeof rule.message === 'function' ?
                 rule.message(match[0]) : rule.message;
               issues.push({
