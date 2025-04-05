@@ -164,7 +164,7 @@ function createBlock(style, children, listItem = undefined) {
 function createSpan(text, marks = []) {
   return {
     _type: 'span',
-    text: text.trim(),
+    text: text, // Remove trim() to preserve whitespace
     marks: marks
   };
 }
