@@ -43,7 +43,11 @@ const themes: Theme[] = [
   { main: 'mistakes', subthemes: ['lessons from mistakes', 'forgiving yourself', 'apologising', 'mistakes that shaped you', 'moving forward'] },
   { main: 'transition', subthemes: ['life changes', 'new beginnings', 'endings', 'navigating uncertainty', 'adapting to new roles'] },
   { main: 'hobbies', subthemes: ['pursuing hobbies', 'learning new skills', 'hobbies that bring joy', 'sharing hobbies', 'childhood hobbies'] },
-  { main: 'curiosity', subthemes: ['exploring the unknown', 'asking questions', 'curiosity in learning', 'curiosity and creativity', 'childlike wonder'] }
+  { main: 'curiosity', subthemes: ['exploring the unknown', 'asking questions', 'curiosity in learning', 'curiosity and creativity', 'childlike wonder'] },
+  { main: 'personal_growth', subthemes: ['identity', 'self-discovery', 'personal boundaries', 'life lessons', 'transformative moments'] },
+  { main: 'relationships', subthemes: ['building connections', 'maintaining relationships', 'relationship challenges', 'platonic intimacy', 'setting boundaries'] },
+  { main: 'legacy', subthemes: ['impact on others', 'what you leave behind', 'mentorship legacy', 'family legacy', 'personal values legacy'] },
+  { main: 'values', subthemes: ['defining principles', 'living by values', 'ethical dilemmas', 'values conflicts', 'evolving values'] }
 ];
 
 const perspectives: string[] = [
@@ -60,33 +64,39 @@ const perspectives: string[] = [
   'generational perspective',  
   'milestones in life',
   'a turning point',
-  'the perspective of hindsight'
+  'the perspective of hindsight',
+  'through the lens of your future self',
+  'through the eyes of your younger self'
 ];
 
 const questionStarters: Record<string, string[]> = {
-  trust: ['how did', 'what experience', 'can you describe', 'why do', 'what led to', 'in what way'],
-  friendship: ['what moment', 'how did', 'what does', 'can you recall', 'why is', 'what taught you about'],
-  family: ['how has', 'what role', 'how do', 'what is your view on', 'why do you think', 'what example comes to mind'],
-  love: ['what taught', 'how did', 'what does', 'in what way', 'why is', 'how can'],
-  change: ['how has', 'what inspired', 'can you describe', 'why do you think', 'what made', 'how did it feel when'],
-  overcoming_challenges: ['how did', 'what helped', 'what lesson', 'can you describe', 'why was', 'what enabled you to'],
-  learning: ['what did', 'how has', 'what moment', 'why do you value', 'can you share', 'how can one'],
-  strengths: ['how do', 'what strength', 'in what way', 'can you describe', 'why is', 'what moment revealed'],
-  decisions: ['how did', 'what led to', 'why did', 'can you explain', 'what influenced', 'how do you view'],
-  purpose: ['what gives', 'how has', 'in what way', 'why do', 'what taught you about', 'can you describe'],
-  success: ['what does', 'how has', 'why is', 'what example illustrates', 'can you recall', 'how did it feel'],
-  beliefs: ['how have', 'what shaped', 'why do', 'can you explain', 'what moment challenged', 'in what way'],
-  passion: ['what inspires', 'how do', 'in what way', 'why do you think', 'what taught you about', 'how has'],
-  helping_others: ['how did', 'what motivated', 'why is', 'what example comes to mind', 'in what way', 'how has'],
-  health_and_well_being: ['what practice', 'how has', 'why do', 'in what way', 'what role does', 'how did'],
-  creativity: ['what inspires', 'how do', 'why is', 'in what way', 'what example', 'how has'],
-  cultural_experiences: ['what did', 'how has', 'in what way', 'why do you value', 'what taught', 'can you describe'],
-  adventures: ['what was', 'how did', 'why is', 'can you recall', 'what inspired', 'how do you feel about'],
-  achievements: ['what does', 'how did', 'why is', 'what example', 'can you recall', 'in what way'],
-  mistakes: ['what lesson', 'how did', 'why do', 'can you explain', 'what taught you about', 'in what way'],
-  transition: ['how did', 'what led to', 'in what way', 'why do you think', 'what example', 'how do you view'],
-  hobbies: ['what hobby', 'how do', 'why do', 'in what way', 'what example', 'how has'],
-  curiosity: ['can you share', 'why is', 'how has', 'why do', 'in what way', 'what taught', 'how do you view']
+  trust: ['how did', 'what experience', 'can you describe', 'why do', 'what led to', 'in what way', 'tell me about', 'looking back on'],
+  friendship: ['what moment', 'how did', 'what does', 'can you recall', 'why is', 'what taught you about', 'tell me about', 'reflecting on'],
+  family: ['how has', 'what role', 'how do', 'what is your view on', 'why do you think', 'what example comes to mind', 'tell me about', 'thinking about'],
+  love: ['what taught', 'how did', 'what does', 'in what way', 'why is', 'how can', 'tell me about', 'looking back on'],
+  change: ['how has', 'what inspired', 'can you describe', 'why do you think', 'what made', 'how did it feel when', 'tell me about', 'reflecting on'],
+  overcoming_challenges: ['how did', 'what helped', 'what lesson', 'can you describe', 'why was', 'what enabled you to', 'tell me about', 'looking back on'],
+  learning: ['what did', 'how has', 'what moment', 'why do you value', 'can you share', 'how can one', 'tell me about', 'reflecting on'],
+  strengths: ['how do', 'what strength', 'in what way', 'can you describe', 'why is', 'what moment revealed', 'tell me about', 'thinking about'],
+  decisions: ['how did', 'what led to', 'why did', 'can you explain', 'what influenced', 'how do you view', 'tell me about', 'looking back on'],
+  purpose: ['what gives', 'how has', 'in what way', 'why do', 'what taught you about', 'can you describe', 'tell me about', 'reflecting on'],
+  success: ['what does', 'how has', 'why is', 'what example illustrates', 'can you recall', 'how did it feel', 'tell me about', 'thinking about'],
+  beliefs: ['how have', 'what shaped', 'why do', 'can you explain', 'what moment challenged', 'in what way', 'tell me about', 'reflecting on'],
+  passion: ['what inspires', 'how do', 'in what way', 'why do you think', 'what taught you about', 'how has', 'tell me about', 'thinking about'],
+  helping_others: ['how did', 'what motivated', 'why is', 'what example comes to mind', 'in what way', 'how has', 'tell me about', 'reflecting on'],
+  health_and_well_being: ['what practice', 'how has', 'why do', 'in what way', 'what role does', 'how did', 'tell me about', 'thinking about'],
+  creativity: ['what inspires', 'how do', 'why is', 'in what way', 'what example', 'how has', 'tell me about', 'thinking about'],
+  cultural_experiences: ['what did', 'how has', 'in what way', 'why do you value', 'what taught', 'can you describe', 'tell me about', 'reflecting on'],
+  adventures: ['what was', 'how did', 'why is', 'can you recall', 'what inspired', 'how do you feel about', 'tell me about', 'looking back on'],
+  achievements: ['what does', 'how did', 'why is', 'what example', 'can you recall', 'in what way', 'tell me about', 'thinking about'],
+  mistakes: ['what lesson', 'how did', 'why do', 'can you explain', 'what taught you about', 'in what way', 'tell me about', 'looking back on'],
+  transition: ['how did', 'what led to', 'in what way', 'why do you think', 'what example', 'how do you view', 'tell me about', 'reflecting on'],
+  hobbies: ['what hobby', 'how do', 'why do', 'in what way', 'what example', 'how has', 'tell me about', 'thinking about'],
+  curiosity: ['can you share', 'why is', 'how has', 'why do', 'in what way', 'what taught', 'how do you view', 'tell me about', 'reflecting on'],
+  personal_growth: ['how has', 'what moment', 'in what way', 'what lesson', 'tell me about', 'reflecting on'],
+  relationships: ['how do', 'what defines', 'in what way', 'what challenge', 'tell me about', 'thinking about'],
+  legacy: ['what impact', 'how do you hope', 'in what way', 'what does', 'tell me about', 'reflecting on'],
+  values: ['what principle', 'how do', 'what ethical', 'in what way', 'tell me about', 'thinking about']
 };
 
 const emotionalModifiers: string[] = [
@@ -129,7 +139,14 @@ const emotionalModifiers: string[] = [
   'optimistic',
   'restorative',
   'thought-provoking',
-  'inspiring'
+  'inspiring',
+  'humbling',
+  'reassuring',
+  'awakening',
+  'emboldening',
+  'eye-opening',
+  'character-building',
+  'perspective-shifting'
 ];
 
 const defaultStarters = ['how', 'what'];
@@ -270,9 +287,10 @@ Example of a good question:
           - Uses "you/your" instead of "I/me/my"
           - Avoids compound questions (Asks only one question)
           - Avoids interview-style questions
-          
+          - Creates space for nuanced responses
+
           Original question: ${question}
-          
+
           Return only the refined question:`;
 
           const refinementResponse = await axios.post(
