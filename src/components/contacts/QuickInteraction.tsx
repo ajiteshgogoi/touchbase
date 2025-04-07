@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase/client';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
+import { toast } from 'react-hot-toast';
 import type { Interaction } from '../../lib/supabase/types';
 import { useStore } from '../../stores/useStore';
 import dayjs from 'dayjs';
@@ -94,32 +95,82 @@ const QuickInteraction = ({
     if (isSubmitting) return;
     
     setIsSubmitting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be logged in to log interactions');
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('You must be logged in to log interactions');
+      setIsSubmitting(false);
+      return;
+    }
 
-      try {
-        const interactionData = {
-          contact_id: contactId,
-          user_id: user.id,
-          type,
-          date: selectedDate.toISOString(),
-          notes: notes || null,
-          sentiment
+    const interactionData = {
+      contact_id: contactId,
+      user_id: user.id,
+      type,
+      date: selectedDate.toISOString(),
+      notes: notes || null,
+      sentiment
+    };
+
+    // Close modal immediately for better UX
+    onSuccess?.();
+    onClose();
+
+    try {
+      // Optimistically update the cache with the new interaction
+      const queryClient = await import('../../utils/queryClient').then(m => m.getQueryClient());
+      
+      if (interactionId) {
+        // For updating existing interaction
+        queryClient.setQueryData(['interactions', contactId], (old: any) => {
+          if (!Array.isArray(old)) return old;
+          return old.map(interaction =>
+            interaction.id === interactionId ? { ...interaction, ...interactionData } : interaction
+          );
+        });
+        
+        // Perform the actual update
+        await contactsService.updateInteraction(interactionId, interactionData);
+        toast.success('Interaction updated successfully');
+      } else {
+        // For new interaction
+        const tempId = `temp-${Date.now()}`;
+        const optimisticInteraction = {
+          id: tempId,
+          ...interactionData,
+          created_at: new Date().toISOString()
         };
 
-        if (interactionId) {
-          // Just update the interaction record for history
-          await contactsService.updateInteraction(interactionId, interactionData);
-        } else {
-          // For new interactions:
-          // 1. Record the interaction
+        // Update interactions cache
+        queryClient.setQueryData(['interactions', contactId], (old: any) => {
+          if (!Array.isArray(old)) return [optimisticInteraction];
+          return [optimisticInteraction, ...old];
+        });
+
+        // Optimistically update contact's last_contacted
+        queryClient.setQueryData(['contacts'], (oldContacts: any) => {
+          if (!Array.isArray(oldContacts)) return oldContacts;
+          return oldContacts.map(contact =>
+            contact.id === contactId
+              ? {
+                  ...contact,
+                  last_contacted: selectedDate.toISOString(),
+                  missed_interactions: 0
+                }
+              : contact
+          );
+        });
+
+        try {
+          // Add the interaction
           await contactsService.addInteraction(interactionData);
-          // 2. Update contact with last_contacted which will handle reminders
+          toast.success('Interaction logged successfully');
+          
+          // Get contact to update last_contacted
           const contact = await contactsService.getContact(contactId);
           if (!contact) throw new Error('Contact not found');
 
-          // Only update contact if this is the most recent interaction
+          // Check if this is the most recent interaction
           const { data: latestInteraction } = await supabase
             .from('interactions')
             .select('date')
@@ -129,23 +180,21 @@ const QuickInteraction = ({
             .single();
 
           if (latestInteraction && new Date(latestInteraction.date) <= new Date(selectedDate.toISOString())) {
-            // Include current frequency to trigger next_contact_due recalculation
             await contactsService.updateContact(contactId, {
               last_contacted: selectedDate.toISOString(),
-              missed_interactions: 0,  // Reset missed interactions counter when logging a new interaction
-              contact_frequency: contact.contact_frequency  // Include current frequency to trigger recalculation
+              missed_interactions: 0,
+              contact_frequency: contact.contact_frequency
             });
           }
+        } catch (error) {
+          // Revert optimistic updates on error
+          queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
+          queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          toast.error('Failed to save interaction. Please try again.');
+          console.error('Error saving interaction:', error);
         }
-      } catch (error) {
-        console.error('Database operation failed:', error);
-        throw error; // Re-throw to be caught by outer catch block
       }
-
-      onSuccess?.();
-      onClose();
     } catch (error) {
-      // Handle various error types
       if (error instanceof Error) {
         const supabaseError = error as { message?: string; details?: string; code?: string };
         console.error('Error details:', {
@@ -155,13 +204,13 @@ const QuickInteraction = ({
         });
         
         if (supabaseError.code === '42501') {
-          alert('Authentication error. Please try logging out and back in.');
+          toast.error('Authentication error. Please try logging out and back in.');
         } else {
-          alert(supabaseError.message || 'Failed to log interaction');
+          toast.error(supabaseError.message || 'Failed to log interaction');
         }
       } else {
         console.error('Unknown error:', error);
-        alert('An unexpected error occurred. Please try again.');
+        toast.error('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
