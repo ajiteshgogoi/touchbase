@@ -226,9 +226,11 @@ export const AdvancedContactInfo = ({
     onError({ important_events: [] });
   };
 
-  const handleRemoveEvent = (index: number) => {
+  const handleRemoveEvent = (eventToRemove: typeof formData.important_events[0]) => {
     onChange({
-      important_events: formData.important_events.filter((_, i) => i !== index)
+      important_events: formData.important_events.filter(event =>
+        !(event.type === eventToRemove.type && event.date === eventToRemove.date && event.name === eventToRemove.name)
+      )
     });
   };
 
@@ -407,7 +409,7 @@ export const AdvancedContactInfo = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleRemoveEvent(index)}
+                  onClick={() => handleRemoveEvent(event)}
                   className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                   title="Remove event"
                 >
