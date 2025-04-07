@@ -141,25 +141,58 @@ const QuickInteraction = ({
           created_at: new Date().toISOString()
         };
 
-        // Update interactions cache
+        // Update all necessary caches optimistically
+        // 1. Update interactions cache
         queryClient.setQueryData(['interactions', contactId], (old: any) => {
           if (!Array.isArray(old)) return [optimisticInteraction];
           return [optimisticInteraction, ...old];
         });
 
-        // Optimistically update contact's last_contacted
-        queryClient.setQueryData(['contacts'], (oldContacts: any) => {
+        // Helper function to update contact in cache
+        const updateContactCache = (oldContacts: any) => {
           if (!Array.isArray(oldContacts)) return oldContacts;
           return oldContacts.map(contact =>
             contact.id === contactId
               ? {
                   ...contact,
                   last_contacted: selectedDate.toISOString(),
+                  next_contact_due: selectedDate.toISOString(), // Will be properly recalculated by stored procedure
                   missed_interactions: 0
                 }
               : contact
           );
+        };
+
+        // Helper function to update reminders cache - remove old reminder for this contact
+        const updateRemindersCache = (oldReminders: any) => {
+          if (!Array.isArray(oldReminders)) return oldReminders;
+          return oldReminders.filter(reminder =>
+            reminder.contact_id !== contactId || reminder.name !== null // Keep quick reminders
+          );
+        };
+
+        // 2. Update contacts cache
+        queryClient.setQueryData(['contacts'], updateContactCache);
+        
+        // 3. Update recent-contacts cache
+        queryClient.setQueryData(['recent-contacts'], updateContactCache);
+
+        // 4. Update contact-with-events cache for the specific contact
+        queryClient.setQueryData(['contact-with-events', contactId], (old: any) => {
+          if (!old?.contact) return old;
+          return {
+            ...old,
+            contact: {
+              ...old.contact,
+              last_contacted: selectedDate.toISOString(),
+              next_contact_due: selectedDate.toISOString(), // Will be recalculated
+              missed_interactions: 0
+            }
+          };
         });
+
+        // 5. Update reminders cache
+        queryClient.setQueryData(['reminders'], updateRemindersCache);
 
         try {
           // Add the interaction
@@ -188,8 +221,13 @@ const QuickInteraction = ({
           }
         } catch (error) {
           // Revert optimistic updates on error
+          // Revert all optimistic updates
           queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
           queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
+          queryClient.invalidateQueries({ queryKey: ['contact-with-events', contactId] });
+          queryClient.invalidateQueries({ queryKey: ['reminders'] }); // Also revert reminders cache
+          queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
           toast.error('Failed to save interaction. Please try again.');
           console.error('Error saving interaction:', error);
         }
