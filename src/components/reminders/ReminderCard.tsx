@@ -43,8 +43,8 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
 }) => {
   return (
     <div
-      className={`bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 hover:shadow-md transition-all duration-200 ${
-        reminder.name ? 'border-l-4 border-primary-500' : ''
+      className={`bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200 ${
+        reminder.name ? 'border-l-4 border-primary-500 dark:border-primary-400' : ''
       }${
         events.length > 0
           ? ` ring-2 ${
@@ -64,12 +64,12 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
               <div className="space-y-1.5">
                 <Link
                   to={`/contacts?search=${encodeURIComponent(contact?.name || '')}`}
-                  className="text-xl sm:text-2xl font-semibold text-primary-500 tracking-[-0.01em] block hover:text-primary-600"
+                  className="text-xl sm:text-2xl font-semibold text-primary-500 dark:text-primary-400 tracking-[-0.01em] block hover:text-primary-600 dark:hover:text-primary-300"
                 >
                   {contact?.name || 'Unknown'}
                 </Link>
                 {/* Inline status indicator */}
-                <div className="flex items-center text-[13px] sm:text-sm text-gray-500/90">
+                <div className="flex items-center text-[13px] sm:text-sm text-gray-500/90 dark:text-gray-400">
                   <div
                     className={`w-2 h-2 rounded-full mr-2 transition-colors ${
                       (contact?.missed_interactions || 0) > 3
@@ -103,10 +103,10 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                       key={idx}
                       className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
                         event.type === 'birthday'
-                          ? 'bg-pink-50 text-pink-500'
+                          ? 'bg-pink-50 dark:bg-pink-900/30 text-pink-500 dark:text-pink-400'
                           : event.type === 'anniversary'
-                          ? 'bg-rose-50 text-rose-500'
-                          : 'bg-purple-50 text-purple-500'
+                          ? 'bg-rose-50 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400'
+                          : 'bg-purple-50 dark:bg-purple-900/30 text-purple-500 dark:text-purple-400'
                       }`}
                     >
                       {getEventIcon(event.type)}
@@ -117,7 +117,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                   ))}
                 {/* Show quick reminder tag */}
                 {reminder.name && (
-                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary-50 text-primary-500">
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-500 dark:text-primary-400">
                     <CalendarIcon className="h-4 w-4" />
                     <span className="text-xs font-medium">Quick Reminder</span>
                   </div>
@@ -130,10 +130,10 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 {contact?.phone && (
                   <a
                     href={`tel:${contact.phone}`}
-                    className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                    className="flex items-center px-3 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group"
                   >
                     <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0 group-hover:text-green-600/90 transition-colors" />
-                    <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
+                    <span className="truncate leading-5 font-[450] text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                       {contact.phone}
                     </span>
                   </a>
@@ -143,7 +143,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                     href={formatSocialMediaUrl(contact.social_media_handle, contact.social_media_platform)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                    className="flex items-center px-3 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group"
                   >
                     {contact.social_media_platform === 'linkedin' ? (
                       <svg className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -167,40 +167,40 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 )}
               </div>
             )}
-            <div className="bg-gray-50 rounded-lg overflow-hidden">
-              <div className="px-3 py-2 bg-gray-100">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+              <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Contact Due
                 </span>
               </div>
-              <div className="px-3 py-2 text-sm text-gray-700">
+              <div className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
                 {contactsService.formatDueDate(reminder.due_date)}
               </div>
             </div>
             {reminder.name && (
-              <div className="bg-gray-50 rounded-lg overflow-hidden">
-                <div className="px-3 py-2 bg-gray-100">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Description
                   </span>
                 </div>
-                <div className="px-3 py-2 text-sm text-gray-700">{reminder.name}</div>
+                <div className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">{reminder.name}</div>
               </div>
             )}
             {/* Only show suggestions for non-quick reminders */}
             {!reminder.name && (
-              <div className="bg-gray-50 rounded-lg overflow-hidden">
-                <div className="px-3 py-2 bg-gray-100">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Suggestions
                   </span>
                 </div>
                 <div className="px-3 py-2">
                   {contact?.ai_last_suggestion === 'Upgrade to premium to get personalised suggestions!' ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
                         ✨{' '}
-                        <Link to="/settings" className="text-primary-600 hover:text-primary-500">
+                        <Link to="/settings" className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
                           Upgrade to Premium
                         </Link>{' '}
                         to get personalised suggestions!
@@ -208,13 +208,13 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                     </div>
                   ) : (
                     <div className="group flex items-start gap-2">
-                      <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                      <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                         {contact?.ai_last_suggestion || 'No suggestions available'}
                       </span>
                       {contact?.ai_last_suggestion && (
                         <button
                           onClick={() => onReportContent(reminder.contact_id, contact.ai_last_suggestion!)}
-                          className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                          className="flex-shrink-0 p-1 text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-500 transition-colors"
                           title="Report inappropriate suggestion"
                         >
                           <FlagIcon className="h-4 w-4" />
@@ -227,8 +227,8 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
             )}
           </div>
         </div>
-        <div className="p-4 border-t border-gray-100/50 bg-white/30">
-          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm">
+        <div className="p-4 border-t border-gray-100/50 dark:border-gray-800/50 bg-white/30 dark:bg-gray-900/30">
+          <div className="flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
             {reminder.name ? (
               <button
                 onClick={async () => {
@@ -240,7 +240,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                     }
                   }
                 }}
-                className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md transition-all duration-200"
                 title="Complete quick reminder"
               >
                 Complete
@@ -255,7 +255,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                       type: reminder.type,
                     })
                   }
-                  className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                  className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md transition-all duration-200"
                   title="Log an interaction"
                 >
                   Log Interaction
@@ -263,7 +263,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 {(isPremium || isOnTrial) ? (
                   <Link
                     to={`/contacts/${reminder.contact_id}/interactions`}
-                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md transition-all duration-200"
                     title="View interaction history"
                   >
                     View History
@@ -271,7 +271,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 ) : (
                   <Link
                     to={`/contacts/${reminder.contact_id}/interactions`}
-                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 dark:text-gray-400 bg-gray-100/90 dark:bg-gray-800/60 hover:bg-gray-200/90 dark:hover:bg-gray-700/60 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md transition-all duration-200"
                     title="Upgrade to view interaction history"
                   >
                     View History

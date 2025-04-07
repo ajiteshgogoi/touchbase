@@ -129,14 +129,14 @@ const [quickReminder, setQuickReminder] = useState<{
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => navigate(-1)}
-                  className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+                  className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 rounded-xl transition-all duration-200"
                   aria-label="Go back"
                 >
                   <ArrowLeftIcon className="h-5 w-5" />
                 </button>
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">Reminders</h1>
-                  <p className="mt-1.5 text-[15px] text-gray-600/90">
+                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-500 dark:to-primary-300 bg-clip-text text-transparent">Reminders</h1>
+                  <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
                     See who's due for a check-in
                   </p>
                 </div>
@@ -145,7 +145,7 @@ const [quickReminder, setQuickReminder] = useState<{
             {contacts && contacts.length > 0 && (
               <button
                 onClick={() => setQuickReminder({ isOpen: true })}
-                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
               >
                 <CalendarIcon className="h-5 w-5 mr-2" />
                 Add Quick Reminder
@@ -156,10 +156,10 @@ const [quickReminder, setQuickReminder] = useState<{
 
         {/* Show banner only to free users when total contacts exceed 15 */}
         {!isPremium && !isOnTrial && totalCount !== undefined && totalCount > 15 && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-800">
+          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg">
+            <p className="text-sm text-amber-800 dark:text-amber-300">
               You're seeing reminders for your 15 most recent contacts. {' '}
-              <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+              <Link to="/settings" className="font-medium text-amber-900 dark:text-amber-200 underline hover:no-underline">
                 Upgrade to Premium
               </Link>{' '}
               to manage reminders for all {totalCount} of your contacts.
@@ -171,14 +171,14 @@ const [quickReminder, setQuickReminder] = useState<{
           {/* Due Today Column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-2.5 bg-yellow-50/90 rounded-xl">
-                <CalendarIcon className="h-5 w-5 text-yellow-500/90" />
+              <div className="p-2.5 bg-yellow-50/90 dark:bg-yellow-900/30 rounded-xl">
+                <CalendarIcon className="h-5 w-5 text-yellow-500/90 dark:text-yellow-400/90" />
               </div>
-              <h2 className="text-xl font-[600] text-gray-900/90">Interactions Due Today</h2>
+              <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white">Interactions Due Today</h2>
             </div>
             <div className="space-y-4">
               {dueTodayReminders.length === 0 ? (
-                <p className="text-sm text-gray-600">No interactions due today!</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">No interactions due today!</p>
               ) : (
                 dueTodayReminders.map((reminder) => {
                   const contact = contactsMap[reminder.contact_id];
@@ -211,14 +211,14 @@ const [quickReminder, setQuickReminder] = useState<{
           {/* Upcoming Column */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-2.5 bg-primary-50/90 rounded-xl">
-                <CalendarIcon className="h-5 w-5 text-primary-500/90" />
+              <div className="p-2.5 bg-primary-50/90 dark:bg-primary-900/30 rounded-xl">
+                <CalendarIcon className="h-5 w-5 text-primary-500/90 dark:text-primary-400/90" />
               </div>
-              <h2 className="text-xl font-[600] text-gray-900/90">Upcoming Reminders</h2>
+              <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white">Upcoming Reminders</h2>
             </div>
             <div className="space-y-4">
               {upcomingReminders.length === 0 ? (
-                <p className="text-sm text-gray-600">No upcoming reminders!</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">No upcoming reminders!</p>
               ) : (
                 upcomingReminders.map((reminder) => {
                   const contact = contactsMap[reminder.contact_id];
@@ -250,8 +250,8 @@ const [quickReminder, setQuickReminder] = useState<{
         </div>
       </div>
       {quickInteraction && (
-        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
-          <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
+        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 dark:bg-gray-900/50 flex items-center justify-center">
+          <div className="animate-pulse bg-white dark:bg-gray-800 rounded-lg p-6">Loading...</div>
         </div>}>
           <QuickInteraction
             isOpen={quickInteraction.isOpen}
@@ -263,8 +263,8 @@ const [quickReminder, setQuickReminder] = useState<{
         </Suspense>
       )}
       {quickReminder && (
-        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center">
-          <div className="animate-pulse bg-white rounded-lg p-6">Loading...</div>
+        <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 dark:bg-gray-900/50 flex items-center justify-center">
+          <div className="animate-pulse bg-white dark:bg-gray-800 rounded-lg p-6">Loading...</div>
         </div>}>
           <QuickReminderModal
             isOpen={quickReminder.isOpen}
