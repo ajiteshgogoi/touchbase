@@ -181,13 +181,12 @@ const QuickInteraction = ({
 
         } catch (error) {
           // Revert optimistic updates on error
-          queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
-          queryClient.invalidateQueries({ queryKey: ['contacts'] });
-          queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
-          queryClient.invalidateQueries({ queryKey: ['contact-with-events', contactId] });
+          void queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
+          void queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          void queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
+          void queryClient.invalidateQueries({ queryKey: ['contact-with-events', contactId] });
           toast.error('Failed to update interaction. Please try again.');
           console.error('Error updating interaction:', error);
-          throw error; // Re-throw to be caught by outer catch
         }
       } else {
         // For new interaction
@@ -246,10 +245,20 @@ const QuickInteraction = ({
           });
           queryClient.setQueryData(['reminders'], updateRemindersCache);
 
-          // Add the interaction
-          await contactsService.addInteraction(interactionData);
-          toast.success('Interaction logged successfully');
+          // Add the interaction and get the real ID
+          const newInteraction = await contactsService.addInteraction(interactionData);
           
+          // Update cache with real interaction ID
+          queryClient.setQueryData(['interactions', contactId], (old: any) => {
+            if (!Array.isArray(old)) return old;
+            return old.map(interaction =>
+              interaction.id === tempId
+                ? { ...interaction, id: newInteraction.id }
+                : interaction
+            );
+          });
+          
+          toast.success('Interaction logged successfully');
           // Get contact to update last_contacted
           const contact = await contactsService.getContact(contactId);
           if (!contact) throw new Error('Contact not found');
@@ -273,15 +282,14 @@ const QuickInteraction = ({
 
         } catch (error) {
           // Revert optimistic updates on error
-          queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
-          queryClient.invalidateQueries({ queryKey: ['contacts'] });
-          queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
-          queryClient.invalidateQueries({ queryKey: ['contact-with-events', contactId] });
-          queryClient.invalidateQueries({ queryKey: ['reminders'] });
-          queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
+          void queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
+          void queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          void queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
+          void queryClient.invalidateQueries({ queryKey: ['contact-with-events', contactId] });
+          void queryClient.invalidateQueries({ queryKey: ['reminders'] });
+          void queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
           toast.error('Failed to save interaction. Please try again.');
           console.error('Error saving interaction:', error);
-          throw error; // Re-throw to be caught by outer catch
         }
       }
     } catch (error) {
