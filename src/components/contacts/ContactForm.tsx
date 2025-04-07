@@ -223,13 +223,47 @@ export const ContactForm = () => {
       // Other validations already happen in real-time
 
       if (isEditMode && id) {
-        // Optimistically update the cache
-        queryClient.setQueryData(['contacts'], (oldData: any) => {
+        // Helper functions for optimistic updates
+        const updateContactCache = (oldData: any) => {
           if (!Array.isArray(oldData)) return oldData;
           return oldData.map(contact =>
             contact.id === id ? { ...contact, ...formData } : contact
           );
-        });
+        };
+
+        const updateContactWithEventsCache = (oldData: any) => {
+          if (!oldData?.contact) return oldData;
+          return {
+            contact: { ...oldData.contact, ...formData },
+            events: formData.important_events || []
+          };
+        };
+
+        // Update all caches optimistically
+        queryClient.setQueryData(['contacts'], updateContactCache);
+        queryClient.setQueryData(['recent-contacts'], updateContactCache);
+        queryClient.setQueryData(['contact-with-events', id], updateContactWithEventsCache);
+
+        // Update reminders cache if contact frequency changed
+        if (contactData?.contact?.contact_frequency !== formData.contact_frequency) {
+          const optimisticReminder = {
+            id: `temp-reminder-${id}`,
+            contact_id: id,
+            user_id: formData.user_id,
+            type: formData.preferred_contact_method || 'message',
+            due_date: new Date().toISOString(),
+            completed: false,
+            created_at: new Date().toISOString()
+          };
+
+          queryClient.setQueryData(['reminders'], (oldData: any) => {
+            if (!Array.isArray(oldData)) return [optimisticReminder];
+            const filtered = oldData.filter(reminder =>
+              reminder.contact_id !== id || reminder.name !== null
+            );
+            return [optimisticReminder, ...filtered];
+          });
+        }
 
         // Navigate immediately
         handleNavigateBack();
@@ -238,8 +272,11 @@ export const ContactForm = () => {
         updateMutation.mutate({ id, updates: formData }, {
           onError: (error) => {
             console.error('Error updating contact:', error);
-            // Show error toast and revert optimistic update
+            // Revert all optimistic updates
             queryClient.invalidateQueries({ queryKey: ['contacts'] });
+            queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
+            queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
+            queryClient.invalidateQueries({ queryKey: ['reminders'] });
           }
         });
       } else {
@@ -252,21 +289,78 @@ export const ContactForm = () => {
           updated_at: new Date().toISOString()
         };
 
-        // Add to cache immediately
-        queryClient.setQueryData(['contacts'], (oldData: any) => {
+        // Helper functions for optimistic updates
+        const updateContactCache = (oldData: any) => {
           if (!Array.isArray(oldData)) return [optimisticContact];
           return [optimisticContact, ...oldData];
+        };
+
+        const updateContactWithEventsCache = () => ({
+          contact: optimisticContact,
+          events: formData.important_events || []
         });
+
+        // Update all caches optimistically
+        queryClient.setQueryData(['contacts'], updateContactCache);
+        queryClient.setQueryData(['recent-contacts'], updateContactCache);
+        queryClient.setQueryData(['contact-with-events', tempId], updateContactWithEventsCache);
+
+        // Also update total contacts count
+        queryClient.setQueryData(['total-contacts'], (old: number | undefined) =>
+          (old || 0) + 1
+        );
+
+        // Update reminders cache if contact frequency is set
+        if (formData.contact_frequency) {
+          const optimisticReminder = {
+            id: `temp-reminder-${tempId}`,
+            contact_id: tempId,
+            user_id: formData.user_id,
+            type: formData.preferred_contact_method || 'message',
+            due_date: new Date().toISOString(),
+            completed: false,
+            created_at: new Date().toISOString()
+          };
+
+          queryClient.setQueryData(['reminders'], (oldData: any) => {
+            if (!Array.isArray(oldData)) return [optimisticReminder];
+            return [optimisticReminder, ...oldData];
+          });
+
+          queryClient.setQueryData(['total-reminders'], (old: number | undefined) =>
+            (old || 0) + 1
+          );
+        }
 
         // Navigate immediately
         handleNavigateBack();
 
         // Create contact in background
         createMutation.mutate(formData, {
+          onSuccess: (newContact) => {
+            // Update cache with real contact ID
+            const updateWithRealId = (oldData: any) => {
+              if (!Array.isArray(oldData)) return oldData;
+              return oldData.map(item =>
+                item.id === tempId ? { ...item, id: newContact.id } : item
+              );
+            };
+
+            queryClient.setQueryData(['contacts'], updateWithRealId);
+            queryClient.setQueryData(['recent-contacts'], updateWithRealId);
+            queryClient.setQueryData(['contact-with-events', newContact.id], (old: any) =>
+              old ? { ...old, contact: { ...old.contact, id: newContact.id } } : old
+            );
+          },
           onError: (error) => {
             console.error('Error creating contact:', error);
-            // Show error toast and revert optimistic update
+            // Revert all optimistic updates
             queryClient.invalidateQueries({ queryKey: ['contacts'] });
+            queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
+            queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
+            queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
+            queryClient.invalidateQueries({ queryKey: ['reminders'] });
+            queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
           }
         });
       }
