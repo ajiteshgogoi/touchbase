@@ -5,8 +5,9 @@ import { supabase } from '../../lib/supabase/client';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
 import { toast } from 'react-hot-toast';
-import type { Interaction } from '../../lib/supabase/types';
+import type { Interaction, Contact } from '../../lib/supabase/types';
 import { useStore } from '../../stores/useStore';
+import { calculateNextContactDate } from '../../utils/date';
 import dayjs from 'dayjs';
 
 type InteractionType = Interaction['type'];
@@ -144,10 +145,15 @@ const QuickInteraction = ({
               if (oldInteraction &&
                   oldInteraction.date === contact.last_contacted &&
                   selectedDate.toISOString() !== oldInteraction.date) {
+                const nextDueDate = calculateNextContactDate(
+                  contact.contact_frequency,
+                  0, // Reset missed interactions
+                  new Date(selectedDate.toISOString())
+                );
                 return {
                   ...contact,
                   last_contacted: selectedDate.toISOString(),
-                  next_contact_due: selectedDate.toISOString()
+                  next_contact_due: nextDueDate.toISOString()
                 };
               }
               return contact;
@@ -168,7 +174,11 @@ const QuickInteraction = ({
                 contact: {
                   ...old.contact,
                   last_contacted: selectedDate.toISOString(),
-                  next_contact_due: selectedDate.toISOString()
+                  next_contact_due: calculateNextContactDate(
+                    old.contact.contact_frequency,
+                    0,
+                    new Date(selectedDate.toISOString())
+                  ).toISOString()
                 }
               };
             }
@@ -208,16 +218,23 @@ const QuickInteraction = ({
           // Helper function to update contact in cache
           const updateContactCache = (oldContacts: any) => {
             if (!Array.isArray(oldContacts)) return oldContacts;
-            return oldContacts.map(contact =>
-              contact.id === contactId
-                ? {
-                    ...contact,
-                    last_contacted: selectedDate.toISOString(),
-                    next_contact_due: selectedDate.toISOString(),
-                    missed_interactions: 0
-                  }
-                : contact
-            );
+            return oldContacts.map(contact => {
+              if (contact.id !== contactId) return contact;
+              
+              // Calculate next due date based on contact frequency
+              const nextDueDate = calculateNextContactDate(
+                contact.contact_frequency,
+                0, // Reset missed interactions
+                new Date(selectedDate.toISOString())
+              );
+
+              return {
+                ...contact,
+                last_contacted: selectedDate.toISOString(),
+                next_contact_due: nextDueDate.toISOString(),
+                missed_interactions: 0
+              };
+            });
           };
 
           // Helper function to update reminders cache
@@ -238,7 +255,11 @@ const QuickInteraction = ({
               contact: {
                 ...old.contact,
                 last_contacted: selectedDate.toISOString(),
-                next_contact_due: selectedDate.toISOString(),
+                next_contact_due: calculateNextContactDate(
+                  old.contact.contact_frequency,
+                  0,
+                  new Date(selectedDate.toISOString())
+                ).toISOString(),
                 missed_interactions: 0
               }
             };
