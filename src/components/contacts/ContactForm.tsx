@@ -292,7 +292,18 @@ export const ContactForm = () => {
         // Helper functions for optimistic updates
         const updateContactCache = (oldData: any) => {
           if (!Array.isArray(oldData)) return [optimisticContact];
-          return [optimisticContact, ...oldData];
+          
+          // Insert the new contact maintaining the same sort order as the service:
+          // created_at descending (newest first), then name ascending
+          const sortedData = [...oldData, optimisticContact].sort((a, b) => {
+            // First sort by created_at descending
+            const dateCompare = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            if (dateCompare !== 0) return dateCompare;
+            // Then by name ascending
+            return a.name.localeCompare(b.name);
+          });
+          
+          return sortedData;
         };
 
         const updateContactWithEventsCache = () => ({
@@ -332,7 +343,7 @@ export const ContactForm = () => {
           );
         }
 
-        // Navigate immediately
+        // Navigate immediately after optimistic updates for better UX
         handleNavigateBack();
 
         // Create contact in background
