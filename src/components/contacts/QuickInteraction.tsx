@@ -125,58 +125,70 @@ const QuickInteraction = ({
         const oldInteractions = queryClient.getQueryData(['interactions', contactId]) as Interaction[] | undefined;
         const oldInteraction = oldInteractions?.find(i => i.id === interactionId);
 
-        // Update interactions cache
-        queryClient.setQueryData(['interactions', contactId], (old: any) => {
-          if (!Array.isArray(old)) return old;
-          return old.map(interaction =>
-            interaction.id === interactionId ? { ...interaction, ...interactionData } : interaction
-          );
-        });
+        try {
+          // Update interactions cache
+          queryClient.setQueryData(['interactions', contactId], (old: any) => {
+            if (!Array.isArray(old)) return old;
+            return old.map(interaction =>
+              interaction.id === interactionId ? { ...interaction, ...interactionData } : interaction
+            );
+          });
 
-        // Helper functions for cache updates
-        const updateContactCache = (oldContacts: any) => {
-          if (!Array.isArray(oldContacts)) return oldContacts;
-          return oldContacts.map(contact => {
-            if (contact.id !== contactId) return contact;
-            // Only update last_contacted if this was the most recent interaction
-            // and the date has changed
+          // Helper functions for cache updates
+          const updateContactCache = (oldContacts: any) => {
+            if (!Array.isArray(oldContacts)) return oldContacts;
+            return oldContacts.map(contact => {
+              if (contact.id !== contactId) return contact;
+              // Only update last_contacted if this was the most recent interaction
+              // and the date has changed
+              if (oldInteraction &&
+                  oldInteraction.date === contact.last_contacted &&
+                  selectedDate.toISOString() !== oldInteraction.date) {
+                return {
+                  ...contact,
+                  last_contacted: selectedDate.toISOString(),
+                  next_contact_due: selectedDate.toISOString()
+                };
+              }
+              return contact;
+            });
+          };
+
+          // Update all relevant caches optimistically
+          queryClient.setQueryData(['contacts'], updateContactCache);
+          queryClient.setQueryData(['recent-contacts'], updateContactCache);
+          queryClient.setQueryData(['contact-with-events', contactId], (old: any) => {
+            if (!old?.contact) return old;
+            // Only update if this was the most recent interaction
             if (oldInteraction &&
-                oldInteraction.date === contact.last_contacted &&
+                oldInteraction.date === old.contact.last_contacted &&
                 selectedDate.toISOString() !== oldInteraction.date) {
               return {
-                ...contact,
-                last_contacted: selectedDate.toISOString(),
-                next_contact_due: selectedDate.toISOString()
+                ...old,
+                contact: {
+                  ...old.contact,
+                  last_contacted: selectedDate.toISOString(),
+                  next_contact_due: selectedDate.toISOString()
+                }
               };
             }
-            return contact;
+            return old;
           });
-        };
 
-        // Update all relevant caches
-        queryClient.setQueryData(['contacts'], updateContactCache);
-        queryClient.setQueryData(['recent-contacts'], updateContactCache);
-        queryClient.setQueryData(['contact-with-events', contactId], (old: any) => {
-          if (!old?.contact) return old;
-          // Only update if this was the most recent interaction
-          if (oldInteraction &&
-              oldInteraction.date === old.contact.last_contacted &&
-              selectedDate.toISOString() !== oldInteraction.date) {
-            return {
-              ...old,
-              contact: {
-                ...old.contact,
-                last_contacted: selectedDate.toISOString(),
-                next_contact_due: selectedDate.toISOString()
-              }
-            };
-          }
-          return old;
-        });
+          // Perform the actual update
+          await contactsService.updateInteraction(interactionId, interactionData);
+          toast.success('Interaction updated successfully');
 
-        // Perform the actual update
-        await contactsService.updateInteraction(interactionId, interactionData);
-        toast.success('Interaction updated successfully');
+        } catch (error) {
+          // Revert optimistic updates on error
+          queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
+          queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
+          queryClient.invalidateQueries({ queryKey: ['contact-with-events', contactId] });
+          toast.error('Failed to update interaction. Please try again.');
+          console.error('Error updating interaction:', error);
+          throw error; // Re-throw to be caught by outer catch
+        }
       } else {
         // For new interaction
         const tempId = `temp-${Date.now()}`;
@@ -186,60 +198,54 @@ const QuickInteraction = ({
           created_at: new Date().toISOString()
         };
 
-        // Update all necessary caches optimistically
-        // 1. Update interactions cache
-        queryClient.setQueryData(['interactions', contactId], (old: any) => {
-          if (!Array.isArray(old)) return [optimisticInteraction];
-          return [optimisticInteraction, ...old];
-        });
-
-        // Helper function to update contact in cache
-        const updateContactCache = (oldContacts: any) => {
-          if (!Array.isArray(oldContacts)) return oldContacts;
-          return oldContacts.map(contact =>
-            contact.id === contactId
-              ? {
-                  ...contact,
-                  last_contacted: selectedDate.toISOString(),
-                  next_contact_due: selectedDate.toISOString(), // Will be properly recalculated by stored procedure
-                  missed_interactions: 0
-                }
-              : contact
-          );
-        };
-
-        // Helper function to update reminders cache - remove old reminder for this contact
-        const updateRemindersCache = (oldReminders: any) => {
-          if (!Array.isArray(oldReminders)) return oldReminders;
-          return oldReminders.filter(reminder =>
-            reminder.contact_id !== contactId || reminder.name !== null // Keep quick reminders
-          );
-        };
-
-        // 2. Update contacts cache
-        queryClient.setQueryData(['contacts'], updateContactCache);
-        
-        // 3. Update recent-contacts cache
-        queryClient.setQueryData(['recent-contacts'], updateContactCache);
-
-        // 4. Update contact-with-events cache for the specific contact
-        queryClient.setQueryData(['contact-with-events', contactId], (old: any) => {
-          if (!old?.contact) return old;
-          return {
-            ...old,
-            contact: {
-              ...old.contact,
-              last_contacted: selectedDate.toISOString(),
-              next_contact_due: selectedDate.toISOString(), // Will be recalculated
-              missed_interactions: 0
-            }
-          };
-        });
-
-        // 5. Update reminders cache
-        queryClient.setQueryData(['reminders'], updateRemindersCache);
-
         try {
+          // Update all necessary caches optimistically
+          // 1. Update interactions cache
+          queryClient.setQueryData(['interactions', contactId], (old: any) => {
+            if (!Array.isArray(old)) return [optimisticInteraction];
+            return [optimisticInteraction, ...old];
+          });
+
+          // Helper function to update contact in cache
+          const updateContactCache = (oldContacts: any) => {
+            if (!Array.isArray(oldContacts)) return oldContacts;
+            return oldContacts.map(contact =>
+              contact.id === contactId
+                ? {
+                    ...contact,
+                    last_contacted: selectedDate.toISOString(),
+                    next_contact_due: selectedDate.toISOString(),
+                    missed_interactions: 0
+                  }
+                : contact
+            );
+          };
+
+          // Helper function to update reminders cache
+          const updateRemindersCache = (oldReminders: any) => {
+            if (!Array.isArray(oldReminders)) return oldReminders;
+            return oldReminders.filter(reminder =>
+              reminder.contact_id !== contactId || reminder.name !== null
+            );
+          };
+
+          // Update all caches
+          queryClient.setQueryData(['contacts'], updateContactCache);
+          queryClient.setQueryData(['recent-contacts'], updateContactCache);
+          queryClient.setQueryData(['contact-with-events', contactId], (old: any) => {
+            if (!old?.contact) return old;
+            return {
+              ...old,
+              contact: {
+                ...old.contact,
+                last_contacted: selectedDate.toISOString(),
+                next_contact_due: selectedDate.toISOString(),
+                missed_interactions: 0
+              }
+            };
+          });
+          queryClient.setQueryData(['reminders'], updateRemindersCache);
+
           // Add the interaction
           await contactsService.addInteraction(interactionData);
           toast.success('Interaction logged successfully');
@@ -264,17 +270,18 @@ const QuickInteraction = ({
               contact_frequency: contact.contact_frequency
             });
           }
+
         } catch (error) {
           // Revert optimistic updates on error
-          // Revert all optimistic updates
           queryClient.invalidateQueries({ queryKey: ['interactions', contactId] });
           queryClient.invalidateQueries({ queryKey: ['contacts'] });
           queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
           queryClient.invalidateQueries({ queryKey: ['contact-with-events', contactId] });
-          queryClient.invalidateQueries({ queryKey: ['reminders'] }); // Also revert reminders cache
+          queryClient.invalidateQueries({ queryKey: ['reminders'] });
           queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
           toast.error('Failed to save interaction. Please try again.');
           console.error('Error saving interaction:', error);
+          throw error; // Re-throw to be caught by outer catch
         }
       }
     } catch (error) {
