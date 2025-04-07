@@ -144,21 +144,57 @@ export const ContactForm = () => {
       // First update the contact
       const contact = await contactsService.updateContact(id, contactUpdates);
 
+      // --- Handle Important Events Deletion and Upsert ---
+
+      // 1. Get IDs of existing events for this contact
+      const { data: existingEvents, error: fetchError } = await supabase
+        .from('important_events')
+        .select('id')
+        .eq('contact_id', id);
+
+      if (fetchError) {
+        console.error('Error fetching existing events:', fetchError);
+        // Optionally throw error or handle it appropriately
+        throw new Error('Failed to fetch existing events before update.');
+      }
+
+      const existingEventIds = existingEvents?.map(e => e.id) || [];
+      const formEventIds = formData.important_events.map(e => e.id).filter(Boolean); // Filter out undefined/null IDs for new events
+
+      // 2. Identify events to delete (exist in DB but not in form)
+      const eventsToDeleteIds = existingEventIds.filter(existingId => !formEventIds.includes(existingId));
+
+      // 3. Perform deletions if necessary
+      if (eventsToDeleteIds.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('important_events')
+          .delete()
+          .in('id', eventsToDeleteIds);
+
+        if (deleteError) {
+          console.error('Error deleting events:', deleteError);
+          // Optionally throw error or handle it appropriately
+          throw new Error('Failed to delete removed events.');
+        }
+      }
+
+      // 4. Perform upsert for events present in the form data
       if (formData.important_events.length > 0) {
-        // Upsert events instead of delete/recreate
-        await Promise.all(formData.important_events.map(event =>
+        const upsertPromises = formData.important_events.map(event =>
           supabase
             .from('important_events')
             .upsert({
-              id: event.id, // Keep existing ID if present
+              id: event.id, // Let Supabase handle ID generation for new events if null/undefined
               contact_id: id,
               user_id: contact.user_id,
               type: event.type,
               name: event.name,
               date: formatEventToUTC(event.date)
             })
-        ));
+        );
+        await Promise.all(upsertPromises);
       }
+      // --- End Handle Important Events ---
 
       await contactsService.recalculateNextContactDue(id);
       
