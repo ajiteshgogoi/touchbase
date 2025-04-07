@@ -253,7 +253,7 @@ const QuickInteraction = ({
             if (!Array.isArray(old)) return old;
             return old.map(interaction =>
               interaction.id === tempId
-                ? { ...interaction, id: newInteraction.id }
+                ? { ...newInteraction }
                 : interaction
             );
           });
