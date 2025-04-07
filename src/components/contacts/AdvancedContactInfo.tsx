@@ -375,7 +375,19 @@ export const AdvancedContactInfo = ({
           {formData.important_events.length < 5 && (
             <button
               type="button"
-              onClick={() => setShowNewEventForm(true)}
+              onClick={() => {
+                // Determine the default event type based on availability
+                const canAddBirthday = !formData.important_events.some(event => event.type === 'birthday');
+                const canAddAnniversary = !formData.important_events.some(event => event.type === 'anniversary');
+                let defaultEventType: 'birthday' | 'anniversary' | 'custom' = 'custom';
+                if (canAddBirthday) {
+                  defaultEventType = 'birthday';
+                } else if (canAddAnniversary) {
+                  defaultEventType = 'anniversary';
+                }
+                setSelectedEventType(defaultEventType);
+                setShowNewEventForm(true);
+              }}
               className="inline-flex items-center justify-center text-center px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] shadow-soft hover:shadow-md transition-all duration-200"
             >
               <PlusIcon className="h-4 w-4 mr-1.5" />
