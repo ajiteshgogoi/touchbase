@@ -243,6 +243,20 @@ export const ContactForm = () => {
         queryClient.setQueryData(['recent-contacts'], updateContactCache);
         queryClient.setQueryData(['contact-with-events', id], updateContactWithEventsCache);
 
+        // Optimistically update the general important events cache
+        queryClient.setQueryData(['important-events'], (oldEventsData: any) => {
+          const updatedEventsForThisContact = (formData.important_events || []).map(event => ({
+            ...event,
+            contact_id: id, // Ensure contact_id is set
+            user_id: formData.user_id // Ensure user_id is set
+          }));
+          if (!Array.isArray(oldEventsData)) return updatedEventsForThisContact;
+          // Filter out all old events for this contact_id
+          const otherEvents = oldEventsData.filter(event => event.contact_id !== id);
+          // Add the current events from the form data
+          return [...otherEvents, ...updatedEventsForThisContact];
+        });
+
         // Update reminders cache if contact frequency changed
         if (contactData?.contact?.contact_frequency !== formData.contact_frequency) {
           const optimisticReminder = {
@@ -276,6 +290,7 @@ export const ContactForm = () => {
             queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
             queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
             queryClient.invalidateQueries({ queryKey: ['reminders'] });
+            queryClient.invalidateQueries({ queryKey: ['important-events'] }); // Revert optimistic event update
           }
         });
       } else {
@@ -304,6 +319,18 @@ export const ContactForm = () => {
         queryClient.setQueryData(['contacts'], updateContactCache);
         queryClient.setQueryData(['recent-contacts'], updateContactCache);
         queryClient.setQueryData(['contact-with-events', tempId], updateContactWithEventsCache);
+
+        // Optimistically update the general important events cache
+        queryClient.setQueryData(['important-events'], (oldEventsData: any) => {
+          const newEvents = (formData.important_events || []).map((event, index) => ({
+            ...event,
+            id: `temp-event-${tempId}-${index}-${Date.now()}`, // Need a temp unique ID for keys
+            contact_id: tempId, // Associate with temp contact ID
+            user_id: formData.user_id
+          }));
+          if (!Array.isArray(oldEventsData)) return newEvents;
+          return [...oldEventsData, ...newEvents];
+        });
 
         // Also update total contacts count
         queryClient.setQueryData(['total-contacts'], (old: number | undefined) =>
@@ -361,6 +388,7 @@ export const ContactForm = () => {
             queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
             queryClient.invalidateQueries({ queryKey: ['reminders'] });
             queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
+            queryClient.invalidateQueries({ queryKey: ['important-events'] }); // Revert optimistic event update
           }
         });
       }
