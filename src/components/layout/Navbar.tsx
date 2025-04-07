@@ -11,7 +11,7 @@ export const Navbar = () => {
           <div className="flex-1 flex items-center justify-between">
             <Link
               to="/"
-              className="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-all duration-200"
+              className="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/20 dark:hover:bg-gray-800/20 transition-all duration-200"
             >
               <img
                 src="/icon.svg"

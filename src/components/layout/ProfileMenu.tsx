@@ -20,7 +20,7 @@ const IconFallback = () => <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 
 // Pre-compute styles outside of render
 const menuStyles = {
   base: "group flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-[450] transform-gpu",
-  active: "bg-gray-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400",
+  active: "bg-gray-50/20 dark:bg-gray-800/20 text-primary-600 dark:text-primary-400",
   inactive: "text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
 };
 
@@ -115,7 +115,7 @@ export const ProfileMenu = () => {
           </Suspense>
           <span>Premium</span>
         </div>
-        <Menu.Button className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 hover:text-primary-600 dark:hover:text-primary-400 active:bg-gray-100/80 dark:active:bg-gray-800/80 transition-all duration-200 group" aria-label="Profile menu">
+        <Menu.Button className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50/20 dark:hover:bg-gray-800/20 hover:text-primary-600 dark:hover:text-primary-400 active:bg-gray-100/30 dark:active:bg-gray-800/30 transition-all duration-200 group" aria-label="Profile menu">
           <div className="relative w-7 h-7 rounded-full border-[1.5px] border-white/90 dark:border-gray-700/90 shadow-[0_0_10px_rgba(0,0,0,0.03)] dark:shadow-[0_0_10px_rgba(0,0,0,0.2)] overflow-hidden bg-primary-50 dark:bg-primary-900/30">
             {user?.user_metadata?.avatar_url ? (
               <img
@@ -182,7 +182,7 @@ export const ProfileMenu = () => {
               {({ active }) => (
                 <a href="/blog"                   
                    rel="noopener noreferrer"
-                   className={`${menuStyles.base} ${active ? menuStyles.active : menuStyles.inactive}`}>
+                   className={`${menuStyles.base} ${active ? 'bg-gray-50/20 dark:bg-gray-800/20 text-primary-600 dark:text-primary-400' : menuStyles.inactive}`}>
                   <Suspense fallback={<IconFallback />}>
                     <NewspaperIcon className="h-5 w-5 mr-2 text-primary-500" />
                   </Suspense>
