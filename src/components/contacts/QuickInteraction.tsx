@@ -122,13 +122,58 @@ const QuickInteraction = ({
       
       if (interactionId) {
         // For updating existing interaction
+        const oldInteractions = queryClient.getQueryData(['interactions', contactId]) as Interaction[] | undefined;
+        const oldInteraction = oldInteractions?.find(i => i.id === interactionId);
+
+        // Update interactions cache
         queryClient.setQueryData(['interactions', contactId], (old: any) => {
           if (!Array.isArray(old)) return old;
           return old.map(interaction =>
             interaction.id === interactionId ? { ...interaction, ...interactionData } : interaction
           );
         });
-        
+
+        // Helper functions for cache updates
+        const updateContactCache = (oldContacts: any) => {
+          if (!Array.isArray(oldContacts)) return oldContacts;
+          return oldContacts.map(contact => {
+            if (contact.id !== contactId) return contact;
+            // Only update last_contacted if this was the most recent interaction
+            // and the date has changed
+            if (oldInteraction &&
+                oldInteraction.date === contact.last_contacted &&
+                selectedDate.toISOString() !== oldInteraction.date) {
+              return {
+                ...contact,
+                last_contacted: selectedDate.toISOString(),
+                next_contact_due: selectedDate.toISOString()
+              };
+            }
+            return contact;
+          });
+        };
+
+        // Update all relevant caches
+        queryClient.setQueryData(['contacts'], updateContactCache);
+        queryClient.setQueryData(['recent-contacts'], updateContactCache);
+        queryClient.setQueryData(['contact-with-events', contactId], (old: any) => {
+          if (!old?.contact) return old;
+          // Only update if this was the most recent interaction
+          if (oldInteraction &&
+              oldInteraction.date === old.contact.last_contacted &&
+              selectedDate.toISOString() !== oldInteraction.date) {
+            return {
+              ...old,
+              contact: {
+                ...old.contact,
+                last_contacted: selectedDate.toISOString(),
+                next_contact_due: selectedDate.toISOString()
+              }
+            };
+          }
+          return old;
+        });
+
         // Perform the actual update
         await contactsService.updateInteraction(interactionId, interactionData);
         toast.success('Interaction updated successfully');

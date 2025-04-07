@@ -328,10 +328,6 @@ export const InteractionHistory = () => {
             interactionId={editingInteraction.interaction.id}
             onSuccess={() => {
               setEditingInteraction(null);
-              void queryClient.invalidateQueries({
-                queryKey: ['interactions', contactId],
-                exact: true
-              });
             }}
           />
         </Suspense>
