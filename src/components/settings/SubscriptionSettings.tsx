@@ -113,18 +113,18 @@ const handleResumeSubscription = () => {
 
   return (
     <>
-      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
-        <h2 className="text-xl font-semibold text-primary-500 mb-6">
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200 p-6">
+        <h2 className="text-xl font-semibold text-primary-500 dark:text-primary-400 mb-6">
           Subscription Plan
         </h2>
         <div className="grid md:grid-cols-2 gap-8">
           {SUBSCRIPTION_PLANS.map((plan) => (
             <div
               key={plan.id}
-              className={`relative bg-white/60 backdrop-blur-xl rounded-xl p-6 transition-all ${
+              className={`relative bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl p-6 transition-all ${
                 selectedPlan === plan.id
-                  ? 'border-2 border-primary-400 shadow-soft'
-                  : 'border border-gray-100/50 hover:border-primary-200 shadow-soft'
+                  ? 'border-2 border-primary-400 dark:border-primary-500 shadow-soft dark:shadow-soft-dark'
+                  : 'border border-gray-100/50 dark:border-gray-800/50 hover:border-primary-200 dark:hover:border-primary-700 shadow-soft dark:shadow-soft-dark'
               }`}
             >
               {plan.id === 'premium' && (
@@ -135,25 +135,25 @@ const handleResumeSubscription = () => {
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {plan.name.charAt(0).toUpperCase() + plan.name.slice(1)}
                     </h3>
-                    <p className="text-[15px] text-gray-600/90 mt-1">
+                    <p className="text-[15px] text-gray-600/90 dark:text-gray-400 mt-1">
                       {plan.id === 'free' ? 'Basic features' : 'All premium features'}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-bold text-gray-900">
+                    <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       ${plan.price}
                     </span>
-                    <span className="text-gray-600/90">/mo</span>
+                    <span className="text-gray-600/90 dark:text-gray-400">/mo</span>
                   </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
-                      <CheckIcon className="h-5 w-5 text-primary-500/90 mt-0.5 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600/90">{feature}</span>
+                      <CheckIcon className="h-5 w-5 text-primary-500 dark:text-primary-400 mt-0.5 mr-3 flex-shrink-0" />
+                      <span className="text-gray-600/90 dark:text-gray-400">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -161,7 +161,7 @@ const handleResumeSubscription = () => {
                   <button
                     onClick={handleNewSubscription}
                     disabled={isSubscribing}
-                    className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Subscribe Now
                   </button>
@@ -169,13 +169,13 @@ const handleResumeSubscription = () => {
                 {plan.id === 'premium' && isPremium && (
                   <div className="space-y-4">
                     {subscription?.valid_until && (
-                      <div className="text-[15px] text-gray-600/90 bg-gray-50/80 backdrop-blur-sm rounded-lg p-4">
+                      <div className="text-[15px] text-gray-600/90 dark:text-gray-400 bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-4">
                         Your premium access is valid until{' '}
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
                           {formatDateWithTimezone(subscription.valid_until, timezone)}
                         </span>
                         {subscription.status === 'canceled' && (
-                          <span className="block mt-1 text-red-600/90">
+                          <span className="block mt-1 text-red-600 dark:text-red-500">
                             Your subscription will not renew after this date
                           </span>
                         )}
@@ -184,7 +184,7 @@ const handleResumeSubscription = () => {
                     {subscription?.status === 'active' ? (
                       <button
                         onClick={handleCancelSubscription}
-                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-700 border border-gray-200/80 hover:bg-gray-50/80 shadow-soft active:scale-[0.98] transition-all duration-200"
+                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-700 dark:text-gray-300 border border-gray-200/80 dark:border-gray-700/80 hover:bg-gray-50/80 dark:hover:bg-gray-800/80 shadow-soft dark:shadow-soft-dark active:scale-[0.98] transition-all duration-200"
                       >
                         Cancel Subscription
                       </button>
@@ -192,7 +192,7 @@ const handleResumeSubscription = () => {
                       <button
                         onClick={handleResumeSubscription}
                         disabled={isSubscribing}
-                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center justify-center w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Resume Subscription
                       </button>

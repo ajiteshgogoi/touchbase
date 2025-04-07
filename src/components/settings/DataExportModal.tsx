@@ -182,14 +182,14 @@ export const DataExportModal = ({ isOpen, onClose }: Props) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl">
-                <div className="flex items-center justify-between p-6 border-b border-gray-100/75">
-                  <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
+              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl">
+                <div className="flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
+                  <Dialog.Title as="h3" className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Export Data
                   </Dialog.Title>
                   <button
                     onClick={handleClose}
-                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 transition-colors"
+                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
                     disabled={isExporting}
                     aria-label="Close"
                   >
@@ -204,36 +204,36 @@ export const DataExportModal = ({ isOpen, onClose }: Props) => {
                       <div className="w-full max-w-xs mt-4">
                         <ProgressBar progress={progress} />
                       </div>
-                      <p className="mt-2 text-primary-500">
+                      <p className="mt-2 text-primary-500 dark:text-primary-400">
                         {`Exporting ${Math.round(progress)}%`}
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {exportError && (
-                        <div className="p-4 bg-red-50 rounded-lg">
-                          <p className="text-sm text-red-600">{exportError}</p>
+                        <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                          <p className="text-sm text-red-600 dark:text-red-500">{exportError}</p>
                         </div>
                       )}
 
                       <div className="text-center">
-                        <ArrowDownTrayIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">
+                        <ArrowDownTrayIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                        <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
                           Export Your Data
                         </h3>
-                        <p className="mt-2 text-sm text-gray-500">
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                           Download all your contacts, interactions, events and reminders in CSV format
                         </p>
                       </div>
 
                       <button
                         onClick={handleExport}
-                        className="w-full mt-4 px-4 py-3 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md transition-all duration-200"
+                        className="w-full mt-4 px-4 py-3 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 shadow-sm dark:shadow-soft-dark hover:shadow-md transition-all duration-200"
                       >
                         Export Data
                       </button>
 
-                      <p className="mt-2 text-xs text-center text-gray-500">
+                      <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
                         Your data will be exported as a ZIP file containing separate CSV files
                       </p>
                     </div>

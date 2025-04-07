@@ -191,10 +191,10 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <label className="text-gray-900 font-medium">
+            <label className="text-gray-900 dark:text-gray-100 font-medium">
               Registered Devices
             </label>
-            <p className="text-sm text-gray-600/90 mt-1">
+            <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
               Manage your notification-enabled devices
             </p>
           </div>
@@ -202,7 +202,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
             <button
               onClick={() => unregisterAllDevicesMutation.mutate()}
               disabled={isUnregisteringAll}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-100/50 dark:border-red-900/50 rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
               {isUnregisteringAll ? (
                 <div className="flex items-center gap-2">
@@ -217,23 +217,23 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
         </div>
 
         {(!devices || devices.length === 0) ? (
-          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 p-4 transition-colors hover:bg-white/50">
-            <p className="text-gray-600/90 text-sm">
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl border border-gray-100/30 dark:border-gray-800/30 p-4 transition-colors hover:bg-white/50 dark:hover:bg-gray-900/50">
+            <p className="text-gray-600/90 dark:text-gray-400 text-sm">
               No devices registered for notifications.
             </p>
           </div>
         ) : (
-          <div className="bg-white/40 backdrop-blur-sm rounded-xl border border-gray-100/30 overflow-hidden divide-y divide-gray-100/50 pr-0">
+          <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl border border-gray-100/30 dark:border-gray-800/30 overflow-hidden divide-y divide-gray-100/50 dark:divide-gray-800/50 pr-0">
             {devices.map((device) => (
               <div
                 key={device.device_id}
-                className="py-4 pl-4 pr-0 flex flex-col sm:flex-row sm:items-start gap-4 hover:bg-white/50 transition-colors duration-200"
+                className="py-4 pl-4 pr-0 flex flex-col sm:flex-row sm:items-start gap-4 hover:bg-white/50 dark:hover:bg-gray-900/50 transition-colors duration-200"
               >
                 <div className="flex-grow flex flex-col space-y-1">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {formatDeviceType(device.device_type)}
                   </p>
-                  <p className="text-xs text-gray-600/90">
+                  <p className="text-xs text-gray-600/90 dark:text-gray-400">
                     {(() => {
                       try {
                         const deviceInfo = platform.parseDeviceId(device.device_id);
@@ -257,7 +257,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                       }
                     })()}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
                     Last used: {formatLastUsed(device.updated_at)}
                   </p>
                 </div>
@@ -266,7 +266,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   <button
                     onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
                     disabled={unregisterDeviceMutation.isPending}
-                    className="w-full sm:w-auto inline-flex items-center justify-center pl-4 pr-4 sm:pr-3 py-2 text-sm font-medium text-red-600/80 bg-red-50/80 hover:bg-red-100/80 border border-red-100/40 rounded-lg shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+                    className="w-full sm:w-auto inline-flex items-center justify-center pl-4 pr-4 sm:pr-3 py-2 text-sm font-medium text-red-600 dark:text-red-500 bg-red-50/80 dark:bg-red-900/20 hover:bg-red-100/80 dark:hover:bg-red-900/30 border border-red-100/40 dark:border-red-900/50 rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
                   >
                     {unregisterDeviceMutation.isPending ? (
                       <div className="flex items-center gap-2">

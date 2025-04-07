@@ -6,6 +6,23 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      // Custom scrollbar configuration
+      scrollbar: {
+        DEFAULT: {
+          track: {
+            background: 'rgba(243, 244, 246, 0.5)',
+            dark: 'rgba(31, 41, 55, 0.5)'
+          },
+          thumb: {
+            background: 'rgba(156, 163, 175, 0.5)',
+            dark: 'rgba(75, 85, 99, 0.5)',
+            hover: {
+              background: 'rgba(107, 114, 128, 0.5)',
+              dark: 'rgba(107, 114, 128, 0.5)'
+            }
+          }
+        }
+      },
       colors: {
         primary: {
           50: '#f0f9ff',   // Lightest blue - for backgrounds
@@ -28,11 +45,16 @@ export default {
           500: '#f97316',  // Main orange - for CTAs
         }
       },
+      height: {
+        screen: ['100vh /* fallback */', '100dvh']
+      },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'soft-dark': '0 2px 15px -3px rgba(0, 0, 0, 0.3), 0 10px 20px -2px rgba(0, 0, 0, 0.25)',
+        'soft-dark': '0 2px 15px -3px rgba(0, 0, 0, 0.3), 0 10px 20px -2px rgba(0, 0, 0, 0.25)'
       }
-    },
+    }
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar')({ nocompatible: true }),
+  ],
 }
