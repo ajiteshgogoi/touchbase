@@ -138,20 +138,19 @@ export const ContactForm = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ContactFormData> }) => {
+      // Remove important_events from contact update
       const { important_events, ...contactUpdates } = updates;
+      
+      // First update the contact
       const contact = await contactsService.updateContact(id, contactUpdates);
-      
-      const currentEvents = await contactsService.getImportantEvents(id);
-      
-      await Promise.all(currentEvents.map(event =>
-        contactsService.deleteImportantEvent(event.id, id)
-      ));
-      
+
       if (formData.important_events.length > 0) {
+        // Upsert events instead of delete/recreate
         await Promise.all(formData.important_events.map(event =>
           supabase
             .from('important_events')
-            .insert({
+            .upsert({
+              id: event.id, // Keep existing ID if present
               contact_id: id,
               user_id: contact.user_id,
               type: event.type,
