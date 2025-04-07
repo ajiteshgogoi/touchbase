@@ -59,19 +59,19 @@ export const ImportantEventsTimeline = () => {
     return (
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Important Events</h2>
-          <p className="mt-1 text-sm text-gray-600">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Important Events</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Upcoming events for your contacts
           </p>
         </div>
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
           <div className="p-12 text-center">
-            <p className="text-[15px] text-gray-600/90">No upcoming important events</p>
+            <p className="text-[15px] text-gray-600/90 dark:text-gray-400">No upcoming important events</p>
           </div>
-          <div className="p-6 border-t border-gray-100">
+          <div className="p-6 border-t border-gray-100 dark:border-gray-800">
             <Link
               to="/important-events"
-              className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+              className="inline-flex items-center text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
             >
               View all events
               <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
@@ -87,17 +87,17 @@ export const ImportantEventsTimeline = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-gray-900">Important Events</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Important Events</h2>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
           Upcoming events for your contacts
         </p>
       </div>
-      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
         <div className="p-4 space-y-6">
           {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
-            <div key={month} className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-4 hover:shadow-md transition-all duration-200">
-              <div className="px-3 py-2 bg-gray-100 rounded-lg mb-4">
-                <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">{month}</span>
+            <div key={month} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-4 hover:shadow-md transition-all duration-200">
+              <div className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
+                <span className="text-xs font-[500] text-gray-500/90 dark:text-gray-400 uppercase tracking-wider">{month}</span>
               </div>
               <div className="space-y-4">
                 {monthEvents.map((event) => {
@@ -114,10 +114,10 @@ export const ImportantEventsTimeline = () => {
             </div>
           ))}
         </div>
-        <div className="p-6 border-t border-gray-100">
+        <div className="p-6 border-t border-gray-100 dark:border-gray-800">
           <Link
             to="/important-events"
-            className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+            className="inline-flex items-center text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
           >
             View all events
             <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">

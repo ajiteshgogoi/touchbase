@@ -195,8 +195,8 @@ export const ContactCard = ({
           onToggleSelect?.(contact.id);
         }
       }}
-      className={`contact-card bg-white/60 backdrop-blur-xl rounded-xl border ${
-        isSelected ? 'border-primary-400 shadow-md' : 'border-gray-100/50 shadow-soft hover:shadow-md'
+      className={`contact-card bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border ${
+        isSelected ? 'border-primary-400 dark:border-primary-500 shadow-md' : 'border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:shadow-md'
       } transition-all duration-200 scroll-mt-6 ${isSelectionMode ? 'cursor-pointer' : ''}`}
     >
       {/* Compact Header */}
@@ -265,10 +265,10 @@ export const ContactCard = ({
           <div className="py-1">
             <div className="flex items-center space-y-1">
               <div className="min-w-0">
-                <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 hover:text-primary-600 transition-colors tracking-[-0.01em]">
+                <h3 className="text-xl sm:text-2xl font-semibold text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors tracking-[-0.01em]">
                   {contact.name}
                 </h3>
-                <div className="flex items-center text-sm text-gray-500">
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                   <div
                     className={`w-2 h-2 rounded-full mr-2 ${
                       contact.missed_interactions > 3 ? 'bg-red-400' :
@@ -298,7 +298,7 @@ export const ContactCard = ({
             to={isSelectionMode ? '#' : `/contacts/${contact.id}/edit`}
             state={{ from: '/contacts' }}
             className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
-              isSelectionMode || isDeleting ? 'invisible cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
+              isSelectionMode || isDeleting ? 'invisible cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/30'
             }`}
             title={isSelectionMode ? "Click to select/deselect" : "Edit contact"}
             onClick={(e) => {
@@ -341,7 +341,7 @@ export const ContactCard = ({
 
       {/* Collapsible Details Section */}
       {isExpanded && (
-        <div className="px-4 pb-3 space-y-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
+        <div className="px-4 pb-3 space-y-4 border-t border-gray-100 dark:border-gray-800 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
           {isLoading ? (
             <div className="py-8 flex justify-center">
               <LoadingSpinner />
@@ -353,7 +353,7 @@ export const ContactCard = ({
                   {expandedDetails.phone && (
                     <a
                       href={isDeleting ? '#' : `tel:${expandedDetails.phone}`}
-                      className={`flex items-center px-3 py-2.5 bg-gray-50 ${!isDeleting && 'hover:bg-gray-100'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
+                      className={`flex items-center px-3 py-2.5 bg-gray-50 dark:bg-gray-800 ${!isDeleting && 'hover:bg-gray-100 dark:hover:bg-gray-700'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
                       onClick={e => isDeleting && e.preventDefault()}
                     >
                       <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0 group-hover:text-green-600/90 transition-colors" />
@@ -395,9 +395,9 @@ export const ContactCard = ({
 
               {/* Events section */}
               {(eventsMap[contact.id] || []).length > 0 && (
-                <div className="bg-gray-50 rounded-lg overflow-hidden">
-                  <div className="px-3 py-2 bg-gray-100">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Important Dates</span>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                  <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Important Dates</span>
                   </div>
                   <div className="px-3 py-2">
                     <div className="flex flex-wrap gap-3 text-sm min-w-0">
@@ -410,8 +410,8 @@ export const ContactCard = ({
                           ) : (
                             <StarIcon className="h-4 w-4 mr-1.5 text-purple-500 flex-shrink-0" />
                           )}
-                          <span className="text-gray-700 font-medium break-words">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
-                          <span className="text-gray-600 break-words">{formatEventDate(event.date)}</span>
+                          <span className="text-gray-700 dark:text-gray-200 font-medium break-words">{event.type === 'custom' ? event.name : getEventTypeDisplay(event.type)}:&nbsp;</span>
+                          <span className="text-gray-600 dark:text-gray-400 break-words">{formatEventDate(event.date)}</span>
                         </span>
                       ))}
                     </div>
@@ -422,20 +422,20 @@ export const ContactCard = ({
               {/* Contact status section */}
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <div className="bg-gray-50 rounded-lg overflow-hidden">
-                    <div className="px-3 py-2 bg-gray-100">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Contacted</span>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                    <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Contacted</span>
                     </div>
                     <div className="px-3 py-2">
-                      <span className="text-sm text-gray-700">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{contact.last_contacted ? dayjs(contact.last_contacted).fromNow() : 'Never'}</span>
                     </div>
                   </div>
-                  <div className="bg-gray-50 rounded-lg overflow-hidden">
-                    <div className="px-3 py-2 bg-gray-100">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Next Contact Due</span>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                    <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Next Contact Due</span>
                     </div>
                     <div className="px-3 py-2">
-                      <span className="text-sm text-gray-700">{contactsService.formatDueDate(contact.next_contact_due)}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{contactsService.formatDueDate(contact.next_contact_due)}</span>
                     </div>
                   </div>
                 </div>
@@ -443,16 +443,16 @@ export const ContactCard = ({
 
               {/* Categories/Hashtags section */}
               {expandedDetails.notes && extractHashtags(expandedDetails.notes).length > 0 && (
-                <div className="bg-gray-50 rounded-lg overflow-hidden">
-                  <div className="px-3 py-2 bg-gray-100">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categories</span>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                  <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Categories</span>
                   </div>
                   <div className="px-3 py-2">
                     <div className="flex flex-wrap gap-2">
                       {extractHashtags(expandedDetails.notes).map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center px-3 py-1.5 rounded-xl text-sm bg-primary-50 text-primary-700 border border-primary-100"
+                          className="inline-flex items-center px-3 py-1.5 rounded-xl text-sm bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-100 dark:border-primary-800"
                         >
                           {formatHashtagForDisplay(tag)}
                         </span>
@@ -464,37 +464,37 @@ export const ContactCard = ({
 
               {/* Personal Notes section */}
               {expandedDetails.notes && (
-                <div className="bg-gray-50 rounded-lg overflow-hidden">
-                  <div className="px-3 py-2 bg-gray-100">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Notes</span>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                  <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Personal Notes</span>
                   </div>
                   <div className="px-3 py-2">
-                    <span className="text-sm text-gray-700 whitespace-pre-line">{expandedDetails.notes}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{expandedDetails.notes}</span>
                   </div>
                 </div>
               )}
 
               {/* AI Suggestions section */}
-              <div className="bg-gray-50 rounded-lg overflow-hidden">
-                <div className="px-3 py-2 bg-gray-100">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Suggestions</span>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Suggestions</span>
                 </div>
                 <div className="px-3 py-2">
                   {!expandedDetails.ai_last_suggestion ? (
                     <div className="flex items-start gap-2">
-                      <span className="flex-1 text-sm text-gray-600/90">
+                      <span className="flex-1 text-sm text-gray-600/90 dark:text-gray-400">
                         No suggestions available
                       </span>
                     </div>
                   ) : expandedDetails.ai_last_suggestion === 'Upgrade to Premium to get personalised suggestions!' ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
-                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get personalised suggestions!
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">Upgrade to Premium</Link> to get personalised suggestions!
                       </span>
                     </div>
                   ) : (
                     <div className="group flex items-start gap-2">
-                      <span className="flex-1 text-sm text-gray-700 whitespace-pre-line">
+                      <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                         {expandedDetails.ai_last_suggestion.split('\n').slice(0, 5).join('\n')}
                       </span>
                       {expandedDetails.ai_last_suggestion && (
@@ -521,7 +521,7 @@ export const ContactCard = ({
 
       {/* Action Buttons */}
       <div
-        className="p-4 border-t border-gray-100/50 bg-white/30"
+        className="p-4 border-t border-gray-100/50 dark:border-gray-800/50 bg-white/30 dark:bg-gray-900/30"
         onClick={(e) => {
           if (isSelectionMode && !isBulkDeleting && e.button === 0) {
             e.stopPropagation();
@@ -529,7 +529,7 @@ export const ContactCard = ({
           }
         }}
       >
-        <div className={`flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 backdrop-blur-sm ${isSelectionMode ? 'cursor-pointer' : ''}`}>
+        <div className={`flex flex-wrap items-center justify-start gap-2 w-full bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm ${isSelectionMode ? 'cursor-pointer' : ''}`}>
           <button
             onClick={(e) => {
               e.stopPropagation();

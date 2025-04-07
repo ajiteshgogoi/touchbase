@@ -21,7 +21,7 @@ const ImportantEventsTimeline = lazy(() => import('../components/dashboard/Impor
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="animate-pulse">
-    <div className="h-32 bg-gray-200 rounded-lg mb-4"></div>
+    <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4"></div>
   </div>
 );
 
@@ -71,10 +71,10 @@ export const Dashboard = () => {
       )}
       <div className="flex flex-col sm:flex-row sm:justify-between">
         <div className="mb-4 sm:mb-0">
-          <h1 className="text-2xl font-[650] text-gray-900 tracking-[-0.01em]">
-            Welcome back, <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400">{user?.user_metadata?.name?.split(' ')[0] || 'Friend'}</span>
+          <h1 className="text-2xl font-[650] text-gray-900 dark:text-white tracking-[-0.01em]">
+            Welcome back, <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-500 dark:to-primary-300">{user?.user_metadata?.name?.split(' ')[0] || 'Friend'}</span>
           </h1>
-          <p className="mt-2 text-[15px] text-gray-600/90">
+          <p className="mt-2 text-[15px] text-gray-600/90 dark:text-gray-400">
             Here's what's happening with your relationships
           </p>
         </div>
@@ -115,10 +115,10 @@ export const Dashboard = () => {
 
       {/* Show banner only to free users when total contacts exceed 15 */}
       {!isPremium && !isOnTrial && totalCount !== undefined && totalCount > 15 && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-sm text-amber-800">
+        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg">
+          <p className="text-sm text-amber-800 dark:text-amber-300">
             You're seeing your 15 most recent contacts. {' '}
-            <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+            <Link to="/settings" className="font-medium text-amber-900 dark:text-amber-200 underline hover:no-underline">
               Upgrade to Premium
             </Link>{' '}
             to manage all {totalCount} of your contacts.

@@ -63,21 +63,21 @@ export const RecentContacts = () => {
     <>
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Recent Contacts</h2>
-          <p className="mt-1 text-sm text-gray-600">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Contacts</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Your most recently added connections
           </p>
         </div>
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
           {!contacts?.length ? (
             <>
               <div className="p-12 text-center">
-                <p className="text-[15px] text-gray-600/90">No contacts added yet</p>
+                <p className="text-[15px] text-gray-600/90 dark:text-gray-400">No contacts added yet</p>
               </div>
-              <div className="p-6 border-t border-gray-100">
+              <div className="p-6 border-t border-gray-100 dark:border-gray-800">
                 <Link
                   to="/contacts"
-                  className="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium transition-colors"
+                  className="inline-flex items-center text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
                 >
                   View all contacts
                   <svg className="w-5 h-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
@@ -120,10 +120,10 @@ export const RecentContacts = () => {
                     />
                   ))}
               </div>
-              <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100/70">
+              <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-100/70 dark:border-gray-800/70">
                 <Link
                   to="/contacts"
-                  className="inline-flex items-center text-primary-500 hover:text-primary-600 font-[500] transition-colors"
+                  className="inline-flex items-center text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-[500] transition-colors"
                 >
                   View all contacts
                   <svg
