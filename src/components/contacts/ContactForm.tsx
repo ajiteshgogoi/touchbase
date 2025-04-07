@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
 import { supabase } from '../../lib/supabase/client';
 import { contactsService } from '../../services/contacts';
 import { contactValidationService } from '../../services/contact-validation';
@@ -11,7 +12,7 @@ import { useStore } from '../../stores/useStore';
 import { BasicContactInfo } from './BasicContactInfo';
 import { AdvancedContactInfo } from './AdvancedContactInfo';
 import { ContactFormData, FormErrors } from './types';
-import { initialFormData, initialErrors, formatEventToUTC, isValidPhoneNumber } from './utils';
+import { initialFormData, initialErrors, formatEventToUTC } from './utils';
 
 dayjs.extend(utc);
 
@@ -95,65 +96,6 @@ export const ContactForm = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Form validation
-  const validateForm = async () => {
-    if (!user?.id) {
-      console.error('No user ID available');
-      return false;
-    }
-
-    let isValid = true;
-    let newErrors = { ...errors };
-
-    try {
-      const { hasDuplicate, duplicates } = await contactValidationService.checkDuplicateName({
-        name: formData.name.trim(),
-        userId: user.id,
-        contactId: isEditMode ? id : undefined
-      });
-
-      if (hasDuplicate) {
-        newErrors.name = contactValidationService.formatDuplicateMessage(duplicates);
-        isValid = false;
-      } else {
-        newErrors.name = '';
-      }
-
-      // Validate contact frequency
-      if (!formData.contact_frequency) {
-        newErrors.frequency = 'Please select how often you want to keep in touch';
-        isValid = false;
-      } else {
-        newErrors.frequency = '';
-      }
-
-      // Validate phone number if provided
-      if (formData.phone && !isValidPhoneNumber(formData.phone)) {
-        newErrors.phone = 'Please enter a valid phone number (e.g., +91-1234567890)';
-        isValid = false;
-      } else {
-        newErrors.phone = '';
-      }
-
-      // Validate social media fields
-      const hasPlatform = !!formData.social_media_platform;
-      const hasHandle = !!formData.social_media_handle;
-      if ((hasPlatform && !hasHandle) || (!hasPlatform && hasHandle)) {
-        newErrors.social_media_handle = 'Both social media platform and username are required';
-        isValid = false;
-      } else {
-        newErrors.social_media_handle = '';
-      }
-
-      // Update all errors at once
-      setErrors(newErrors);
-
-      return isValid;
-    } catch (error) {
-      console.error('Validation error:', error);
-      return false;
-    }
-  };
 
   // Mutations for creating and updating contacts
   const createMutation = useMutation({
@@ -180,13 +122,18 @@ export const ContactForm = () => {
       return contact;
     },
     onSuccess: () => {
+      // Update all related queries after successful creation
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['contact-hashtags'] });
       queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
-      handleNavigateBack();
+      toast.success('Contact created successfully');
     },
+    onError: (error: Error) => {
+      toast.error('Failed to create contact. Please try again.');
+      console.error('Error creating contact:', error);
+    }
   });
 
   const updateMutation = useMutation({
@@ -219,34 +166,111 @@ export const ContactForm = () => {
       return contact;
     },
     onSuccess: () => {
+      // Update all related queries after successful update
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['contact-hashtags'] });
       queryClient.invalidateQueries({ queryKey: ['contact-with-events'] });
       queryClient.invalidateQueries({ queryKey: ['important-events'] });
-      handleNavigateBack();
+      toast.success('Contact updated successfully');
     },
+    onError: (error: Error) => {
+      toast.error('Failed to update contact. Please try again.');
+      console.error('Error updating contact:', error);
+    }
   });
 
-  // Form submission handler
+  // Form submission handler with optimistic updates
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsValidating(true);
     
     try {
-      const isValid = await validateForm();
-      if (!isValid) {
+      if (!user?.id) {
+        console.error('No user ID available');
         setIsValidating(false);
         return;
       }
 
-      if (isEditMode && id) {
-        await updateMutation.mutateAsync({ id, updates: formData });
-      } else {
-        await createMutation.mutateAsync(formData);
+      // Proceed with validation checks
+      if (!formData.contact_frequency) {
+        setErrors(current => ({
+          ...current,
+          frequency: 'Please select how often you want to keep in touch'
+        }));
+        setIsValidating(false);
+        return;
       }
-      setIsValidating(false);
+
+      // Check for duplicate names
+      const { hasDuplicate, duplicates } = await contactValidationService.checkDuplicateName({
+        name: formData.name.trim(),
+        userId: user.id,
+        contactId: isEditMode ? id : undefined
+      });
+
+      if (hasDuplicate) {
+        setErrors(current => ({
+          ...current,
+          name: contactValidationService.formatDuplicateMessage(duplicates)
+        }));
+        setIsValidating(false);
+        return;
+      }
+
+      // Proceed with optimistic update since duplicate check passed
+      // Other validations already happen in real-time
+
+      if (isEditMode && id) {
+        // Optimistically update the cache
+        queryClient.setQueryData(['contacts'], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData;
+          return oldData.map(contact =>
+            contact.id === id ? { ...contact, ...formData } : contact
+          );
+        });
+
+        // Navigate immediately
+        handleNavigateBack();
+
+        // Perform the actual update in background
+        updateMutation.mutate({ id, updates: formData }, {
+          onError: (error) => {
+            console.error('Error updating contact:', error);
+            // Show error toast and revert optimistic update
+            queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          }
+        });
+      } else {
+        // For new contacts, optimistically add to cache with temporary ID
+        const tempId = `temp-${Date.now()}`;
+        const optimisticContact = {
+          id: tempId,
+          ...formData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        // Add to cache immediately
+        queryClient.setQueryData(['contacts'], (oldData: any) => {
+          if (!Array.isArray(oldData)) return [optimisticContact];
+          return [optimisticContact, ...oldData];
+        });
+
+        // Navigate immediately
+        handleNavigateBack();
+
+        // Create contact in background
+        createMutation.mutate(formData, {
+          onError: (error) => {
+            console.error('Error creating contact:', error);
+            // Show error toast and revert optimistic update
+            queryClient.invalidateQueries({ queryKey: ['contacts'] });
+          }
+        });
+      }
+
     } catch (error) {
       console.error('Error saving contact:', error);
       setIsValidating(false);

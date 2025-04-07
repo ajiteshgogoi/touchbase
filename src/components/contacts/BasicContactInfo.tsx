@@ -2,12 +2,13 @@ import { ContactFormProps } from './types';
 
 /**
  * Component for essential contact information:
- * name (required), contact frequency, and relationship level
+ * name (required) and contact frequency (required).
  */
 export const BasicContactInfo = ({
   formData,
   errors,
   onChange,
+  onError,
 }: ContactFormProps) => {
   return (
     <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-6 hover:bg-white/70 hover:shadow-md transition-all duration-200">
@@ -45,11 +46,22 @@ export const BasicContactInfo = ({
           </label>
           <select
             id="contact_frequency"
+            required
             value={formData.contact_frequency || ''}
-            onChange={(e) => onChange({
-              contact_frequency: e.target.value as ContactFormProps['formData']['contact_frequency']
-            })}
-            className="mt-1 block w-full rounded-lg border-gray-200 px-4 py-2.5 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 shadow-sm hover:border-gray-300 transition-colors"
+            onChange={(e) => {
+              const value = e.target.value as ContactFormProps['formData']['contact_frequency'];
+              onChange({ contact_frequency: value });
+              if (!value) {
+                onError({ frequency: 'Please select how often you want to keep in touch' });
+              } else {
+                onError({ frequency: '' });
+              }
+            }}
+            className={`mt-1 block w-full rounded-lg px-4 py-2.5 shadow-sm transition-colors ${
+              errors.frequency
+                ? 'border-red-300 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 hover:border-red-400'
+                : 'border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300'
+            }`}
           >
             <option value="">Choose frequency</option>
             <option value="every_three_days">Every 3 days</option>

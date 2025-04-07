@@ -251,9 +251,12 @@ export const AdvancedContactInfo = ({
                 onChange={(e) => {
                   const value = e.target.value;
                   onChange({ phone: value });
+                }}
+                onInput={(e) => {
+                  const value = (e.target as HTMLInputElement).value;
                   if (value && !isValidPhoneNumber(value)) {
                     onError({
-                      phone: 'Please enter a valid phone number (e.g., +91-1234567890)'
+                      phone: 'Please enter a valid phone number (e.g., +1-1234567890)'
                     });
                   } else {
                     onError({ phone: '' });
@@ -293,6 +296,9 @@ export const AdvancedContactInfo = ({
                   onChange={(e) => {
                     const value = e.target.value.replace(/^@+/, ''); // Remove leading @ symbols
                     onChange({ social_media_handle: value });
+                  }}
+                  onInput={(e) => {
+                    const value = (e.target as HTMLInputElement).value.replace(/^@+/, '');
                     
                     // Clear error if value is empty
                     if (!value) {
