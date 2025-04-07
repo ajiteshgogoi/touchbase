@@ -257,36 +257,37 @@
         window.__TB.ready = true;
       })();
 
-      // Android Play Store redirection
+      // Android Play Store redirection with optimized TWA detection
       (function() {
-        // Skip if in meta browser
-        if (document.documentElement.getAttribute('data-meta-browser') === 'true') {
-          return;
-        }
-
-        // Check if on Android
-        var ua = navigator.userAgent;
-        var isAndroid = /Android/i.test(ua);
-        
-        if (!isAndroid) {
-          return;
-        }
-
-        // Robust TWA detection based on platform.ts
-        var isTrustedWebActivity = document.referrer.includes('android-app://');
-        var isStandaloneAndroid = window.matchMedia('(display-mode: standalone)').matches;
-        var hasAssetLinks = document.head.querySelector('link[rel="assetlinks.json"]') !== null;
-        var isTWA = isTrustedWebActivity || (isStandaloneAndroid && hasAssetLinks);
-
-        // Skip redirect for auth callbacks and same-domain navigation
-        var currentUrl = window.location.href;
-        var isAuthCallback = currentUrl.includes('/callback') || currentUrl.includes('code=');
-        var isInternalNavigation = document.referrer &&
-          (new URL(document.referrer).host === window.location.host);
-
-        if (!isTWA && !isAuthCallback && !isInternalNavigation) {
-          // Redirect to Play Store if not in TWA and not in excluded scenarios
+        try {
+          // Fast early returns
+          if (document.documentElement.getAttribute('data-meta-browser') === 'true') return;
+          if (!/Android/i.test(navigator.userAgent)) return;
+          
+          // Check session cache first (fastest)
+          if (sessionStorage.getItem('isTWA') === 'true') return;
+          
+          // Skip for auth and internal navigation (fast checks)
+          var currentUrl = window.location.href;
+          if (currentUrl.includes('/callback') || currentUrl.includes('code=')) return;
+          if (document.referrer && new URL(document.referrer).host === window.location.host) return;
+          
+          // TWA detection ordered by speed
+          var isTWA = document.referrer.includes('android-app://') || // Fastest check first
+                      window.matchMedia('(display-mode: standalone)').matches || // Second fastest
+                      document.head.querySelector('link[rel="assetlinks.json"]') !== null; // Slowest
+          
+          // Cache positive result
+          if (isTWA) {
+            sessionStorage.setItem('isTWA', 'true');
+            return;
+          }
+          
+          // Only redirect if definitely not TWA
           window.location.href = 'https://play.google.com/store/apps/details?id=app.touchbase.site.twa';
+        } catch (e) {
+          // Fail silently - better than broken redirect
+          console.warn('TWA detection failed:', e);
         }
       })();
     </script>
