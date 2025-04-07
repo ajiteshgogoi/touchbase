@@ -15,13 +15,13 @@ const QuestionMarkCircleIcon = lazy(() => import('@heroicons/react/24/outline/Qu
 const Cog6ToothIcon = lazy(() => import('@heroicons/react/24/outline/Cog6ToothIcon').then(mod => ({ default: mod.default })));
 const NewspaperIcon = lazy(() => import('@heroicons/react/24/outline/NewspaperIcon').then(mod => ({ default: mod.default })));
 
-const IconFallback = () => <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />;
+const IconFallback = () => <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />;
 
 // Pre-compute styles outside of render
 const menuStyles = {
   base: "group flex w-full items-center rounded-lg px-3 py-2.5 text-[15px] font-[450] transform-gpu",
-  active: "bg-gray-100 text-primary-600",
-  inactive: "text-gray-700 hover:text-primary-600"
+  active: "bg-gray-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400",
+  inactive: "text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
 };
 
 // Menu item component to handle active state
@@ -71,7 +71,7 @@ export const ProfileMenu = () => {
       <button
         onClick={handleSignIn}
         disabled={isLoading}
-        className="w-[120px] bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center gap-2 px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-[120px] bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 text-white flex items-center justify-center gap-2 px-6 py-2 rounded-lg text-sm font-medium shadow-soft dark:shadow-soft-dark hover:shadow-lg transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading && (
           <svg
@@ -106,7 +106,7 @@ export const ProfileMenu = () => {
     <Menu as="div" className="relative inline-block text-left">
       <div className="flex items-center gap-2">
         <div
-          className={`flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 select-none pointer-events-none transition-all duration-200 ${
+          className={`flex items-center gap-0.5 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-full text-xs font-medium border border-amber-200 dark:border-amber-800 select-none pointer-events-none transition-all duration-200 ${
             isPremium ? 'opacity-100 visible translate-x-0' : 'opacity-0 invisible -translate-x-2'
           }`}
         >
@@ -115,8 +115,8 @@ export const ProfileMenu = () => {
           </Suspense>
           <span>Premium</span>
         </div>
-        <Menu.Button className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-gray-600 hover:bg-gray-50/70 hover:text-primary-600 active:bg-gray-100/80 transition-all duration-200 group" aria-label="Profile menu">
-          <div className="relative w-7 h-7 rounded-full border-[1.5px] border-white/90 shadow-[0_0_10px_rgba(0,0,0,0.03)] overflow-hidden bg-primary-50">
+        <Menu.Button className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 hover:text-primary-600 dark:hover:text-primary-400 active:bg-gray-100/80 dark:active:bg-gray-800/80 transition-all duration-200 group" aria-label="Profile menu">
+          <div className="relative w-7 h-7 rounded-full border-[1.5px] border-white/90 dark:border-gray-700/90 shadow-[0_0_10px_rgba(0,0,0,0.03)] dark:shadow-[0_0_10px_rgba(0,0,0,0.2)] overflow-hidden bg-primary-50 dark:bg-primary-900/30">
             {user?.user_metadata?.avatar_url ? (
               <img
                 src={user.user_metadata.avatar_url}
@@ -152,7 +152,7 @@ export const ProfileMenu = () => {
         leaveFrom="opacity-100 scale-100 translate-y-0"
         leaveTo="opacity-0 scale-95 translate-y-1"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/100 backdrop-blur-lg shadow-lg ring-1 ring-black/5 focus:outline-none divide-y divide-gray-100 z-50 will-change-transform">
+        <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-gray-900 backdrop-blur-lg shadow-lg dark:shadow-soft-dark ring-1 ring-black/5 dark:ring-white/10 focus:outline-none divide-y divide-gray-100 dark:divide-gray-800 z-50 will-change-transform">
           <div className="px-1 py-1">
             <MenuItem to="/conversation-prompts">
               <Suspense fallback={<IconFallback />}>
