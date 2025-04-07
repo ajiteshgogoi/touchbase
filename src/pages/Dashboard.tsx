@@ -82,7 +82,7 @@ export const Dashboard = () => {
           {!isPremium && !isOnTrial && (
             <Link
               to="/settings"
-              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-purple-600 dark:to-indigo-600 hover:from-purple-600 hover:to-indigo-600 dark:hover:from-purple-700 dark:hover:to-indigo-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <span className="inline-flex items-center justify-center">
                 ✨ Upgrade to Premium
@@ -93,7 +93,7 @@ export const Dashboard = () => {
             <Link
               to="/contacts/new"
               state={{ from: '/' }}
-              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
               Add Contact
@@ -101,7 +101,7 @@ export const Dashboard = () => {
           ) : (
             <Link
               to="/settings"
-              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               Upgrade to add more contacts
             </Link>
