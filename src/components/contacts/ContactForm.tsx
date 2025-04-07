@@ -292,18 +292,8 @@ export const ContactForm = () => {
         // Helper functions for optimistic updates
         const updateContactCache = (oldData: any) => {
           if (!Array.isArray(oldData)) return [optimisticContact];
-          
-          // Insert the new contact maintaining the same sort order as the service:
-          // created_at descending (newest first), then name ascending
-          const sortedData = [...oldData, optimisticContact].sort((a, b) => {
-            // First sort by created_at descending
-            const dateCompare = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            if (dateCompare !== 0) return dateCompare;
-            // Then by name ascending
-            return a.name.localeCompare(b.name);
-          });
-          
-          return sortedData;
+          // New contacts should appear at start since they're newest
+          return [optimisticContact, ...oldData];
         };
 
         const updateContactWithEventsCache = () => ({
