@@ -16,13 +16,14 @@ import type { Subscription } from '../types/subscription';
 // Lazy load components
 const NotificationSettings = lazy(() => import('../components/settings/NotificationSettings').then(m => ({ default: m.NotificationSettings })));
 const SubscriptionSettings = lazy(() => import('../components/settings/SubscriptionSettings').then(m => ({ default: m.SubscriptionSettings })));
+const ThemeSettings = lazy(() => import('../components/settings/ThemeSettings').then(m => ({ default: m.ThemeSettings })));
 const AISettings = lazy(() => import('../components/settings/AISettings').then(m => ({ default: m.AISettings })));
 const FeedbackModal = lazy(() => import('../components/shared/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
 const DataExportModal = lazy(() => import('../components/settings/DataExportModal').then(m => ({ default: m.DataExportModal })));
 
 // Loading fallback component
 const SectionLoader = () => (
-  <div className="bg-white rounded-xl shadow-soft p-6 flex items-center justify-center min-h-[200px]">
+  <div className="bg-white dark:bg-gray-900 rounded-xl shadow-soft dark:shadow-soft-dark p-6 flex items-center justify-center min-h-[200px]">
     <LoadingSpinner />
   </div>
 );
@@ -36,7 +37,7 @@ export const Settings = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
-    theme: 'light',
+    theme: 'system',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     ai_suggestions_enabled: false,
     has_rated_app: false
@@ -99,7 +100,7 @@ export const Settings = () => {
           const defaultPreferences = {
             user_id: user.id,
             notification_enabled: false,
-            theme: 'light',
+            theme: 'system',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             ai_suggestions_enabled: true,
             has_rated_app: false
@@ -366,14 +367,14 @@ export const Settings = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+            className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent leading-tight pb-1">Settings</h1>
-            <p className="mt-1 text-[15px] text-gray-600/90">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-500 dark:to-primary-300 bg-clip-text text-transparent leading-tight pb-1">Settings</h1>
+            <p className="mt-1 text-[15px] text-gray-600/90 dark:text-gray-400">
               Manage your subscription and account preferences
             </p>
           </div>
@@ -407,6 +408,14 @@ export const Settings = () => {
               />
             </Suspense>
 
+            {/* Theme Settings */}
+            <Suspense fallback={<SectionLoader />}>
+              <ThemeSettings
+                settings={notificationSettings}
+                onUpdate={handleNotificationChange}
+              />
+            </Suspense>
+
             {/* AI Settings */}
             <Suspense fallback={<SectionLoader />}>
               <AISettings
@@ -420,19 +429,19 @@ export const Settings = () => {
         )}
 
         {/* Export Data Section */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-primary-500">
+            <h2 className="text-xl font-semibold text-primary-500 dark:text-primary-400">
               Export Your Data
             </h2>
             {!(isPremium || useStore.getState().isOnTrial) && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-600">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400">
                 Premium Only
               </span>
             )}
           </div>
           <div className="space-y-4">
-            <p className={isPremium ? "text-gray-600/90" : "text-gray-400"}>
+            <p className={isPremium ? "text-gray-600/90 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}>
               Download all your contacts, interactions, events and reminders in CSV format.
             </p>
             <button
@@ -440,8 +449,8 @@ export const Settings = () => {
               disabled={!(isPremium || useStore.getState().isOnTrial)}
               className={`inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] transition-all duration-200 ${
                 isPremium || useStore.getState().isOnTrial
-                  ? 'text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg cursor-pointer'
-                  : 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                  ? 'text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg cursor-pointer'
+                  : 'text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 cursor-not-allowed'
               }`}
             >
               <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
@@ -451,17 +460,17 @@ export const Settings = () => {
         </div>
 
         {/* Feedback Section */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
-          <h2 className="text-xl font-semibold text-primary-500 mb-6">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200 p-6">
+          <h2 className="text-xl font-semibold text-primary-500 dark:text-primary-400 mb-6">
             Help Us Improve
           </h2>
           <div className="space-y-4">
-            <p className="text-gray-600/90">
+            <p className="text-gray-600/90 dark:text-gray-400">
               We value your feedback to make TouchBase better. Share your thoughts and suggestions with us.
             </p>
             <button
               onClick={() => setIsFeedbackModalOpen(true)}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg transition-all duration-200"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg transition-all duration-200"
             >
               Send Feedback
             </button>
@@ -469,12 +478,12 @@ export const Settings = () => {
         </div>
 
         {/* Account Deletion */}
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft hover:bg-white/70 transition-all duration-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-600/90 mb-6">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-600/90 dark:text-gray-400 mb-6">
             Delete Account
           </h2>
           <div className="space-y-4">
-            <p className="text-gray-500/90">
+            <p className="text-gray-500/90 dark:text-gray-400">
               Warning: This action cannot be undone. All your data will be permanently deleted.
             </p>
             <button
@@ -495,7 +504,7 @@ export const Settings = () => {
                 }
               }}
               disabled={isDeleting}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600/90 bg-red-50/90 hover:bg-red-100/90 border border-red-100/50 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-100/50 dark:border-red-900/50 shadow-sm dark:shadow-soft-dark hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
               <span className="min-w-[108px] inline-block text-center">
                 {isDeleting ? 'Deleting...' : 'Delete Account'}
@@ -505,12 +514,12 @@ export const Settings = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-600 space-y-2 pt-1">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400 space-y-2 pt-1">
           <div>
             View our{' '}
-            <a href="/terms" className="text-primary-500 hover:text-primary-600">Terms of Service</a>
+            <a href="/terms" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">Terms of Service</a>
             {' '}and{' '}
-            <a href="/privacy" className="text-primary-500 hover:text-primary-600">Privacy Policy</a>
+            <a href="/privacy" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">Privacy Policy</a>
           </div>
         </div>
 
