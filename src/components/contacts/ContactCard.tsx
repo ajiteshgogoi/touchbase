@@ -244,7 +244,7 @@ export const ContactCard = ({
             {isSelectionMode ? (
               <div
                 className={`rounded-lg transition-colors ${
-                  isSelected ? 'text-primary-500' : 'text-gray-400 hover:text-primary-500'
+                  isSelected ? 'text-primary-500 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400'
                 }`}
                 aria-label={isSelected ? "Unselect contact" : "Select contact"}
               >
@@ -322,7 +322,7 @@ export const ContactCard = ({
             }}
             className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
               isSelectionMode ? 'invisible' :
-              isDeleting ? 'text-gray-400 cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+              isDeleting ? 'text-gray-400 dark:text-gray-600 cursor-pointer pointer-events-none' : 'text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30'
             }`}
             title={isSelectionMode ? "Click to select/deselect" : isDeleting ? 'Deleting contact...' : 'Delete contact'}
           >
@@ -356,8 +356,8 @@ export const ContactCard = ({
                       className={`flex items-center px-3 py-2.5 bg-gray-50 dark:bg-gray-800 ${!isDeleting && 'hover:bg-gray-100 dark:hover:bg-gray-700'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
                       onClick={e => isDeleting && e.preventDefault()}
                     >
-                      <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0 group-hover:text-green-600/90 transition-colors" />
-                      <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
+                      <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 dark:text-green-400/90 flex-shrink-0 group-hover:text-green-600/90 dark:group-hover:text-green-300/90 transition-colors" />
+                      <span className="truncate leading-5 font-[450] text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                         {expandedDetails.phone}
                       </span>
                     </a>
@@ -367,7 +367,7 @@ export const ContactCard = ({
                       href={isDeleting ? '#' : formatSocialMediaUrl(expandedDetails.social_media_handle, expandedDetails.social_media_platform)}
                       target={isDeleting ? '_self' : '_blank'}
                       rel="noopener noreferrer"
-                      className={`flex items-center px-3 py-2.5 bg-gray-50 ${!isDeleting && 'hover:bg-gray-100'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
+                      className={`flex items-center px-3 py-2.5 bg-gray-50 dark:bg-gray-800 ${!isDeleting && 'hover:bg-gray-100 dark:hover:bg-gray-700'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
                       onClick={e => isDeleting && e.preventDefault()}
                     >
                       {expandedDetails.social_media_platform === 'linkedin' ? (
@@ -385,7 +385,7 @@ export const ContactCard = ({
                           <circle cx="17.5" cy="6.5" r="1.5"></circle>
                         </svg>
                       )}
-                      <span className="truncate leading-5 font-[450] group-hover:text-primary-600 transition-colors">
+                      <span className="truncate leading-5 font-[450] text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                         @{expandedDetails.social_media_handle}
                       </span>
                     </a>
@@ -543,8 +543,8 @@ export const ContactCard = ({
                 });
               }
             }}
-            className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-              ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-300 text-gray-500 cursor-pointer pointer-events-none' : 'text-white bg-primary-500 hover:bg-primary-600 active:scale-[0.98] hover:shadow-md'}`}
+            className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm dark:shadow-soft-dark transition-all duration-200
+              ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-pointer pointer-events-none' : 'text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] hover:shadow-md'}`}
             title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "Log an interaction"}
           >
             Log Interaction
@@ -563,7 +563,9 @@ export const ContactCard = ({
                 to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
                 state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
                 className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
-                  ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-100 text-gray-400 pointer-events-none cursor-pointer' : 'text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 active:scale-[0.98] hover:shadow-md'}`}
+                  ${isSelectionMode || isDeleting || isBulkDeleting
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 pointer-events-none cursor-pointer'
+                    : 'text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] hover:shadow-md dark:shadow-soft-dark'}`}
                 title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "View interaction history"}
                 onClick={e => (isSelectionMode || isDeleting) && e.preventDefault()}
               >
@@ -573,9 +575,11 @@ export const ContactCard = ({
               <Link
                 to={isSelectionMode ? "#" : `/contacts/${contact.id}/interactions`}
                 state={isContactsPage ? { fromContact: true, contactHash: contact.id } : undefined}
-                className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-soft transition-all duration-200
-                  ${isSelectionMode ? 'bg-gray-100 text-gray-400 pointer-events-none' : 'text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] hover:shadow-md'}`}
-                title={isSelectionMode ? "Click to select/deselect" : "Upgrade to view interaction history"}
+                className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-soft dark:shadow-soft-dark transition-all duration-200
+              ${isSelectionMode
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 pointer-events-none'
+                : 'text-gray-600 dark:text-gray-400 bg-gray-100/90 dark:bg-gray-800/60 hover:bg-gray-200/90 dark:hover:bg-gray-700/60 active:scale-[0.98] hover:shadow-md'}`}
+            title={isSelectionMode ? "Click to select/deselect" : "Upgrade to view interaction history"}
                 onClick={e => isSelectionMode && e.preventDefault()}
               >
                 View History

@@ -160,7 +160,7 @@ const Row = memo(({ index, style, data }: RowProps) => {
         padding: '8px 0',
         transition: 'padding 150ms ease-in-out'
       }}>
-        <div className="p-12 text-center text-gray-500">
+        <div className="p-12 text-center text-gray-500 dark:text-gray-400">
           No contacts found
         </div>
       </div>
@@ -177,12 +177,12 @@ const Row = memo(({ index, style, data }: RowProps) => {
         padding: '8px 0',
         transition: 'padding 150ms ease-in-out'
       }}>
-        <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-soft-dark">
           <div className="animate-pulse space-y-4">
-            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
             <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
             </div>
           </div>
         </div>

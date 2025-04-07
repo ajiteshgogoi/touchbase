@@ -379,7 +379,7 @@ export const Contacts = () => {
                 onClick={handleExitSelectionMode}
                 disabled={isBulkDeleting}
                 className={`p-2.5 -m-2.5 text-gray-400 rounded-xl transition-all duration-200 ${
-                  isBulkDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary-500 hover:bg-gray-50/70'
+                  isBulkDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary-500 hover:bg-gray-50/70 dark:hover:bg-gray-800/70'
                 }`}
                 aria-label={isBulkDeleting ? "Cannot exit while deleting" : "Exit selection mode"}
               >
@@ -388,7 +388,7 @@ export const Contacts = () => {
             ) : (
               <button
                 onClick={() => navigate(-1)}
-                className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+                className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 rounded-xl transition-all duration-200"
                 aria-label="Go back"
               >
                 <ArrowLeftIcon className="h-5 w-5" />
@@ -398,7 +398,7 @@ export const Contacts = () => {
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                 {isSelectionMode ? `${selectedContacts.size} Selected` : 'Contacts'}
               </h1>
-              <p className="mt-1.5 text-[15px] text-gray-600/90">
+              <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
                 {isSelectionMode 
                   ? 'Select contacts to delete in bulk'
                   : 'Keep your relationships intentional with a focused contact list'
@@ -412,7 +412,7 @@ export const Contacts = () => {
             <button
               onClick={handleSelectAll}
               disabled={isBulkDeleting}
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 disabled:text-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <CheckCircleIcon className="h-5 w-5 mr-2" />
               {selectedContacts.size === filteredCount ? 'Deselect All' : 'Select All'}
@@ -431,7 +431,7 @@ export const Contacts = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => setShowImportModal(true)}
-                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 bg-primary-50/90 hover:bg-primary-100/90 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
               >
                 <UsersIcon className="h-5 w-5 mr-2" />
                 Bulk Import
@@ -439,7 +439,7 @@ export const Contacts = () => {
               <Link
                 to="/contacts/new"
                 state={{ from: '/contacts' }}
-                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
               >
                 <UserPlusIcon className="h-5 w-5 mr-2" />
                 Add Contact
@@ -448,7 +448,7 @@ export const Contacts = () => {
           ) : (
             <Link
               to="/settings"
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 hover:bg-gray-500 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               Upgrade to add more contacts
             </Link>
@@ -456,8 +456,8 @@ export const Contacts = () => {
         )}
       </div>
 
-      <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
-        <div className="p-6 border-b border-gray-100">
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <div className="flex flex-col gap-4">
             <div className="flex flex-1 flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
@@ -468,7 +468,7 @@ export const Contacts = () => {
                     placeholder="Search contacts..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors bg-white/60 backdrop-blur-sm"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -477,7 +477,7 @@ export const Contacts = () => {
                   <select
                     value={sortField}
                     onChange={(e) => setSortField(e.target.value as SortField)}
-                    className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 hover:border-gray-300 transition-colors appearance-none bg-white/60 backdrop-blur-sm text-sm"
+                    className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 hover:border-gray-300 dark:hover:border-gray-600 transition-colors appearance-none bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm text-sm text-gray-900 dark:text-white"
                     aria-label="Sort contacts by"
                   >
                     <option value="name">Sort by Name</option>
@@ -487,7 +487,7 @@ export const Contacts = () => {
                 </div>
                 <button
                   onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="flex-shrink-0 p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors"
+                  className="flex-shrink-0 p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors"
                   aria-label={sortOrder === 'asc' ? 'Sort descending' : 'Sort ascending'}
                 >
                   <ChevronUpDownIcon className="h-5 w-5 text-gray-500" />
@@ -502,8 +502,8 @@ export const Contacts = () => {
                       key={index}
                       onClick={() => handleCategoryChange(tag)}
                       className={`px-3 py-1.5 rounded-xl text-sm ${selectedCategories.includes(tag)
-                        ? 'bg-primary-100 text-primary-700 border-primary-200 shadow-sm'
-                        : 'bg-white/60 backdrop-blur-sm text-gray-600 hover:bg-white/70 border-gray-200'
+                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-800 shadow-sm'
+                        : 'bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm text-gray-600 dark:text-gray-400 hover:bg-white/70 dark:hover:bg-gray-700/70 border-gray-200 dark:border-gray-700'
                         } border transition-all`}
                     >
                       {formatHashtagForDisplay(tag)}
@@ -518,15 +518,15 @@ export const Contacts = () => {
         <div className="p-4 space-y-4">
           {!contacts.length ? (
             <div className="p-12 text-center">
-              <p className="text-[15px] text-gray-600/90">No contacts added yet</p>
+              <p className="text-[15px] text-gray-600/90 dark:text-gray-400">No contacts added yet</p>
             </div>
           ) : (
             <>
               {!isPremium && !isOnTrial && (totalContacts || 0) > 15 && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-                  <p className="text-sm text-amber-800">
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg mb-4">
+                  <p className="text-sm text-amber-800 dark:text-amber-300">
                     You're seeing your 15 most recent contacts. {' '}
-                    <Link to="/settings" className="font-medium text-amber-900 underline hover:no-underline">
+                    <Link to="/settings" className="font-medium text-amber-900 dark:text-amber-200 underline hover:no-underline">
                       Upgrade to Premium
                     </Link>{' '}
                     to manage all {totalContacts} of your contacts.
