@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase/client';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { contactsService } from '../../services/contacts';
 import { toast } from 'react-hot-toast';
-import type { Interaction, Contact } from '../../lib/supabase/types';
+import type { Interaction } from '../../lib/supabase/types';
 import { useStore } from '../../stores/useStore';
 import { calculateNextContactDate } from '../../utils/date';
 import dayjs from 'dayjs';
