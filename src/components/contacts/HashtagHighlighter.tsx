@@ -68,7 +68,7 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
   return (
     <div
       ref={highlighterRef}
-      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words overflow-hidden text-transparent px-4 py-2.5"
+      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words overflow-hidden text-transparent px-[15px] py-[10px] -ml-[0.25px]"
       style={{
         fontSize: textarea ? window.getComputedStyle(textarea).fontSize : '1rem',
         fontFamily: textarea ? window.getComputedStyle(textarea).fontFamily : 'system-ui, -apple-system, sans-serif',
