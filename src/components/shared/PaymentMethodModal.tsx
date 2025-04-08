@@ -83,14 +83,14 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
-                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
-                  <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
+              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl dark:shadow-soft-dark max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
+                  <Dialog.Title as="h3" className="text-lg font-medium text-gray-900 dark:text-white">
                     Select Payment Method
                   </Dialog.Title>
                   <button
                     onClick={onClose}
-                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 transition-colors"
+                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
                     disabled={isProcessing}
                     aria-label="Close"
                   >
@@ -102,7 +102,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                   {isProcessing ? (
                     <div className="flex flex-col items-center justify-center h-40">
                       <LoadingSpinner />
-                      <p className="mt-4 text-primary-500">Processing payment...</p>
+                      <p className="mt-4 text-primary-500 dark:text-primary-400">Processing payment...</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -112,15 +112,15 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                           onClick={() => !method.disabled && onSelect(method.id)}
                           disabled={method.disabled}
                           className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 ${
-                            method.disabled 
-                              ? 'border-gray-200/75 bg-gray-50/90 cursor-not-allowed opacity-60'
-                              : 'border-gray-200/75 hover:border-primary-400 hover:bg-primary-50/90 hover:shadow-sm'
+                            method.disabled
+                              ? 'border-gray-200/75 dark:border-gray-700/75 bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
+                              : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50/90 dark:hover:bg-primary-900/30 hover:shadow-sm dark:hover:shadow-soft-dark'
                           }`}
                         >
                           <span className="text-2xl">{method.icon}</span>
                           <div>
-                            <h4 className="font-medium text-gray-900">{method.name}</h4>
-                            <p className="text-sm text-gray-600/90 mt-1">
+                            <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
+                            <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
                               {method.disabled ? method.disabledReason : method.description}
                             </p>
                           </div>
