@@ -7,6 +7,29 @@
       <!-- Critical CSS for login page -->
       <style>
         /* Essential styles for immediate render */
+        :root {
+          color-scheme: light dark;
+          background-color: rgb(249 250 251);
+          color: rgb(17 24 39);
+          transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        
+        /* Dark mode styles applied before CSS loads */
+        :root.dark {
+          background-color: rgb(17 24 39);
+          color: rgb(243 244 246);
+        }
+        
+        /* Ensure body background matches theme */
+        body {
+          background-color: rgb(249 250 251);
+          transition: background-color 0.2s ease-in-out;
+        }
+        
+        :root.dark body {
+          background-color: rgb(17 24 39);
+        }
+
         .min-h-\[80vh\] { min-height: 80vh; }
         .flex { display: flex; }
         .grid { display: grid; }
@@ -22,6 +45,7 @@
         .max-w-4xl { max-width: 56rem; }
         .w-full { width: 100%; }
         .bg-gray-50 { background-color: rgb(249 250 251); }
+        :root.dark .bg-gray-50 { background-color: rgb(17 24 39); }
         .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
         .bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-stops)); }
         .from-primary-600\/90 { --tw-gradient-from: rgb(2 132 199 / 0.9); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(2 132 199 / 0)); }
@@ -403,7 +427,7 @@
     
     <title>TouchBase | Personal Relationship Manager | Personal CRM</title>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-gray-50 transition-colors duration-200">
     <div id="root">
       <!-- Fallback content for SEO -->
       <h1 class="sr-only">TouchBase | Personal Relationship Manager | Personal CRM</h1>
