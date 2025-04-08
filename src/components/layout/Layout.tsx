@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { getFullVersion } from '../../../version/version';
 import { useStore } from '../../stores/useStore';
