@@ -39,7 +39,7 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
               id="ai-suggestions"
               type="checkbox"
               className="sr-only peer"
-              checked={settings.ai_suggestions_enabled}
+              checked={settings.ai_suggestions_enabled ?? false}
               onChange={(e) => {
                 if (canUseAIFeatures) {
                   onUpdate({
