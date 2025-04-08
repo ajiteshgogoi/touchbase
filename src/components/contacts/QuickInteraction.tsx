@@ -364,14 +364,14 @@ const QuickInteraction = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
-                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
-                  <Dialog.Title className="text-lg font-medium">
-                    Log Interaction for <span className="text-primary-500">{contactName}</span>
+              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl dark:shadow-soft-dark max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
+                  <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
+                    Log Interaction for <span className="text-primary-500 dark:text-primary-400">{contactName}</span>
                   </Dialog.Title>
                   <button
                     onClick={onClose}
-                    className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
                     aria-label="Close"
                   >
                     <XMarkIcon className="w-5 h-5" />
@@ -380,7 +380,7 @@ const QuickInteraction = ({
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Type
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -390,8 +390,8 @@ const QuickInteraction = ({
                           onClick={() => setType(t)}
                           className={`px-4 py-2 text-sm font-medium rounded-xl capitalize transition-all duration-200 ${
                             type === t
-                              ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
-                              : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
+                              ? 'bg-primary-50/90 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ring-1 ring-primary-200 dark:ring-primary-800 shadow-sm dark:shadow-soft-dark'
+                              : 'bg-gray-50/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-300 hover:bg-gray-100/90 dark:hover:bg-gray-700/90 ring-1 ring-gray-200/75 dark:ring-gray-700/75'
                           }`}
                         >
                           {t}
@@ -401,7 +401,7 @@ const QuickInteraction = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       When?
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -412,8 +412,8 @@ const QuickInteraction = ({
                           type="button"
                           className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
                             selectedDate.format('YYYY-MM-DD HH:mm') === value.format('YYYY-MM-DD HH:mm')
-                              ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
-                              : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
+                              ? 'bg-primary-50/90 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ring-1 ring-primary-200 dark:ring-primary-800 shadow-sm dark:shadow-soft-dark'
+                              : 'bg-gray-50/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-300 hover:bg-gray-100/90 dark:hover:bg-gray-700/90 ring-1 ring-gray-200/75 dark:ring-gray-700/75'
                           }`}
                         >
                           {label}
@@ -423,7 +423,7 @@ const QuickInteraction = ({
                   </div>
 
                   <div className="space-y-2">
-                   <label className="block text-sm font-medium text-gray-700">
+                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                      How did it go?
                    </label>
                    <div className="flex gap-2">
@@ -433,8 +433,8 @@ const QuickInteraction = ({
                          onClick={() => setSentiment(s)}
                          className={`px-4 py-2 text-sm font-medium rounded-xl capitalize transition-all duration-200 ${
                            sentiment === s
-                             ? 'bg-primary-50/90 text-primary-700 ring-1 ring-primary-200 shadow-sm'
-                             : 'bg-gray-50/90 text-gray-700 hover:bg-gray-100/90 ring-1 ring-gray-200/75'
+                             ? 'bg-primary-50/90 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ring-1 ring-primary-200 dark:ring-primary-800 shadow-sm dark:shadow-soft-dark'
+                             : 'bg-gray-50/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-300 hover:bg-gray-100/90 dark:hover:bg-gray-700/90 ring-1 ring-gray-200/75 dark:ring-gray-700/75'
                          }`}
                        >
                          {s}
@@ -444,21 +444,21 @@ const QuickInteraction = ({
                  </div>
 
                  <div className="space-y-2">
-                   <label className="block text-sm font-medium text-gray-700">
+                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                      Notes (optional)
                    </label>
                    {(isPremium || isOnTrial) ? (
-                     <div className="mb-4 px-4 py-3 bg-primary-50/50 rounded-xl ring-1 ring-primary-100/50">
-                       <p className="text-sm text-gray-600/90">
+                     <div className="mb-4 px-4 py-3 bg-primary-50/50 dark:bg-primary-900/20 rounded-xl ring-1 ring-primary-100/50 dark:ring-primary-800/50">
+                       <p className="text-sm text-gray-600/90 dark:text-gray-400">
                          Add details about this interaction that can help maintain the relationship.
                        </p>
                      </div>
                    ) : (
-                     <div className="mb-4 px-4 py-3 bg-gray-50/80 rounded-xl ring-1 ring-gray-100/50">
-                       <p className="text-sm text-gray-600">
+                     <div className="mb-4 px-4 py-3 bg-gray-50/80 dark:bg-gray-800/80 rounded-xl ring-1 ring-gray-100/50 dark:ring-gray-700/50">
+                       <p className="text-sm text-gray-600 dark:text-gray-400">
                          Add details about this interaction.
                          <span className="block mt-2">
-                           ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500">Upgrade to Premium</Link> to get personalised suggestions based on your notes!
+                           ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">Upgrade to Premium</Link> to get personalised suggestions based on your notes!
                          </span>
                        </p>
                      </div>
@@ -469,11 +469,11 @@ const QuickInteraction = ({
                        onChange={(e) => setNotes(e.target.value.slice(0, 500))}
                        placeholder="Add any notes about the interaction..."
                        maxLength={500}
-                       className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                       className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                        rows={3}
                      />
                      <div className="mt-2 flex justify-end">
-                       <span className="text-sm text-gray-500">
+                       <span className="text-sm text-gray-500 dark:text-gray-400">
                          {notes.length}/500 characters
                        </span>
                      </div>
@@ -481,17 +481,17 @@ const QuickInteraction = ({
                  </div>
                 </div>
 
-                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
+                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-gray-800/80 rounded-b-2xl border-t border-gray-100/75 dark:border-gray-800/75">
                    <button
                      onClick={onClose}
-                     className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 transition-all duration-200 shadow-sm"
+                     className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-gray-900/80 ring-1 ring-gray-200/75 dark:ring-gray-700/75 rounded-xl hover:bg-gray-50/90 dark:hover:bg-gray-800/90 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                    >
                      Cancel
                    </button>
                    <button
                      onClick={handleSubmit}
                      disabled={isSubmitting}
-                     className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 disabled:opacity-50 transition-all duration-200 shadow-sm"
+                     className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                   >
                     <span className="min-w-[52px] inline-block text-center">
                       {isSubmitting ? 'Saving...' : 'Save'}

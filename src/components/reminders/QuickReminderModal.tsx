@@ -163,19 +163,19 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
-                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
+              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl dark:shadow-soft-dark max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
                   <div>
-                    <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
+                    <Dialog.Title as="h3" className="text-lg font-medium text-gray-900 dark:text-white">
                       Add Quick Reminder
                     </Dialog.Title>
-                    <p className="text-sm text-gray-500/90 mt-1">
+                    <p className="text-sm text-gray-500/90 dark:text-gray-400 mt-1">
                       1-time reminders for non-recurring events
                     </p>
                   </div>
                   <button
                     onClick={onClose}
-                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 transition-colors duration-200"
+                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 transition-colors duration-200"
                     aria-label="Close"
                   >
                     <XMarkIcon className="h-5 w-5" />
@@ -185,7 +185,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
                   <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700/90">
+                      <label className="block text-sm font-medium text-gray-700/90 dark:text-gray-300">
                         Contact *
                       </label>
                       <div className="space-y-2">
@@ -196,20 +196,20 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                             placeholder="Search contacts..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="block w-full rounded-xl border border-gray-200 pl-10 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                            className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 pl-10 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                           />
                         </div>
-                        <div className="max-h-40 overflow-y-auto rounded-xl ring-1 ring-gray-200/75">
+                        <div className="max-h-40 overflow-y-auto rounded-xl ring-1 ring-gray-200/75 dark:ring-gray-700/75 bg-white dark:bg-gray-800">
                           {filteredContacts?.length === 0 ? (
-                            <div className="p-3 text-sm text-gray-500">No contacts found</div>
+                            <div className="p-3 text-sm text-gray-500 dark:text-gray-400">No contacts found</div>
                           ) : (
                             filteredContacts?.map((contact) => (
                               <button
                                 key={contact.id}
                                 type="button"
                                 onClick={() => setSelectedContact(contact.id)}
-                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 transition-colors duration-200 ${
-                                  selectedContact === contact.id ? 'bg-primary-50/90 text-primary-600' : 'text-gray-900'
+                                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                  selectedContact === contact.id ? 'bg-primary-50/90 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'text-gray-900 dark:text-white'
                                 }`}
                               >
                                 {contact.name}
@@ -218,7 +218,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                           )}
                         </div>
                       </div>
-                      <div className="mt-2 text-sm text-gray-600 h-5">
+                      <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 h-5">
                         <span className={selectedContactName ? 'opacity-100' : 'opacity-0'}>
                           Selected: {selectedContactName || 'None'}
                         </span>
@@ -226,7 +226,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="reminder-name" className="block text-sm font-medium text-gray-700/90">
+                      <label htmlFor="reminder-name" className="block text-sm font-medium text-gray-700/90 dark:text-gray-300">
                         Reminder Description *
                       </label>
                       <div>
@@ -236,12 +236,12 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                           onChange={(e) => setName(e.target.value)}
                           maxLength={150}
                           rows={3}
-                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                          className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 text-gray-900 dark:text-white"
                           placeholder="Enter what the reminder is about..."
                           required
                         />
                         <div className="mt-2 flex justify-end">
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             {name.length}/150 characters
                           </span>
                         </div>
@@ -249,7 +249,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="reminder-date" className="block text-sm font-medium text-gray-700/90">
+                      <label htmlFor="reminder-date" className="block text-sm font-medium text-gray-700/90 dark:text-gray-300">
                         Due Date *
                       </label>
                       <input
@@ -258,7 +258,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                         min={dayjs().add(1, 'day').format('YYYY-MM-DD')}
-                        className="block w-full rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                        className="block w-full rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 text-gray-900 dark:text-white"
                         required
                       />
                     </div>
@@ -270,18 +270,18 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                             type="checkbox"
                             checked={isImportant}
                             onChange={(e) => setIsImportant(e.target.checked)}
-                            className="rounded border-gray-300 text-primary-500 focus:ring-primary-400"
+                            className="rounded border-gray-300 dark:border-gray-600 text-primary-500 dark:text-primary-400 focus:ring-primary-400 dark:focus:ring-primary-500"
                           />
-                          <span className="text-sm text-gray-700">This event is important</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">This event is important</span>
                         </label>
-                        <p className="text-xs text-gray-500 ml-6">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
                           Checking this box will add the reminder to your important events timeline
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
+                  <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-gray-800/80 rounded-b-2xl border-t border-gray-100/75 dark:border-gray-800/75">
                     {error && (
                       <div className="flex-1 text-sm text-red-600">
                         {error}
@@ -291,14 +291,14 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                       <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 transition-all duration-200 shadow-sm"
+                        className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-gray-900/80 ring-1 ring-gray-200/75 dark:ring-gray-700/75 rounded-xl hover:bg-gray-50/90 dark:hover:bg-gray-800/90 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 disabled:opacity-50 transition-all duration-200 shadow-sm"
+                        className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                       >
                         <span className="min-w-[95px] inline-block text-center">
                           {isSubmitting ? 'Adding...' : 'Add Reminder'}
