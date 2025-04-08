@@ -39,14 +39,14 @@ export const Help = () => {
           <li>Fill in their name (required)</li>
           <li>Choose how often you'd like to keep in touch (required)</li>
           <li>Click 'Add detailed information' to access additional fields:</li>
-          <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-600">
+          <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-600 dark:text-gray-400">
             <li>Contact methods (phone, social media)</li>
             <li>Yearly recurring important events (birthdays, anniversaries, etc.)</li>
             <li>Personal notes and preferences</li>
           </ul>
           <div className="mt-4">
-            <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-              <strong className="text-primary-700">Pro Tip:</strong> Start with essential details and add more information if you desire. You can add up to 5 yearly recurring important events per contact, including one birthday and one anniversary.
+            <div className="text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Start with essential details and add more information if you desire. You can add up to 5 yearly recurring important events per contact, including one birthday and one anniversary.
             </div>
           </div>
         </ol>
@@ -62,7 +62,7 @@ export const Help = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <h4 className="font-medium text-gray-900 mb-2">VCF Import</h4>
-              <ol className="list-decimal list-inside space-y-2 ml-4 text-gray-600">
+              <ol className="list-decimal list-inside space-y-2 ml-4 text-gray-600 dark:text-gray-400">
                 <li>Export selected contacts from your device's contacts app:
                   <ul className="list-disc list-inside ml-8 mt-1 space-y-1">
                     <li>iPhone: Open Contacts → Tap Select → Choose specific contacts you want to export → Share → Share Contact → Save to Files as VCF</li>
@@ -73,12 +73,12 @@ export const Help = () => {
                 <li>Click 'Bulk Import' on the Contacts page</li>
                 <li>Select 'Upload VCF file' and choose your file</li>
               </ol>
-              <p className="text-[14px] text-gray-500 mt-2">Note: Imported contacts will have a monthly contact frequency by default, which you can adjust individually later.</p>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 mt-2">Note: Imported contacts will have a monthly contact frequency by default, which you can adjust individually later.</p>
             </div>
 
             <div className="space-y-2">
               <h4 className="font-medium text-gray-900 mb-2">CSV Import</h4>
-              <ol className="list-decimal list-inside space-y-2 ml-4 text-gray-600">
+              <ol className="list-decimal list-inside space-y-2 ml-4 text-gray-600 dark:text-gray-400">
                 <li>Download the template using 'Download CSV template' option in Bulk Import</li>
                 <li>Fill in the required fields:
                   <ul className="list-disc list-inside ml-8 mt-1">
@@ -101,11 +101,11 @@ export const Help = () => {
                 <li>Save your CSV file</li>
                 <li>Click 'Bulk Import' and select 'Upload CSV file'</li>
               </ol>
-              <p className="text-[14px] text-gray-500 mt-2">Start with a few close contacts. The template includes examples to help you get started.</p>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400 mt-2">Start with a few close contacts. The template includes examples to help you get started.</p>
             </div>
 
-            <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-              <strong className="text-primary-700">Important:</strong> TouchBase is about nurturing meaningful relationships. Consider importing only the contacts you actively want to stay connected with, rather than your entire address book.
+            <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-primary-700 dark:text-primary-400">Important:</strong> TouchBase is about nurturing meaningful relationships. Consider importing only the contacts you actively want to stay connected with, rather than your entire address book.
             </div>
           </div>
         </>
@@ -125,11 +125,11 @@ export const Help = () => {
             <li>Multiple categories can be assigned to a single contact</li>
           </ol>
           <div className="mt-4 space-y-4">
-            <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-              <strong className="text-primary-700">Pro Tip:</strong> Create consistent categories across contacts to make filtering more effective. Common categories include #family, #friend, #colleague, #client, etc.
+            <div className="text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Create consistent categories across contacts to make filtering more effective. Common categories include #family, #friend, #colleague, #client, etc.
             </div>
-            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
-              <strong className="text-gray-700">Hashtag Rules:</strong>
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 dark:bg-gray-800/60 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-gray-700 dark:text-gray-300">Hashtag Rules:</strong>
               <ul className="list-disc list-inside mt-2 space-y-1">
                 <li>Must start with # followed by a letter</li>
                 <li>Maximum length of 15 characters</li>
@@ -156,8 +156,8 @@ export const Help = () => {
             <li>Add optional notes about the interaction</li>
             <li>Rate how the interaction went</li>
           </ol>
-          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Regular logging helps TouchBase provide better reminders and insights about your relationships.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+            <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Regular logging helps TouchBase provide better reminders and insights about your relationships.
           </div>
         </>
       )
@@ -176,8 +176,8 @@ export const Help = () => {
             <li>Set the due date</li>
             <li>Optionally mark it as important to show in the 'Important Events' timeline</li>
           </ol>
-          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Quick reminders are perfect for one-time events. Mark them as important to highlight key events in your timeline without affecting regular contact schedules.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+            <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Quick reminders are perfect for one-time events. Mark them as important to highlight key events in your timeline without affecting regular contact schedules.
           </div>
         </>
       )
@@ -196,8 +196,8 @@ export const Help = () => {
             <li>Identify relationships that need attention</li>
             <li>Get personalised insights about your interactions and suggestions for improvement</li>
           </ol>
-          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Insights are generated on demand and saved for you to revisit anytime. They help you understand your relationship patterns and make meaningful improvements.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+            <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Insights are generated on demand and saved for you to revisit anytime. They help you understand your relationship patterns and make meaningful improvements.
           </div>
         </>
       )
@@ -217,11 +217,11 @@ export const Help = () => {
             <li>Set your timezone for accurate reminder timing</li>
           </ol>
           <div className="mt-4 space-y-4">
-            <div className="text-[15px] leading-relaxed bg-yellow-50/90 backdrop-blur-sm p-4 rounded-xl border border-yellow-100/50 shadow-sm text-gray-600">
-              <strong className="text-amber-600">Important:</strong> Enabling notifications is crucial for receiving timely reminders about your interactions. Without notifications, you might miss important updates about when to reconnect with your contacts.
+            <div className="text-[15px] leading-relaxed bg-yellow-50/90 dark:bg-yellow-900/30 backdrop-blur-sm p-4 rounded-xl border border-yellow-100/50 dark:border-yellow-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-amber-600 dark:text-amber-400">Important:</strong> Enabling notifications is crucial for receiving timely reminders about your interactions. Without notifications, you might miss important updates about when to reconnect with your contacts.
             </div>
-            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
-              <strong className="text-gray-700">Troubleshooting:</strong>
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 dark:bg-gray-800/60 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-gray-700 dark:text-gray-300">Troubleshooting:</strong>
               <ul className="list-disc list-inside mt-2 space-y-1">
                 <li>Android users experiencing push service errors should disable battery optimisation for TouchBase and Chrome in system settings.</li>
                 <li>iOS users may need to manually enable notifications for web apps in device settings.</li>
@@ -247,21 +247,21 @@ export const Help = () => {
           <div className="space-y-2">
             <p className="font-medium">iOS:</p>
             <ol className="list-decimal list-inside space-y-2 ml-4">
-              <li>On Safari, tap the <span className="text-primary-500">Share</span> button</li>
-              <li>Select <span className="text-primary-500">Add to Home Screen</span></li>
-              <li>Tap <span className="text-primary-500">Add</span> to install</li>
+              <li>On Safari, tap the <span className="text-primary-500 dark:text-primary-400">Share</span> button</li>
+              <li>Select <span className="text-primary-500 dark:text-primary-400">Add to Home Screen</span></li>
+              <li>Tap <span className="text-primary-500 dark:text-primary-400">Add</span> to install</li>
             </ol>
           </div>
           <div className="space-y-2">
             <p className="font-medium">Web App:</p>
             <ol className="list-decimal list-inside space-y-2 ml-4">
-              <li>Visit <a href="https://touchbase.site" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600">https://touchbase.site</a> on desktop Chrome</li>
+              <li>Visit <a href="https://touchbase.site" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">https://touchbase.site</a> on desktop Chrome</li>
               <li>Click the install icon (computer monitor with down arrow) in the address bar</li>
-              <li>Click <span className="text-primary-500">Install</span> to add to your device</li>
+              <li>Click <span className="text-primary-500 dark:text-primary-400">Install</span> to add to your device</li>
             </ol>
           </div>
-          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-            <strong className="text-primary-700">Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen and push-notifications.
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+            <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Installing TouchBase as an app provides the best experience with quick access from your home screen and push-notifications.
           </div>
         </div>
       )
@@ -282,8 +282,8 @@ export const Help = () => {
             <li>Add personal context in your notes to make future interactions meaningful</li>
           </ul>
           <div className="mt-4 space-y-4">
-            <div className="text-[15px] leading-relaxed bg-gray-50/90 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 shadow-sm text-gray-600">
-              <strong className="text-gray-700">Contact Health:</strong> Each contact card shows a coloured indicator representing the relationship health:
+            <div className="text-[15px] leading-relaxed bg-gray-50/90 dark:bg-gray-800/60 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-gray-700 dark:text-gray-300">Contact Health:</strong> Each contact card shows a coloured indicator representing the relationship health:
               <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="flex items-center"><div className="h-2 w-2 aspect-square rounded-full bg-green-400/90 mr-2"></div>Healthy (No missed interactions)</div>
                                 <div className="flex items-center"><div className="h-2 w-2 rounded-full bg-lime-400/90 mr-2"></div>Good (1 missed interaction)</div>
@@ -292,8 +292,8 @@ export const Help = () => {
                                 <div className="flex items-center"><div className="h-2 w-2 aspect-square rounded-full bg-red-400/90 mr-2"></div>Critical (4+ missed interactions)</div>
               </div>
             </div>
-            <div className="text-[15px] leading-relaxed bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
-              <strong className="text-primary-700">Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your most important relationships.
+            <div className="text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+              <strong className="text-primary-700 dark:text-primary-400">Remember:</strong> The goal is to maintain connections without feeling overwhelmed. TouchBase helps you stay organised and mindful of your most important relationships.
             </div>
           </div>
         </>
@@ -307,17 +307,17 @@ export const Help = () => {
         <div className="flex items-center justify-center w-full mb-8 relative">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200 absolute left-0"
+            className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 rounded-xl transition-all duration-200 absolute left-0"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </button>
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
-              <QuestionMarkCircleIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-500 dark:to-primary-300 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
+              <QuestionMarkCircleIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500 dark:text-primary-400" style={{ marginTop: '0.1em' }} />
               How to Use TouchBase
             </h1>
-            <p className="mt-1.5 text-[15px] text-gray-600/90">
+            <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
               A detailed guide on staying connected and nurturing your relationships
             </p>
           </div>
@@ -326,18 +326,18 @@ export const Help = () => {
 
       <div className="space-y-4">
         {sections.map(section => (
-          <div key={section.id} className="bg-white/60 backdrop-blur-xl rounded-xl shadow-lg border border-gray-100/50 overflow-hidden transition-all duration-300">
+          <div key={section.id} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl shadow-lg dark:shadow-soft-dark border border-gray-100/50 dark:border-gray-800/50 overflow-hidden transition-all duration-300">
             <button
               onClick={() => toggleSection(section.id)}
-              className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-white/70 transition-all duration-200"
+              className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200"
             >
               <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-primary-50/80 rounded-xl">
-                  <section.icon className="h-6 w-6 text-primary-500" />
+                <div className="p-2.5 bg-primary-50/80 dark:bg-primary-900/30 rounded-xl">
+                  <section.icon className="h-6 w-6 text-primary-500 dark:text-primary-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-[600] text-gray-900/90">{section.title}</h2>
-                  <p className="mt-1 text-[15px] leading-relaxed text-gray-600/90">{section.description}</p>
+                  <h2 className="text-lg font-[600] text-gray-900/90 dark:text-white">{section.title}</h2>
+                  <p className="mt-1 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400">{section.description}</p>
                 </div>
               </div>
               <ChevronDownIcon
@@ -347,7 +347,7 @@ export const Help = () => {
               />
             </button>
             {expandedSection === section.id && (
-              <div className="px-6 pb-6 pt-2 text-gray-600/90 animate-fadeIn">
+              <div className="px-6 pb-6 pt-2 text-gray-600/90 dark:text-gray-400 animate-fadeIn">
                 {section.content}
               </div>
             )}
@@ -355,14 +355,14 @@ export const Help = () => {
         ))}
       </div>
 
-      <div className="text-center text-sm text-gray-600 space-y-2 py-4">
+      <div className="text-center text-sm text-gray-600 dark:text-gray-400 space-y-2 py-4">
         <div>
           View our{' '}
-          <a href="/terms" className="text-primary-500 hover:text-primary-600">
+          <a href="/terms" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">
             Terms of Service
           </a>
           {' '}and{' '}
-          <a href="/privacy" className="text-primary-500 hover:text-primary-600">
+          <a href="/privacy" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">
             Privacy Policy
           </a>
         </div>
