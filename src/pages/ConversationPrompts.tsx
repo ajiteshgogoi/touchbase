@@ -85,7 +85,7 @@ const ConversationPrompts: React.FC = () => {
         <div className="flex items-center justify-center w-full mb-8 relative">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/10 rounded-xl transition-all duration-200 absolute left-0"
+            className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/10 dark:hover:bg-gray-900/10 rounded-xl transition-all duration-200 absolute left-0"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -95,7 +95,7 @@ const ConversationPrompts: React.FC = () => {
               <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
               Conversation Prompts
             </h1>
-            <p className="mt-1.5 text-[15px] text-gray-600/90">
+            <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
               Meaningful prompts for heartfelt conversations.
             </p>
           </div>
@@ -103,21 +103,21 @@ const ConversationPrompts: React.FC = () => {
 
         <div className="w-full mb-8">
           <div className="relative">
-            <div className="bg-white/60 backdrop-blur-xl rounded-xl shadow-soft border border-gray-100/50 hover:bg-white/70 p-8 w-full min-h-[200px] flex items-center justify-center transition-all duration-200">
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl shadow-soft dark:shadow-soft-dark border border-gray-100/50 dark:border-gray-800/50 hover:bg-white/70 dark:hover:bg-gray-900/70 p-8 w-full min-h-[200px] flex items-center justify-center transition-all duration-200">
               <div className="relative z-10 w-full sm:w-[32rem] flex items-center justify-center px-4">
                 {loading && !questionReceived ? (
                   <div className="flex items-center justify-center max-w-xl mx-auto">
-                    <p className="text-sky-600 text-center animate-pulse text-sm sm:text-base">
+                    <p className="text-sky-600 dark:text-sky-400 text-center animate-pulse text-sm sm:text-base">
                       Generating question...
                     </p>
                   </div>
                 ) : error ? (
                   <div className="max-w-xl mx-auto w-full text-center">
-                    <p className="text-red-500 text-sm sm:text-base text-center">{error}</p>
+                    <p className="text-red-500 dark:text-red-400 text-sm sm:text-base text-center">{error}</p>
                   </div>
                 ) : (
                   <div className="max-w-xl mx-auto w-full">
-                    <p className={`text-base sm:text-lg font-medium text-primary-700 text-center transition-opacity duration-200 leading-relaxed ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+                    <p className={`text-base sm:text-lg font-medium text-primary-700 dark:text-primary-300 text-center transition-opacity duration-200 leading-relaxed ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
                       {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
                     </p>
                   </div>
@@ -127,7 +127,7 @@ const ConversationPrompts: React.FC = () => {
             {!isFirstQuestion && question && (
               <button
                 onClick={() => handleReportContent(question)}
-                className="absolute top-2 right-2 p-1 text-gray-300 hover:text-red-400 transition-colors"
+                className="absolute top-2 right-2 p-1 text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-500 transition-colors"
                 title="Report inappropriate question"
               >
                 <FlagIcon className="h-4 w-4" />
@@ -136,7 +136,7 @@ const ConversationPrompts: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full text-center text-xs text-gray-500 mb-8">
+        <div className="w-full text-center text-xs text-gray-500 dark:text-gray-400 mb-8">
           <p>
             <span className="underline">Note:</span> You're limited to 5 question generations every 10 minutes.
           </p>
@@ -145,51 +145,51 @@ const ConversationPrompts: React.FC = () => {
         <div className="flex flex-col items-center">
           <button
             onClick={generateQuestion}
-            className="w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-full px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             disabled={loading}
           >
             Generate a Question
           </button>
         </div>
 
-        <div className="w-full border-t border-gray-200 mt-12">
+        <div className="w-full border-t border-gray-200 dark:border-gray-800 mt-12">
           <div className="max-w-2xl mx-auto pt-8">
-            <h2 className="text-2xl font-[600] text-gray-900/90 mb-6">How to Use</h2>
+            <h2 className="text-2xl font-[600] text-gray-900/90 dark:text-white mb-6">How to Use</h2>
             <div className="space-y-8">
               <div>
-                <p className="text-[15px] leading-relaxed text-gray-600/90 mb-4">
+                <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-4">
                   These conversation prompts are designed to spark meaningful discussions and help you:
                 </p>
                 <ul className="space-y-3">
-                  <li className="flex items-start text-[15px] text-gray-700/90">
-                    <span className="inline-block w-2 h-2 bg-primary-500/90 rounded-full mt-2 mr-3 shrink-0"></span>
+                  <li className="flex items-start text-[15px] text-gray-700/90 dark:text-gray-300">
+                    <span className="inline-block w-2 h-2 bg-primary-500/90 dark:bg-primary-400/90 rounded-full mt-2 mr-3 shrink-0"></span>
                     <span>Deepen your relationships with friends and family</span>
                   </li>
-                  <li className="flex items-start text-[15px] text-gray-700/90">
-                    <span className="inline-block w-2 h-2 bg-primary-500/90 rounded-full mt-2 mr-3 shrink-0"></span>
+                  <li className="flex items-start text-[15px] text-gray-700/90 dark:text-gray-300">
+                    <span className="inline-block w-2 h-2 bg-primary-500/90 dark:bg-primary-400/90 rounded-full mt-2 mr-3 shrink-0"></span>
                     <span>Learn new things about the people in your life</span>
                   </li>
-                  <li className="flex items-start text-[15px] text-gray-700/90">
-                    <span className="inline-block w-2 h-2 bg-primary-500/90 rounded-full mt-2 mr-3 shrink-0"></span>
+                  <li className="flex items-start text-[15px] text-gray-700/90 dark:text-gray-300">
+                    <span className="inline-block w-2 h-2 bg-primary-500/90 dark:bg-primary-400/90 rounded-full mt-2 mr-3 shrink-0"></span>
                     <span>Have more engaging and memorable conversations</span>
                   </li>
-                  <li className="flex items-start text-[15px] text-gray-700/90">
-                    <span className="inline-block w-2 h-2 bg-primary-500/90 rounded-full mt-2 mr-3 shrink-0"></span>
+                  <li className="flex items-start text-[15px] text-gray-700/90 dark:text-gray-300">
+                    <span className="inline-block w-2 h-2 bg-primary-500/90 dark:bg-primary-400/90 rounded-full mt-2 mr-3 shrink-0"></span>
                     <span>Share stories and experiences that matter</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="space-y-4 text-[15px] leading-relaxed text-gray-600/90">
+              <div className="space-y-4 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400">
                 <p>
-                  Click the <span className="text-primary-600 font-[500]">Generate a Question</span> button to get a thoughtful conversation starter.
+                  Click the <span className="text-primary-600 dark:text-primary-400 font-[500]">Generate a Question</span> button to get a thoughtful conversation starter.
                 </p>
                 <p>
                   Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
                 </p>
-                <div className="bg-primary-50/90 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 shadow-sm text-gray-600">
+                <div className="bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-800/50 shadow-sm dark:shadow-soft-dark text-gray-600 dark:text-gray-400">
                   <p className="text-[15px] leading-relaxed">
-                    <strong className="text-primary-700">Note:</strong> Conversation prompts are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
+                    <strong className="text-primary-700 dark:text-primary-300">Note:</strong> Conversation prompts are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
                   </p>
                 </div>
               </div>
