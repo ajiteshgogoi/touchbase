@@ -71,7 +71,7 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl">
+              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl dark:shadow-soft-dark">
                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
                  <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Send Feedback
@@ -110,14 +110,14 @@ export const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
                 <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 dark:bg-gray-800 rounded-b-2xl">
                   <button
                     onClick={onClose}
-                    className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 shadow-sm"
+                    className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={!feedback.trim() || isSubmitting}
-                    className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 transition-all duration-200 shadow-sm"
+                    className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                   >
                     {isSubmitting ? 'Sending...' : 'Send Feedback'}
                   </button>
