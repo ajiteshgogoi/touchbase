@@ -45,7 +45,7 @@ export const ThemeSettings = ({ settings, onUpdate }: Props) => {
             Appearance
           </div>
           <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
-            Choose how TouchBase looks to you
+            Choose how you want TouchBase to look
           </p>
         </div>
         
