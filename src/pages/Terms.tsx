@@ -46,7 +46,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">2. Use Licence</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">2. Use Licence</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-4">
             Subject to your compliance with these Terms, TouchBase grants you a personal, non-exclusive, non-transferable licence to use our service for managing your personal relationships. This licence is for personal, non-commercial use only.
           </p>
@@ -61,7 +61,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">3. User Account Security</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">3. User Account Security</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">As a TouchBase user, you are responsible for:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>Maintaining the confidentiality of your account credentials</li>
@@ -73,7 +73,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">4. Contact Information</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">4. Contact Information</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">When managing contacts in TouchBase:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>You confirm you have the right to store their information</li>
@@ -85,7 +85,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">5. AI Features</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">5. AI Features</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">Regarding our AI-powered features:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>AI suggestions are for assistance only, not professional advice</li>
@@ -98,7 +98,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">6. Data Security</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">6. Data Security</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">Your responsibilities regarding data security:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>Use the service on secure devices and networks</li>
@@ -110,7 +110,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">7. Service Reliability</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">7. Service Reliability</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">TouchBase implements several measures to ensure service reliability:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>Regular system maintenance and updates</li>
@@ -122,7 +122,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">8. Service Modifications</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">8. Service Modifications</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">TouchBase reserves the right to:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>Modify or discontinue features with notice</li>
@@ -134,7 +134,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">9. Cancellation and Refund Policy</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">9. Cancellation and Refund Policy</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">When you cancel your subscription:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>You will continue to have access to all subscription benefits until the end of your current billing period</li>
@@ -146,7 +146,7 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">10. Account Termination</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">10. Account Termination</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-2">TouchBase may terminate accounts that:</p>
           <ul className="list-disc ml-6 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 space-y-1">
             <li>Violate these Terms of Service</li>
@@ -161,14 +161,14 @@ export const Terms = () => {
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">11. Changes to Terms</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">11. Changes to Terms</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400">
             We may update these Terms of Service to reflect changes in our practices or for legal reasons. We will notify you of any material changes via email and/or a prominent notice in our application before the changes become effective.
           </p>
         </section>
 
         <section className="p-6">
-          <h2 className="text-xl font-[600] text-gray-900/90 mb-4">12. Contact Information</h2>
+          <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white mb-4">12. Contact Information</h2>
           <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400">
             For questions about these Terms of Service or to report violations, please visit our <a href="/support" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">Support page</a>. We aim to respond to all enquiries within 48 hours.
           </p>
