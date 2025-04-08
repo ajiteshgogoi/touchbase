@@ -118,7 +118,7 @@ export const NotificationSettings = ({ settings, onUpdate, userId }: Props) => {
                 aria-label="Search through timezone list"
               />
             </div>
-            <div className="max-h-[200px] overflow-y-auto scrollbar-thin">
+            <div className="max-h-[200px] overflow-y-auto">
               <select
                 id="timezone-select"
                 className="block w-full border-0 py-2.5 px-3 text-gray-900 dark:text-gray-100 outline-none focus-visible:ring-1 focus-visible:ring-primary-400/15 dark:focus-visible:ring-primary-400/10 transition-all sm:text-sm appearance-none bg-transparent selection:bg-primary-50 dark:selection:bg-primary-900/50 [&>option]:bg-white dark:[&>option]:bg-gray-900"
