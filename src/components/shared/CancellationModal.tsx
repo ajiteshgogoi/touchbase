@@ -117,19 +117,19 @@ export const CancellationModal = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
-                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75">
+              <Dialog.Panel className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-xl dark:shadow-soft-dark max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
                   <div>
-                    <Dialog.Title className="text-lg font-medium text-gray-900">
+                    <Dialog.Title className="text-lg font-medium text-gray-900 dark:text-white">
                       Cancel Subscription
                     </Dialog.Title>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       We're sorry to see you go. Please help us improve by sharing your feedback.
                     </p>
                   </div>
                   <button
                     onClick={onClose}
-                    className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                    className="p-2 -m-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
                     disabled={isSubmitting}
                     aria-label="Close"
                   >
@@ -140,14 +140,14 @@ export const CancellationModal = ({
                 <div className="flex-1 overflow-y-auto p-6">
                   <div className="space-y-6">
                     {/* Info box */}
-                    <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-100/75 text-sm text-gray-600">
-                      Your premium access will continue until <span className="font-medium text-gray-900">{formatDate(validUntil)}</span>.
+                    <div className="p-4 bg-gray-50/80 dark:bg-gray-800/80 rounded-xl border border-gray-100/75 dark:border-gray-700/75 text-sm text-gray-600 dark:text-gray-400">
+                      Your premium access will continue until <span className="font-medium text-gray-900 dark:text-white">{formatDate(validUntil)}</span>.
                       After this date, you'll lose access to premium features.
                     </div>
 
                     {/* Reason selection */}
                     <div className="space-y-4">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Why are you cancelling?
                       </label>
                       <RadioGroup value={selectedReason} onChange={setSelectedReason}>
@@ -158,20 +158,20 @@ export const CancellationModal = ({
                               value={reason.id}
                               className={({ checked }) =>
                                 `relative rounded-lg px-4 py-3 cursor-pointer flex focus:outline-none
-                                ${checked 
-                                  ? 'bg-primary-50/90 border border-primary-200' 
-                                  : 'bg-white border border-gray-200 hover:bg-gray-50/80'
+                                ${checked
+                                  ? 'bg-primary-50/90 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800'
+                                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50/80 dark:hover:bg-gray-700/80'
                                 }`
                               }
                             >
                               {({ checked }) => (
                                 <>
                                   <div className="flex w-full items-center justify-between">
-                                    <RadioGroup.Label className="text-sm text-gray-900">
+                                    <RadioGroup.Label className="text-sm text-gray-900 dark:text-white">
                                       {reason.label}
                                     </RadioGroup.Label>
                                     {checked && (
-                                      <div className="bg-primary-500 rounded-full w-2 h-2" />
+                                      <div className="bg-primary-500 dark:bg-primary-400 rounded-full w-2 h-2" />
                                     )}
                                   </div>
                                 </>
@@ -184,7 +184,7 @@ export const CancellationModal = ({
 
                     {/* Additional feedback */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         {selectedReason === 'other' ? 'Please specify your reason' : 'Additional feedback (optional)'}
                       </label>
                       <textarea
@@ -195,11 +195,11 @@ export const CancellationModal = ({
                             ? "Please tell us why you're cancelling..."
                             : "Help us understand how we can improve..."
                         }
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 transition-colors duration-200"
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                         rows={4}
                       />
                       <div className="mt-2 flex justify-end">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           {additionalFeedback.length}/{maxLength} characters
                         </span>
                       </div>
@@ -207,18 +207,18 @@ export const CancellationModal = ({
                   </div>
                 </div>
 
-                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 rounded-b-2xl border-t border-gray-100/75">
+                <div className="flex-shrink-0 flex justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-gray-800/80 rounded-b-2xl border-t border-gray-100/75 dark:border-gray-800/75">
                   <button
                    onClick={handleSubmit}
                    disabled={!selectedReason || isSubmitting || (selectedReason === 'other' && !additionalFeedback.trim())}
-                   className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 disabled:opacity-50 transition-all duration-200 shadow-sm"
+                   className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-gray-900/80 ring-1 ring-gray-200/75 dark:ring-gray-700/75 rounded-xl hover:bg-gray-50/90 dark:hover:bg-gray-800/90 disabled:opacity-50 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                  >
                    {isSubmitting ? 'Processing...' : 'Confirm Cancellation'}
                  </button>
                  <button
                    onClick={onClose}
                    disabled={isSubmitting}
-                   className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-xl transition-all duration-200 shadow-sm"
+                   className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 rounded-xl transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                  >
                    Keep Subscription
                  </button>
