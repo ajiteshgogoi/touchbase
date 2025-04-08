@@ -39,12 +39,12 @@ export const Dashboard = () => {
     install_time: preferences.install_time
   } : undefined;
   const { shouldShow: showOnboarding, markCompleted: markOnboardingCompleted } = useOnboarding();
-  const { data: contacts } = useQuery<Contact[]>({
+  const { data: contacts, isLoading: isLoadingContacts } = useQuery<Contact[]>({
     queryKey: ['contacts'],
     queryFn: contactsService.getContacts,
     staleTime: 5 * 60 * 1000 // Cache for 5 minutes
   });
-  const { data: totalCount } = useQuery<number>({
+  const { data: totalCount, isLoading: isLoadingTotal } = useQuery<number>({
     queryKey: ['contactsCount'],
     queryFn: contactsService.getTotalContactCount,
     enabled: !isPremium && !isOnTrial
@@ -79,17 +79,42 @@ export const Dashboard = () => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-          {!isPremium && !isOnTrial && (
-            <Link
-              to="/settings"
-              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-purple-600 dark:to-indigo-600 hover:from-purple-600 hover:to-indigo-600 dark:hover:from-purple-700 dark:hover:to-indigo-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-            >
-              <span className="inline-flex items-center justify-center">
-                ✨ Upgrade to Premium
-              </span>
-            </Link>
-          )}
-          {canAddMore ? (
+          {!isPremium && !isOnTrial ? (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                to="/settings"
+                className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-purple-600 dark:to-indigo-600 hover:from-purple-600 hover:to-indigo-600 dark:hover:from-purple-700 dark:hover:to-indigo-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              >
+                <span className="inline-flex items-center justify-center">
+                  ✨ Upgrade to Premium
+                </span>
+              </Link>
+              <Link
+                to={canAddMore ? "/contacts/new" : "/settings"}
+                state={{ from: '/' }}
+                className={`inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white ${
+                  isLoadingContacts || isLoadingTotal ? 'text-gray-400 bg-gray-100 dark:text-gray-600 dark:bg-gray-800 cursor-not-allowed' :
+                  canAddMore ? 'bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700' :
+                  'bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-700'
+                } shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200`}
+              >
+                <span className="min-w-[130px] inline-flex items-center justify-center">
+                  <span className="min-w-[130px] inline-flex items-center justify-center">
+                    {isLoadingContacts || isLoadingTotal ? (
+                      <span className="text-center">Loading...</span>
+                    ) : canAddMore ? (
+                      <span className="inline-flex items-center">
+                        <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+                        Add Contact
+                      </span>
+                    ) : (
+                      <span className="text-center">Upgrade to add more contacts</span>
+                    )}
+                  </span>
+                </span>
+              </Link>
+            </div>
+          ) : (
             <Link
               to="/contacts/new"
               state={{ from: '/' }}
@@ -97,13 +122,6 @@ export const Dashboard = () => {
             >
               <UserPlusIcon className="h-5 w-5 mr-2 flex-shrink-0" />
               Add Contact
-            </Link>
-          ) : (
-            <Link
-              to="/settings"
-              className="inline-flex items-center justify-center text-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-            >
-              Upgrade to add more contacts
             </Link>
           )}
         </div>

@@ -310,7 +310,7 @@ export const Contacts = () => {
   const filteredCount = contactsData?.pages?.[0]?.total || 0;
 
   // Get total contacts count (unfiltered) for limit checking
-  const { data: totalContacts } = useQuery({
+  const { data: totalContacts, isLoading: isLoadingTotal } = useQuery({
     queryKey: ['total-contacts'],
     queryFn: async () => {
       const { count } = await supabase
@@ -367,7 +367,8 @@ export const Contacts = () => {
   };
 
   const contactLimit = isPremium || isOnTrial ? Infinity : 15;
-  const canAddMore = (totalContacts || 0) < contactLimit;
+  // Only allow adding contacts once we're sure about the total count
+  const canAddMore = !isLoadingTotal && (totalContacts || 0) < contactLimit;
 
   return (
     <div className="space-y-6">
@@ -427,7 +428,43 @@ export const Contacts = () => {
             </button>
           </div>
         ) : (
-          canAddMore ? (
+          !isPremium && !isOnTrial ? (
+            // Show disabled buttons while loading for free users
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowImportModal(true)}
+                disabled={isLoadingTotal || !canAddMore}
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              >
+                <UsersIcon className="h-5 w-5 mr-2" />
+                Bulk Import
+              </button>
+              <Link
+                to={canAddMore ? "/contacts/new" : "/settings"}
+                state={{ from: '/contacts' }}
+                className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] ${
+                  isLoadingTotal ? 'text-gray-400 bg-gray-100 dark:text-gray-600 dark:bg-gray-800 cursor-not-allowed' :
+                  canAddMore ? 'text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700' :
+                  'text-white bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-700'
+                } shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200`}
+              >
+                <span className="min-w-[130px] inline-flex items-center justify-center">
+                  <span className="min-w-[130px] inline-flex items-center justify-center">
+                    {isLoadingTotal ? (
+                      <span className="text-center">Loading...</span>
+                    ) : canAddMore ? (
+                      <span className="inline-flex items-center">
+                        <UserPlusIcon className="h-5 w-5 mr-2" />
+                        Add Contact
+                      </span>
+                    ) : (
+                      <span className="text-center">Upgrade to add more contacts</span>
+                    )}
+                  </span>
+                </span>
+              </Link>
+            </div>
+          ) : canAddMore ? (
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => setShowImportModal(true)}
@@ -446,12 +483,24 @@ export const Contacts = () => {
               </Link>
             </div>
           ) : (
-            <Link
-              to="/settings"
-              className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
-            >
-              Upgrade to add more contacts
-            </Link>
+            // Premium users always see enabled buttons
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              >
+                <UsersIcon className="h-5 w-5 mr-2" />
+                Bulk Import
+              </button>
+              <Link
+                to="/contacts/new"
+                state={{ from: '/contacts' }}
+                className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200"
+              >
+                <UserPlusIcon className="h-5 w-5 mr-2" />
+                Add Contact
+              </Link>
+            </div>
           )
         )}
       </div>
