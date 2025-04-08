@@ -19,7 +19,7 @@ export const AISettings = ({ settings, onUpdate, isPremium, subscription }: Prop
           AI Features
         </h2>
         {!canUseAIFeatures && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400">
+          <span className="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400">
             Premium Only
           </span>
         )}
