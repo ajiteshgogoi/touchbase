@@ -439,7 +439,7 @@ export const ContactForm = () => {
   if (isEditMode && isLoadingContact) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <p className="text-gray-500">Loading contact...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading contact...</p>
       </div>
     );
   }
@@ -472,7 +472,7 @@ export const ContactForm = () => {
               handleNavigateBack();
             }}
             type="button" // Explicitly set type to prevent form submission
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/10 rounded-xl transition-all duration-200"
+            className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/10 dark:hover:bg-gray-900/10 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -481,7 +481,7 @@ export const ContactForm = () => {
             <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
               {isEditMode ? 'Edit Contact' : 'Add Contact'}
             </h1>
-            <p className="mt-1.5 text-[15px] text-gray-600/90">
+            <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
               {isEditMode ? 'Update contact information' : 'Add someone you want to stay connected with'}
             </p>
           </div>
@@ -504,14 +504,14 @@ export const ContactForm = () => {
               type="checkbox"
               checked={showAdvanced}
               onChange={(e) => setShowAdvanced(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 dark:text-primary-500 focus:ring-primary-500 dark:focus:ring-primary-400 bg-white dark:bg-gray-800"
             />
           </div>
           <div>
-            <label htmlFor="showAdvanced" className="text-sm font-medium text-gray-700 hover:cursor-pointer">
+            <label htmlFor="showAdvanced" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:cursor-pointer">
               Add more information (optional)
             </label>
-            <p className="text-xs text-gray-500">Add details only if it helps improve your relationship</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Add details only if it helps improve your relationship</p>
           </div>
         </div>
 
@@ -537,13 +537,13 @@ export const ContactForm = () => {
             <button
               type="button"
               onClick={handleNavigateBack}
-              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-600 bg-gray-100/90 hover:bg-gray-200/90 active:scale-[0.98] transition-all duration-200 shadow-soft hover:shadow-md"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-gray-600 dark:text-gray-300 bg-gray-100/90 dark:bg-gray-800/90 hover:bg-gray-200/90 dark:hover:bg-gray-700/90 active:scale-[0.98] transition-all duration-200 shadow-soft dark:shadow-soft-dark hover:shadow-md"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               disabled={isValidating || createMutation.isPending || updateMutation.isPending}
             >
               <div className="flex justify-center min-w-[100px]">
@@ -578,11 +578,11 @@ export const ContactForm = () => {
           </div>
           {/* Error Messages Section */}
           {(errors.name || errors.frequency || errors.phone || errors.social_media_handle) && (
-            <div className="px-4 py-2 bg-red-50 rounded-lg space-y-1">
-              {errors.name && <p className="text-sm text-red-600 text-center">{errors.name}</p>}
-              {errors.frequency && <p className="text-sm text-red-600 text-center">{errors.frequency}</p>}
-              {errors.phone && <p className="text-sm text-red-600 text-center">{errors.phone}</p>}
-              {errors.social_media_handle && <p className="text-sm text-red-600 text-center">{errors.social_media_handle}</p>}
+            <div className="px-4 py-2 bg-red-50 dark:bg-red-900/30 rounded-lg space-y-1">
+              {errors.name && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.name}</p>}
+              {errors.frequency && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.frequency}</p>}
+              {errors.phone && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.phone}</p>}
+              {errors.social_media_handle && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.social_media_handle}</p>}
             </div>
           )}
         </div>
