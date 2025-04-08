@@ -16,8 +16,9 @@ import {
   StarIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  CheckCircleIcon
 } from '@heroicons/react/24/outline/esm/index.js';
+import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/react/24/solid/esm/index.js';
+import { CheckCircleIcon as CheckCircleOutlineIcon } from '@heroicons/react/24/outline/esm/index.js';
 import {
   getEventTypeDisplay,
   formatEventDate,
@@ -250,9 +251,11 @@ export const ContactCard = ({
                 }`}
                 aria-label={isSelected ? "Unselect contact" : "Select contact"}
               >
-                <CheckCircleIcon
-                  className={`h-6 w-6 ${isSelected ? 'fill-primary-50' : ''}`}
-                />
+                {isSelected ? (
+                  <CheckCircleSolidIcon className="h-6 w-6" />
+                ) : (
+                  <CheckCircleOutlineIcon className="h-6 w-6" />
+                )}
               </div>
             ) : (
               <div className="text-gray-500">
