@@ -16,6 +16,9 @@ const QuickInteraction = lazy(() => import('../components/contacts/QuickInteract
 export const Reminders = () => {
   const navigate = useNavigate();
   const { isPremium, isOnTrial } = useStore();
+  const [dueTodayPage, setDueTodayPage] = useState(1);
+  const [upcomingPage, setUpcomingPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const { data: reminders } = useQuery<Reminder[]>({
     queryKey: ['reminders'],
     queryFn: () => contactsService.getReminders(),
@@ -180,30 +183,40 @@ const [quickReminder, setQuickReminder] = useState<{
               {dueTodayReminders.length === 0 ? (
                 <p className="text-sm text-gray-600 dark:text-gray-400">No interactions due today!</p>
               ) : (
-                dueTodayReminders.map((reminder) => {
-                  const contact = contactsMap[reminder.contact_id];
-                  const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
+                <>
+                  {dueTodayReminders.slice(0, dueTodayPage * ITEMS_PER_PAGE).map((reminder) => {
+                    const contact = contactsMap[reminder.contact_id];
+                    const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
 
-                  return (
-                    <ReminderCard
-                      key={reminder.id}
-                      reminder={reminder}
-                      contact={contact}
-                      events={events}
-                      isPremium={isPremium}
-                      isOnTrial={isOnTrial}
-                      onLogInteraction={({ contactId, contactName, type }) =>
-                        setQuickInteraction({
-                          isOpen: true,
-                          contactId,
-                          contactName,
-                          type
-                        })
-                      }
-                      onReportContent={handleReportContent}
-                    />
-                  );
-                })
+                    return (
+                      <ReminderCard
+                        key={reminder.id}
+                        reminder={reminder}
+                        contact={contact}
+                        events={events}
+                        isPremium={isPremium}
+                        isOnTrial={isOnTrial}
+                        onLogInteraction={({ contactId, contactName, type }) =>
+                          setQuickInteraction({
+                            isOpen: true,
+                            contactId,
+                            contactName,
+                            type
+                          })
+                        }
+                        onReportContent={handleReportContent}
+                      />
+                    );
+                  })}
+                  {dueTodayReminders.length > dueTodayPage * ITEMS_PER_PAGE && (
+                    <button
+                      onClick={() => setDueTodayPage(p => p + 1)}
+                      className="w-full mt-4 px-4 py-2 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-all duration-200"
+                    >
+                      Show More
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -220,30 +233,40 @@ const [quickReminder, setQuickReminder] = useState<{
               {upcomingReminders.length === 0 ? (
                 <p className="text-sm text-gray-600 dark:text-gray-400">No upcoming reminders!</p>
               ) : (
-                upcomingReminders.map((reminder) => {
-                  const contact = contactsMap[reminder.contact_id];
-                  const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
+                <>
+                  {upcomingReminders.slice(0, upcomingPage * ITEMS_PER_PAGE).map((reminder) => {
+                    const contact = contactsMap[reminder.contact_id];
+                    const events = getImportantEventsForDate(reminder.contact_id, reminder.due_date);
 
-                  return (
-                    <ReminderCard
-                      key={reminder.id}
-                      reminder={reminder}
-                      contact={contact}
-                      events={events}
-                      isPremium={isPremium}
-                      isOnTrial={isOnTrial}
-                      onLogInteraction={({ contactId, contactName, type }) =>
-                        setQuickInteraction({
-                          isOpen: true,
-                          contactId,
-                          contactName,
-                          type
-                        })
-                      }
-                      onReportContent={handleReportContent}
-                    />
-                  );
-                })
+                    return (
+                      <ReminderCard
+                        key={reminder.id}
+                        reminder={reminder}
+                        contact={contact}
+                        events={events}
+                        isPremium={isPremium}
+                        isOnTrial={isOnTrial}
+                        onLogInteraction={({ contactId, contactName, type }) =>
+                          setQuickInteraction({
+                            isOpen: true,
+                            contactId,
+                            contactName,
+                            type
+                          })
+                        }
+                        onReportContent={handleReportContent}
+                      />
+                    );
+                  })}
+                  {upcomingReminders.length > upcomingPage * ITEMS_PER_PAGE && (
+                    <button
+                      onClick={() => setUpcomingPage(p => p + 1)}
+                      className="w-full mt-4 px-4 py-2 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-all duration-200"
+                    >
+                      Show More
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
