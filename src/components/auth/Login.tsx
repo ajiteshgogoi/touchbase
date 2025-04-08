@@ -94,7 +94,7 @@ export const Login = () => {
 
         <div className="max-w-4xl w-full px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300">
               <div className="text-primary-500/90 mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-7 w-7" aria-hidden="true" focusable="false">
                   <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" strokeWidth="1.5"/>
@@ -104,7 +104,7 @@ export const Login = () => {
               <p className="text-gray-600/90 dark:text-gray-400 leading-relaxed">Track important interactions with your loved ones in one space</p>
             </div>
             
-            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300">
               <div className="text-primary-500/90 mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-7 w-7" aria-hidden="true" focusable="false">
                   <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeWidth="1.5"/>
@@ -114,7 +114,7 @@ export const Login = () => {
               <p className="text-gray-600/90 dark:text-gray-400 leading-relaxed">Get gentle nudges to reconnect before life gets in the way</p>
             </div>
             
-            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300">
               <div className="text-primary-500/90 mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-7 w-7" aria-hidden="true" focusable="false">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" strokeWidth="1.5"/>
@@ -208,7 +208,7 @@ export const Login = () => {
 
         <button
           onClick={() => setIsInstallModalOpen(true)}
-          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600/90 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-sm hover:shadow-md hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200"
+          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600/90 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200"
         >
           <img src="/icon.svg" alt="heart" className="w-5 h-5 text-primary-500" loading="eager" />
           <span>Get TouchBase on your device</span>

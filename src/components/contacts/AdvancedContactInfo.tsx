@@ -237,7 +237,7 @@ export const AdvancedContactInfo = ({
   return (
     <div className="space-y-8">
       {/* Contact Methods */}
-      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200">
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
         <h3 className="text-lg font-[600] text-gray-900/90 dark:text-white mb-6">Contact Methods</h3>
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -362,7 +362,7 @@ export const AdvancedContactInfo = ({
       </div>
 
       {/* Important Events */}
-      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200">
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2">
@@ -388,7 +388,7 @@ export const AdvancedContactInfo = ({
                 setSelectedEventType(defaultEventType);
                 setShowNewEventForm(true);
               }}
-              className="inline-flex items-center justify-center text-center px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] shadow-soft dark:shadow-soft-dark hover:shadow-md transition-all duration-200"
+              className="inline-flex items-center justify-center text-center px-5 py-3 rounded-xl text-[15px] font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] shadow-soft dark:shadow-soft-dark hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
             >
               <PlusIcon className="h-4 w-4 mr-1.5" />
               Add Event
@@ -534,7 +534,7 @@ export const AdvancedContactInfo = ({
       </div>
 
       {/* Personal Notes */}
-      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200">
+      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
         <h3 className="text-lg font-[600] text-gray-900/90 dark:text-white mb-6">Personal Notes</h3>
         <div>
           {/* Premium/Trial Feature Info */}
