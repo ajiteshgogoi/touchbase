@@ -6,23 +6,6 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      // Custom scrollbar configuration
-      scrollbar: {
-        DEFAULT: {
-          track: {
-            background: 'rgba(243, 244, 246, 0.3)',
-            dark: 'rgba(31, 41, 55, 0.5)'
-          },
-          thumb: {
-            background: 'rgba(229, 231, 235, 0.5)',
-            dark: 'rgba(75, 85, 99, 0.5)',
-            hover: {
-              background: 'rgba(156, 163, 175, 0.5)',
-              dark: 'rgba(107, 114, 128, 0.5)'
-            }
-          }
-        }
-      },
       colors: {
         primary: {
           50: '#f0f9ff',   // Lightest blue - for backgrounds
