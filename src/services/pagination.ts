@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase/client';
 import type { BasicContact, Contact } from '../lib/supabase/types';
 import { useStore } from '../stores/useStore';
 import { contactCacheService } from './contact-cache';
+import { freeContactsService } from './free-contacts';
 
 const PAGE_SIZE = 20;
 
@@ -119,26 +120,8 @@ export const contactsPaginationService = {
     }
 
     if (!isPremium && !isOnTrial) {
-      // For free users:
-      // 1. First sort by created_at to get most recent
-      // 2. Limit to 15 most recent
-      // 3. Then order those 15 by user's preferred sort
-      const { data: recentContacts } = await supabase
-        .from('contacts')
-        .select(`
-         id,
-         name,
-         last_contacted,
-         missed_interactions,
-         contact_frequency,
-         next_contact_due,
-         preferred_contact_method,
-         phone,
-         social_media_handle,
-         notes
-        `)
-        .order('created_at', { ascending: false })
-        .limit(15);
+      // For free users, get their 15 visible contacts from the single source of truth
+      const recentContacts = await freeContactsService.getVisibleContacts();
 
       // Apply search filter if needed
       let filteredContacts = recentContacts || [];
@@ -150,11 +133,12 @@ export const contactsPaginationService = {
           const phone = (contact.phone || '').toLowerCase();
           const socialHandle = (contact.social_media_handle || '').toLowerCase();
           
-          return searchTerms.every(term =>
-            cleanName.includes(term) ||
-            phone.includes(term) ||
-            socialHandle.includes(term)
-          );
+          return searchTerms.every(term => {
+            const matchesName = cleanName.includes(term);
+            const matchesPhone = phone.includes(term);
+            const matchesHandle = socialHandle.includes(term);
+            return matchesName || matchesPhone || matchesHandle;
+          });
         });
       }
 
@@ -167,7 +151,7 @@ export const contactsPaginationService = {
           // Check if any of the selected hashtags exist in the notes
           return filters.categories!.some(category => {
             const hashtagQuery = category.startsWith('#') ? category.toLowerCase() : `#${category.toLowerCase()}`;
-            return contact.notes.toLowerCase().includes(hashtagQuery);
+            return contact.notes?.toLowerCase()?.includes(hashtagQuery) || false;
           });
         });
       }

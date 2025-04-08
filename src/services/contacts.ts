@@ -6,6 +6,7 @@ import { getQueryClient } from '../utils/queryClient';
 import { useStore } from '../stores/useStore';
 import { calculateNextContactDate, ContactFrequency } from '../utils/date';
 import { contactCacheService } from './contact-cache';
+import { freeContactsService } from './free-contacts';
 
 // Extend dayjs with the relativeTime plugin
 dayjs.extend(relativeTime);
@@ -26,7 +27,15 @@ export const contactsService = {
   formatDueDate,
 
   async getRecentContacts(): Promise<Contact[]> {
-    let query = supabase
+    const { isPremium, isOnTrial } = useStore.getState();
+    
+    if (!isPremium && !isOnTrial) {
+      // For free users, get 3 contacts from their visible 15
+      return freeContactsService.getRecentContacts(3);
+    }
+
+    // Premium users can see all contacts
+    const { data, error } = await supabase
       .from('contacts')
       .select(`
         id,
@@ -56,16 +65,19 @@ export const contactsService = {
       .order('name', { ascending: true })
       .limit(3);
 
-    const { data, error } = await query;
     if (error) throw error;
     return data || [];
   },
 
   async getContacts(): Promise<Contact[]> {
-    // Use global store for premium status
     const { isPremium, isOnTrial } = useStore.getState();
 
-    let query = supabase
+    if (!isPremium && !isOnTrial) {
+      return freeContactsService.getVisibleContacts();
+    }
+
+    // Premium users see all contacts
+    const { data, error } = await supabase
       .from('contacts')
       .select(`
         id,
@@ -90,21 +102,10 @@ export const contactsService = {
           name,
           date
         )
-      `);
-
-    // For free tier users, we show the 15 most recent contacts
-    // This ensures users have access to their newest and most relevant contacts
-    // Always order consistently first by created_at, then by name for stability
-    query = query
+      `)
       .order('created_at', { ascending: false })
       .order('name', { ascending: true });
 
-    if (!isPremium && !isOnTrial) {
-      query = query.limit(15);
-    }
-
-    const { data, error } = await query;
-    
     if (error) throw error;
     return data || [];
   },
@@ -273,13 +274,7 @@ export const contactsService = {
     // For free users, get visible contact IDs
     let visibleContactIds: string[] | null = null;
     if (!isPremium && !isOnTrial) {
-      const { data: contacts } = await supabase
-        .from('contacts')
-        .select('id')
-        .order('created_at', { ascending: false })
-        .limit(15);
-      
-      visibleContactIds = (contacts || []).map(c => c.id);
+      visibleContactIds = await freeContactsService.getVisibleContactIds();
     }
 
     const { data, error } = await supabase.rpc('get_upcoming_events', {
@@ -305,13 +300,7 @@ export const contactsService = {
     // For free users, get visible contact IDs
     let visibleContactIds: string[] | null = null;
     if (!isPremium && !isOnTrial) {
-      const { data: contacts } = await supabase
-        .from('contacts')
-        .select('id')
-        .order('created_at', { ascending: false })
-        .limit(15);
-      
-      visibleContactIds = (contacts || []).map(c => c.id);
+      visibleContactIds = await freeContactsService.getVisibleContactIds();
     }
 
     const { data, error } = await supabase.rpc('get_upcoming_events', {
@@ -709,16 +698,10 @@ export const contactsService = {
     const { isPremium, isOnTrial } = useStore.getState();
     
     // For free users, get the IDs of their 15 most recent contacts
-    // This ensures reminders align with the visible contacts in their list
     let visibleContactIds: string[] = [];
-    if (!isPremium && !isOnTrial && !contactId) {
-      const { data: contacts } = await supabase
-        .from('contacts')
-        .select('id')
-        .order('created_at', { ascending: false }) // Get newest contacts first
-        .limit(15);
-      
-      visibleContactIds = (contacts || []).map(c => c.id);
+    if (!isPremium && !isOnTrial) {
+      // Always get visible contacts for free users
+      visibleContactIds = await freeContactsService.getVisibleContactIds();
     }
 
     // Use chunked fetching for reminders to handle large datasets
@@ -745,8 +728,15 @@ export const contactsService = {
         .range(page * pageSize, (page + 1) * pageSize - 1);
       
       if (contactId) {
+        // For free users, only show reminders if contact is in visible 15
+        if (!isPremium && !isOnTrial) {
+          if (!visibleContactIds.includes(contactId)) {
+            return []; // Return empty if trying to access non-visible contact
+          }
+        }
         query = query.eq('contact_id', contactId);
       } else if (!isPremium && !isOnTrial) {
+        // Filter to only visible contacts
         query = query.in('contact_id', visibleContactIds);
       }
       
