@@ -47,17 +47,10 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
   const queryClient = useQueryClient();
   const { isPremium, isOnTrial } = useStore();
 
-  // Get contacts list - limit to 15 most recent for free users
+  // Get contacts list - uses freeContactsService for free users
   const { data: contacts } = useQuery<Contact[]>({
     queryKey: ['contacts', isPremium, isOnTrial],
-    queryFn: async () => {
-      const allContacts = await contactsService.getContacts();
-      // If user is not premium and not on trial, limit to 15 most recent contacts
-      if (!isPremium && !isOnTrial) {
-        return allContacts.slice(0, 15);
-      }
-      return allContacts;
-    },
+    queryFn: contactsService.getContacts,
     staleTime: 5 * 60 * 1000
   });
 
