@@ -82,7 +82,7 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
           to-primary-400 bg-clip-text text-transparent leading-relaxed pb-1">
           Add Your First Contact
         </h2>
-        <p className="text-[15px] text-gray-600/90 max-w-sm mx-auto mt-1.5">
+        <p className="text-[15px] text-gray-600/90 dark:text-gray-400 max-w-sm mx-auto mt-1.5">
           Start by adding someone you'd like to stay in touch with
         </p>
       </div>
@@ -90,7 +90,7 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
       {/* Form */}
       <div className="space-y-6">
         <div className="space-y-2">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Name *
           </label>
           <input
@@ -99,14 +99,14 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
             value={form.name}
             onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
             placeholder="Enter name"
-            className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 
-              focus:outline-none focus:border-primary-400 focus:ring-1 
-              focus:ring-primary-400 transition-colors duration-200"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+              focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1
+              focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             How often would you like to keep in touch? *
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -115,10 +115,10 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
                 key={option.value}
                 type="button"
                 onClick={() => setForm(prev => ({ ...prev, frequency: option.value }))}
-                className={`p-3 text-sm font-medium rounded-xl transition-all duration-200 
-                  ${form.frequency === option.value 
-                    ? 'bg-primary-50 text-primary-700 ring-1 ring-primary-200' 
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                className={`p-3 text-sm font-medium rounded-xl transition-all duration-200
+                  ${form.frequency === option.value
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ring-1 ring-primary-200 dark:ring-primary-800'
+                    : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
               >
                 {option.label}
               </button>
@@ -127,8 +127,8 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
         </div>
 
         {error && (
-          <div className="flex items-center justify-center px-3 py-2 bg-red-50 rounded-lg">
-            <p className="text-sm text-red-600 text-center">{error}</p>
+          <div className="flex items-center justify-center px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
           </div>
         )}
       </div>
@@ -138,10 +138,10 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-full px-6 py-3 text-white bg-primary-500 rounded-xl font-medium 
-            hover:bg-primary-600 transition-all duration-200 shadow-sm hover:shadow-md 
+          className="w-full px-6 py-3 text-white bg-primary-500 dark:bg-primary-600 rounded-xl font-medium
+            hover:bg-primary-600 dark:hover:bg-primary-700 transition-all duration-200 shadow-sm dark:shadow-soft-dark hover:shadow-md
             active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
-            disabled:hover:bg-primary-500 disabled:hover:shadow-sm disabled:active:scale-100 
+            disabled:hover:bg-primary-500 dark:disabled:hover:bg-primary-600 disabled:hover:shadow-sm disabled:active:scale-100
             inline-flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
@@ -157,9 +157,9 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
         <button
           onClick={handleSkip}
           disabled={isSkipping}
-          className="w-full px-6 py-3 text-gray-600 bg-gray-50 rounded-xl font-medium
-            hover:bg-gray-100 transition-all duration-200
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50"
+          className="w-full px-6 py-3 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl font-medium
+            hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50 dark:disabled:hover:bg-gray-800"
         >
           <span className="min-w-[90px] inline-block text-center">
             {isSkipping ? 'Skipping...' : 'Skip For Now'}
@@ -167,7 +167,7 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
         </button>
         <button
           onClick={onBack}
-          className="w-full px-6 py-3 text-gray-500 hover:text-gray-700 rounded-xl 
+          className="w-full px-6 py-3 text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-xl
             font-medium transition-colors duration-200"
         >
           Back

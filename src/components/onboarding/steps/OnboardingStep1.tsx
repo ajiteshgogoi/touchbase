@@ -79,7 +79,7 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
           to-primary-400 bg-clip-text text-transparent leading-relaxed pb-1">
           Welcome{userName ? `, ${userName}` : ''}!
         </h2>
-        <p className="text-base text-gray-600 max-w-sm mx-auto">
+        <p className="text-base text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
           Let's help you build and nurture meaningful relationships
         </p>
       </div>
@@ -93,13 +93,13 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
           >
             <div className="mb-6">
               {React.createElement(currentFeature.icon, {
-                className: "w-12 h-12 text-primary-500 mx-auto"
+                className: "w-12 h-12 text-primary-500 dark:text-primary-400 mx-auto"
               })}
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-3">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
               {currentFeature.title}
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               {currentFeature.description}
             </p>
           </div>
@@ -113,8 +113,8 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
               onClick={() => setActiveFeature(index)}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === safeIndex
-                  ? 'bg-primary-500 w-6'
-                  : 'bg-gray-300 hover:bg-gray-400'
+                  ? 'bg-primary-500 dark:bg-primary-600 w-6'
+                  : 'bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600'
               }`}
               aria-label={`Show feature ${index + 1}`}
             />
@@ -126,8 +126,8 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
       <div className="flex flex-col gap-3 pt-4">
         <button
           onClick={onNext}
-          className="w-full px-6 py-3 text-white bg-primary-500 rounded-xl font-medium 
-            hover:bg-primary-600 transition-all duration-200 shadow-sm hover:shadow-md 
+          className="w-full px-6 py-3 text-white bg-primary-500 dark:bg-primary-600 rounded-xl font-medium
+            hover:bg-primary-600 dark:hover:bg-primary-700 transition-all duration-200 shadow-sm dark:shadow-soft-dark hover:shadow-md
             hover:scale-[1.02] active:scale-[0.98]"
         >
           Get Started
@@ -135,9 +135,9 @@ export const OnboardingStep1 = ({ onNext, onSkip, userName }: OnboardingStep1Pro
         <button
           onClick={handleSkip}
           disabled={isSkipping}
-          className="w-full px-6 py-3 text-gray-600 bg-gray-50 rounded-xl font-medium
-            hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50
+          className="w-full px-6 py-3 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl font-medium
+            hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50 dark:disabled:hover:bg-gray-800
             disabled:hover:scale-100 disabled:active:scale-100"
         >
           <span className="min-w-[70px] inline-block text-center">

@@ -146,12 +146,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+              <Dialog.Panel className="w-full max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-xl dark:shadow-soft-dark overflow-hidden">
                 <div className="relative">
                   {/* Progress bar */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100 dark:bg-gray-800">
                     <div 
-                      className="h-full bg-primary-500 transition-all duration-300"
+                      className="h-full bg-primary-500 dark:bg-primary-600 transition-all duration-300"
                       style={{ width: `${(Math.min(currentStep, 4) / 4) * 100}%` }}
                     />
                   </div>
