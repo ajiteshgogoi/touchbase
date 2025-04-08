@@ -149,7 +149,7 @@ export const Login = () => {
             <button
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full h-[52px] flex items-center justify-center px-8 rounded-xl text-base font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-md hover:shadow-lg active:scale-[0.99] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full h-[52px] flex items-center justify-center px-8 rounded-xl text-base font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-md hover:shadow-lg active:scale-[0.99] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {isLoading ? (
                 <svg
@@ -187,7 +187,7 @@ export const Login = () => {
             {import.meta.env.DEV && (
               <button
                 onClick={handleDevLogin}
-                className="w-full px-6 py-3 text-sm font-medium text-gray-700 bg-white hover:bg-primary-50 hover:border-primary-100 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
+                className="w-full px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 hover:bg-primary-50 dark:hover:bg-primary-900/50 hover:border-primary-100 dark:hover:border-primary-800 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
               >
                 Development Mode Login
               </button>
