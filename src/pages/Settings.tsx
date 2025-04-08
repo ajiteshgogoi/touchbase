@@ -37,7 +37,7 @@ export const Settings = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     notification_enabled: false,
-    theme: 'system',
+    theme: localStorage.getItem('theme') as 'system' | 'light' | 'dark' || 'system',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     ai_suggestions_enabled: false,
     has_rated_app: false
@@ -382,7 +382,7 @@ export const Settings = () => {
       </div>
 
       <div className="space-y-6">
-        {isPreferencesLoading || notificationSettings.ai_suggestions_enabled === undefined ? (
+        {isPreferencesLoading ? (
           <div className="space-y-6">
             <SectionLoader />
             <SectionLoader />

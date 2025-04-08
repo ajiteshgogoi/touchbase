@@ -15,11 +15,15 @@ export const Layout = ({ children }: LayoutProps) => {
   const { user } = useStore();
 
   // Get user preferences including theme
+  // Get theme from localStorage first, then try to sync with server preferences
+  const savedTheme = localStorage.getItem('theme') || 'system';
+  
+  // Apply theme whenever preferences change
+  // Subscribe to preference changes only if user is logged in
   const { data: preferences } = useQuery({
     queryKey: ['preferences', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-
       const { data, error } = await supabase
         .from('user_preferences')
         .select('theme')
@@ -29,36 +33,38 @@ export const Layout = ({ children }: LayoutProps) => {
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
+      if (data?.theme) {
+        localStorage.setItem('theme', data.theme);
+      }
       return data;
     },
     enabled: !!user?.id
   });
 
-  // Apply theme whenever preferences change
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const theme = preferences?.theme || 'system';
+    const currentTheme = preferences?.theme || savedTheme;
     
     const applyTheme = () => {
       const isDark =
-        theme === 'dark' ||
-        (theme === 'system' && mediaQuery.matches);
+        currentTheme === 'dark' ||
+        (currentTheme === 'system' && mediaQuery.matches);
       
       document.documentElement.classList.toggle('dark', isDark);
     };
-
+  
     applyTheme(); // Initial application
     
     // Listen for system theme changes
     const handleChange = () => {
-      if (theme === 'system') {
+      if (currentTheme === 'system') {
         applyTheme();
       }
     };
     
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [preferences?.theme]); // Re-run when theme preference changes
+  }, [preferences?.theme, savedTheme]); // Re-run when theme changes
 
   return (
     <div className="min-h-screen min-w-[320px] bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-black flex flex-col">

@@ -1,16 +1,39 @@
 import type { NotificationSettings as NotificationSettingsType } from '../../types';
+
+type ThemeValue = 'system' | 'light' | 'dark';
+
 interface Props {
   settings: NotificationSettingsType;
   onUpdate: (settings: Partial<NotificationSettingsType>) => Promise<void>;
 }
 
-const themes = [
+const themes: Array<{
+  value: ThemeValue;
+  label: string;
+  description: string;
+}> = [
   { value: 'system', label: 'System', description: 'Follow system appearance' },
   { value: 'light', label: 'Light', description: 'Always use light mode' },
   { value: 'dark', label: 'Dark', description: 'Always use dark mode' },
-] as const;
+];
 
 export const ThemeSettings = ({ settings, onUpdate }: Props) => {
+  const handleThemeChange = async (newTheme: ThemeValue) => {
+    // Save to localStorage immediately
+    localStorage.setItem('theme', newTheme);
+    
+    // Apply theme immediately
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const isDark =
+      newTheme === 'dark' ||
+      (newTheme === 'system' && mediaQuery.matches);
+    
+    document.documentElement.classList.toggle('dark', isDark);
+    
+    // Update server settings
+    await onUpdate({ theme: newTheme });
+  };
+
   return (
     <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200 p-6">
       <h2 className="text-xl font-semibold text-primary-500 dark:text-primary-400 mb-6">
@@ -38,7 +61,7 @@ export const ThemeSettings = ({ settings, onUpdate }: Props) => {
                 hover:bg-white/50 dark:hover:bg-gray-900/50
                 ${settings.theme === theme.value ? 'ring-1 ring-primary-400/30 dark:ring-primary-400/20' : ''}
               `}
-              onClick={() => onUpdate({ theme: theme.value })}
+              onClick={() => handleThemeChange(theme.value)}
             >
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
