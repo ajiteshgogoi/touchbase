@@ -34,7 +34,7 @@ export const UsersSocialProof = () => {
             [...Array(7)].map((_, i: number) => (
               <div
                 key={i}
-                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white bg-gray-100/80 shadow-[0_0_10px_rgba(0,0,0,0.05)] animate-pulse translate-x-0"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white dark:border-gray-800 bg-gray-100/80 dark:bg-gray-800/80 shadow-[0_0_10px_rgba(0,0,0,0.05)] dark:shadow-[0_0_10px_rgba(0,0,0,0.2)] animate-pulse translate-x-0"
                 style={{ marginLeft: i === 0 ? '0' : '-12px', zIndex: 5 - i }}
               />
             ))
@@ -46,7 +46,7 @@ export const UsersSocialProof = () => {
               return (
                 <div
                   key={index}
-                  className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white shadow-[0_0_10px_rgba(0,0,0,0.05)] overflow-hidden translate-x-0"
+                  className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-[2.5px] border-white dark:border-gray-800 shadow-[0_0_10px_rgba(0,0,0,0.05)] dark:shadow-[0_0_10px_rgba(0,0,0,0.2)] overflow-hidden translate-x-0"
                   style={{ marginLeft: index === 0 ? '0' : '-12px', zIndex: 5 - index }}
                 >
                   {(() => {
@@ -87,11 +87,11 @@ export const UsersSocialProof = () => {
         </div>
 
         {/* Stats Text - Same height reserved for loading and loaded states */}
-        <div className={`min-h-[48px] w-full flex items-center justify-center ${isLoading ? 'animate-pulse bg-gray-100/80 rounded-lg' : ''}`}>
+        <div className={`min-h-[48px] w-full flex items-center justify-center ${isLoading ? 'animate-pulse bg-gray-100/80 dark:bg-gray-800/80 rounded-lg' : ''}`}>
           {!isLoading && stats && (
-            <p className="text-[14px] leading-relaxed text-gray-600/90 font-[450] text-center px-5 tracking-[-0.01em]">
+            <p className="text-[14px] leading-relaxed text-gray-600/90 dark:text-gray-400 font-[450] text-center px-5 tracking-[-0.01em]">
               Join{' '}
-              <span className="font-semibold text-primary-600">{stats.totalCount.toLocaleString()} TouchBasers</span>
+              <span className="font-semibold text-primary-600 dark:text-primary-400">{stats.totalCount.toLocaleString()} TouchBasers</span>
               {' '}improving their relationships...
             </p>
           )}

@@ -84,60 +84,60 @@ export const Login = () => {
       </Helmet>
       <main role="main" className="min-h-[80vh] flex flex-col items-center justify-center space-y-8 px-4 py-16">
         <div className="text-center space-y-5 max-w-xl">
-          <h1 className="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em]">
+          <h1 className="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 dark:from-primary-500 dark:to-primary-300 bg-clip-text text-transparent tracking-[-0.02em]">
             Welcome to TouchBase
           </h1>
-          <p className="text-xl sm:text-2xl text-gray-600/90 font-[450] tracking-[-0.01em]">
+          <p className="text-xl sm:text-2xl text-gray-600/90 dark:text-gray-400 font-[450] tracking-[-0.01em]">
             Stay connected with the people who matter most
           </p>
         </div>
 
         <div className="max-w-4xl w-full px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-            <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-300">
+            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300">
               <div className="text-primary-500/90 mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-7 w-7" aria-hidden="true" focusable="false">
                   <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" strokeWidth="1.5"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-700/90 mb-2">Simple & Personal</h3>
-              <p className="text-gray-600/90 leading-relaxed">Track important interactions with your loved ones in one space</p>
+              <h3 className="text-lg font-semibold text-gray-700/90 dark:text-gray-100 mb-2">Simple & Personal</h3>
+              <p className="text-gray-600/90 dark:text-gray-400 leading-relaxed">Track important interactions with your loved ones in one space</p>
             </div>
             
-            <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-300">
+            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300">
               <div className="text-primary-500/90 mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-7 w-7" aria-hidden="true" focusable="false">
                   <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeWidth="1.5"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-700/90 mb-2">Timely Reminders</h3>
-              <p className="text-gray-600/90 leading-relaxed">Get gentle nudges to reconnect before life gets in the way</p>
+              <h3 className="text-lg font-semibold text-gray-700/90 dark:text-gray-100 mb-2">Timely Reminders</h3>
+              <p className="text-gray-600/90 dark:text-gray-400 leading-relaxed">Get gentle nudges to reconnect before life gets in the way</p>
             </div>
             
-            <div className="p-6 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-100/50 shadow-sm hover:shadow-md hover:bg-white/70 transition-all duration-300">
+            <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300">
               <div className="text-primary-500/90 mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-7 w-7" aria-hidden="true" focusable="false">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" strokeWidth="1.5"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-700/90 mb-2">Helpful Assistant</h3>
-              <p className="text-gray-600/90 leading-relaxed">Personalised suggestions to make every conversation meaningful</p>
+              <h3 className="text-lg font-semibold text-gray-700/90 dark:text-gray-100 mb-2">Helpful Assistant</h3>
+              <p className="text-gray-600/90 dark:text-gray-400 leading-relaxed">Personalised suggestions to make every conversation meaningful</p>
             </div>
           </div>
         </div>
 
-        <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/90 backdrop-blur-sm border border-gray-100/50">
+        <div className="max-w-lg text-center px-6 py-4 rounded-2xl bg-gray-50/90 dark:bg-gray-900/60 backdrop-blur-sm border border-gray-100/50 dark:border-gray-800/50">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <p className="text-base text-gray-600/90 leading-relaxed text-center">
+            <p className="text-base text-gray-600/90 dark:text-gray-400 leading-relaxed text-center">
               TouchBase is your private space for nurturing real-world relationships. It is not a social network.
             </p>
           </div>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-xl px-10 pt-6 pb-10 rounded-2xl shadow-lg max-w-sm w-full hover:bg-white/80 transition-colors duration-200">
+        <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl px-10 pt-6 pb-10 rounded-2xl border border-gray-100/50 dark:border-gray-800/50 shadow-lg dark:shadow-soft-dark max-w-sm w-full hover:shadow-xl hover:bg-white/80 dark:hover:bg-gray-900/70 transition-all duration-200">
           {error && (
             <div className="mb-8 p-4 text-[15px] text-red-700 bg-red-50 rounded-xl" role="alert">
               {error}
@@ -194,13 +194,13 @@ export const Login = () => {
             )}
           </div>
 
-          <p className="text-[14px] text-gray-500/90 text-center mt-10 leading-[1.5] tracking-[-0.01em]">
+          <p className="text-[14px] text-gray-500/90 dark:text-gray-400 text-center mt-10 leading-[1.5] tracking-[-0.01em]">
             By continuing, you agree to our{' '}
-            <a href="/terms" className="text-primary-500 hover:text-primary-600 font-medium">
+            <a href="/terms" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="/privacy" className="text-primary-500 hover:text-primary-600 font-medium">
+            <a href="/privacy" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
               Privacy Policy
             </a>
           </p>
@@ -208,7 +208,7 @@ export const Login = () => {
 
         <button
           onClick={() => setIsInstallModalOpen(true)}
-          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600/90 bg-white/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 shadow-sm hover:bg-white/70 transition-colors duration-200"
+          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600/90 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-soft-dark hover:shadow-md hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200"
         >
           <img src="/icon.svg" alt="heart" className="w-5 h-5 text-primary-500" loading="eager" />
           <span>Get TouchBase on your device</span>
@@ -219,7 +219,7 @@ export const Login = () => {
             href="https://www.instagram.com/touchbase.site"
             target="_blank"
             rel="preconnect noopener noreferrer"
-            className="text-gray-500 hover:text-gray-600 transition-colors duration-200"
+            className="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
             aria-label="Follow us on Instagram"
           >
             <InstagramIcon className="h-4 w-4" />
@@ -228,7 +228,7 @@ export const Login = () => {
             href="https://www.reddit.com/r/TouchBase/"
             target="_blank"
             rel="preconnect noopener noreferrer"
-            className="text-gray-500 hover:text-gray-600 transition-colors duration-200"
+            className="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
             aria-label="Join our Reddit community"
           >
             <RedditIcon className="h-4 w-4" />
@@ -237,7 +237,7 @@ export const Login = () => {
             href="https://www.linkedin.com/company/touchbase-site/"
             target="_blank"
             rel="preconnect noopener noreferrer"
-            className="text-gray-500 hover:text-gray-600 transition-colors duration-200"
+            className="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
             aria-label="Connect with us on LinkedIn"
           >
             <LinkedInIcon className="h-4 w-4" />
