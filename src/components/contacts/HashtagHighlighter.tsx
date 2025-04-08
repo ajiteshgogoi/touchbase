@@ -56,9 +56,9 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
         /#[a-zA-Z]\w{0,13}(?=[^\w]|$)/g,
         match => {
           if (match.length >= 2 && match.length <= 15) {
-            return `<span class="text-primary-400">${match}</span>`;
+            return `<span class="text-primary-400 dark:text-primary-500">${match}</span>`;
           }
-          return `<span class="text-primary-600">${match}</span>`;
+          return `<span class="text-primary-600 dark:text-primary-400">${match}</span>`;
         }
       );
       highlighterRef.current.innerHTML = styledText;

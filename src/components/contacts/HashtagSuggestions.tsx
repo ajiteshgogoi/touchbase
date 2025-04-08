@@ -66,7 +66,7 @@ export const HashtagSuggestions = ({
   return (
     <div
       ref={suggestionsRef}
-      className="absolute z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 max-h-32 overflow-y-auto transition-all duration-200 mobile:max-h-28"
+      className="absolute z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg dark:shadow-soft-dark border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto transition-all duration-200 mobile:max-h-28"
       style={{
         top: position.top,
         left: position.left,
@@ -79,7 +79,7 @@ export const HashtagSuggestions = ({
         {suggestions.map((hashtag, index) => (
           <li
             key={index}
-            className="px-4 py-2 hover:bg-primary-50 cursor-pointer text-sm text-gray-700 hover:text-primary-600"
+            className="px-4 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/30 cursor-pointer text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
             onClick={() => onSelect(hashtag)}
           >
             {hashtag}
