@@ -449,25 +449,15 @@ function App() {
 
         console.log('Auth state changed:', event);
         
-        try {
-          setIsLoading(true);
-          // Update user state immediately
-          setUser(session?.user ?? null);
+        // Update user state immediately
+        setUser(session?.user ?? null);
 
-          // Handle user state changes
-          if (session?.user) {
-            await checkNotificationsAndTimezone(session.user.id);
-            await checkPremiumStatus();
-          } else {
-            setIsPremium(false);
-          }
-        } catch (error) {
-          console.error('Error handling auth state change:', error);
-          // Reset premium state on error
+        // Handle user state changes
+        if (session?.user) {
+          checkNotificationsAndTimezone(session.user.id);
+          checkPremiumStatus();
+        } else {
           setIsPremium(false);
-          setUser(null);
-        } finally {
-          setIsLoading(false);
         }
       }
     );
