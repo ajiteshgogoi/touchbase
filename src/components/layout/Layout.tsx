@@ -10,7 +10,7 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen min-w-[320px] bg-gradient-to-br from-primary-50 to-white dark:from-primary-950 dark:to-gray-950 flex flex-col">
+    <div className="min-h-screen min-w-[320px] bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-black flex flex-col">
       <Navbar />
       <main className="w-full min-w-[320px] min-h-[600px] max-w-4xl mx-auto px-4 pb-4 pt-8 flex-grow">
         <div className="w-full h-full min-h-[600px] bg-white dark:bg-gray-900 rounded-xl shadow-soft dark:shadow-soft-dark p-6">
