@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import type { NotificationSettings as NotificationSettingsType } from '../../types';
-
 interface Props {
   settings: NotificationSettingsType;
   onUpdate: (settings: Partial<NotificationSettingsType>) => Promise<void>;
@@ -13,31 +11,6 @@ const themes = [
 ] as const;
 
 export const ThemeSettings = ({ settings, onUpdate }: Props) => {
-  // Handle theme changes and system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const applyTheme = () => {
-      const isDark =
-        settings.theme === 'dark' ||
-        (settings.theme === 'system' && mediaQuery.matches);
-      
-      document.documentElement.classList.toggle('dark', isDark);
-    };
-
-    applyTheme(); // Initial application
-    
-    // Listen for system theme changes
-    const handleChange = () => {
-      if (settings.theme === 'system') {
-        applyTheme();
-      }
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [settings.theme]);
-
   return (
     <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200 p-6">
       <h2 className="text-xl font-semibold text-primary-500 dark:text-primary-400 mb-6">

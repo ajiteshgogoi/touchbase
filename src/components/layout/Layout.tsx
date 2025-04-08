@@ -1,7 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { getFullVersion } from '../../../version/version';
 import type { User } from '@supabase/supabase-js';
+import { useStore } from '../../stores/useStore';
+import { supabase } from '../../lib/supabase/client';
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,6 +11,57 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
+  const { user } = useStore();
+
+  useEffect(() => {
+    const initializeTheme = async () => {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      let theme = 'system';
+
+      // Get user preferences from database if logged in
+      if (user?.id) {
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('theme')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (preferences?.theme) {
+          theme = preferences.theme;
+        }
+      }
+      
+      const isDark =
+        theme === 'dark' ||
+        (theme === 'system' && mediaQuery.matches);
+      
+      document.documentElement.classList.toggle('dark', isDark);
+      
+      // Listen for system theme changes if using system preference
+      const handleChange = () => {
+        if (theme === 'system') {
+          document.documentElement.classList.toggle('dark', mediaQuery.matches);
+        }
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    };
+
+    // Initialize theme and store cleanup function
+    let cleanup: (() => void) | undefined;
+    initializeTheme().then(cleanupFn => {
+      cleanup = cleanupFn;
+    });
+
+    // Return cleanup function
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
+  }, [user?.id]);
+
   return (
     <div className="min-h-screen min-w-[320px] bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-black flex flex-col">
       <Navbar />
