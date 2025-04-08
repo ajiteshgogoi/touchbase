@@ -43,6 +43,15 @@ export const Settings = () => {
     has_rated_app: false
   });
 
+  // Ensure settings always have defined values
+  const safeSettings = {
+    notification_enabled: notificationSettings.notification_enabled ?? false,
+    theme: notificationSettings.theme ?? 'system',
+    timezone: notificationSettings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ai_suggestions_enabled: notificationSettings.ai_suggestions_enabled ?? false,
+    has_rated_app: notificationSettings.has_rated_app ?? false
+  };
+
   // Get subscription details
   const { data: subscription } = useQuery({
     queryKey: ['subscription', user?.id] as const,
@@ -402,7 +411,7 @@ export const Settings = () => {
             {/* Notification Settings */}
             <Suspense fallback={<SectionLoader />}>
               <NotificationSettings
-                settings={notificationSettings}
+                settings={safeSettings}
                 onUpdate={handleNotificationChange}
                 userId={user.id}
               />
@@ -411,7 +420,7 @@ export const Settings = () => {
             {/* Theme Settings */}
             <Suspense fallback={<SectionLoader />}>
               <ThemeSettings
-                settings={notificationSettings}
+                settings={safeSettings}
                 onUpdate={handleNotificationChange}
               />
             </Suspense>
@@ -419,7 +428,7 @@ export const Settings = () => {
             {/* AI Settings */}
             <Suspense fallback={<SectionLoader />}>
               <AISettings
-                settings={notificationSettings}
+                settings={safeSettings}
                 onUpdate={handleNotificationChange}
                 isPremium={isPremium}
                 subscription={subscription}
