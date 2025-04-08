@@ -543,8 +543,8 @@ export const ContactCard = ({
                 });
               }
             }}
-            className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm dark:shadow-soft-dark transition-all duration-200
-              ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-pointer pointer-events-none' : 'text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] hover:shadow-md'}`}
+            className={`inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
+              ${isSelectionMode || isDeleting || isBulkDeleting ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-pointer pointer-events-none' : 'text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] hover:shadow-md dark:hover:shadow-lg'}`}
             title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "Log an interaction"}
           >
             Log Interaction
@@ -565,7 +565,7 @@ export const ContactCard = ({
                 className={`inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] rounded-lg shadow-sm transition-all duration-200
                   ${isSelectionMode || isDeleting || isBulkDeleting
                     ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 pointer-events-none cursor-pointer'
-                    : 'text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] hover:shadow-md dark:shadow-soft-dark'}`}
+                    : 'text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] hover:shadow-md dark:hover:shadow-lg'}`}
                 title={isDeleting ? "Deleting contact..." : isSelectionMode ? "Click to select/deselect" : "View interaction history"}
                 onClick={e => (isSelectionMode || isDeleting) && e.preventDefault()}
               >
