@@ -294,7 +294,7 @@ export const VirtualizedContactList = ({
   const lastScrollTop = useRef(0);
   const lastScrollTime = useRef(performance.now());
   const scrollVelocity = useRef(0);
-  const scrollMomentumTimer = useRef<number>();
+  const scrollMomentumTimer = useRef<number | null>(null);
   const isScrolling = useRef(false);
 
   // Track touch/wheel events to detect explicit scroll stops

@@ -64,9 +64,9 @@ export const ContactCard = ({
   isBulkDeleting = false
 }: ContactCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const pressTimer = useRef<NodeJS.Timeout>();
-  const pressStartTime = useRef<number>();
-  const mouseButton = useRef<number>();
+  const pressTimer = useRef<NodeJS.Timeout | null>(null);
+  const pressStartTime = useRef<number | null>(null);
+  const mouseButton = useRef<number | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handlePressStart = (e: React.MouseEvent | React.TouchEvent) => {
@@ -89,9 +89,9 @@ export const ContactCard = ({
     if (!isSelectionMode) {
       if (pressTimer.current) {
         clearTimeout(pressTimer.current);
-        pressTimer.current = undefined;
+        pressTimer.current = null;
       }
-      pressStartTime.current = undefined;
+      pressStartTime.current = null;
 
       // Handle right click to enter selection mode
       if ('button' in e && e.button === 2) {
@@ -104,8 +104,10 @@ export const ContactCard = ({
   const handlePressMove = () => {
     // Only handle movement outside selection mode
     if (!isSelectionMode && pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = undefined;
+      if (pressTimer.current) {
+        clearTimeout(pressTimer.current);
+        pressTimer.current = null;
+      }
     }
   };
 
