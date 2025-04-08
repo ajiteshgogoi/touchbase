@@ -152,7 +152,7 @@ const ConversationPrompts: React.FC = () => {
           </button>
         </div>
 
-        <div className="w-full border-t border-gray-200 dark:border-gray-800 mt-12">
+        <div className="w-full border-t border-gray-200 dark:border-gray-800 mt-12 mb-6">
           <div className="max-w-2xl mx-auto pt-8">
             <h2 className="text-2xl font-[600] text-gray-900/90 dark:text-white mb-6">How to Use</h2>
             <div className="space-y-8">
