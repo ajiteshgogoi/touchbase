@@ -91,17 +91,33 @@ export const Settings = () => {
   });
 
   // Get user preferences
-  const { data: preferences, isLoading: isPreferencesLoading } = useQuery({
+  const { data: preferences, isLoading: isPreferencesLoading, refetch } = useQuery<UserPreferences>({
     queryKey: ['preferences', user?.id],
     refetchOnWindowFocus: true,
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache the data
     queryFn: async () => {
+      console.log('[Preferences] Starting preferences fetch');
       if (!user?.id) return null;
 
       const { data, error } = await supabase
         .from('user_preferences')
-        .select('*')
+        .select(`
+          id,
+          user_id,
+          notification_enabled,
+          theme,
+          timezone,
+          ai_suggestions_enabled,
+          has_rated_app,
+          last_rating_prompt,
+          created_at,
+          updated_at
+        `)
         .eq('user_id', user.id)
         .single();
+
+      console.log('[Preferences] Raw DB response:', data);
       
       if (error) {
         if (error.code === 'PGRST116') {
@@ -126,7 +142,14 @@ export const Settings = () => {
         }
         throw error;
       }
-      return data as UserPreferences;
+      if (!data) {
+        console.log('[Preferences] No data returned from DB');
+        return null;
+      }
+      
+      const typedData = data as UserPreferences;
+      console.log('[Preferences] Typed data:', typedData);
+      return typedData;
     },
     enabled: !!user?.id,
     retry: 1
@@ -134,15 +157,17 @@ export const Settings = () => {
 
   // Update notification settings whenever preferences change or are initially loaded
   useEffect(() => {
-    if (preferences) {
+    if (preferences && typeof preferences === 'object') {
+      // Ensure we have valid values
       const newSettings = {
-        notification_enabled: preferences.notification_enabled,
-        theme: preferences.theme,
+        notification_enabled: preferences.notification_enabled ?? false,
+        theme: preferences.theme || 'system',
         timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ai_suggestions_enabled: preferences.ai_suggestions_enabled,
-        has_rated_app: preferences.has_rated_app
+        ai_suggestions_enabled: preferences.ai_suggestions_enabled ?? false,
+        has_rated_app: preferences.has_rated_app ?? false
       };
-
+      
+      console.log('Updating notification settings from preferences:', newSettings);
       setNotificationSettings(newSettings);
       
       // Check browser permission asynchronously
@@ -164,6 +189,8 @@ export const Settings = () => {
   }, [preferences]);
 
   useEffect(() => {
+    // Force a fresh fetch when component mounts
+    refetch();
     // Initialize notification service when component mounts
     notificationService.initialize().catch(console.error);
     
