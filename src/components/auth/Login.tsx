@@ -208,7 +208,7 @@ export const Login = () => {
 
         <button
           onClick={() => setIsInstallModalOpen(true)}
-          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600/90 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-soft-dark hover:shadow-md hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200"
+          className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left text-[14px] text-gray-600/90 dark:text-gray-400 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm px-7 py-4 rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-sm hover:shadow-md hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200"
         >
           <img src="/icon.svg" alt="heart" className="w-5 h-5 text-primary-500" loading="eager" />
           <span>Get TouchBase on your device</span>
