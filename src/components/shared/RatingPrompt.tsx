@@ -148,29 +148,29 @@ export const RatingPrompt = ({ user, settings }: RatingPromptProps) => {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
+              <Dialog.Panel className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-xl dark:shadow-soft-dark overflow-hidden">
                 <div className="p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-primary-50 rounded-xl mb-4">
-                    <StarIcon className="w-6 h-6 text-primary-600" />
+                  <div className="flex items-center justify-center w-12 h-12 bg-primary-50 dark:bg-primary-900/30 rounded-xl mb-4">
+                    <StarIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                   </div>
-                  <Dialog.Title as="h3" className="text-xl font-semibold text-gray-900">
+                  <Dialog.Title as="h3" className="text-xl font-semibold text-gray-900 dark:text-white">
                     Enjoying TouchBase?
                   </Dialog.Title>
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     Your rating helps us improve and create better features for everyone.
                   </p>
                 </div>
 
-                <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50/80 border-t border-gray-100/75">
+                <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-gray-800/80 border-t border-gray-100/75 dark:border-gray-800/75">
                   <button
                     onClick={handleLater}
-                    className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white/80 ring-1 ring-gray-200/75 rounded-xl hover:bg-gray-50/90 transition-all duration-200 shadow-sm"
+                    className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/80 dark:bg-gray-900/80 ring-1 ring-gray-200/75 dark:ring-gray-700/75 rounded-xl hover:bg-gray-50/90 dark:hover:bg-gray-800/90 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                   >
                     Maybe Later
                   </button>
                   <button
                     onClick={handleRate}
-                    className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 transition-all duration-200 shadow-sm"
+                    className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                   >
                     Rate Now
                   </button>
