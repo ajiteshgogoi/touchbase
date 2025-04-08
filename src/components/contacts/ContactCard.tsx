@@ -196,7 +196,7 @@ export const ContactCard = ({
         }
       }}
       className={`contact-card bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border ${
-        isSelected ? 'border-primary-400 dark:border-primary-500 shadow-md' : 'border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:shadow-md'
+        isSelected ? 'border-primary-400 dark:border-primary-500 shadow-md dark:shadow-lg' : 'border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft hover:shadow-md dark:hover:shadow-lg'
       } transition-all duration-200 scroll-mt-6 ${isSelectionMode ? 'cursor-pointer' : ''}`}
     >
       {/* Compact Header */}
