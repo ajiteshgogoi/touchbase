@@ -477,7 +477,7 @@ export const Contacts = () => {
                   <select
                     value={sortField}
                     onChange={(e) => setSortField(e.target.value as SortField)}
-                    className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 hover:border-gray-300 dark:hover:border-gray-600 transition-colors appearance-none bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm text-sm text-gray-900 dark:text-white"
+                    className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 hover:border-gray-300 dark:hover:border-gray-600 transition-colors appearance-none bg-white/60 dark:bg-gray-800 backdrop-blur-sm text-sm text-gray-900 dark:text-white"
                     aria-label="Sort contacts by"
                   >
                     <option value="name">Sort by Name</option>
