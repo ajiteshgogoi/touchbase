@@ -367,7 +367,7 @@ export const Settings = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/20 dark:hover:bg-gray-800/20 rounded-xl transition-all duration-200"
+            className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-50/10 dark:hover:bg-gray-900/10 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />

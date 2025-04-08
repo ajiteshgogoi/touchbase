@@ -190,7 +190,7 @@ export const Analytics = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/')}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/10 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />

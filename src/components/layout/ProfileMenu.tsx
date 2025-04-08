@@ -182,7 +182,7 @@ export const ProfileMenu = () => {
               {({ active }) => (
                 <a href="/blog"                   
                    rel="noopener noreferrer"
-                   className={`${menuStyles.base} ${active ? 'bg-gray-50/20 dark:bg-gray-800/20 text-primary-600 dark:text-primary-400' : menuStyles.inactive}`}>
+                   className={`${menuStyles.base} ${active ? 'bg-gray-50/10 dark:bg-gray-900/10 text-primary-600 dark:text-primary-400' : menuStyles.inactive}`}>
                   <Suspense fallback={<IconFallback />}>
                     <NewspaperIcon className="h-5 w-5 mr-2 text-primary-500" />
                   </Suspense>
