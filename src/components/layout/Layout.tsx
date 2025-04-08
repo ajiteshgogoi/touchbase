@@ -1,14 +1,12 @@
-import { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { getFullVersion } from '../../../version/version';
-import type { User } from '@supabase/supabase-js';
 import { useStore } from '../../stores/useStore';
 import { supabase } from '../../lib/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
 interface LayoutProps {
   children: ReactNode;
-  user?: User | null;
 }
 
 export const Layout = ({ children }: LayoutProps) => {

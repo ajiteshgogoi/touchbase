@@ -1,11 +1,9 @@
-import { useStore } from '../../stores/useStore';
+import React from 'react';
 import { Layout } from './Layout';
 
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useStore();
-
   return (
-    <Layout user={user}>
+    <Layout>
       {children}
     </Layout>
   );

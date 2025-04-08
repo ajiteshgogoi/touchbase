@@ -12,7 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
+    "jsx": "react",
 
     /* Linting */
     "strict": true,
@@ -45,7 +45,8 @@
     /* Types */
     "types": [
       "node",
-      "@types/react-is"
+      "@types/react-is",
+      "@types/react"
     ]
   },
 
