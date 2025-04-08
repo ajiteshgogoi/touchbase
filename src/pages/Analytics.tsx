@@ -132,27 +132,27 @@ export const Analytics = () => {
       {analytics?.contactTopics.map(contact => (
         <div
           key={contact.contactId}
-          className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200"
+          className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200"
         >
           <div className="flex flex-col">
             <Link
               to={`/contacts?search=${encodeURIComponent(contact.contactName)}`}
-              className="block text-xl font-semibold text-primary-500 tracking-[-0.01em] mb-3 hover:text-primary-600 transition-colors"
+              className="block text-xl font-semibold text-primary-500 dark:text-primary-400 tracking-[-0.01em] mb-3 hover:text-primary-600 transition-colors"
             >
               {contact.contactName}
             </Link>
             {contact.aiAnalysis ? (
               <div className="space-y-4">
                 {formatAnalysis(contact.aiAnalysis).map((section, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
-                    <div className="px-3 py-2 bg-gray-100">
-                      <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">
+                  <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                    <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                      <span className="text-xs font-[500] text-gray-500/90 dark:text-gray-400 uppercase tracking-wider">
                         {section.title}
                       </span>
                     </div>
                     <div className="px-3 py-2">
                       <div className="group flex items-start gap-2">
-                        <div className="flex-1 text-[15px] text-gray-700/90 leading-relaxed">
+                        <div className="flex-1 text-[15px] text-gray-700/90 dark:text-gray-300 leading-relaxed">
                           {section.content.split('\n').map((line, i) => (
                             <div key={i} className="py-0.5">{line}</div>
                           ))}
@@ -170,9 +170,9 @@ export const Analytics = () => {
                 ))}
               </div>
             ) : (
-              <div className="bg-gray-50 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
                 <div className="px-3 py-2">
-                  <div className="text-[15px] text-gray-600/90">
+                  <div className="text-[15px] text-gray-600/90 dark:text-gray-400">
                     Insights not available
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export const Analytics = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/')}
-            className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/10 rounded-xl transition-all duration-200"
+            className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 hover:bg-gray-50/10 rounded-xl transition-all duration-200"
             aria-label="Go back"
           >
             <ArrowLeftIcon className="h-5 w-5" />
@@ -214,7 +214,7 @@ export const Analytics = () => {
             </p>
             <Link
               to="/settings"
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 hover:bg-primary-600 shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 min-w-[140px]"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 shadow-soft dark:shadow-soft-dark hover:shadow-lg active:scale-[0.98] transition-all duration-200 min-w-[140px]"
             >
               Upgrade Now
               <ChevronRightIcon className="w-5 h-5 ml-1.5" />
@@ -232,7 +232,7 @@ export const Analytics = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate('/')}
-              className="p-2.5 -m-2.5 text-gray-400 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
+              className="p-2.5 -m-2.5 text-gray-400 dark:text-gray-500 hover:text-primary-500 hover:bg-gray-50/70 rounded-xl transition-all duration-200"
               aria-label="Go back"
             >
               <ArrowLeftIcon className="h-5 w-5" />
@@ -241,7 +241,7 @@ export const Analytics = () => {
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent leading-tight pb-1">
                 Relationship Insights
               </h1>
-              <p className="mt-1.5 text-[15px] text-gray-600/90">
+              <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
                 Deeper understanding of your connections and interaction patterns
               </p>
             </div>
@@ -253,9 +253,9 @@ export const Analytics = () => {
             disabled={!canGenerate || isGenerating}
             className={`inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-xl text-[15px] font-[500] text-white shadow-soft hover:shadow-lg active:scale-[0.98] transition-all duration-200 min-w-[225px] ${
               canGenerate && !isGenerating
-                ? 'bg-primary-500 hover:bg-primary-600'
-                : 'bg-gray-400 cursor-not-allowed'
-            }`}
+                ? 'bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700'
+                : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+            } dark:shadow-soft-dark`}
           >
             <span className="inline-flex items-center justify-center">
               {isGenerating ? (
@@ -276,7 +276,7 @@ export const Analytics = () => {
             </span>
           </button>
           {analytics && !canGenerate && (
-            <p className="text-[15px] text-primary-500 font-[500] text-center sm:text-right">
+            <p className="text-[15px] text-primary-500 dark:text-primary-400 font-[500] text-center sm:text-right">
               New insights available {dayjs(analytics.nextGenerationAllowed).fromNow()}
             </p>
           )}
@@ -326,28 +326,28 @@ export const Analytics = () => {
                   {analytics?.topEngaged.map(contact => (
                     <div
                       key={contact.contactId}
-                      className="bg-gray-50/90 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-all duration-200 shadow-sm"
+                      className="bg-gray-50/90 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-gray-50/80 transition-all duration-200 shadow-sm"
                     >
                       <div className="px-4 py-4">
                         <div className="flex flex-col gap-3.5">
                           <Link
                             to={`/contacts?search=${encodeURIComponent(contact.contactName)}`}
-                            className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 transition-colors tracking-[-0.01em]"
+                            className="block text-[15px] font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-600 transition-colors tracking-[-0.01em]"
                           >
                             {contact.contactName}
                           </Link>
                           <div className="grid gap-2.5">
-                            <div className="flex flex-wrap items-center gap-2 text-[14px] text-gray-600/90">
+                            <div className="flex flex-wrap items-center gap-2 text-[14px] text-gray-600/90 dark:text-gray-400">
                               <span className="inline-flex items-center px-2.5 py-1 bg-white/90 dark:bg-gray-900/50 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
                                 <span className="font-[450]">{contact.interactionCount} interactions</span>
                               </span>
                               {contact.lastInteraction && (
-                                <span className="inline-flex items-center px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+                                <span className="inline-flex items-center px-2.5 py-1 bg-white/90 dark:bg-gray-900/50 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
                                   Last: {dayjs(contact.lastInteraction).fromNow()}
                                 </span>
                               )}
                             </div>
-                            <div className="inline-flex items-center px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+                            <div className="inline-flex items-center px-2.5 py-1 bg-white/90 dark:bg-gray-900/50 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
                               <span className="text-[14px] text-gray-600/90 dark:text-gray-400">
                                 Every{' '}
                                 <span className="font-[500] text-gray-800 dark:text-gray-200">
@@ -373,9 +373,9 @@ export const Analytics = () => {
                 <div className="space-y-4">
                   {analytics && (
                     <>
-                      <div className="bg-gray-50 rounded-lg overflow-hidden">
-                        <div className="px-3 py-2 bg-gray-100">
-                          <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Overall Status</span>
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                        <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                          <span className="text-xs font-[500] text-gray-500/90 dark:text-gray-400 uppercase tracking-wider">Overall Status</span>
                         </div>
                         <div className="p-3">
                           <ProgressMetric
@@ -383,7 +383,7 @@ export const Analytics = () => {
                             value={analytics.topEngaged.length}
                             total={analytics.topEngaged.length + analytics.neglectedContacts.length}
                           />
-                          <div className="mt-2 flex justify-between text-[13px] sm:text-sm font-[450] text-gray-600/90">
+                          <div className="mt-2 flex justify-between text-[13px] sm:text-sm font-[450] text-gray-600/90 dark:text-gray-400">
                             <span>Active Contacts: {analytics.topEngaged.length + analytics.neglectedContacts.length}</span>
                             <span>{analytics.neglectedContacts.length} need attention</span>
                           </div>
@@ -391,9 +391,9 @@ export const Analytics = () => {
                       </div>
                       
                       {analytics.neglectedContacts.length > 0 && (
-                        <div className="bg-gray-50 rounded-lg overflow-hidden">
-                          <div className="px-3 py-2 bg-gray-100">
-                            <span className="text-xs font-[500] text-gray-500/90 uppercase tracking-wider">Needs Attention</span>
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
+                          <div className="px-3 py-2 bg-gray-100 dark:bg-gray-700">
+                            <span className="text-xs font-[500] text-gray-500/90 dark:text-gray-400 uppercase tracking-wider">Needs Attention</span>
                           </div>
                           <div className="px-3 py-2 space-y-2">
                             <NeglectedContactsList contacts={analytics.neglectedContacts} />
