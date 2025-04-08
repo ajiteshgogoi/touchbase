@@ -504,7 +504,7 @@ export const Settings = () => {
                 }
               }}
               disabled={isDeleting}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-100/50 dark:border-red-900/50 shadow-sm dark:shadow-soft-dark hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-[15px] font-[500] text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-100/50 dark:border-red-900/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
               <span className="min-w-[108px] inline-block text-center">
                 {isDeleting ? 'Deleting...' : 'Delete Account'}

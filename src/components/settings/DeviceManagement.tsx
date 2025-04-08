@@ -202,7 +202,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
             <button
               onClick={() => unregisterAllDevicesMutation.mutate()}
               disabled={isUnregisteringAll}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-100/50 dark:border-red-900/50 rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-100/50 dark:border-red-900/50 rounded-lg shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
             >
               {isUnregisteringAll ? (
                 <div className="flex items-center gap-2">
@@ -266,7 +266,7 @@ export const DeviceManagement = ({ userId }: { userId: string }) => {
                   <button
                     onClick={() => unregisterDeviceMutation.mutate(device.device_id)}
                     disabled={unregisterDeviceMutation.isPending}
-                    className="w-full sm:w-auto inline-flex items-center justify-center pl-4 pr-4 sm:pr-3 py-2 text-sm font-medium text-red-600 dark:text-red-500 bg-red-50/80 dark:bg-red-900/20 hover:bg-red-100/80 dark:hover:bg-red-900/30 border border-red-100/40 dark:border-red-900/50 rounded-lg shadow-sm dark:shadow-soft-dark hover:shadow-md active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
+                    className="w-full sm:w-auto inline-flex items-center justify-center pl-4 pr-4 sm:pr-3 py-2 text-sm font-medium text-red-600 dark:text-red-500 bg-red-50/80 dark:bg-red-900/20 hover:bg-red-100/80 dark:hover:bg-red-900/30 border border-red-100/40 dark:border-red-900/50 rounded-lg shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50"
                   >
                     {unregisterDeviceMutation.isPending ? (
                       <div className="flex items-center gap-2">

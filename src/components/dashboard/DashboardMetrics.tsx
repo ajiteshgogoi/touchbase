@@ -36,7 +36,7 @@ export const DashboardMetrics = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <Link to="/contacts" className="flex">
-        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200 p-6 cursor-pointer flex-1 flex items-center justify-center">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200 p-6 cursor-pointer flex-1 flex items-center justify-center">
           <div className="flex items-center w-full">
             <div className="p-3 bg-primary-50 dark:bg-primary-900/30 rounded-lg">
               <UserGroupIcon className="h-8 w-8 text-primary-500 dark:text-primary-400" />
@@ -50,7 +50,7 @@ export const DashboardMetrics = () => {
       </Link>
 
       <Link to="/reminders" className="flex">
-        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200 p-6 cursor-pointer flex-1 flex items-center justify-center">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200 p-6 cursor-pointer flex-1 flex items-center justify-center">
           <div className="flex items-center w-full">
             <div className="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
               <CalendarIcon className="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
@@ -64,7 +64,7 @@ export const DashboardMetrics = () => {
       </Link>
 
       <Link to="/reminders" className="flex">
-        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200 p-6 cursor-pointer flex-1 flex items-center justify-center">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200 p-6 cursor-pointer flex-1 flex items-center justify-center">
           <div className="flex items-center w-full">
             <div className="p-3 bg-primary-50 dark:bg-primary-900/30 rounded-lg">
               <CalendarIcon className="h-8 w-8 text-primary-500 dark:text-primary-400" />

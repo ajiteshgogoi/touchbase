@@ -120,7 +120,7 @@ export const ImportantEventsPage = () => {
         ) : (
           <div className="p-4 space-y-6">
             {Object.entries(groupedEvents || {}).map(([month, monthEvents]) => (
-              <div key={month} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-4 hover:shadow-md transition-all duration-200">
+              <div key={month} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft p-4 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
                 <div className="px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
                   <span className="text-xs font-[500] text-gray-500/90 dark:text-gray-400 uppercase tracking-wider">{month}</span>
                 </div>

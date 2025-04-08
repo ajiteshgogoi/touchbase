@@ -252,7 +252,7 @@ export const InteractionHistory = () => {
             </div>
           ) : (
             sortedInteractions.map((interaction) => (
-              <div key={interaction.id} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-3 sm:p-4 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200">
+              <div key={interaction.id} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft p-3 sm:p-4 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

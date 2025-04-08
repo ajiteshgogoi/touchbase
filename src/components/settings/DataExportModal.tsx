@@ -228,7 +228,7 @@ export const DataExportModal = ({ isOpen, onClose }: Props) => {
 
                       <button
                         onClick={handleExport}
-                        className="w-full mt-4 px-4 py-3 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 shadow-sm dark:shadow-soft-dark hover:shadow-md transition-all duration-200"
+                          className="w-full mt-4 px-4 py-3 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
                       >
                         Export Data
                       </button>

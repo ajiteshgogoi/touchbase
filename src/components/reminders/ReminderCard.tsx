@@ -240,7 +240,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                     }
                   }
                 }}
-                className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
+                className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
                 title="Complete quick reminder"
               >
                 Complete
@@ -255,7 +255,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                       type: reminder.type,
                     })
                   }
-                  className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
+                  className="inline-flex items-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-white bg-primary-500 dark:bg-primary-600 hover:bg-primary-600 dark:hover:bg-primary-700 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
                   title="Log an interaction"
                 >
                   Log Interaction
@@ -263,7 +263,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 {(isPremium || isOnTrial) ? (
                   <Link
                     to={`/contacts/${reminder.contact_id}/interactions`}
-                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
+                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-primary-600 dark:text-primary-400 bg-primary-50/90 dark:bg-primary-900/30 hover:bg-primary-100/90 dark:hover:bg-primary-900/50 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
                     title="View interaction history"
                   >
                     View History
@@ -271,7 +271,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                 ) : (
                   <Link
                     to={`/contacts/${reminder.contact_id}/interactions`}
-                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 dark:text-gray-400 bg-gray-100/90 dark:bg-gray-800/60 hover:bg-gray-200/90 dark:hover:bg-gray-700/60 active:scale-[0.98] rounded-lg shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
+                    className="inline-flex items-center justify-center text-center px-3.5 py-2 text-[13px] sm:text-sm font-[500] text-gray-600 dark:text-gray-400 bg-gray-100/90 dark:bg-gray-800/60 hover:bg-gray-200/90 dark:hover:bg-gray-700/60 active:scale-[0.98] rounded-lg shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
                     title="Upgrade to view interaction history"
                   >
                     View History
