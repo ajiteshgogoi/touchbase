@@ -267,8 +267,8 @@ export const InteractionHistory = () => {
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => setEditingInteraction({ interaction, isOpen: true })}
-                          className={`inline-flex items-center p-1.5 rounded-lg transition-colors dark:hover:bg-primary-900/30 ${
-                            deletingInteractionId === interaction.id ? 'invisible' : 'text-gray-500 hover:text-primary-500 hover:bg-primary-50'
+                          className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
+                            deletingInteractionId === interaction.id ? 'invisible' : 'text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30'
                           }`}
                           title={deletingInteractionId === interaction.id ? "Cannot edit while deleting" : "Edit interaction"}
                         >
@@ -277,7 +277,7 @@ export const InteractionHistory = () => {
                         <button
                           onClick={() => handleDeleteInteraction(interaction)}
                           className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
-                            deletingInteractionId === interaction.id ? 'text-gray-400 cursor-pointer pointer-events-none' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+                            deletingInteractionId === interaction.id ? 'text-gray-400 dark:text-gray-600 cursor-pointer pointer-events-none' : 'text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30'
                           }`}
                           title={deletingInteractionId === interaction.id ? "Deleting interaction..." : "Delete interaction"}
                         >
