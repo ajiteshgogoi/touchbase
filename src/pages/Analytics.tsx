@@ -200,15 +200,15 @@ export const Analytics = () => {
           </h1>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
           <div className="flex flex-col items-center justify-center p-8 text-center">
-            <div className="p-3 bg-primary-50/90 rounded-xl mb-4">
-              <SparklesIcon className="w-12 h-12 text-primary-500/90" />
+            <div className="p-3 bg-primary-50/90 dark:bg-primary-900/30 rounded-xl mb-4">
+              <SparklesIcon className="w-12 h-12 text-primary-500/90 dark:text-primary-400/90" />
             </div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent mb-2">
               Upgrade to Access Insights
             </h2>
-            <p className="text-[15px] text-gray-600/90 mb-6 max-w-lg">
+            <p className="text-[15px] text-gray-600/90 dark:text-gray-400 mb-6 max-w-lg">
             Discover the story behind your relationships. See who you've been missing, 
             and get helpful insights to nurture the bonds that matter most.
             </p>
@@ -284,26 +284,26 @@ export const Analytics = () => {
       </div>
 
       {!analytics?.hasEnoughData ? (
-        <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
           <div className="flex flex-col items-center justify-center text-center p-8">
-            <div className="p-3 bg-gray-50/90 rounded-xl mb-4">
-              <ChartPieIcon className="w-12 h-12 text-gray-400/90" />
+            <div className="p-3 bg-gray-50/90 dark:bg-gray-800/50 rounded-xl mb-4">
+              <ChartPieIcon className="w-12 h-12 text-gray-400/90 dark:text-gray-500/90" />
             </div>
             {hasEnoughDataForAnalysis === true ? (
               <>
-                <h3 className="text-xl font-[600] text-gray-900 mb-2">
+                <h3 className="text-xl font-[600] text-gray-900 dark:text-white mb-2">
                   Ready for Analysis
                 </h3>
-                <p className="text-[15px] text-gray-600/90 mb-4">
+                <p className="text-[15px] text-gray-600/90 dark:text-gray-400 mb-4">
                   You have sufficient data to generate relationship insights. Click the 'Generate New Insights' button above to begin.
                 </p>
               </>
             ) : (
               <>
-                <h3 className="text-xl font-[600] text-gray-900 mb-2">
+                <h3 className="text-xl font-[600] text-gray-900 dark:text-white mb-2">
                   Not Enough Data Yet
                 </h3>
-                <p className="text-[15px] text-gray-600/90">
+                <p className="text-[15px] text-gray-600/90 dark:text-gray-400">
                   Log your interactions regularly to generate detailed insights.
                 </p>
               </>
@@ -317,16 +317,16 @@ export const Analytics = () => {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
               <div className="p-6">
-                <h3 className="text-xl font-[600] text-gray-900 tracking-[-0.01em] mb-4">
+                <h3 className="text-xl font-[600] text-gray-900 dark:text-white tracking-[-0.01em] mb-4">
                   Top Engaged Contacts
                 </h3>
                 <div className="space-y-3.5">
                   {analytics?.topEngaged.map(contact => (
                     <div
                       key={contact.contactId}
-                      className="bg-gray-50/90 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-gray-50/80 transition-all duration-200 shadow-sm"
+                      className="bg-gray-50/90 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-all duration-200 shadow-sm"
                     >
                       <div className="px-4 py-4">
                         <div className="flex flex-col gap-3.5">
@@ -338,7 +338,7 @@ export const Analytics = () => {
                           </Link>
                           <div className="grid gap-2.5">
                             <div className="flex flex-wrap items-center gap-2 text-[14px] text-gray-600/90">
-                              <span className="inline-flex items-center px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
+                              <span className="inline-flex items-center px-2.5 py-1 bg-white/90 dark:bg-gray-900/50 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
                                 <span className="font-[450]">{contact.interactionCount} interactions</span>
                               </span>
                               {contact.lastInteraction && (
@@ -348,9 +348,9 @@ export const Analytics = () => {
                               )}
                             </div>
                             <div className="inline-flex items-center px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-md shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]">
-                              <span className="text-[14px] text-gray-600/90">
+                              <span className="text-[14px] text-gray-600/90 dark:text-gray-400">
                                 Every{' '}
-                                <span className="font-[500] text-gray-800">
+                                <span className="font-[500] text-gray-800 dark:text-gray-200">
                                   {contact.averageFrequency}
                                 </span>{' '}
                                 days avg.
@@ -365,9 +365,9 @@ export const Analytics = () => {
               </div>
             </div>
 
-            <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft">
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark">
               <div className="p-6">
-                <h3 className="text-xl font-[600] text-gray-900 tracking-[-0.01em] mb-4">
+                <h3 className="text-xl font-[600] text-gray-900 dark:text-white tracking-[-0.01em] mb-4">
                   Relationship Health
                 </h3>
                 <div className="space-y-4">
@@ -406,9 +406,9 @@ export const Analytics = () => {
               </div>
             </div>
 
-            <div className="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft md:col-span-2">
+            <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark md:col-span-2">
               <div className="p-6">
-                <h3 className="text-xl font-[600] text-gray-900 mb-4">
+                <h3 className="text-xl font-[600] text-gray-900 dark:text-white mb-4">
                   Detailed Insights
                 </h3>
                 {renderContactTopics()}

@@ -20,7 +20,7 @@ export const NeglectedContactsList: FC<NeglectedContactsListProps> = ({ contacts
         <Link
           key={contact.id}
           to={`/contacts?search=${encodeURIComponent(contact.name)}`}
-          className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 transition-colors"
+          className="block text-[15px] font-semibold text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
         >
           {contact.name}
         </Link>
@@ -28,7 +28,7 @@ export const NeglectedContactsList: FC<NeglectedContactsListProps> = ({ contacts
       {sortedContacts.length > 15 && (
         <button
           onClick={() => setShowAll(!showAll)}
-          className="mt-2 text-[14px] text-gray-600 hover:text-primary-500 transition-colors"
+          className="mt-2 text-[14px] text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
         >
           {showAll ? 'Show Less' : `Show All (${sortedContacts.length})`}
         </button>
