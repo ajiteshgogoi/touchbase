@@ -132,7 +132,7 @@ export const Analytics = () => {
       {analytics?.contactTopics.map(contact => (
         <div
           key={contact.contactId}
-          className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-4 hover:bg-white/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200"
+          className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-4 hover:bg-white/70 hover:shadow-md transition-all duration-200"
         >
           <div className="flex flex-col">
             <Link

@@ -11,7 +11,7 @@ export const BasicContactInfo = ({
   onError,
 }: ContactFormProps) => {
   return (
-    <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
+    <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft-dark p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md transition-all duration-200">
       <div className="flex items-center gap-2 mb-6">
         <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white">Basic Information</h2>
       </div>
