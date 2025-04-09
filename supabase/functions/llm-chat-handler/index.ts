@@ -306,44 +306,133 @@ serve(async (req) => {
 
           } else if (action === 'update_contact') {
             if (!contact_id) throw new Error("Contact ID is required for update_contact.");
-            if (!params.field_to_update || params.new_value === undefined) throw new Error("Field and new value required for update_contact.");
-
-            // Validate field and value based on schema constraints
-            switch (params.field_to_update) {
-              case 'social_media_platform':
-                if (!['linkedin', 'instagram', 'twitter', null].includes(params.new_value)) {
-                  throw new Error("Invalid social media platform. Must be one of: 'linkedin', 'instagram', 'twitter'");
-                }
-                break;
-              case 'preferred_contact_method':
-                if (!['call', 'message', 'social', null].includes(params.new_value)) {
-                  throw new Error("Invalid contact method. Must be one of: 'call', 'message', 'social'");
-                }
-                break;
-              case 'contact_frequency':
-                if (!['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'].includes(params.new_value)) {
-                  throw new Error("Invalid contact frequency. Must be one of: 'every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'");
-                }
-                break;
-              case 'name':
-              case 'phone':
-              case 'social_media_handle':
-              case 'notes':
-                // These fields accept any string value
-                break;
-              default:
-                throw new Error(`Cannot update field: ${params.field_to_update}. Field not recognized or not updateable.`);
+            if (!params.updates || typeof params.updates !== 'object' || Object.keys(params.updates).length === 0) {
+              throw new Error("Updates object with fields to change is required for update_contact.");
             }
 
-            const { error: updateError } = await supabaseAdminClient
-              .from('contacts')
-              .update({ [params.field_to_update]: params.new_value })
-              .eq('user_id', user.id)
-              .eq('id', contact_id);
+            const contactUpdates: Record<string, any> = {};
+            let newImportantEvents: any[] | null | undefined = undefined; // Store validated events separately
+            let requiresRecalculation = false;
 
-            if (updateError) throw updateError;
+            // Validate each field in the updates object
+            for (const field in params.updates) {
+              const value = params.updates[field];
 
-            return createResponse({ reply: "Contact updated successfully." });
+              switch (field) {
+                case 'name':
+                  if (typeof value !== 'string' || value.trim().length === 0) throw new Error("Name cannot be empty.");
+                  contactUpdates[field] = value.trim();
+                  break;
+                case 'contact_frequency':
+                  const validFrequencies = ['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'];
+                  if (!validFrequencies.includes(value)) throw new Error(`Invalid contact frequency.`);
+                  contactUpdates[field] = value;
+                  requiresRecalculation = true; // Frequency change requires recalculation
+                  break;
+                case 'phone':
+                  // Allow null or valid phone format
+                  if (value !== null && (typeof value !== 'string' /* Basic validation, refine if needed */)) throw new Error("Invalid phone format.");
+                  contactUpdates[field] = value;
+                  break;
+                case 'social_media_platform':
+                  if (value !== null && !['linkedin', 'instagram', 'twitter'].includes(value)) throw new Error("Invalid social media platform.");
+                  contactUpdates[field] = value;
+                  // Reset handle if platform is cleared or changed without a new handle
+                  if (!params.updates.social_media_handle && contactUpdates.social_media_handle === undefined) {
+                     contactUpdates.social_media_handle = null;
+                  }
+                  break;
+                case 'social_media_handle':
+                   // Allow null or string
+                  if (value !== null && typeof value !== 'string') throw new Error("Invalid social media handle format.");
+                  contactUpdates[field] = value;
+                  break;
+                case 'preferred_contact_method':
+                  if (value !== null && !['call', 'message', 'social'].includes(value)) throw new Error("Invalid preferred contact method.");
+                  contactUpdates[field] = value;
+                  break;
+                case 'notes':
+                   // Allow null or string
+                  if (value !== null && typeof value !== 'string') throw new Error("Invalid notes format.");
+                  contactUpdates[field] = value;
+                  break;
+                case 'important_events':
+                  // Validate the entire array if provided (null means clear events)
+                  if (value === null) {
+                    newImportantEvents = []; // Signal to delete all events
+                  } else if (Array.isArray(value)) {
+                    if (value.length > 5) throw new Error("Maximum of 5 important events allowed.");
+                    const hasBirthday = value.filter(e => e.type === 'birthday').length > 1;
+                    const hasAnniversary = value.filter(e => e.type === 'anniversary').length > 1;
+                    if (hasBirthday) throw new Error("Only one birthday event allowed.");
+                    if (hasAnniversary) throw new Error("Only one anniversary event allowed.");
+
+                    value.forEach(event => {
+                      if (!['birthday', 'anniversary', 'custom'].includes(event.type)) throw new Error("Invalid event type.");
+                      if (!event.date || isNaN(new Date(event.date).getTime())) throw new Error("Invalid event date.");
+                      if (event.type === 'custom' && (!event.name || event.name.length > 50)) throw new Error("Custom event name invalid.");
+                    });
+                    newImportantEvents = value; // Store validated array
+                    requiresRecalculation = true; // Event changes require recalculation
+                  } else {
+                    throw new Error("important_events must be an array or null.");
+                  }
+                  break;
+                default:
+                  console.warn(`Ignoring unknown field in update_contact: ${field}`);
+              }
+            }
+
+            // --- Perform Database Operations ---
+
+            // 1. Update contacts table if there are changes
+            if (Object.keys(contactUpdates).length > 0) {
+              const { error: updateContactError } = await supabaseAdminClient
+                .from('contacts')
+                .update(contactUpdates)
+                .eq('user_id', user.id) // Ensure user owns the contact
+                .eq('id', contact_id);
+
+              if (updateContactError) throw updateContactError;
+            }
+
+            // 2. Update important events if provided
+            if (newImportantEvents !== undefined) {
+              // Delete existing events first
+              const { error: deleteEventsError } = await supabaseAdminClient
+                .from('important_events')
+                .delete()
+                .eq('contact_id', contact_id);
+
+              if (deleteEventsError) throw deleteEventsError;
+
+              // Insert new events if the array is not empty
+              if (newImportantEvents.length > 0) {
+                const { error: insertEventsError } = await supabaseAdminClient
+                  .from('important_events')
+                  .insert(newImportantEvents.map(event => ({
+                    contact_id: contact_id,
+                    user_id: user.id,
+                    type: event.type,
+                    name: event.name,
+                    date: event.date
+                  })));
+
+                if (insertEventsError) throw insertEventsError;
+              }
+            }
+
+            // 3. Recalculate next due date if needed (frequency or events changed)
+            // Note: contacts.ts service handles this more robustly.
+            // Here, we'll rely on the next interaction to trigger recalculation via log_interaction_and_update_contact
+            // or potentially add a direct recalculate call if strictly necessary.
+            // For now, we skip explicit recalculation here to avoid complexity.
+            // if (requiresRecalculation) {
+            //    // Consider calling a recalculate RPC or function if available/needed
+            // }
+
+
+            return createResponse({ reply: `Contact "${params.contact_name}" updated successfully.` });
 
           } else if (action === 'delete_contact') {
              if (!contact_id) throw new Error("Contact ID is required for delete_contact.");
@@ -428,7 +517,23 @@ Available actions and their required parameters:
     sentiment?: 'positive'|'neutral'|'negative',
     date?: string // ISO 8601, default to now if not specified
   }
-- update_contact: { contact_name: string, field_to_update: string (e.g., 'phone', 'notes', 'contact_frequency', 'social_media_handle'), new_value: string }
+- update_contact: {
+    contact_name: string,
+    updates: { // Object containing fields to update
+      name?: string,
+      contact_frequency?: string,
+      phone?: string,
+      social_media_platform?: 'linkedin'|'instagram'|'twitter'|null,
+      social_media_handle?: string|null,
+      preferred_contact_method?: 'call'|'message'|'social'|null,
+      notes?: string|null,
+      important_events?: Array<{ // Replaces ALL existing events
+        type: 'birthday'|'anniversary'|'custom',
+        date: string, // ISO 8601 format (YYYY-MM-DD)
+        name: string|null
+      }>|null
+    }
+  }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
 - check_reminders: { timeframe: 'today'|'tomorrow'|'week'|'month'|'date'|'custom', date?: string, start_date?: string, end_date?: string }
@@ -444,6 +549,9 @@ Rules:
   {"action": "create_contact", "params": {"name": "John Smith", "contact_frequency": "monthly", "important_events": [{"type": "birthday", "date": "1990-04-07", "name": null}]}}
   {"action": "create_contact", "params": {"name": "Alice Brown", "contact_frequency": "weekly", "important_events": [{"type": "custom", "date": "2024-06-15", "name": "Graduation"}]}}
   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}}
+  {"action": "update_contact", "params": {"contact_name": "Jane Doe", "updates": {"phone": "+1-555-9876", "notes": "Updated notes here"}}}
+  {"action": "update_contact", "params": {"contact_name": "John Smith", "updates": {"contact_frequency": "fortnightly"}}}
+  {"action": "update_contact", "params": {"contact_name": "Alice Brown", "updates": {"important_events": [{"type": "birthday", "date": "1995-11-20", "name": null}]}}} // Replaces existing events
   {"action": "check_reminders", "params": {"timeframe": "today"}}
   {"action": "check_reminders", "params": {"timeframe": "week"}}
   {"action": "check_reminders", "params": {"timeframe": "date", "date": "2025-04-15"}}
@@ -747,13 +855,21 @@ Rules:
 
         switch (action) {
             case 'create_contact':
-                confirmationMessage = `Create new contact "${params.name}" with ${params.contact_frequency} contact frequency?`;
-                if (params.phone) confirmationMessage += `\nPhone: ${params.phone}`;
-                if (params.social_media_platform && params.social_media_handle) {
-                    confirmationMessage += `\nSocial: ${params.social_media_platform} - ${params.social_media_handle}`;
+                confirmationMessage = `Create new contact with the following details?`;
+                confirmationMessage += `\n- Name: ${params.name}`;
+                confirmationMessage += `\n- Frequency: ${params.contact_frequency}`;
+                if (params.phone) confirmationMessage += `\n- Phone: ${params.phone}`;
+                if (params.social_media_platform) {
+                    confirmationMessage += `\n- Social: ${params.social_media_platform}${params.social_media_handle ? ` - ${params.social_media_handle}` : ''}`;
                 }
-                if (params.preferred_contact_method) confirmationMessage += `\nPreferred contact method: ${params.preferred_contact_method}`;
-                if (params.notes) confirmationMessage += `\nNotes: "${params.notes}"`;
+                if (params.preferred_contact_method) confirmationMessage += `\n- Preferred Method: ${params.preferred_contact_method}`;
+                if (params.notes) confirmationMessage += `\n- Notes: "${params.notes}"`;
+                if (params.important_events && params.important_events.length > 0) {
+                    confirmationMessage += `\n- Important Events:`;
+                    params.important_events.forEach(event => {
+                        confirmationMessage += `\n  - ${event.type} (${event.date})${event.name ? `: ${event.name}` : ''}`;
+                    });
+                }
                 break;
             case 'log_interaction':
                 confirmationMessage = `Log ${params.type || 'interaction'} for ${contactDisplayName}?`;
@@ -761,7 +877,16 @@ Rules:
                 if (params.sentiment) confirmationMessage += ` Sentiment: ${params.sentiment}`;
                 break;
             case 'update_contact':
-                confirmationMessage = `Update ${params.field_to_update?.replace(/_/g, ' ')} for ${contactDisplayName} to "${params.new_value}"?`;
+                confirmationMessage = `Update ${contactDisplayName} with the following changes?`;
+                for (const field in params.updates) {
+                   let value = params.updates[field];
+                   if (field === 'important_events') {
+                      value = value === null ? 'Remove all events' : `${value.length} event(s)`;
+                   } else if (value === null) {
+                      value = '(clear value)';
+                   }
+                   confirmationMessage += `\n- ${field.replace(/_/g, ' ')}: ${value}`;
+                }
                 break;
             case 'delete_contact':
                 confirmationMessage = `Are you sure you want to delete ${contactDisplayName}? This cannot be undone.`;
