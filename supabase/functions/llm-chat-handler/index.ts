@@ -61,11 +61,9 @@ async function isUserPremiumOrTrial(supabaseClient: SupabaseClient, userId: stri
       return true;
     }
   }
-  }
 
   return false; // Otherwise, not premium or on active trial
 }
-
 // --- Main Handler ---
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
