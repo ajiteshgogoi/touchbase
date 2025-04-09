@@ -490,10 +490,19 @@ serve(async (req) => {
             if (!params.name || !params.due_date) throw new Error("Reminder name and due date are required.");
             if (params.name.length > 150) throw new Error("Reminder name must be 150 characters or less.");
             if (isNaN(new Date(params.due_date).getTime())) throw new Error("Invalid due date format.");
-            // Basic future date check (can be refined with timezone awareness if needed)
-            if (new Date(params.due_date) < new Date(new Date().setHours(0, 0, 0, 0))) {
-               throw new Error("Due date must be in the future.");
+            // Ensure proper year handling for dates
+            const dueDate = new Date(params.due_date);
+            const currentDate = new Date();
+            // If year is not specified or incorrect, set it to current year
+            if (dueDate.getFullYear() < currentDate.getFullYear()) {
+                dueDate.setFullYear(currentDate.getFullYear());
             }
+            // If date with current year is in the past, increment to next year
+            if (dueDate < currentDate) {
+                dueDate.setFullYear(currentDate.getFullYear() + 1);
+            }
+            // Update the params due_date with corrected date
+            params.due_date = dueDate.toISOString();
 
             // Insert the quick reminder (with a name to distinguish it)
             const { data: reminder, error: insertReminderError } = await supabaseAdminClient
