@@ -331,6 +331,7 @@ Available actions and their required parameters:
 - create_reminder: { contact_name: string, name: string (reminder description), due_date: string (ISO 8601), type?: 'call'|'message'|'social', is_important?: boolean (default false) }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
+- check_reminders: { timeframe: 'today'|'tomorrow'|'week'|'month'|'date'|'custom', date?: string, start_date?: string, end_date?: string }
 
 Rules:
 - Always identify the contact by name using the 'contact_name' parameter. The backend will resolve the ID.
@@ -341,8 +342,20 @@ Rules:
 - Examples:
   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}}
   {"action": "create_reminder", "params": {"contact_name": "Bob", "name": "Follow up on proposal", "due_date": "2025-04-15T09:00:00Z"}}
+  {"action": "check_reminders", "params": {"timeframe": "today"}}
+  {"action": "check_reminders", "params": {"timeframe": "week"}}
+  {"action": "check_reminders", "params": {"timeframe": "date", "date": "2025-04-15"}}
+  {"action": "check_reminders", "params": {"timeframe": "custom", "start_date": "2025-04-10", "end_date": "2025-04-20"}}
   {"reply": "Which contact do you want to update?"}
   {"error": "Could not understand the request."}
+
+  When checking reminders:
+  - For queries about "today's reminders" or "what's due today" use timeframe: "today"
+  - For queries about "tomorrow's reminders" or "what's due tomorrow" use timeframe: "tomorrow"
+  - For queries about "this week's reminders" or "what's coming up" use timeframe: "week"
+  - For queries about "next month" or "monthly reminders" use timeframe: "month"
+  - For queries about a specific date (e.g., "April 15th", "next Friday") use timeframe: "date" with date parameter
+  - For queries with date ranges, use timeframe: "custom" with start_date and end_date
 
   REMINDER: Respond in raw JSON ONLY. DO NOT include any other text or formatting.
 `;
@@ -466,7 +479,107 @@ Rules:
            }
         }
 
-        // If it's a 'get_contact_info' action, execute it directly without confirmation
+        // If it's a 'get_contact_info' or 'check_reminders' action, execute it directly without confirmation
+        if (action === 'check_reminders') {
+           const now = new Date();
+           let startDate = now;
+           let endDate = now;
+
+           switch (params.timeframe) {
+             case 'today':
+               // Keep default startDate and endDate as today
+               endDate.setHours(23, 59, 59, 999);
+               break;
+             case 'tomorrow':
+               startDate = new Date(now.setDate(now.getDate() + 1));
+               startDate.setHours(0, 0, 0, 0);
+               endDate = new Date(startDate);
+               endDate.setHours(23, 59, 59, 999);
+               break;
+             case 'week':
+               endDate = new Date(now);
+               endDate.setDate(endDate.getDate() + 7);
+               endDate.setHours(23, 59, 59, 999);
+               break;
+             case 'month':
+               endDate = new Date(now);
+               endDate.setMonth(endDate.getMonth() + 1);
+               endDate.setHours(23, 59, 59, 999);
+               break;
+             case 'date':
+               if (!params.date) {
+                 return createResponse({ reply: "Please specify which date you want to check reminders for" });
+               }
+               startDate = new Date(params.date);
+               if (isNaN(startDate.getTime())) {
+                 return createResponse({ reply: "Invalid date format provided" });
+               }
+               startDate.setHours(0, 0, 0, 0);
+               endDate = new Date(startDate);
+               endDate.setHours(23, 59, 59, 999);
+               break;
+             case 'custom':
+               if (!params.start_date || !params.end_date) {
+                 return createResponse({ reply: "For custom timeframe, please specify both start_date and end_date" });
+               }
+               startDate = new Date(params.start_date);
+               endDate = new Date(params.end_date);
+               if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                 return createResponse({ reply: "Invalid date format provided" });
+               }
+               break;
+             default:
+               return createResponse({ reply: "Invalid timeframe specified" });
+           }
+
+           const { data: reminders, error: remindersError } = await supabaseAdminClient
+             .from('reminders')
+             .select(`
+               id,
+               name,
+               type,
+               due_date,
+               contacts:contact_id (
+                 name
+               )
+             `)
+             .eq('user_id', user.id)
+             .eq('completed', false)
+             .gte('due_date', startDate.toISOString())
+             .lte('due_date', endDate.toISOString())
+             .order('due_date', { ascending: true });
+
+           if (remindersError) {
+             console.error('Error fetching reminders:', remindersError);
+             return createResponse({ reply: "Sorry, I encountered an error fetching your reminders." });
+           }
+
+           if (!reminders || reminders.length === 0) {
+             const timeframeText = params.timeframe === 'today' ? 'today' :
+                                 params.timeframe === 'tomorrow' ? 'tomorrow' :
+                                 params.timeframe === 'week' ? 'this week' :
+                                 params.timeframe === 'month' ? 'this month' :
+                                 params.timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
+                                 'in the specified period';
+             return createResponse({ reply: `You don't have any reminders due ${timeframeText}.` });
+           }
+
+           const reminderList = reminders.map(reminder => {
+             const date = new Date(reminder.due_date).toLocaleDateString(undefined, {
+               weekday: 'short',
+               month: 'short',
+               day: 'numeric',
+               hour: '2-digit',
+               minute: '2-digit'
+             });
+             return `- ${date}: ${reminder.contacts?.name || 'Unknown contact'} - ${reminder.name} (${reminder.type})`;
+           }).join('\n');
+
+           return createResponse({
+             reply: `Here are your upcoming reminders:\n\n${reminderList}`
+           });
+        }
+
         if (action === 'get_contact_info') {
            if (!resolvedContactId) return createResponse({ reply: `Couldn't find contact "${contactName}" to get info.` });
            if (!params.info_needed) return createResponse({ reply: "What information do you need?" });
