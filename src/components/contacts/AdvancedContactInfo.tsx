@@ -475,30 +475,28 @@ export const AdvancedContactInfo = ({
       <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
         <h3 className="text-lg font-[600] text-gray-900/90 dark:text-white mb-6">Personal Notes</h3>
         <div>
-          {/* Premium/Trial Feature Info */}
-          {(isPremium || isOnTrial) ? (
-            <div className="mb-4 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Add meaningful details to help maintain your connection:
-              </p>
-              <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                <li>Use hashtags to categorise (#family, #friend, #colleague) — max 5 tags</li>
-                <li>Include their interests (#sports, #music) and conversation topics</li>
-                <li>Add personal context like family details or shared memories</li>
-              </ul>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Hashtag format: # followed by letter. Only letters/numbers/underscores. Max 15 characters.
-              </p>
-            </div>
-          ) : (
-            <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                Add details that can help maintain the connection.
-                <span className="block mt-2">
-                  ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
-                    Upgrade to Premium
-                  </Link> to get personalised suggestions based on your notes!
-                </span>
+          {/* Note Guidelines */}
+          <div className="mb-4 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              Add meaningful details to help maintain your connection:
+            </p>
+            <ul className="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300 space-y-1">
+              <li>Use hashtags to categorise (#family, #friend, #colleague) — max 5 tags</li>
+              <li>Include their interests (#sports, #music) and conversation topics</li>
+              <li>Add personal context like family details or shared memories</li>
+            </ul>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Hashtag format: # followed by letter. Only letters/numbers/underscores. Max 15 characters.
+            </p>
+          </div>
+
+          {/* Premium Upgrade Message */}
+          {!isPremium && !isOnTrial && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                ✨ <Link to="/settings" className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+                  Upgrade to Premium
+                </Link> to get personalised suggestions based on your notes!
               </p>
             </div>
           )}
