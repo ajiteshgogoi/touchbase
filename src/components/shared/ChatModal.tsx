@@ -64,6 +64,7 @@ export const ChatModal: React.FC = () => {
   const { isChatOpen, closeChat } = useStore();
   const { currentContext, getMessages, addMessage: addStoreMessage } = useChatStore();
   const [input, setInput] = useState('');
+  const [confirmedAction, setConfirmedAction] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -138,6 +139,7 @@ useEffect(() => {
       console.log('Resetting chat input');
       setInput('');
       greetingSentRef.current = false; // Reset for next open
+      setConfirmedAction(null); // Reset confirmed action when chat closes
     }
   }, [isChatOpen, currentContext]); // Only depend on isChatOpen and currentContext
 
@@ -184,7 +186,9 @@ useEffect(() => {
   };
 
   const handleConfirm = (actionDetails: any, confirm: boolean) => {
-    if (mutation.isPending) return;
+    if (mutation.isPending || confirmedAction === actionDetails) return;
+    
+    setConfirmedAction(actionDetails);
 
     const payload: ChatRequest = {
       confirmation: {
@@ -285,7 +289,7 @@ useEffect(() => {
                      }`}>
                         <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                         {/* Confirmation Buttons */}
-                        {msg.requiresConfirmation && msg.actionDetails && (
+                        {msg.requiresConfirmation && msg.actionDetails && confirmedAction !== msg.actionDetails && (
                           <div className="mt-3 flex gap-2">
                             <button
                               onClick={() => handleConfirm(msg.actionDetails, true)}
