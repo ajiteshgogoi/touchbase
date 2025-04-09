@@ -122,7 +122,7 @@ serve(async (req) => {
 
         // --- Action Execution Logic ---
         try {
-          if (action === 'rpc_log_interaction') {
+          if (action === 'log_interaction') {
             if (!contact_id) throw new Error("Contact ID is required for log_interaction.");
             
             // Validate interaction type
