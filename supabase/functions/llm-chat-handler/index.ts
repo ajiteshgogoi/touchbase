@@ -485,6 +485,72 @@ serve(async (req) => {
              if (deleteError) throw deleteError;
              return createResponse({ reply: "Contact deleted successfully." });
 
+          } else if (action === 'add_quick_reminder') {
+            if (!contact_id) throw new Error("Contact ID is required for add_quick_reminder.");
+            if (!params.name || !params.due_date) throw new Error("Reminder name and due date are required.");
+            if (params.name.length > 150) throw new Error("Reminder name must be 150 characters or less.");
+            if (isNaN(new Date(params.due_date).getTime())) throw new Error("Invalid due date format.");
+            // Basic future date check (can be refined with timezone awareness if needed)
+            if (new Date(params.due_date) < new Date(new Date().setHours(0, 0, 0, 0))) {
+               throw new Error("Due date must be in the future.");
+            }
+
+            // Insert the quick reminder (with a name to distinguish it)
+            const { data: reminder, error: insertReminderError } = await supabaseAdminClient
+              .from('reminders')
+              .insert({
+                contact_id: contact_id,
+                user_id: user.id,
+                name: params.name.trim(), // Store the name
+                type: 'message', // Default type for quick reminders
+                due_date: params.due_date,
+                completed: false
+              })
+              .select('id') // Select the ID for potential use
+              .single();
+
+            if (insertReminderError) {
+               // Check for unique constraint violation (e.g., reminder on same day)
+               if (insertReminderError.code === '23505') { // Adjust code based on actual Supabase error
+                  throw new Error(`A reminder already exists for ${params.contact_name} on this date.`);
+               }
+               throw insertReminderError;
+            }
+
+            // If marked as important, also add a corresponding important event
+            if (params.is_important === true) {
+               // Check important event limits first
+               const { count: eventCount, error: countError } = await supabaseAdminClient
+                 .from('important_events')
+                 .select('*', { count: 'exact', head: true })
+                 .eq('contact_id', contact_id);
+
+               if (countError) {
+                  console.error("Error counting existing important events:", countError);
+                  // Proceed without adding event, but log error
+               } else if (eventCount !== null && eventCount >= 5) {
+                  console.warn(`Skipping important event creation for quick reminder: Max 5 events reached for contact ${contact_id}`);
+               } else {
+                  // Add the important event
+                  const { error: insertEventError } = await supabaseAdminClient
+                    .from('important_events')
+                    .insert({
+                      contact_id: contact_id,
+                      user_id: user.id,
+                      type: 'custom', // Quick reminders become custom events
+                      name: params.name.trim(), // Use reminder name
+                      date: params.due_date
+                    });
+
+                  if (insertEventError) {
+                     console.error(`Error creating important event for quick reminder ${reminder?.id}:`, insertEventError);
+                     // Don't fail the whole operation, just log
+                  }
+               }
+            }
+
+            return createResponse({ reply: `Quick reminder "${params.name}" added for ${params.contact_name} on ${params.due_date}.` });
+
           } else if (action === 'get_contact_info') {
              // This action should ideally be handled in the initial request phase,
              // but include a fallback just in case.
@@ -576,6 +642,12 @@ Available actions and their required parameters:
   }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
+- add_quick_reminder: {
+    contact_name: string,
+    name: string, // Description of the reminder
+    due_date: string, // ISO 8601 format (YYYY-MM-DD)
+    is_important?: boolean // Optional, defaults to false
+  }
 - check_reminders: { timeframe: 'today'|'tomorrow'|'week'|'month'|'date'|'custom', date?: string, start_date?: string, end_date?: string }
 
 Rules:
@@ -596,6 +668,8 @@ Rules:
   {"action": "check_reminders", "params": {"timeframe": "week"}}
   {"action": "check_reminders", "params": {"timeframe": "date", "date": "2025-04-15"}}
   {"action": "check_reminders", "params": {"timeframe": "custom", "start_date": "2025-04-10", "end_date": "2025-04-20"}}
+  {"action": "add_quick_reminder", "params": {"contact_name": "Jane Doe", "name": "Follow up on proposal", "due_date": "2025-04-15"}}
+  {"action": "add_quick_reminder", "params": {"contact_name": "John Smith", "name": "Send birthday gift", "due_date": "2025-05-10", "is_important": true}}
   {"reply": "Which contact do you want to update?"}
   {"error": "Could not understand the request."}
 
@@ -946,6 +1020,12 @@ Rules:
                 break;
             case 'delete_contact':
                 confirmationMessage = `Are you sure you want to delete ${contactDisplayName}? This cannot be undone.`;
+                break;
+            case 'add_quick_reminder':
+                confirmationMessage = `Add quick reminder "${params.name}" for ${contactDisplayName} due on ${params.due_date}?`;
+                if (params.is_important) {
+                   confirmationMessage += `\n(Marked as important)`;
+                }
                 break;
             default:
                  confirmationMessage = `Confirm action '${action}' for ${contactDisplayName}?`;
