@@ -433,9 +433,14 @@ Rules:
              // Try partial match if no exact match or multiple exact matches
              const { data: partialMatches, error: partialError } = await supabaseAdminClient
                .from('contacts')
-               .select('id, name')
+               .select(`
+                 id,
+                 name,
+                 similarity:word_similarity(name, '${contactName.trim()}')
+               `)
                .eq('user_id', user.id)
-               .ilike('name', `%${contactName.trim()}%`)
+               .or(`name.ilike.%${contactName.trim()}%,word_similarity(name,'${contactName.trim()}')>.3`)
+               .order('similarity', { ascending: false })
                .limit(5);
 
              if (partialError) throw partialError;
