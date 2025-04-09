@@ -179,30 +179,37 @@ export const ChatModal = () => {
   };
 
   const handleConfirm = (actionDetails: any, confirm: boolean) => {
-     if (mutation.isPending) return;
-     // Add system message indicating confirmation choice (optional)
-     // addMessage('system', confirm ? 'Confirming action...' : 'Cancelling action...');
+    if (mutation.isPending) return;
 
-     const payload: ChatRequest = {
-       confirmation: {
-         confirm: confirm,
-         action_details: actionDetails
-       }
-     };
-     // Remove the confirmation prompt message before sending confirmation
-     const currentMessages = getMessages(currentContext);
-     const filteredMessages = currentMessages.filter((msg: Message) => msg.actionDetails !== actionDetails);
-     useChatStore.setState(state => ({
-       ...state,
-       contexts: {
-         ...state.contexts,
-         [currentContext]: {
-           ...state.contexts[currentContext],
-           conversationHistory: filteredMessages
-         }
-       }
-     }));
-     mutation.mutate(payload);
+    const payload: ChatRequest = {
+      confirmation: {
+        confirm: confirm,
+        action_details: actionDetails
+      }
+    };
+
+    if (confirm) {
+      // For confirmed actions, clear context (keeps last 4 messages)
+      useChatStore.getState().clearContext(currentContext);
+    } else {
+      // For cancelled actions, just remove the confirmation prompt
+      const currentMessages = getMessages(currentContext);
+      const filteredMessages = currentMessages.filter((msg: Message) => msg.actionDetails !== actionDetails);
+      useChatStore.setState(state => ({
+        ...state,
+        contexts: {
+          ...state.contexts,
+          [currentContext]: {
+            ...state.contexts[currentContext],
+            conversationHistory: filteredMessages
+          }
+        }
+      }));
+    }
+
+    // Add status message and send confirmation
+    addMessage('system', confirm ? 'Processing action...' : 'Action cancelled');
+    mutation.mutate(payload);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
