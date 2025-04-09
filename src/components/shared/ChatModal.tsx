@@ -67,6 +67,7 @@ export const ChatModal = () => {
   const { currentContext, getMessages, addMessage: addStoreMessage } = useChatStore();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const greetingSentRef = useRef(false);
 
@@ -104,18 +105,24 @@ export const ChatModal = () => {
       actionDetails
     });
   };
+// Scroll to bottom when messages change or modal opens
+useEffect(() => {
+  if (messagesContainerRef.current) {
+    messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+  }
+}, [getMessages(currentContext), isChatOpen]);
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [getMessages(currentContext)]);
 
-  // Focus input when modal opens
+  // Focus input and set initial scroll position when modal opens
   useEffect(() => {
-    if (isChatOpen) {
-      // Add a small delay to ensure the input is rendered and visible
+    if (isChatOpen && messagesContainerRef.current) {
+      // Add a small delay to ensure elements are rendered
       setTimeout(() => {
         inputRef.current?.focus();
+        // Set initial scroll position to bottom
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
       }, 100);
       
       // Check if we need to send a greeting
@@ -267,7 +274,7 @@ export const ChatModal = () => {
             </div>
 
             {/* Message List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50">
               {getMessages(currentContext).map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex items-start gap-2 max-w-[80%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
