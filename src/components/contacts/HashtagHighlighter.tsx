@@ -28,6 +28,18 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
           highlighterRef.current.style.height = styles.height;
           highlighterRef.current.style.fontSize = styles.fontSize;
           highlighterRef.current.style.lineHeight = styles.lineHeight;
+          highlighterRef.current.style.fontFamily = styles.fontFamily;
+          highlighterRef.current.style.letterSpacing = styles.letterSpacing;
+          highlighterRef.current.style.wordSpacing = styles.wordSpacing;
+          highlighterRef.current.style.paddingTop = styles.paddingTop;
+          highlighterRef.current.style.paddingRight = styles.paddingRight;
+          highlighterRef.current.style.paddingBottom = styles.paddingBottom;
+          highlighterRef.current.style.paddingLeft = styles.paddingLeft;
+          highlighterRef.current.style.borderTopWidth = styles.borderTopWidth;
+          highlighterRef.current.style.borderRightWidth = styles.borderRightWidth;
+          highlighterRef.current.style.borderBottomWidth = styles.borderBottomWidth;
+          highlighterRef.current.style.borderLeftWidth = styles.borderLeftWidth;
+          highlighterRef.current.style.boxSizing = styles.boxSizing;
         }
       });
     };
@@ -68,13 +80,10 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
   return (
     <div
       ref={highlighterRef}
-      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words overflow-hidden text-transparent px-[15px] py-[10px] -ml-[0.20px]"
+      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words overflow-hidden text-transparent rounded-lg"
       style={{
-        fontSize: textarea ? window.getComputedStyle(textarea).fontSize : '1rem',
-        fontFamily: textarea ? window.getComputedStyle(textarea).fontFamily : 'system-ui, -apple-system, sans-serif',
-        lineHeight: textarea ? window.getComputedStyle(textarea).lineHeight : '1.5rem',
-        width: textarea?.offsetWidth + 'px',
-        height: textarea?.offsetHeight + 'px'
+        boxSizing: 'border-box',
+        borderColor: 'transparent'
       }}
     />
   );
