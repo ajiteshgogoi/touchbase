@@ -238,7 +238,19 @@ serve(async (req) => {
                     console.error("Error creating important event:", eventError);
                     // Don't fail the whole operation for this
                  }
-                 // TODO: Consider recalculating next_contact_due (might need another RPC or complex logic here)
+                 // Use standard contact update to recalculate next due date
+                 const { error: updateError } = await supabaseAdminClient
+                   .from('contacts')
+                   .update({
+                     next_contact_due: new Date().toISOString() // Trigger recalculation
+                   })
+                   .eq('id', contact_id);
+                 
+                 if (updateError) {
+                   console.error("Error updating contact:", updateError);
+                   // Don't fail the operation, but log the error
+                 }
+             }
              }
              return createResponse({ reply: "Reminder created successfully." });
 
@@ -325,7 +337,7 @@ Rules:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-flash-1.5", // Use Gemini Flash
+          model: "google/gemini-2.0-flash-001", // Use latest Gemini model for better results
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userMessage }
