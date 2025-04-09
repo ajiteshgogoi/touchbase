@@ -95,13 +95,13 @@
         <nav class="bg-white/60 backdrop-blur-xl sticky top-0 z-40 border-b border-gray-100/50 pt-1"> <!-- Added pt-1 to account for progress bar height -->
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-14">
-                    <a href="/" class="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200">
+                    <a href="/" onclick="event.preventDefault(); window.location.href='/';" class="inline-flex items-baseline text-2xl font-bold group -ml-3 px-3 py-2 rounded-xl hover:bg-gray-50/50 transition-all duration-200">
                         <img src="/icon.svg" alt="Blue heart icon" class="h-7 w-7 mr-0.5 group-hover:scale-105 group-hover:brightness-90 transition-all duration-200 translate-y-[5px]">
                         <span class="bg-gradient-to-r from-primary-600 to-primary-400 group-hover:from-primary-700 group-hover:to-primary-500 bg-clip-text text-transparent transition-all duration-200">
                             TouchBase
                         </span>
                     </a>
-                    <a href="/" class="bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out">
+                    <a href="/" onclick="event.preventDefault(); window.location.href='/';" class="bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center px-6 py-2 rounded-lg text-sm font-medium shadow-soft hover:shadow-lg transition-all duration-200 ease-in-out">
                         Go to App
                     </a>
                 </div>
@@ -115,7 +115,7 @@
                 <nav aria-label="Breadcrumb" class="mb-4">
                   <ol class="flex flex-wrap items-center justify-center gap-2 text-gray-500" itemscope itemtype="https://schema.org/BreadcrumbList">
                     <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                      <a href="/" itemprop="item" class="breadcrumb-link">
+                      <a href="/" onclick="event.preventDefault(); window.location.href='/';" itemprop="item" class="breadcrumb-link">
                         <span itemprop="name">Home</span>
                       </a>
                       <meta itemprop="position" content="1" />
