@@ -247,7 +247,7 @@ export const ChatModal = () => {
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-white inline-flex items-center">
                  <SparklesIcon className="h-5 w-5 mr-2 text-primary-500"/>
-                 AI Assistant
+                 TouchBase Assistant
               </h3>
               <button
                 type="button"
