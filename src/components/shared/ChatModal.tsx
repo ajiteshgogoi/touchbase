@@ -246,7 +246,7 @@ export const ChatModal = () => {
              {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-white inline-flex items-center">
-                 <SparklesIcon className="h-5 w-5 mr-2 text-primary-500"/>
+                 <img src="/icon.svg" alt="heart" className="h-8 w-8 mr-2 text-primary-500" loading="eager" />
                  TouchBase Assistant
               </h3>
               <button
@@ -267,11 +267,11 @@ export const ChatModal = () => {
                      {/* Icon */}
                      <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${
                         msg.sender === 'user' ? 'bg-primary-500' :
-                        msg.sender === 'ai' ? 'bg-gradient-to-br from-purple-500 to-indigo-500' :
+                        msg.sender === 'ai' ? 'bg-gray-800 dark:bg-gray-50' :
                         msg.isError ? 'bg-red-500' : 'bg-gray-400'
                      }`}>
                         {msg.sender === 'user' && <UserIcon className="h-5 w-5 text-white" />}
-                        {msg.sender === 'ai' && <SparklesIcon className="h-5 w-5 text-white" />}
+                        {msg.sender === 'ai' && <img src="/icon.svg" alt="heart" className="h-8 w-8 text-white" loading="eager" />}
                         {msg.sender === 'system' && msg.isError && <ExclamationTriangleIcon className="h-5 w-5 text-white" />}
                         {msg.sender === 'system' && !msg.isError && <CheckIcon className="h-5 w-5 text-white" />}
                      </div>
