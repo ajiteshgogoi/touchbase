@@ -43,7 +43,7 @@ export const HashtagSuggestions = ({
     <div
       ref={refs.setFloating}
       style={floatingStyles}
-      className="z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg dark:shadow-soft-dark border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto transition-all duration-200 mobile:max-h-28 min-w-[150px] max-w-[90vw]"
+      className="z-50 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-lg dark:shadow-soft-dark border border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto transition-all duration-200 mobile:max-h-28 min-w-[150px] max-w-[90vw]"
     >
       <ul className="py-1">
         {suggestions.map((hashtag, index) => (
