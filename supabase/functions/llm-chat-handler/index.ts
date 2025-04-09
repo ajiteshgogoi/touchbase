@@ -434,7 +434,9 @@ Rules:
         const { action, params } = llmJsonOutput;
         const contactName = params.contact_name;
 
-        if (!contactName && action !== 'reply' && action !== 'error') {
+        // Check if contact name is required for this action
+        const actionsRequiringContact = ['log_interaction', 'update_contact', 'create_reminder', 'delete_contact', 'get_contact_info'];
+        if (!contactName && actionsRequiringContact.includes(action)) {
            return createResponse({ reply: "Please specify which contact you're referring to." });
         }
 
