@@ -396,29 +396,69 @@ serve(async (req) => {
               if (updateContactError) throw updateContactError;
             }
 
-            // 2. Update important events if provided
-            if (newImportantEvents !== undefined) {
-              // Delete existing events first
-              const { error: deleteEventsError } = await supabaseAdminClient
+            // 2. Add or Update important events if provided
+            if (newImportantEvents && newImportantEvents.length > 0) {
+              // Fetch existing events to check limits and avoid duplicates/updates
+              const { data: existingEventsData, error: fetchError } = await supabaseAdminClient
                 .from('important_events')
-                .delete()
+                .select('id, type, name, date')
                 .eq('contact_id', contact_id);
 
-              if (deleteEventsError) throw deleteEventsError;
+              if (fetchError) throw fetchError;
+              const existingEvents = existingEventsData || [];
 
-              // Insert new events if the array is not empty
-              if (newImportantEvents.length > 0) {
-                const { error: insertEventsError } = await supabaseAdminClient
-                  .from('important_events')
-                  .insert(newImportantEvents.map(event => ({
-                    contact_id: contact_id,
-                    user_id: user.id,
-                    type: event.type,
-                    name: event.name,
-                    date: event.date
-                  })));
+              for (const eventToProcess of newImportantEvents) {
+                const existingEvent = existingEvents.find(e =>
+                  e.type === eventToProcess.type &&
+                  (e.type !== 'custom' || e.name === eventToProcess.name)
+                );
 
-                if (insertEventsError) throw insertEventsError;
+                if (existingEvent) {
+                  // --- Update existing event ---
+                  if (existingEvent.date !== eventToProcess.date) {
+                    const { error: updateEventError } = await supabaseAdminClient
+                      .from('important_events')
+                      .update({ date: eventToProcess.date })
+                      .eq('id', existingEvent.id);
+                    if (updateEventError) {
+                       console.error(`Error updating event ${existingEvent.id}:`, updateEventError);
+                       // Decide whether to throw or just log
+                    }
+                  }
+                } else {
+                  // --- Add new event ---
+                  // Check limits before adding
+                  if (existingEvents.length >= 5) {
+                    console.warn(`Skipping add event: Max 5 events allowed for contact ${contact_id}`);
+                    continue; // Skip this event
+                  }
+                  if (eventToProcess.type === 'birthday' && existingEvents.some(e => e.type === 'birthday')) {
+                     console.warn(`Skipping add event: Birthday already exists for contact ${contact_id}`);
+                     continue; // Skip this event
+                  }
+                  if (eventToProcess.type === 'anniversary' && existingEvents.some(e => e.type === 'anniversary')) {
+                     console.warn(`Skipping add event: Anniversary already exists for contact ${contact_id}`);
+                     continue; // Skip this event
+                  }
+
+                  // Insert the new event
+                  const { error: insertEventError } = await supabaseAdminClient
+                    .from('important_events')
+                    .insert({
+                      contact_id: contact_id,
+                      user_id: user.id,
+                      type: eventToProcess.type,
+                      name: eventToProcess.name,
+                      date: eventToProcess.date
+                    });
+                  if (insertEventError) {
+                     console.error(`Error inserting new event for contact ${contact_id}:`, insertEventError);
+                     // Decide whether to throw or just log
+                  } else {
+                     // Add the newly inserted event to our local list for subsequent limit checks
+                     existingEvents.push({ id: 'temp', ...eventToProcess });
+                  }
+                }
               }
             }
 
@@ -527,11 +567,11 @@ Available actions and their required parameters:
       social_media_handle?: string|null,
       preferred_contact_method?: 'call'|'message'|'social'|null,
       notes?: string|null,
-      important_events?: Array<{ // Replaces ALL existing events
+      important_events?: Array<{ // Adds or Updates events. Does NOT replace the list unless explicitly requested.
         type: 'birthday'|'anniversary'|'custom',
         date: string, // ISO 8601 format (YYYY-MM-DD)
         name: string|null
-      }>|null
+      }> // Providing null or empty array here is ignored. Use delete_contact to remove events.
     }
   }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
@@ -880,12 +920,28 @@ Rules:
                 confirmationMessage = `Update ${contactDisplayName} with the following changes?`;
                 for (const field in params.updates) {
                    let value = params.updates[field];
+                   let displayField = field.replace(/_/g, ' ');
+
                    if (field === 'important_events') {
-                      value = value === null ? 'Remove all events' : `${value.length} event(s)`;
-                   } else if (value === null) {
-                      value = '(clear value)';
+                      // Describe the event changes more clearly
+                      if (Array.isArray(value) && value.length > 0) {
+                         confirmationMessage += `\n- Add/Update Important Events:`;
+                         value.forEach(event => {
+                            confirmationMessage += `\n  - ${event.type} (${event.date})${event.name ? `: ${event.name}` : ''}`;
+                         });
+                      }
+                      // Skip displaying if events array is empty or null as it's ignored now
+                   } else {
+                      if (value === null) {
+                         value = '(clear value)';
+                      }
+                      confirmationMessage += `\n- ${displayField}: ${value}`;
                    }
-                   confirmationMessage += `\n- ${field.replace(/_/g, ' ')}: ${value}`;
+                }
+                // Remove the last newline if nothing was added (e.g., only empty events array provided)
+                if (confirmationMessage.endsWith('changes?')) {
+                   confirmationMessage = `No valid updates detected for ${contactDisplayName}.`;
+                   // Consider returning an error or reply instead of confirmation here
                 }
                 break;
             case 'delete_contact':
