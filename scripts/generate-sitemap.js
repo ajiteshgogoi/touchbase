@@ -153,6 +153,11 @@ const publicPages = [
     changefreq: 'monthly',
     priority: 0.8
   },
+  {
+    url: '/alternatives/best-personal-crm-for-networking',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
   // Comparison pages
   {
     url: '/compare/monica-personal-crm-vs-touchbase',

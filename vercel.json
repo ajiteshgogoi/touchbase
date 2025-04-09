@@ -85,7 +85,7 @@
       "dest": "/features/$1.html"
     },
    {
-      "src": "/alternatives/(best-personal-crm|best-relationship-manager|best-contact-organizer|best-relationship-management-app|personal-crm-tool|contact-management-software|relationship-tracking-tool|networking-management-software|best-crm-for-friends|best-crm-for-personal-use|best-personal-relationship-crm|best-crm-for-personal-life|personal-crm-system)",
+      "src": "/alternatives/(best-personal-crm|best-relationship-manager|best-contact-organizer|best-relationship-management-app|personal-crm-tool|contact-management-software|relationship-tracking-tool|networking-management-software|best-crm-for-friends|best-crm-for-personal-use|best-personal-relationship-crm|best-crm-for-personal-life|personal-crm-system|best-personal-crm-for-networking)",
       "has": [
         {
           "type": "header",
@@ -134,7 +134,7 @@
      "headers": { "cache-control": "public, max-age=3600" }
    },
    {
-     "src": "/alternatives/(best-personal-crm|best-relationship-manager|best-contact-organizer|best-relationship-management-app|personal-crm-tool|contact-management-software|relationship-tracking-tool|networking-management-software|best-crm-for-friends|best-crm-for-personal-use|best-personal-relationship-crm|best-crm-for-personal-life|personal-crm-system)",
+     "src": "/alternatives/(best-personal-crm|best-relationship-manager|best-contact-organizer|best-relationship-management-app|personal-crm-tool|contact-management-software|relationship-tracking-tool|networking-management-software|best-crm-for-friends|best-crm-for-personal-use|best-personal-relationship-crm|best-crm-for-personal-life|personal-crm-system|best-personal-crm-for-networking)",
      "dest": "/alternatives/$1.html"
    },
    {
