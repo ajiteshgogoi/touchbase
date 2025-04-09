@@ -354,13 +354,15 @@ Rules:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001", // Use latest Gemini model for better results
+          model: "google/gemini-2.0-flash-001",
           messages: [
-            { role: "system", content: systemPrompt },
-            ...(context?.previousMessages || []),
-            { role: "user", content: userMessage }
+            { role: "user", content: systemPrompt + "\n\nPrevious conversation:\n" +
+              (Array.isArray(context?.previousMessages) ?
+                context.previousMessages.map(m => `${m.role}: ${m.content}`).join("\n")
+                : "") +
+              "\n\nCurrent message:\n" + userMessage }
           ],
-          response_format: { type: "json_object" } // Request JSON output
+          response_format: { type: "json_object" }
         })
       });
 
