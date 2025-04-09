@@ -356,11 +356,23 @@ Rules:
       let llmJsonOutput: ChatResponse = {};
       try {
         const content = llmResult.choices?.[0]?.message?.content;
-        if (content) {
-           llmJsonOutput = JSON.parse(content);
-        } else {
+        if (!content) {
            throw new Error("LLM response content is missing or empty.");
         }
+
+        // Handle markdown-formatted JSON by removing markdown if present
+        let jsonContent = content;
+        if (content.includes('```json')) {
+           // Extract JSON from markdown code block
+           const match = content.match(/```json\s*(\{.*?\})\s*```/s);
+           if (match && match[1]) {
+               jsonContent = match[1];
+           } else {
+               throw new Error("Could not extract JSON from markdown response");
+           }
+        }
+
+        llmJsonOutput = JSON.parse(jsonContent);
       } catch (parseError) {
          console.error("Failed to parse LLM JSON output:", parseError, llmResult.choices?.[0]?.message?.content);
          throw new Error("Failed to parse response from AI model.");
