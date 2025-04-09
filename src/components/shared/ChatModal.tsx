@@ -1,11 +1,10 @@
-// src/components/shared/ChatModal.tsx
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useStore } from '../../stores/useStore';
 import { useChatStore, type Message } from '../../stores/chatStore';
 import { supabase } from '../../lib/supabase/client';
 import { PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { Transition } from '@headlessui/react';
+import { Dialog, Transition } from '@headlessui/react';
 
 // Define API response type (matching backend)
 interface ChatResponse {
@@ -104,6 +103,28 @@ export const ChatModal: React.FC = () => {
       actionDetails
     });
   };
+// Handle scroll locking when modal opens
+useLayoutEffect(() => {
+  if (isChatOpen) {
+    // Calculate scrollbar width
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+    
+    // Add modal-open class to body
+    document.body.classList.add('modal-open');
+  } else {
+    // Remove modal-open class and reset scrollbar width
+    document.body.classList.remove('modal-open');
+    document.documentElement.style.setProperty('--scrollbar-width', '0px');
+  }
+
+  return () => {
+    // Cleanup
+    document.body.classList.remove('modal-open');
+    document.documentElement.style.setProperty('--scrollbar-width', '0px');
+  };
+}, [isChatOpen]);
+
 // Scroll to bottom when messages change or modal opens
 useEffect(() => {
   if (messagesContainerRef.current) {
@@ -234,7 +255,8 @@ useEffect(() => {
 
   return (
     <Transition show={isChatOpen} as={React.Fragment}>
-      <div className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center sm:p-0" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <Dialog onClose={closeChat} className="fixed inset-0 z-[60]">
+        <div className="min-h-full flex items-end justify-center p-4 sm:items-center sm:p-0">
         {/* Background overlay */}
         <Transition.Child
           as={React.Fragment}
@@ -260,18 +282,17 @@ useEffect(() => {
         >
           <div className="relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-gray-200 dark:border-gray-700 flex flex-col h-[70vh] max-h-[600px]">
              {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-white inline-flex items-center">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white inline-flex items-center">
                  <img src="/icon.svg" alt="heart" className="h-8 w-8 mr-2 text-primary-500" loading="eager" />
                  TouchBase Assistant
               </h3>
               <button
-                type="button"
-                className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                 onClick={closeChat}
+                className="p-2 -m-2 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+                aria-label="Close"
               >
-                <span className="sr-only">Close</span>
-                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                <XMarkIcon className="w-5 h-5" />
               </button>
             </div>
 
@@ -329,7 +350,7 @@ useEffect(() => {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div className="flex-shrink-0 p-4 border-t border-gray-100/75 dark:border-gray-800/75 bg-gray-50/80 dark:bg-gray-800/80 rounded-b-2xl">
               <div className="flex items-center space-x-2">
                 <input
                   ref={inputRef}
@@ -344,16 +365,19 @@ useEffect(() => {
                 <button
                   onClick={handleSend}
                   disabled={input.trim() === '' || mutation.isPending}
-                  className="p-2 rounded-xl text-white bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-white bg-primary-500 dark:bg-primary-600 rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 disabled:opacity-50 transition-all duration-200 shadow-sm dark:shadow-soft-dark"
                 >
-                  <PaperAirplaneIcon className="h-5 w-5" />
-                  <span className="sr-only">Send</span>
+                  <div className="flex items-center">
+                    <PaperAirplaneIcon className="h-5 w-5" />
+                    <span className="sr-only">Send</span>
+                  </div>
                 </button>
               </div>
             </div>
           </div>
         </Transition.Child>
-      </div>
+        </div>
+      </Dialog>
     </Transition>
   );
 };
