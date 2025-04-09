@@ -154,7 +154,7 @@ serve(async (req) => {
                 social_media_handle: params.social_media_handle || null,
                 preferred_contact_method: params.preferred_contact_method || null,
                 notes: params.notes || null,
-                next_contact_due: new Date().toISOString(),
+                // Skip next_contact_due as it will be set by calculate_next_contact_date
                 last_contacted: new Date().toISOString(),
                 missed_interactions: 0
               })
@@ -165,12 +165,55 @@ serve(async (req) => {
             if (!contact) throw new Error('Failed to create contact');
 
             // Recalculate next contact due date
-            const { error: rpcError } = await supabaseAdminClient.rpc('calculate_next_contact_date', {
-              p_contact_id: contact.id
-            });
+            // Calculate next contact due date properly
+            const { data: userPref } = await supabaseAdminClient
+              .from('user_preferences')
+              .select('timezone')
+              .eq('user_id', user.id)
+              .single();
 
-            if (rpcError) {
-              console.error('Error calculating next contact date:', rpcError);
+            // Use UTC if no timezone preference is set
+            const timezone = userPref?.timezone || 'UTC';
+            const now = new Date(new Date().toLocaleString('en-US', { timeZone: timezone }));
+
+            // Calculate next due date in user's timezone based on contact frequency
+            const nextDueDate = new Date(now);
+            const frequencyMap = {
+              every_three_days: 3,
+              weekly: 7,
+              fortnightly: 14,
+              monthly: 30,
+              quarterly: 90
+            };
+            const days = frequencyMap[params.contact_frequency] || 30; // Default to monthly
+            nextDueDate.setDate(nextDueDate.getDate() + days);
+
+            // Update the contact with calculated next_contact_due
+            const { error: updateError } = await supabaseAdminClient
+              .from('contacts')
+              .update({
+                next_contact_due: nextDueDate.toISOString()
+              })
+              .eq('id', contact.id);
+
+            if (updateError) {
+              console.error('Error updating next contact date:', updateError);
+              // Don't fail the operation, but log the error
+            }
+
+            // Create initial reminder
+            const { error: reminderError } = await supabaseAdminClient
+              .from('reminders')
+              .insert({
+                contact_id: contact.id,
+                user_id: user.id,
+                type: params.preferred_contact_method || 'message',
+                due_date: nextDueDate.toISOString(),
+                completed: false
+              });
+
+            if (reminderError) {
+              console.error('Error creating reminder:', reminderError);
               // Don't fail the operation, but log the error
             }
 
