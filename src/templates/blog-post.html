@@ -1,40 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    <!-- Theme initialization -->
-    <script>
-      (function() {
-        const savedTheme = localStorage.getItem('theme') || 'system';
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDark = savedTheme === 'dark' || (savedTheme === 'system' && prefersDark);
-        document.documentElement.classList.toggle('dark', isDark);
-      })();
-    </script>
-
-    <!-- Instagram Browser Detection -->
-    <script>
-      (function() {
-        window.__TB = { ready: false };
-        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        var isMetaBrowser = /Instagram/.test(navigator.userAgent) ||
-          (isIOS && (/FBAN/.test(navigator.userAgent) || /FBAV/.test(navigator.userAgent) || /FBIOS/.test(navigator.userAgent)));
-        
-        if (isMetaBrowser) {
-          var div = document.createElement('div');
-          div.className = 'ig-overlay';
-          div.innerHTML = 'Please open this page in your device\'s browser.';
-          document.addEventListener('DOMContentLoaded', function() {
-            document.body.appendChild(div);
-          });
-        }
-        window.__TB.ready = true;
-      })();
-    </script>
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- These will be replaced during build -->
     <title>POST_TITLE | Touchbase Blog</title>
     <meta name="description" content="POST_META_DESCRIPTION">
@@ -54,15 +22,6 @@
     <meta name="twitter:title" content="POST_OG_TITLE">
     <meta name="twitter:description" content="POST_OG_DESCRIPTION">
     <meta name="twitter:image" content="POST_OG_IMAGE">
-
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="TouchBase" />
-    
     <link href="/static.css" rel="stylesheet">
 
     <!-- Schema.org JSON-LD structured data -->
@@ -127,7 +86,7 @@
     </script>
     PROGRESS_BAR_SCRIPT
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+<body class="bg-gray-50">
     <div id="root">
         <!-- Progress Bar - Moved outside nav -->
         <div id="progressBarContainer">
@@ -220,30 +179,5 @@
         </footer>
     </div>
 
-    <!-- Critical CSS -->
-    <style>
-      :root {
-        color-scheme: light dark;
-        background-color: rgb(249 250 251);
-        color: rgb(17 24 39);
-        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-      }
-      
-      :root.dark {
-        background-color: rgb(17 24 39);
-        color: rgb(243 244 246);
-      }
-      
-      body {
-        transition: background-color 0.2s ease-in-out;
-      }
-
-      .dark body {
-        background-color: rgb(17 24 39);
-      }
-    </style>
-
-    <!-- Load React app -->
-    <script type="module" src="/src/index.tsx"></script>
 </body>
 </html>
