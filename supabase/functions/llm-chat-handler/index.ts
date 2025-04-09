@@ -16,7 +16,7 @@ interface ChatRequest {
 }
 
 interface ActionDetails {
-  action: string; // e.g., 'rpc_log_interaction', 'update_contact', 'create_reminder'
+  action: string; // e.g., 'create_contact', 'log_interaction', 'update_contact', 'delete_contact'
   params: Record<string, any>; // Parameters for the action
   contact_id?: string; // Resolved contact ID
 }
@@ -246,80 +246,6 @@ serve(async (req) => {
 
             return createResponse({ reply: "Contact updated successfully." });
 
-          } else if (action === 'create_reminder') {
-             if (!contact_id) throw new Error("Contact ID is required for create_reminder.");
-             if (!params.name || !params.due_date) throw new Error("Reminder name and due date are required.");
-             
-             // Validate reminder type
-             const reminderType = params.type || 'message';
-             if (!['call', 'message', 'social'].includes(reminderType)) {
-               throw new Error("Invalid reminder type. Must be one of: 'call', 'message', 'social'");
-             }
-
-             // Parse and validate due_date
-             const dueDate = new Date(params.due_date);
-             if (isNaN(dueDate.getTime())) {
-               throw new Error("Invalid due date format. Please use ISO 8601 format.");
-             }
-
-             // Create reminder
-             const { data: reminderData, error: reminderError } = await supabaseAdminClient
-               .from('reminders')
-               .insert({
-                 contact_id: contact_id,
-                 user_id: user.id,
-                 type: reminderType,
-                 name: params.name,
-                 due_date: dueDate.toISOString(),
-                 completed: false
-               })
-               .select()
-               .single();
-
-             if (reminderError) throw reminderError;
-
-             if (params.is_important) {
-                const { error: eventError } = await supabaseAdminClient
-                  .from('important_events')
-                  .insert({
-                    contact_id: contact_id,
-                    user_id: user.id,
-                    type: 'custom',
-                    name: params.name,
-                    date: params.due_date // Assuming due_date is just date part for event
-                  });
-                 if (eventError && eventError.code !== '23505') { // Ignore unique constraint violation if event already exists
-                    console.error("Error creating important event:", eventError);
-                    // Don't fail the whole operation for this
-                 }
-                 // Get current contact details for proper recalculation
-                 const { data: contactDetails, error: contactError } = await supabaseAdminClient
-                   .from('contacts')
-                   .select('contact_frequency, last_contacted, missed_interactions')
-                   .eq('id', contact_id)
-                   .single();
-
-                 if (contactError) {
-                   console.error("Error fetching contact details:", contactError);
-                 } else if (contactDetails) {
-                   // Calculate next_contact_due using RPC function
-                   const { error: updateError } = await supabaseAdminClient.rpc('log_interaction_and_update_contact', {
-                     p_contact_id: contact_id,
-                     p_user_id: user.id,
-                     p_type: reminderType,
-                     p_date: dueDate.toISOString(),
-                     p_notes: null,
-                     p_sentiment: null
-                   });
-                   
-                   if (updateError) {
-                     console.error("Error updating contact:", updateError);
-                     // Don't fail the operation, but log the error
-                   }
-                 }
-             }
-             return createResponse({ reply: "Reminder created successfully." });
-
           } else if (action === 'delete_contact') {
              if (!contact_id) throw new Error("Contact ID is required for delete_contact.");
              // Use service role to bypass RLS for cascade delete if needed, or ensure RLS allows delete
@@ -385,7 +311,6 @@ Available actions and their required parameters:
 - create_contact: { name: string, contact_frequency: string, phone?: string, social_media_platform?: 'linkedin'|'instagram'|'twitter', social_media_handle?: string, preferred_contact_method?: 'call'|'message'|'social', notes?: string }
 - log_interaction: { contact_name: string, type: 'call'|'message'|'social'|'meeting'|'other', notes?: string, sentiment?: 'positive'|'neutral'|'negative', date?: string (ISO 8601, default to now if not specified) }
 - update_contact: { contact_name: string, field_to_update: string (e.g., 'phone', 'notes', 'contact_frequency', 'social_media_handle'), new_value: string }
-- create_reminder: { contact_name: string, name: string (reminder description), due_date: string (ISO 8601), type?: 'call'|'message'|'social', is_important?: boolean (default false) }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
 - check_reminders: { timeframe: 'today'|'tomorrow'|'week'|'month'|'date'|'custom', date?: string, start_date?: string, end_date?: string }
@@ -399,7 +324,6 @@ Rules:
 - Examples:
   {"action": "create_contact", "params": {"name": "Jane Doe", "contact_frequency": "weekly", "phone": "+1-555-0123", "preferred_contact_method": "call"}}
   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}}
-  {"action": "create_reminder", "params": {"contact_name": "Bob", "name": "Follow up on proposal", "due_date": "2025-04-15T09:00:00Z"}}
   {"action": "check_reminders", "params": {"timeframe": "today"}}
   {"action": "check_reminders", "params": {"timeframe": "week"}}
   {"action": "check_reminders", "params": {"timeframe": "date", "date": "2025-04-15"}}
@@ -493,7 +417,7 @@ Rules:
         const contactName = params.contact_name;
 
         // Check if contact name is required for this action
-        const actionsRequiringContact = ['log_interaction', 'update_contact', 'create_reminder', 'delete_contact', 'get_contact_info'];
+        const actionsRequiringContact = ['log_interaction', 'update_contact', 'delete_contact', 'get_contact_info'];
         const actionsNotRequiringContact = ['create_contact', 'check_reminders'];
         if (!contactName && actionsRequiringContact.includes(action)) {
            return createResponse({ reply: "Please specify which contact you're referring to." });
@@ -693,7 +617,7 @@ Rules:
 
 
         // Ensure contact ID is resolved for actions that require it before confirmation
-        if (!resolvedContactId && ['log_interaction', 'update_contact', 'create_reminder', 'delete_contact'].includes(action)) {
+        if (!resolvedContactId && ['log_interaction', 'update_contact', 'delete_contact'].includes(action)) {
              return createResponse({ reply: `Please specify which contact you mean for the action: ${action}.` });
         }
 
@@ -718,10 +642,6 @@ Rules:
                 break;
             case 'update_contact':
                 confirmationMessage = `Update ${params.field_to_update?.replace(/_/g, ' ')} for ${contactDisplayName} to "${params.new_value}"?`;
-                break;
-            case 'create_reminder':
-                confirmationMessage = `Create reminder for ${contactDisplayName}: "${params.name}" due ${new Date(params.due_date).toLocaleDateString()}?`;
-                if (params.is_important) confirmationMessage += " (Marked as important)";
                 break;
             case 'delete_contact':
                 confirmationMessage = `Are you sure you want to delete ${contactDisplayName}? This cannot be undone.`;
