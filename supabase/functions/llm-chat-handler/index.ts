@@ -122,7 +122,61 @@ serve(async (req) => {
 
         // --- Action Execution Logic ---
         try {
-          if (action === 'log_interaction') {
+          if (action === 'create_contact') {
+            if (!params.name || !params.contact_frequency) {
+              throw new Error('Name and contact frequency are required for creating a contact');
+            }
+
+            // Validate contact_frequency
+            const validFrequencies = ['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'];
+            if (!validFrequencies.includes(params.contact_frequency)) {
+              throw new Error(`Invalid contact frequency. Must be one of: ${validFrequencies.join(', ')}`);
+            }
+
+            // Validate social media platform if provided
+            if (params.social_media_platform && !['linkedin', 'instagram', 'twitter'].includes(params.social_media_platform)) {
+              throw new Error("Invalid social media platform. Must be one of: 'linkedin', 'instagram', 'twitter'");
+            }
+
+            // Validate preferred contact method if provided
+            if (params.preferred_contact_method && !['call', 'message', 'social'].includes(params.preferred_contact_method)) {
+              throw new Error("Invalid preferred contact method. Must be one of: 'call', 'message', 'social'");
+            }
+
+            const { data: contact, error: createError } = await supabaseAdminClient
+              .from('contacts')
+              .insert({
+                user_id: user.id,
+                name: params.name,
+                contact_frequency: params.contact_frequency,
+                phone: params.phone || null,
+                social_media_platform: params.social_media_platform || null,
+                social_media_handle: params.social_media_handle || null,
+                preferred_contact_method: params.preferred_contact_method || null,
+                notes: params.notes || null,
+                next_contact_due: new Date().toISOString(),
+                last_contacted: new Date().toISOString(),
+                missed_interactions: 0
+              })
+              .select()
+              .single();
+
+            if (createError) throw createError;
+            if (!contact) throw new Error('Failed to create contact');
+
+            // Recalculate next contact due date
+            const { error: rpcError } = await supabaseAdminClient.rpc('calculate_next_contact_date', {
+              p_contact_id: contact.id
+            });
+
+            if (rpcError) {
+              console.error('Error calculating next contact date:', rpcError);
+              // Don't fail the operation, but log the error
+            }
+
+            return createResponse({ reply: `Contact "${contact.name}" created successfully.` });
+
+          } else if (action === 'log_interaction') {
             if (!contact_id) throw new Error("Contact ID is required for log_interaction.");
             
             // Validate interaction type
@@ -320,12 +374,15 @@ serve(async (req) => {
       }
 
       const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database.
+      
+      VALID FREQUENCY VALUES: 'every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'
 
 IMPORTANT:
 - When logging interactions, always use one of these exact types: 'call', 'message', 'social', 'meeting'. These are the only valid interaction types in the database.
 - When users mention contact names, use whatever part of the name they provide (e.g., "Log that I spoke with Tom" or "What's Jo's number?"). The system will find exact or partial matches.
 
 Available actions and their required parameters:
+- create_contact: { name: string, contact_frequency: string, phone?: string, social_media_platform?: 'linkedin'|'instagram'|'twitter', social_media_handle?: string, preferred_contact_method?: 'call'|'message'|'social', notes?: string }
 - log_interaction: { contact_name: string, type: 'call'|'message'|'social'|'meeting'|'other', notes?: string, sentiment?: 'positive'|'neutral'|'negative', date?: string (ISO 8601, default to now if not specified) }
 - update_contact: { contact_name: string, field_to_update: string (e.g., 'phone', 'notes', 'contact_frequency', 'social_media_handle'), new_value: string }
 - create_reminder: { contact_name: string, name: string (reminder description), due_date: string (ISO 8601), type?: 'call'|'message'|'social', is_important?: boolean (default false) }
@@ -340,6 +397,7 @@ Rules:
 - Respond ONLY with a valid JSON object containing 'action' and 'params', OR 'reply' for direct answers/clarifications, OR 'error'.
 - Respond in raw JSON without markdown formatting
 - Examples:
+  {"action": "create_contact", "params": {"name": "Jane Doe", "contact_frequency": "weekly", "phone": "+1-555-0123", "preferred_contact_method": "call"}}
   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}}
   {"action": "create_reminder", "params": {"contact_name": "Bob", "name": "Follow up on proposal", "due_date": "2025-04-15T09:00:00Z"}}
   {"action": "check_reminders", "params": {"timeframe": "today"}}
@@ -436,6 +494,7 @@ Rules:
 
         // Check if contact name is required for this action
         const actionsRequiringContact = ['log_interaction', 'update_contact', 'create_reminder', 'delete_contact', 'get_contact_info'];
+        const actionsNotRequiringContact = ['create_contact', 'check_reminders'];
         if (!contactName && actionsRequiringContact.includes(action)) {
            return createResponse({ reply: "Please specify which contact you're referring to." });
         }
@@ -643,6 +702,15 @@ Rules:
         const contactDisplayName = params.contact_name || "the current contact"; // Use resolved name
 
         switch (action) {
+            case 'create_contact':
+                confirmationMessage = `Create new contact "${params.name}" with ${params.contact_frequency} contact frequency?`;
+                if (params.phone) confirmationMessage += `\nPhone: ${params.phone}`;
+                if (params.social_media_platform && params.social_media_handle) {
+                    confirmationMessage += `\nSocial: ${params.social_media_platform} - ${params.social_media_handle}`;
+                }
+                if (params.preferred_contact_method) confirmationMessage += `\nPreferred contact method: ${params.preferred_contact_method}`;
+                if (params.notes) confirmationMessage += `\nNotes: "${params.notes}"`;
+                break;
             case 'log_interaction':
                 confirmationMessage = `Log ${params.type || 'interaction'} for ${contactDisplayName}?`;
                 if (params.notes) confirmationMessage += ` Notes: "${params.notes}"`;
