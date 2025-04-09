@@ -358,7 +358,7 @@ useEffect(() => {
                   value={input}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me to log interactions, set reminders..."
+                  placeholder="Ask to log interactions, check reminders..."
                   className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   disabled={mutation.isPending}
                 />
