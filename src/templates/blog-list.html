@@ -15,6 +15,26 @@
       })();
     </script>
 
+    <!-- Instagram Browser Detection -->
+    <script>
+      (function() {
+        window.__TB = { ready: false };
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        var isMetaBrowser = /Instagram/.test(navigator.userAgent) ||
+          (isIOS && (/FBAN/.test(navigator.userAgent) || /FBAV/.test(navigator.userAgent) || /FBIOS/.test(navigator.userAgent)));
+        
+        if (isMetaBrowser) {
+          var div = document.createElement('div');
+          div.className = 'ig-overlay';
+          div.innerHTML = 'Please open this page in your device\'s browser.';
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.appendChild(div);
+          });
+        }
+        window.__TB.ready = true;
+      })();
+    </script>
+
     <!-- Open Graph -->
     <meta property="og:title" content="TouchBase Blog | Latest Posts and Updates from TouchBase">
     <meta property="og:description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships. Start improving your real-life relationships today.">
