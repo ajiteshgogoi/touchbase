@@ -14,7 +14,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
   // Get user preferences including theme
   // Get theme from localStorage first, then try to sync with server preferences
-  const savedTheme = localStorage.getItem('theme') || 'system';
+  const savedTheme = localStorage.getItem('theme') || 'light';
   
   // Apply theme whenever preferences change
   // Subscribe to preference changes only if user is logged in

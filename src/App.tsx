@@ -388,7 +388,7 @@ function App() {
             user_id: userId,
             notification_enabled: false,
             timezone: currentTimezone,
-            theme: 'system'
+            theme: 'light'
           });
 
         // Ensure device state is synced
