@@ -357,7 +357,7 @@ Rules:
   - For queries about a specific date (e.g., "April 15th", "next Friday") use timeframe: "date" with date parameter
   - For queries with date ranges, use timeframe: "custom" with start_date and end_date
 
-  REMINDER: Respond in raw JSON ONLY. DO NOT include any other text or formatting.
+  IMPORTANT: Respond in raw JSON ONLY. DO NOT include any other text or formatting.
 `;
 
       const llmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
