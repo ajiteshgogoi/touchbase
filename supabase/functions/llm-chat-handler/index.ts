@@ -321,7 +321,9 @@ serve(async (req) => {
 
       const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database.
 
-IMPORTANT: When logging interactions, always use one of these exact types: 'call', 'message', 'social', 'meeting'. These are the only valid interaction types in the database.
+IMPORTANT:
+- When logging interactions, always use one of these exact types: 'call', 'message', 'social', 'meeting'. These are the only valid interaction types in the database.
+- When users mention contact names, use whatever part of the name they provide (e.g., "Log that I spoke with Tom" or "What's Jo's number?"). The system will find exact or partial matches.
 
 Available actions and their required parameters:
 - log_interaction: { contact_name: string, type: 'call'|'message'|'social'|'meeting'|'other', notes?: string, sentiment?: 'positive'|'neutral'|'negative', date?: string (ISO 8601, default to now if not specified) }
@@ -413,24 +415,41 @@ Rules:
 
         // Resolve contact name to ID if needed
         if (contactName) {
-           const { data: contactData, error: contactError } = await supabaseAdminClient
-            .from('contacts')
-            .select('id, name') // Select name for confirmation message
-            .eq('user_id', user.id)
-            .ilike('name', contactName)
-            .limit(2);
+           // First try exact match
+           const { data: exactMatches, error: exactError } = await supabaseAdminClient
+             .from('contacts')
+             .select('id, name')
+             .eq('user_id', user.id)
+             .ilike('name', contactName.trim())
+             .limit(5);
 
-          if (contactError) throw contactError;
+           if (exactError) throw exactError;
 
-          if (!contactData || contactData.length === 0) {
-            return createResponse({ reply: `Sorry, I couldn't find a contact named "${contactName}".` });
-          } else if (contactData.length > 1) {
-            return createResponse({ reply: `Found multiple contacts named "${contactName}". Can you be more specific?` });
-          } else {
-            resolvedContactId = contactData[0].id;
-            // Use the exact name from DB for confirmation message consistency
-            params.contact_name = contactData[0].name;
-          }
+           if (exactMatches && exactMatches.length === 1) {
+             // Single exact match found
+             resolvedContactId = exactMatches[0].id;
+             params.contact_name = exactMatches[0].name;
+           } else {
+             // Try partial match if no exact match or multiple exact matches
+             const { data: partialMatches, error: partialError } = await supabaseAdminClient
+               .from('contacts')
+               .select('id, name')
+               .eq('user_id', user.id)
+               .ilike('name', `%${contactName.trim()}%`)
+               .limit(5);
+
+             if (partialError) throw partialError;
+
+             if (!partialMatches || partialMatches.length === 0) {
+               return createResponse({ reply: `Sorry, I couldn't find any contacts matching "${contactName}".` });
+             } else if (partialMatches.length > 1) {
+               const options = partialMatches.map(c => c.name).join(', ');
+               return createResponse({ reply: `Found multiple matching contacts: ${options}. Which one did you mean?` });
+             } else {
+               resolvedContactId = partialMatches[0].id;
+               params.contact_name = partialMatches[0].name;
+             }
+           }
         }
 
         // If it's a 'get_contact_info' action, execute it directly without confirmation
