@@ -145,7 +145,7 @@ serve(async (req) => {
             });
 
             if (rpcError) throw rpcError;
-            if (!result?.interaction_id) throw new Error("Failed to log interaction");
+            if (!result || !result[0]?.interaction_id) throw new Error("Failed to log interaction");
 
             return createResponse({
               reply: `Interaction logged successfully${result.contact_updated ? ' and contact updated' : ''}.`
