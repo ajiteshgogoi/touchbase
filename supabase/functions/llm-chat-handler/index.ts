@@ -251,7 +251,6 @@ serve(async (req) => {
                    // Don't fail the operation, but log the error
                  }
              }
-             }
              return createResponse({ reply: "Reminder created successfully." });
 
           } else if (action === 'delete_contact') {
@@ -337,7 +336,7 @@ Rules:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001", // Use latest Gemini model for better results
+          model: "google/gemini-pro", // Use latest Gemini model for better results
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userMessage }
@@ -412,23 +411,49 @@ Rules:
            if (!resolvedContactId) return createResponse({ reply: `Couldn't find contact "${contactName}" to get info.` });
            if (!params.info_needed) return createResponse({ reply: "What information do you need?" });
 
+           // Validate requested field exists in contacts table
+           const validFields = ['name', 'phone', 'social_media_platform', 'social_media_handle',
+                              'last_contacted', 'next_contact_due', 'preferred_contact_method',
+                              'notes', 'contact_frequency', 'missed_interactions'];
+           if (!validFields.includes(params.info_needed)) {
+              return createResponse({ reply: `Sorry, I cannot retrieve '${params.info_needed}'. Valid fields are: ${validFields.join(', ')}` });
+           }
+
            const { data: contactInfo, error: infoError } = await supabaseAdminClient
              .from('contacts')
              .select(params.info_needed)
              .eq('user_id', user.id)
              .eq('id', resolvedContactId)
              .single();
-           if (infoError) throw infoError;
+
+           if (infoError) {
+              console.error('Error fetching contact info:', infoError);
+              return createResponse({ reply: `Sorry, I encountered an error retrieving that information.` });
+           }
+
            if (!contactInfo || contactInfo[params.info_needed] === null || contactInfo[params.info_needed] === undefined) {
               return createResponse({ reply: `No ${params.info_needed.replace(/_/g, ' ')} found for ${params.contact_name}.` });
            }
+
            // Format dates nicely
            let value = contactInfo[params.info_needed];
-           if (['last_contacted', 'next_contact_due'].includes(params.info_needed) && value) {
+           if (['last_contacted', 'next_contact_due'].includes(params.info_needed)) {
+              if (!value) {
+                 return createResponse({ reply: `No ${params.info_needed.replace(/_/g, ' ')} set for ${params.contact_name}.` });
+              }
               try {
-                 value = new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-              } catch (_) { /* ignore date parsing errors */ }
+                 const date = new Date(value);
+                 if (isNaN(date.getTime())) {
+                    console.error('Invalid date:', value);
+                    return createResponse({ reply: `Sorry, I encountered an error formatting the date.` });
+                 }
+                 value = date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+              } catch (error) {
+                 console.error('Date formatting error:', error);
+                 return createResponse({ reply: `Sorry, I encountered an error formatting the date.` });
+              }
            }
+
            return createResponse({ reply: `The ${params.info_needed.replace(/_/g, ' ')} for ${params.contact_name} is: ${value}` });
         }
 
