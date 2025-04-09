@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useStore } from '../../stores/useStore';
 import { useChatStore, type Message } from '../../stores/chatStore';
 import { supabase } from '../../lib/supabase/client';
-import { PaperAirplaneIcon, XMarkIcon, UserIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Transition } from '@headlessui/react';
 
 // Define API response type (matching backend)
@@ -60,9 +60,7 @@ const callChatHandler = async (payload: ChatRequest): Promise<ChatResponse> => {
 
   return response.data as ChatResponse;
 };
-
-
-export const ChatModal = () => {
+export const ChatModal: React.FC = () => {
   const { isChatOpen, closeChat } = useStore();
   const { currentContext, getMessages, addMessage: addStoreMessage } = useChatStore();
   const [input, setInput] = useState('');
@@ -277,18 +275,7 @@ useEffect(() => {
             <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50">
               {getMessages(currentContext).map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex items-start gap-2 max-w-[80%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                     {/* Icon */}
-                     <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${
-                        msg.sender === 'user' ? 'bg-primary-500' :
-                        msg.sender === 'ai' ? 'bg-gray-800 dark:bg-gray-50' :
-                        msg.isError ? 'bg-red-500' : 'bg-gray-400'
-                     }`}>
-                        {msg.sender === 'user' && <UserIcon className="h-5 w-5 text-white" />}
-                        {msg.sender === 'ai' && <img src="/icon.svg" alt="heart" className="h-8 w-8 text-white" loading="eager" />}
-                        {msg.sender === 'system' && msg.isError && <ExclamationTriangleIcon className="h-5 w-5 text-white" />}
-                        {msg.sender === 'system' && !msg.isError && <CheckIcon className="h-5 w-5 text-white" />}
-                     </div>
+                  <div className={`flex items-start max-w-[80%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                      {/* Bubble */}
                      <div className={`px-4 py-2 rounded-2xl ${
                         msg.sender === 'user' ? 'bg-primary-500 text-white rounded-br-none' :
@@ -323,10 +310,7 @@ useEffect(() => {
               {/* Loading Indicator */}
               {mutation.isPending && (
                  <div className="flex justify-start">
-                    <div className="flex items-start gap-2 max-w-[80%]">
-                       <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-gray-800 dark:bg-gray-50 animate-pulse">
-                          <img src="/icon.svg" alt="heart" className="h-5 w-5 text-white opacity-70" loading="eager" />
-                       </div>
+                    <div className="flex items-start max-w-[80%]">
                        <div className="px-4 py-2 rounded-2xl bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-600">
                           <div className="flex space-x-1 items-center">
                              <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
