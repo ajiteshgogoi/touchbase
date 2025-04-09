@@ -307,10 +307,8 @@ export const AdvancedContactInfo = ({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-[600] text-gray-900/90 dark:text-white">Important Events</h2>
-            </div>
-            <p className="mt-1.5 text-[15px] text-gray-600/90">
-              <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">Add yearly recurring events (birthday, anniversary, etc.)</p>
-            </p>
+            </div>           
+            <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">Add yearly recurring events (birthday, anniversary, etc.)</p>
           </div>
           {formData.important_events.length < 5 && (
             <button
