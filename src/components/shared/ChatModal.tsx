@@ -1,20 +1,11 @@
 // src/components/shared/ChatModal.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useStore } from '../../stores/useStore';
+import { useChatStore } from '../../stores/chatStore';
 import { supabase } from '../../lib/supabase/client';
 import { PaperAirplaneIcon, XMarkIcon, SparklesIcon, UserIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { Transition } from '@headlessui/react';
-
-// Define message types
-interface Message {
-  id: string;
-  sender: 'user' | 'ai' | 'system';
-  text: string;
-  requiresConfirmation?: boolean;
-  actionDetails?: any; // Store details needed for confirmation
-  isError?: boolean;
-}
 
 // Define API response type (matching backend)
 interface ChatResponse {
@@ -29,7 +20,11 @@ interface ChatResponse {
 interface ChatRequest {
   message?: string; // Optional for confirmation requests
   context?: {
-    contactId?: string; // Example context
+    contactId?: string;
+    previousMessages?: Array<{
+      role: 'user' | 'ai' | 'system';
+      content: string;
+    }>;
   };
   confirmation?: {
     confirm: boolean;
@@ -69,10 +64,11 @@ const callChatHandler = async (payload: ChatRequest): Promise<ChatResponse> => {
 
 export const ChatModal = () => {
   const { isChatOpen, closeChat } = useStore();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { currentContext, getMessages, addMessage: addStoreMessage } = useChatStore();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messages = getMessages(currentContext);
 
   // React Query Mutation for sending messages/confirmations
   const mutation = useMutation<ChatResponse, Error, ChatRequest>({
@@ -100,7 +96,7 @@ export const ChatModal = () => {
       requiresConfirmation: boolean = false,
       actionDetails?: any
     ) => {
-    setMessages(prev => [...prev, { id: Date.now().toString(), sender, text, isError, requiresConfirmation, actionDetails }]);
+    addStoreMessage(currentContext, { sender, text, isError, requiresConfirmation, actionDetails });
   };
 
   // Scroll to bottom when messages change
@@ -117,14 +113,12 @@ export const ChatModal = () => {
       }, 100);
        // Add initial greeting if messages are empty
       if (messages.length === 0) {
-         addMessage('ai', "Hi! How can I help you manage your contacts today?");
+        addMessage('ai', "Hi! How can I help you manage your contacts today?");
       }
     } else {
-       // Optionally clear messages when closing, or persist them
-       // setMessages([]);
-       setInput('');
+      setInput('');
     }
-  }, [isChatOpen]); // Removed messages dependency to avoid re-greeting
+  }, [isChatOpen, messages.length]); // Added messages.length to ensure greeting shows when context changes
 
   const handleSend = () => {
     if (input.trim() === '' || mutation.isPending) return;
@@ -132,8 +126,16 @@ export const ChatModal = () => {
     addMessage('user', userMessage);
     setInput('');
 
-    // TODO: Add context if needed (e.g., current contact ID from URL or state)
-    const payload: ChatRequest = { message: userMessage, context: {} };
+    const payload: ChatRequest = {
+      message: userMessage,
+      context: {
+        previousMessages: messages.slice(-10).map(m => ({
+          role: m.sender,
+          content: m.text
+        })),
+        contactId: undefined // TODO: Add contact ID from URL or state when viewing contact
+      }
+    };
     mutation.mutate(payload);
   };
 
@@ -149,7 +151,17 @@ export const ChatModal = () => {
        }
      };
      // Remove the confirmation prompt message before sending confirmation
-     setMessages(prev => prev.filter(msg => msg.actionDetails !== actionDetails));
+     const filteredMessages = messages.filter(msg => msg.actionDetails !== actionDetails);
+     useChatStore.setState(state => ({
+       ...state,
+       contexts: {
+         ...state.contexts,
+         [currentContext]: {
+           ...state.contexts[currentContext],
+           conversationHistory: filteredMessages
+         }
+       }
+     }));
      mutation.mutate(payload);
   };
 
