@@ -11,14 +11,22 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
   useEffect(() => {
     if (!textarea || !highlighterRef.current) return;
 
-    // Update scroll position and dimensions when textarea scrolls or resizes
-    const handleScroll = () => {
-      requestAnimationFrame(() => {
-        if (highlighterRef.current && textarea) {
-          highlighterRef.current.scrollTop = textarea.scrollTop;
-        }
-      });
+    // Update scroll position immediately
+    const syncScroll = () => {
+      if (highlighterRef.current && textarea) {
+        highlighterRef.current.scrollTop = textarea.scrollTop;
+      }
     };
+
+    // Handle all scroll events
+    const handleScroll = () => {
+      syncScroll();
+      // Double check after any layout updates
+      requestAnimationFrame(syncScroll);
+    };
+
+    // Sync on input events too
+    textarea.addEventListener('input', syncScroll, { passive: true });
 
     const handleResize = () => {
       requestAnimationFrame(() => {
@@ -71,8 +79,10 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
   }, [textarea]);
 
   useEffect(() => {
-    // Style the hashtags
-    if (highlighterRef.current) {
+    // Style the hashtags and sync scroll
+    if (highlighterRef.current && textarea) {
+      // Sync scroll position after content update
+      highlighterRef.current.scrollTop = textarea.scrollTop;
       const styledText = text.replace(
         /#[a-zA-Z]\w{0,13}(?=[^\w]|$)/g,
         match => {
