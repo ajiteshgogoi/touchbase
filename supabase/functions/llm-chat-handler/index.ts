@@ -136,7 +136,7 @@ serve(async (req) => {
             const validFrequencies = ['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'];
             if (!validFrequencies.includes(params.contact_frequency)) {
               throw new Error(`Invalid contact frequency. Must be one of: ${validFrequencies.join(', ')}`);
-            },
+            }
             // Validate important events if provided
             if (params.important_events) {
               // Check if events array is valid
