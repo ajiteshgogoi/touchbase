@@ -343,6 +343,8 @@ Rules:
   {"action": "create_reminder", "params": {"contact_name": "Bob", "name": "Follow up on proposal", "due_date": "2025-04-15T09:00:00Z"}}
   {"reply": "Which contact do you want to update?"}
   {"error": "Could not understand the request."}
+
+  REMINDER: Respond in raw JSON ONLY. DO NOT include any other text or formatting.
 `;
 
       const llmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -376,23 +378,32 @@ Rules:
            console.error('Empty LLM response:', llmResult);
            throw new Error("LLM response content is missing or empty.");
         }
+        // Try to extract JSON from various formats
+        let jsonContent = content.trim();
 
-        // Handle markdown-formatted JSON by removing markdown if present
-        let jsonContent = content;
-        if (content.includes('```json')) {
-           // Extract JSON from markdown code block
-           const match = content.match(/```json\s*(\{.*?\})\s*```/s);
-           if (match && match[1]) {
-               jsonContent = match[1];
-           } else {
-               throw new Error("Could not extract JSON from markdown response");
-           }
+        // Check if content starts and ends with curly braces
+        if (!jsonContent.startsWith('{') || !jsonContent.endsWith('}')) {
+          // Try to extract from markdown code block if present
+          if (content.includes('```json')) {
+            const match = content.match(/```json\s*(\{.*?\})\s*```/s);
+            if (match && match[1]) {
+              jsonContent = match[1];
+            }
+          } else {
+            // If we got a natural language response, wrap it as a reply
+            jsonContent = JSON.stringify({ reply: content });
+          }
         }
 
-        llmJsonOutput = JSON.parse(jsonContent);
+        try {
+          llmJsonOutput = JSON.parse(jsonContent);
+        } catch (innerError) {
+          console.error("Parse error after cleanup:", innerError);
+          llmJsonOutput = { reply: "I couldn't process that request properly. Please try rephrasing it." };
+        }
       } catch (parseError) {
-         console.error("Failed to parse LLM JSON output:", parseError, llmResult.choices?.[0]?.message?.content);
-         throw new Error("Failed to parse response from AI model.");
+        console.error("Failed to parse LLM JSON output:", parseError, llmResult.choices?.[0]?.message?.content);
+        throw new Error("Failed to parse response from AI model.");
       }
 
 
