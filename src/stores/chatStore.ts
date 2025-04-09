@@ -26,12 +26,40 @@ interface ChatStore {
   setCurrentContactId: (contextId: string, contactId: string) => void;
   clearContext: (contextId: string) => void;
   clearAllContexts: () => void;
+  _cleanMessages: (messages: Message[], limit?: number) => Message[];
+  _cleanTimeBasedContext: (contextId: string) => boolean;
 }
 
 export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       contexts: {},
+      
+      // Helper function to clean old messages
+      _cleanMessages: (messages: Message[], limit: number = 10) => {
+        return messages.slice(-Math.min(messages.length, limit));
+      },
+
+      // Helper function to check and clean time-based context
+      _cleanTimeBasedContext: (contextId: string) => {
+        const state = get();
+        const context = state.contexts[contextId];
+        if (context?.lastInteractionTime) {
+          // Clear context if last interaction was > 30 minutes ago
+          if (Date.now() - context.lastInteractionTime > 30 * 60 * 1000) {
+            set((state) => {
+              const { [contextId]: _, ...remainingContexts } = state.contexts;
+              return {
+                ...state,
+                contexts: remainingContexts,
+                currentContext: contextId === state.currentContext ? 'default' : state.currentContext,
+              };
+            });
+            return true;
+          }
+        }
+        return false;
+      },
       // Debug log for store updates
       _logStoreUpdate: (action: string, data: any) => {
         console.log(`[ChatStore] ${action}:`, data);
@@ -44,6 +72,29 @@ export const useChatStore = create<ChatStore>()(
       },
 
       addMessage: (contextId, message) => {
+        const store = get();
+        
+        // Check and clean time-based context first
+        if (store._cleanTimeBasedContext(contextId)) {
+          // If context was cleaned, create new one
+          const newMessage = {
+            ...message,
+            id: Date.now().toString(),
+            timestamp: Date.now(),
+          };
+          
+          set({
+            contexts: {
+              [contextId]: {
+                conversationHistory: [newMessage],
+                lastInteractionTime: Date.now(),
+                currentContactId: undefined,
+              }
+            }
+          });
+          return;
+        }
+
         set((state) => {
           const existingContext = state.contexts[contextId] || {
             conversationHistory: [],
@@ -57,19 +108,20 @@ export const useChatStore = create<ChatStore>()(
             timestamp: Date.now(),
           };
 
-          const newState = {
+          // Limit to last 10 messages
+          const updatedHistory = store._cleanMessages([...existingContext.conversationHistory, newMessage]);
+
+          return {
             ...state,
             contexts: {
               ...state.contexts,
               [contextId]: {
                 ...existingContext,
-                conversationHistory: [...existingContext.conversationHistory, newMessage],
+                conversationHistory: updatedHistory,
                 lastInteractionTime: Date.now(),
               },
             },
           };
-
-          return newState;
         });
       },
 
@@ -100,11 +152,22 @@ export const useChatStore = create<ChatStore>()(
 
       clearContext: (contextId) => {
         set((state) => {
-          const { [contextId]: _, ...remainingContexts } = state.contexts;
+          const context = state.contexts[contextId];
+          if (!context) return state;
+
+          // Keep only last 4 messages after clearing
+          const lastMessages = get()._cleanMessages(context.conversationHistory, 4);
+          
           return {
             ...state,
-            contexts: remainingContexts,
-            currentContext: contextId === state.currentContext ? 'default' : state.currentContext,
+            contexts: {
+              ...state.contexts,
+              [contextId]: {
+                ...context,
+                conversationHistory: lastMessages,
+                lastInteractionTime: Date.now(),
+              },
+            },
           };
         });
       },
