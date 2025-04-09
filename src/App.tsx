@@ -31,10 +31,6 @@ const LazyComponent = ({ children }: { children: React.ReactNode }) => (
   </ErrorBoundary>
 );
 
-// Blog components
-const BlogList = lazy(() => import('./pages/blog'));
-const BlogPost = lazy(() => import('./pages/blog/[slug]'));
-
 // Core components with prefetching
 const Dashboard = lazy(() => {
   const module = import('./pages/Dashboard');
@@ -548,9 +544,6 @@ function App() {
               <Route path="/terms" element={<LazyComponent><Terms /></LazyComponent>} />
               <Route path="/privacy" element={<LazyComponent><Privacy /></LazyComponent>} />
               <Route path="/support" element={<LazyComponent><Support /></LazyComponent>} />
-              {/* Blog Routes */}
-              <Route path="/blog" element={<LazyComponent><BlogList /></LazyComponent>} />
-              <Route path="/blog/:slug" element={<LazyComponent><BlogPost /></LazyComponent>} />
 
               {/* Protected Routes */}
               <Route
