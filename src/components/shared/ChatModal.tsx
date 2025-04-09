@@ -137,14 +137,15 @@ export const ChatModal = () => {
     setInput('');
 
     const currentMessages = getMessages(currentContext);
+    const currentContactId = useChatStore.getState().contexts[currentContext]?.currentContactId;
     const payload: ChatRequest = {
       message: userMessage,
       context: {
-        previousMessages: currentMessages.slice(-10).map((m: Message) => ({
+        previousMessages: currentMessages.map((m: Message) => ({
           role: m.sender,
           content: m.text
         })),
-        contactId: undefined // TODO: Add contact ID from URL or state when viewing contact
+        contactId: currentContactId
       }
     };
     mutation.mutate(payload);
