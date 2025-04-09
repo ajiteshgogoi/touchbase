@@ -13,7 +13,6 @@ const ChatBubbleIcon = lazy(() => import('@heroicons/react/24/outline/ChatBubble
 const ChartBarIcon = lazy(() => import('@heroicons/react/24/outline/ChartBarIcon').then(mod => ({ default: mod.default })));
 const QuestionMarkCircleIcon = lazy(() => import('@heroicons/react/24/outline/QuestionMarkCircleIcon').then(mod => ({ default: mod.default })));
 const Cog6ToothIcon = lazy(() => import('@heroicons/react/24/outline/Cog6ToothIcon').then(mod => ({ default: mod.default })));
-const NewspaperIcon = lazy(() => import('@heroicons/react/24/outline/NewspaperIcon').then(mod => ({ default: mod.default })));
 
 const IconFallback = () => <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />;
 
@@ -178,18 +177,6 @@ export const ProfileMenu = () => {
               </Suspense>
               Settings
             </MenuItem>
-            <Menu.Item>
-              {({ active }) => (
-                <a href="/blog"                   
-                   rel="noopener noreferrer"
-                   className={`${menuStyles.base} ${active ? 'bg-gray-50/10 dark:bg-gray-900/10 text-primary-600 dark:text-primary-400' : menuStyles.inactive}`}>
-                  <Suspense fallback={<IconFallback />}>
-                    <NewspaperIcon className="h-5 w-5 mr-2 text-primary-500" />
-                  </Suspense>
-                  Blog
-                </a>
-              )}
-            </Menu.Item>
           </div>
           <div className="px-1 py-1">
             <MenuItem onClick={handleSignOut}>
