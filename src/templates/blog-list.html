@@ -48,7 +48,21 @@
             }
         }
 
+        // Update click handlers for all app navigation links
         document.addEventListener('DOMContentLoaded', function() {
+            // Get all app navigation buttons
+            const appButtons = [
+                document.getElementById('goToAppBtn'),
+                document.getElementById('navLogoBtn'),
+                document.getElementById('breadcrumbHomeBtn')
+            ];
+            
+            // Add click handler to each button
+            appButtons.forEach(button => {
+                if (button) {
+                    button.addEventListener('click', handleGoToApp);
+                }
+            });
             const goToAppButton = document.getElementById('goToAppBtn');
             if (goToAppButton) {
                 goToAppButton.addEventListener('click', handleGoToApp);
