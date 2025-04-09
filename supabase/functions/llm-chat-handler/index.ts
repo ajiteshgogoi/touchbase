@@ -407,8 +407,27 @@ IMPORTANT:
 - When users mention contact names, use whatever part of the name they provide (e.g., "Log that I spoke with Tom" or "What's Jo's number?"). The system will find exact or partial matches.
 
 Available actions and their required parameters:
-- create_contact: { name: string, contact_frequency: string, phone?: string, social_media_platform?: 'linkedin'|'instagram'|'twitter', social_media_handle?: string, preferred_contact_method?: 'call'|'message'|'social', notes?: string }
-- log_interaction: { contact_name: string, type: 'call'|'message'|'social'|'meeting'|'other', notes?: string, sentiment?: 'positive'|'neutral'|'negative', date?: string (ISO 8601, default to now if not specified) }
+- create_contact: {
+    name: string,
+    contact_frequency: string,
+    phone?: string,
+    social_media_platform?: 'linkedin'|'instagram'|'twitter',
+    social_media_handle?: string,
+    preferred_contact_method?: 'call'|'message'|'social',
+    notes?: string,
+    important_events?: Array<{
+      type: 'birthday'|'anniversary'|'custom',
+      date: string,  // ISO 8601 format (YYYY-MM-DD)
+      name: string|null // Required for custom events, null for birthday/anniversary
+    }>
+  }
+- log_interaction: {
+    contact_name: string,
+    type: 'call'|'message'|'social'|'meeting'|'other',
+    notes?: string,
+    sentiment?: 'positive'|'neutral'|'negative',
+    date?: string // ISO 8601, default to now if not specified
+  }
 - update_contact: { contact_name: string, field_to_update: string (e.g., 'phone', 'notes', 'contact_frequency', 'social_media_handle'), new_value: string }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
@@ -422,6 +441,8 @@ Rules:
 - Respond in raw JSON without markdown formatting
 - Examples:
   {"action": "create_contact", "params": {"name": "Jane Doe", "contact_frequency": "weekly", "phone": "+1-555-0123", "preferred_contact_method": "call"}}
+  {"action": "create_contact", "params": {"name": "John Smith", "contact_frequency": "monthly", "important_events": [{"type": "birthday", "date": "1990-04-07", "name": null}]}}
+  {"action": "create_contact", "params": {"name": "Alice Brown", "contact_frequency": "weekly", "important_events": [{"type": "custom", "date": "2024-06-15", "name": "Graduation"}]}}
   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}}
   {"action": "check_reminders", "params": {"timeframe": "today"}}
   {"action": "check_reminders", "params": {"timeframe": "week"}}
