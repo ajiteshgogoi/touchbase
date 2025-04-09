@@ -59,7 +59,6 @@ export const AdvancedContactInfo = ({
   const [eventNameLength, setEventNameLength] = useState(0);
   const [hashtagSuggestions, setHashtagSuggestions] = useState<string[]>([]);
   const [showHashtagSuggestions, setShowHashtagSuggestions] = useState(false);
-  const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const allHashtags = getAllUniqueHashtags(contacts);
 
@@ -88,66 +87,7 @@ export const AdvancedContactInfo = ({
     setHashtagSuggestions(suggestions);
     
     if (suggestions.length > 0 && potentialHashtags <= 5) {
-      const textarea = textareaRef.current;
-      if (textarea) {
-        // Create a temporary div to measure text width
-        const { scrollTop, selectionEnd } = textarea;
-        const textareaStyles = window.getComputedStyle(textarea);
-        const lineHeight = parseInt(textareaStyles.lineHeight);
-        const paddingTop = parseInt(textareaStyles.paddingTop);
-        const paddingLeft = parseInt(textareaStyles.paddingLeft);
-        
-        // Create measurement div
-        const div = document.createElement('div');
-        div.style.cssText = textareaStyles.cssText || '';
-        div.style.height = 'auto';
-        div.style.width = `${textarea.clientWidth}px`;
-        div.style.position = 'absolute';
-        div.style.visibility = 'hidden';
-        div.style.whiteSpace = 'pre-wrap';
-        div.style.wordWrap = 'break-word';
-        div.style.overflowWrap = 'break-word';
-        div.style.overflow = 'hidden';
-        document.body.appendChild(div);
-
-        // Get text before cursor and measure
-        const textBeforeCursor = truncatedValue.substring(0, selectionEnd);
-        const lines = textBeforeCursor.split('\n');
-        const lastLine = lines[lines.length - 1];
-        
-        div.textContent = textBeforeCursor || '';
-        const textHeight = div.scrollHeight;
-        const currentLineNumber = Math.floor(textHeight / lineHeight);
-
-        // Measure last line width
-        div.textContent = lastLine || '';
-        const lastLineWidth = Math.min(div.scrollWidth, textarea.clientWidth - paddingLeft * 2);
-
-        document.body.removeChild(div);
-        
-        // Get textarea dimensions
-        const textareaRect = textarea.getBoundingClientRect();
-        const textareaBottom = textareaRect.height - 40; // Keep space for suggestions
-        
-        // Calculate vertical position
-        let suggestTop = currentLineNumber * lineHeight - scrollTop + paddingTop;
-        
-        // If we're too close to the bottom, show above the text
-        if (suggestTop > textareaBottom - lineHeight) {
-          suggestTop = Math.max(currentLineNumber * lineHeight - scrollTop - 120, 0); // 120px for suggestion box
-        }
-        
-        // Calculate horizontal position, keeping close to cursor
-        const position = {
-          top: Math.min(suggestTop, textareaBottom),
-          left: Math.min(
-            Math.max(lastLineWidth - 20, paddingLeft), // Closer to cursor, but not too far left
-            textareaRect.width - 170 // Account for suggestion width
-          )
-        };
-        setSuggestionPosition(position);
-        setShowHashtagSuggestions(true);
-      }
+      setShowHashtagSuggestions(true);
     } else {
       setShowHashtagSuggestions(false);
     }
@@ -583,7 +523,7 @@ export const AdvancedContactInfo = ({
             <HashtagSuggestions
               suggestions={hashtagSuggestions}
               onSelect={handleHashtagSelect}
-              position={suggestionPosition}
+              referenceElement={textareaRef.current}
               visible={showHashtagSuggestions}
             />
           </div>

@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@babel/runtime": ">=7.26.10",
+    "@floating-ui/react": "^0.27.6",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.0.18",
     "@paypal/react-paypal-js": "^8.8.2",
