@@ -310,8 +310,8 @@ export const ChatModal = () => {
               {mutation.isPending && (
                  <div className="flex justify-start">
                     <div className="flex items-start gap-2 max-w-[80%]">
-                       <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-500 animate-pulse">
-                          <SparklesIcon className="h-5 w-5 text-white opacity-70" />
+                       <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center bg-gray-800 dark:bg-gray-50 animate-pulse">
+                          <img src="/icon.svg" alt="heart" className="h-5 w-5 text-white opacity-70" loading="eager" />
                        </div>
                        <div className="px-4 py-2 rounded-2xl bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-600">
                           <div className="flex space-x-1 items-center">
