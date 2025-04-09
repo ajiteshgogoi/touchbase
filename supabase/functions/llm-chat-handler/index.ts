@@ -13,6 +13,11 @@ interface ChatRequest {
     confirm: boolean;
     action_details: ActionDetails;
   };
+  important_events?: Array<{
+    type: 'birthday' | 'anniversary' | 'custom';
+    date: string;
+    name: string | null;
+  }>;
 }
 
 interface ActionDetails {
@@ -131,6 +136,39 @@ serve(async (req) => {
             const validFrequencies = ['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'];
             if (!validFrequencies.includes(params.contact_frequency)) {
               throw new Error(`Invalid contact frequency. Must be one of: ${validFrequencies.join(', ')}`);
+            },
+            // Validate important events if provided
+            if (params.important_events) {
+              // Check if events array is valid
+              if (!Array.isArray(params.important_events)) {
+                throw new Error("important_events must be an array");
+              }
+
+              // Maximum 5 events allowed
+              if (params.important_events.length > 5) {
+                throw new Error("Maximum of 5 important events allowed per contact");
+              }
+
+              // Check for duplicate birthday or anniversary
+              const hasBirthday = params.important_events.filter(e => e.type === 'birthday').length > 1;
+              const hasAnniversary = params.important_events.filter(e => e.type === 'anniversary').length > 1;
+              if (hasBirthday) throw new Error("Only one birthday event allowed");
+              if (hasAnniversary) throw new Error("Only one anniversary event allowed");
+
+              // Validate each event
+              params.important_events.forEach(event => {
+                if (!['birthday', 'anniversary', 'custom'].includes(event.type)) {
+                  throw new Error("Event type must be 'birthday', 'anniversary', or 'custom'");
+                }
+                
+                if (!event.date || isNaN(new Date(event.date).getTime())) {
+                  throw new Error("Each event must have a valid date");
+                }
+
+                if (event.type === 'custom' && (!event.name || event.name.length > 50)) {
+                  throw new Error("Custom events must have a name between 1 and 50 characters");
+                }
+              });
             }
 
             // Validate social media platform if provided
@@ -163,6 +201,24 @@ serve(async (req) => {
 
             if (createError) throw createError;
             if (!contact) throw new Error('Failed to create contact');
+
+            // Add important events if provided
+            if (params.important_events && params.important_events.length > 0) {
+              const { error: eventsError } = await supabaseAdminClient
+                .from('important_events')
+                .insert(params.important_events.map(event => ({
+                  contact_id: contact.id,
+                  user_id: user.id,
+                  type: event.type,
+                  name: event.name,
+                  date: event.date
+                })));
+
+              if (eventsError) {
+                console.error('Error creating important events:', eventsError);
+                // Don't fail the operation, but log the error
+              }
+            }
 
             // Recalculate next contact due date
             // Calculate next contact due date properly
