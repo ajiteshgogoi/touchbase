@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useStore } from '../../stores/useStore';
 import { useChatStore, type Message } from '../../stores/chatStore';
 import { supabase } from '../../lib/supabase/client';
-import { PaperAirplaneIcon, XMarkIcon, SparklesIcon, UserIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, XMarkIcon, UserIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { Transition } from '@headlessui/react';
 
 // Define API response type (matching backend)
