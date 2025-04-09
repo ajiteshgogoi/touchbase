@@ -303,8 +303,8 @@ useEffect(() => {
                   <div className={`flex items-start max-w-[80%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                      {/* Bubble */}
                      <div className={`px-4 py-2 rounded-2xl ${
-                        msg.sender === 'user' ? 'bg-primary-500 text-white rounded-br-none' :
-                        msg.sender === 'ai' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-600' :
+                        msg.sender === 'user' ? 'bg-primary-700 text-white rounded-br-none' :
+                        msg.sender === 'ai' ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-bl-none border border-gray-200 dark:border-gray-600' :
                         msg.isError ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-bl-none border border-red-200 dark:border-red-700' :
                         'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-bl-none border border-gray-200 dark:border-gray-600'
                      }`}>
