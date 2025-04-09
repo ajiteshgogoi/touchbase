@@ -124,18 +124,43 @@ export default defineConfig({
             res.setHeader('Content-Type', 'application/manifest+json');
           }
           // Serve static blog files in development
-          if (req.url?.startsWith('/blog/') && !req.url.includes('.')) {
-            const filePath = path.join(process.cwd(), 'dist', 'blog', req.url.split('/blog/')[1] || 'index.html');
-            try {
-              const content = fs.readFileSync(filePath, 'utf-8');
-              res.setHeader('Content-Type', 'text/html');
-              res.end(content);
-              return;
-            } catch (error) {
-              // If file not found, continue to next middleware
-              next();
-              return;
+          // Handle both /blog and /dist/blog paths
+          const blogMatch = req.url?.match(/^\/(dist\/)?blog(\/.*)?$/);
+          if (blogMatch && !req.url?.includes('.')) {
+            // Extract the path after /blog or /dist/blog
+            let blogPath = blogMatch[2]?.slice(1) || 'index';
+            
+            // Append .html to the path if it doesn't already have it
+            if (!blogPath.endsWith('.html')) {
+              blogPath += '.html';
             }
+
+            const filePath = path.join(process.cwd(), 'dist', 'blog', blogPath);
+
+            try {
+              // Check if the file exists
+              const exists = fs.existsSync(filePath);
+              if (!exists && blogPath === 'index.html') {
+                // If index.html wasn't found, try loading the blog directory index
+                const dirIndexPath = path.join(process.cwd(), 'dist', 'blog', 'index.html');
+                if (fs.existsSync(dirIndexPath)) {
+                  const content = fs.readFileSync(dirIndexPath, 'utf-8');
+                  res.setHeader('Content-Type', 'text/html');
+                  res.end(content);
+                  return;
+                }
+              } else if (exists) {
+                const content = fs.readFileSync(filePath, 'utf-8');
+                res.setHeader('Content-Type', 'text/html');
+                res.end(content);
+                return;
+              }
+            } catch (error) {
+              console.error('Error serving blog content:', error);
+            }
+            // If file not found or error occurred, continue to next middleware
+            next();
+            return;
           }
           next();
         });
