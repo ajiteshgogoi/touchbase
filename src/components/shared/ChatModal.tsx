@@ -120,11 +120,17 @@ export const ChatModal = () => {
       
       // Check if we need to send a greeting
       const messages = getMessages(currentContext);
+      console.log('Initial messages:', messages);
+      
       if (messages.length === 0 && !greetingSentRef.current) {
+        console.log('Sending initial greeting');
         greetingSentRef.current = true;
+        // Store initial context message
+        addMessage('system', 'Chat session started');
         addMessage('ai', "Hi! How can I help you manage your contacts today?");
       }
     } else {
+      console.log('Resetting chat input');
       setInput('');
       greetingSentRef.current = false; // Reset for next open
     }
@@ -137,17 +143,27 @@ export const ChatModal = () => {
     setInput('');
 
     const currentMessages = getMessages(currentContext);
+    console.log('Current context:', currentContext);
+    console.log('Current messages:', currentMessages);
+    
+    // Ensure we have the context in a format the LLM expects
+    const previousMessages = currentMessages.map((m: Message) => ({
+      role: m.sender,
+      content: m.text
+    }));
+    console.log('Formatted messages:', previousMessages);
+    
     const currentContactId = useChatStore.getState().contexts[currentContext]?.currentContactId;
+    console.log('Current contact ID:', currentContactId);
+    
     const payload: ChatRequest = {
       message: userMessage,
       context: {
-        previousMessages: currentMessages.map((m: Message) => ({
-          role: m.sender,
-          content: m.text
-        })),
+        previousMessages: previousMessages,
         contactId: currentContactId
       }
     };
+    console.log('Sending payload:', payload);
     mutation.mutate(payload);
   };
 

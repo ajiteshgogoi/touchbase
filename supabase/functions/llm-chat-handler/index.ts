@@ -354,9 +354,10 @@ Rules:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-pro", // Use latest Gemini model for better results
+          model: "google/gemini-2.0-flash-001", // Use latest Gemini model for better results
           messages: [
             { role: "system", content: systemPrompt },
+            ...(context?.previousMessages || []),
             { role: "user", content: userMessage }
           ],
           response_format: { type: "json_object" } // Request JSON output
