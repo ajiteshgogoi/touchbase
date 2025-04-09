@@ -22,7 +22,7 @@ interface ChatRequest {
   context?: {
     contactId?: string;
     previousMessages?: Array<{
-      role: 'user' | 'ai' | 'system';
+      role: 'user' | 'assistant' | 'system';
       content: string;
     }>;
   };
@@ -147,10 +147,21 @@ export const ChatModal = () => {
     console.log('Current messages:', currentMessages);
     
     // Ensure we have the context in a format the LLM expects
-    const previousMessages = currentMessages.map((m: Message) => ({
-      role: m.sender,
-      content: m.text
-    }));
+    // Properly map message roles for the LLM
+    const previousMessages = currentMessages.map((m: Message) => {
+      let role: 'user' | 'assistant' | 'system';
+      if (m.sender === 'ai') {
+        role = 'assistant';
+      } else if (m.sender === 'user') {
+        role = 'user';
+      } else {
+        role = 'system';
+      }
+      return {
+        role,
+        content: m.text
+      };
+    });
     console.log('Formatted messages:', previousMessages);
     
     const currentContactId = useChatStore.getState().contexts[currentContext]?.currentContactId;

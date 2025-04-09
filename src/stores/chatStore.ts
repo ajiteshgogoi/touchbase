@@ -32,6 +32,11 @@ export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       contexts: {},
+      // Debug log for store updates
+      _logStoreUpdate: (action: string, data: any) => {
+        console.log(`[ChatStore] ${action}:`, data);
+        return data;
+      },
       currentContext: 'default',
       
       setCurrentContext: (contextId) => {
@@ -52,7 +57,7 @@ export const useChatStore = create<ChatStore>()(
             timestamp: Date.now(),
           };
 
-          return {
+          const newState = {
             ...state,
             contexts: {
               ...state.contexts,
@@ -63,6 +68,8 @@ export const useChatStore = create<ChatStore>()(
               },
             },
           };
+
+          return newState;
         });
       },
 
