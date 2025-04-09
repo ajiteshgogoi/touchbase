@@ -35,10 +35,10 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
           highlighterRef.current.style.paddingRight = styles.paddingRight;
           highlighterRef.current.style.paddingBottom = styles.paddingBottom;
           highlighterRef.current.style.paddingLeft = styles.paddingLeft;
-          highlighterRef.current.style.borderTopWidth = styles.borderTopWidth;
-          highlighterRef.current.style.borderRightWidth = styles.borderRightWidth;
-          highlighterRef.current.style.borderBottomWidth = styles.borderBottomWidth;
-          highlighterRef.current.style.borderLeftWidth = styles.borderLeftWidth;
+          highlighterRef.current.style.borderRadius = styles.borderRadius;
+          highlighterRef.current.style.borderWidth = styles.borderWidth;
+          highlighterRef.current.style.borderStyle = styles.borderStyle;
+          highlighterRef.current.style.borderColor = 'transparent';
           highlighterRef.current.style.boxSizing = styles.boxSizing;
         }
       });
