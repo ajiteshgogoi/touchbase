@@ -24,8 +24,8 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
       requestAnimationFrame(() => {
         if (highlighterRef.current && textarea) {
           const styles = window.getComputedStyle(textarea);
-          highlighterRef.current.style.width = styles.width;
-          highlighterRef.current.style.height = styles.height;
+          
+          // Match all basic styles
           highlighterRef.current.style.fontSize = styles.fontSize;
           highlighterRef.current.style.lineHeight = styles.lineHeight;
           highlighterRef.current.style.fontFamily = styles.fontFamily;
@@ -40,6 +40,15 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
           highlighterRef.current.style.borderStyle = styles.borderStyle;
           highlighterRef.current.style.borderColor = 'transparent';
           highlighterRef.current.style.boxSizing = styles.boxSizing;
+
+          // Handle scrollbar presence
+          const hasVerticalScrollbar = textarea.scrollHeight > textarea.clientHeight;
+          
+          // Set dimensions accounting for scrollbar
+          highlighterRef.current.style.width = hasVerticalScrollbar
+            ? `${textarea.clientWidth}px`  // Use clientWidth to match textarea's inner width
+            : styles.width;
+          highlighterRef.current.style.height = styles.height;
         }
       });
     };
@@ -80,7 +89,7 @@ export const HashtagHighlighter = ({ text, textarea }: HashtagHighlighterProps) 
   return (
     <div
       ref={highlighterRef}
-      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words overflow-hidden text-transparent rounded-lg"
+      className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-transparent rounded-lg overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       style={{
         boxSizing: 'border-box',
         borderColor: 'transparent'
