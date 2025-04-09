@@ -1,13 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TouchBase Blog | Latest Posts and Updates from TouchBase</title>
-    <meta name="description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships. Start improving your real-life relationships today.">
-    <link rel="canonical" href="https://touchbase.site/blog">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
+    <!-- Theme initialization -->
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = savedTheme === 'dark' || (savedTheme === 'system' && prefersDark);
+        document.documentElement.classList.toggle('dark', isDark);
+      })();
+    </script>
+
+    <!-- Instagram Browser Detection -->
+    <script>
+      (function() {
+        window.__TB = { ready: false };
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        var isMetaBrowser = /Instagram/.test(navigator.userAgent) ||
+          (isIOS && (/FBAN/.test(navigator.userAgent) || /FBAV/.test(navigator.userAgent) || /FBIOS/.test(navigator.userAgent)));
+        
+        if (isMetaBrowser) {
+          var div = document.createElement('div');
+          div.className = 'ig-overlay';
+          div.innerHTML = 'Please open this page in your device\'s browser.';
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.appendChild(div);
+          });
+        }
+        window.__TB.ready = true;
+      })();
+    </script>
+
     <!-- Open Graph -->
     <meta property="og:title" content="TouchBase Blog | Latest Posts and Updates from TouchBase">
     <meta property="og:description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships. Start improving your real-life relationships today.">
@@ -20,8 +47,20 @@
     <meta name="twitter:title" content="TouchBase Blog | Latest Posts and Updates from TouchBase">
     <meta name="twitter:description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships. Start improving your real-life relationships today.">
     <meta name="twitter:image" content="https://touchbase.site/og.png">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TouchBase" />
     
     <link href="/static.css" rel="stylesheet">
+    <link rel="canonical" href="https://touchbase.site/blog">
+
+    <title>TouchBase Blog | Latest Posts and Updates from TouchBase</title>
+    <meta name="description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships. Start improving your real-life relationships today.">
 
     <!-- Schema.org JSON-LD structured data -->
     <script type="application/ld+json">
@@ -70,7 +109,7 @@
     }
     </script>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <div id="root">
         <nav class="bg-white/60 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-100/50">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -162,5 +201,30 @@
 const posts = POSTS_DATA;
 </script>
 <script src="/js/blog-list.js" defer></script>
+<!-- Critical CSS -->
+<style>
+  :root {
+    color-scheme: light dark;
+    background-color: rgb(249 250 251);
+    color: rgb(17 24 39);
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  }
+  
+  :root.dark {
+    background-color: rgb(17 24 39);
+    color: rgb(243 244 246);
+  }
+  
+  body {
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .dark body {
+    background-color: rgb(17 24 39);
+  }
+</style>
+
+<!-- Load React app -->
+<script type="module" src="/src/index.tsx"></script>
 </body>
 </html>
