@@ -1,16 +1,19 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, lazy, Suspense } from 'react'; // Added lazy, Suspense
 import { Navbar } from './Navbar';
 import { getFullVersion } from '../../../version/version';
 import { useStore } from '../../stores/useStore';
 import { supabase } from '../../lib/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { ChatFAB } from '../shared/ChatFAB'; // Import the FAB
 
+// Lazy load ChatModal
+const ChatModal = lazy(() => import('../shared/ChatModal').then(module => ({ default: module.ChatModal })));
 interface LayoutProps {
   children: ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const { user } = useStore();
+  const { user, isChatOpen } = useStore(); // Get isChatOpen state
 
   // Get user preferences including theme
   // Get theme from localStorage first, then try to sync with server preferences
@@ -77,6 +80,12 @@ export const Layout = ({ children }: LayoutProps) => {
           © {new Date().getFullYear()} TouchBase Technologies | {getFullVersion()}
         </div>
       </footer>
+      {/* Add the Chat FAB here */}
+      <ChatFAB />
+      {/* Conditionally render ChatModal using Suspense for lazy loading */}
+      <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-[70]"><div className="text-white">Loading Chat...</div></div>}>
+        {isChatOpen && <ChatModal />}
+      </Suspense>
     </div>
   );
 };

@@ -13,6 +13,7 @@ type Store = {
   searchQuery: string;
   contactFilter: 'all' | 'due';
   darkMode: boolean;
+  isChatOpen: boolean; // Added for chat modal visibility
   setUser: (user: User | null) => void;
   setContacts: (contacts: Contact[]) => void;
   setIsLoading: (isLoading: boolean) => void;
@@ -22,6 +23,8 @@ type Store = {
   setSearchQuery: (query: string) => void;
   setContactFilter: (filter: 'all' | 'due') => void;
   setDarkMode: (darkMode: boolean) => void;
+  openChat: () => void; // Added action to open chat
+  closeChat: () => void; // Added action to close chat
 }
 
 type SetState = (fn: Partial<Store> | ((state: Store) => Partial<Store>)) => void;
@@ -36,6 +39,7 @@ export const useStore = create<Store>((set: SetState) => ({
   searchQuery: '',
   contactFilter: 'all',
   darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
+  isChatOpen: false, // Initial state for chat modal
 
   setUser: (user: User | null) => set({ user }),
   setContacts: (contacts: Contact[]) => set({ contacts }),
@@ -49,6 +53,8 @@ export const useStore = create<Store>((set: SetState) => ({
     set({ darkMode });
     document.documentElement.classList.toggle('dark', darkMode);
   },
+  openChat: () => set({ isChatOpen: true }), // Implementation for opening chat
+  closeChat: () => set({ isChatOpen: false }), // Implementation for closing chat
 }));
 
 // Subscribe to system dark mode changes
