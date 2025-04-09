@@ -36,6 +36,7 @@ $functions = @(
     "export-data",
     "get-user-stats",
     "google-play-webhooks",
+    "llm-chat-handler",
     "paypal-webhooks",
     "push-notifications",
     "sync-to-brevo",
