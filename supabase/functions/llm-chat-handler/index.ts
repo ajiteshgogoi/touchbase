@@ -238,17 +238,30 @@ serve(async (req) => {
                     console.error("Error creating important event:", eventError);
                     // Don't fail the whole operation for this
                  }
-                 // Use standard contact update to recalculate next due date
-                 const { error: updateError } = await supabaseAdminClient
+                 // Get current contact details for proper recalculation
+                 const { data: contactDetails, error: contactError } = await supabaseAdminClient
                    .from('contacts')
-                   .update({
-                     next_contact_due: new Date().toISOString() // Trigger recalculation
-                   })
-                   .eq('id', contact_id);
-                 
-                 if (updateError) {
-                   console.error("Error updating contact:", updateError);
-                   // Don't fail the operation, but log the error
+                   .select('contact_frequency, last_contacted, missed_interactions')
+                   .eq('id', contact_id)
+                   .single();
+
+                 if (contactError) {
+                   console.error("Error fetching contact details:", contactError);
+                 } else if (contactDetails) {
+                   // Calculate next_contact_due using RPC function
+                   const { error: updateError } = await supabaseAdminClient.rpc('log_interaction_and_update_contact', {
+                     p_contact_id: contact_id,
+                     p_user_id: user.id,
+                     p_type: reminderType,
+                     p_date: dueDate.toISOString(),
+                     p_notes: null,
+                     p_sentiment: null
+                   });
+                   
+                   if (updateError) {
+                     console.error("Error updating contact:", updateError);
+                     // Don't fail the operation, but log the error
+                   }
                  }
              }
              return createResponse({ reply: "Reminder created successfully." });
@@ -322,6 +335,7 @@ Rules:
 - If the user request is ambiguous (e.g., missing required parameters like type for log_interaction, name/due_date for reminder), ask for clarification. DO NOT guess parameters.
 - If the request is a simple question not matching an action, provide a direct answer if possible or state you cannot perform that query. Use the 'reply' field for this.
 - Respond ONLY with a valid JSON object containing 'action' and 'params', OR 'reply' for direct answers/clarifications, OR 'error'.
+- Respond in raw JSON without markdown formatting
 - Examples:
   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}}
   {"action": "create_reminder", "params": {"contact_name": "Bob", "name": "Follow up on proposal", "due_date": "2025-04-15T09:00:00Z"}}
@@ -355,8 +369,9 @@ Rules:
       // Safely parse the potentially nested JSON string
       let llmJsonOutput: ChatResponse = {};
       try {
-        const content = llmResult.choices?.[0]?.message?.content;
+        const content = llmResult?.choices?.[0]?.message?.content;
         if (!content) {
+           console.error('Empty LLM response:', llmResult);
            throw new Error("LLM response content is missing or empty.");
         }
 
