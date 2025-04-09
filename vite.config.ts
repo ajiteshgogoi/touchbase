@@ -37,7 +37,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
         globIgnores: ['**/firebase-messaging-sw.js'],  // Don't let Workbox handle Firebase SW
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/blog\//, /firebase-messaging-sw\.js/], // Exclude API, Blog, and Firebase SW URLs
+        navigateFallbackDenylist: [/^\/api\//, /firebase-messaging-sw\.js/], // Exclude API and Firebase SW URLs
         runtimeCaching: [
           {
             urlPattern: /manifest\.json$/i,
@@ -123,42 +123,8 @@ export default defineConfig({
           if (req.url?.endsWith('manifest.json')) {
             res.setHeader('Content-Type', 'application/manifest+json');
           }
-          // Serve static blog files in development
-          // Handle both /blog and /dist/blog paths
-          const blogMatch = req.url?.match(/^\/(dist\/)?blog(\/.*)?$/);
-          if (blogMatch && !req.url?.includes('.')) {
-            // Extract the path after /blog or /dist/blog
-            let blogPath = blogMatch[2]?.slice(1) || 'index';
-            
-            // Append .html to the path if it doesn't already have it
-            if (!blogPath.endsWith('.html')) {
-              blogPath += '.html';
-            }
-
-            const filePath = path.join(process.cwd(), 'dist', 'blog', blogPath);
-
-            try {
-              // Check if the file exists
-              const exists = fs.existsSync(filePath);
-              if (!exists && blogPath === 'index.html') {
-                // If index.html wasn't found, try loading the blog directory index
-                const dirIndexPath = path.join(process.cwd(), 'dist', 'blog', 'index.html');
-                if (fs.existsSync(dirIndexPath)) {
-                  const content = fs.readFileSync(dirIndexPath, 'utf-8');
-                  res.setHeader('Content-Type', 'text/html');
-                  res.end(content);
-                  return;
-                }
-              } else if (exists) {
-                const content = fs.readFileSync(filePath, 'utf-8');
-                res.setHeader('Content-Type', 'text/html');
-                res.end(content);
-                return;
-              }
-            } catch (error) {
-              console.error('Error serving blog content:', error);
-            }
-            // If file not found or error occurred, continue to next middleware
+          // Let blog routes be handled by the React app
+          if (req.url?.startsWith('/blog')) {
             next();
             return;
           }
