@@ -605,6 +605,16 @@ serve(async (req) => {
       const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database.
       
       VALID FREQUENCY VALUES: 'every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'
+      
+      DATE HANDLING - READ CAREFULLY:
+       - CURRENT_YEAR is 2025. DO NOT use any other year.
+       - ALWAYS use CURRENT_YEAR for ALL dates, including:
+          * When calculating "in X days" -> add X days to current date using CURRENT_YEAR as year
+            Example: if today is April 10 and user says "in 3 days", use "CURRENT_YEAR-04-13"
+          * When setting reminders for tomorrow -> use next day with CURRENT_YEAR as year
+          * When setting reminders for next week -> add 7 days using CURRENT_YEAR as year
+          * When setting reminders for next month -> add 30 days using CURRENT_YEAR as year
+       - All dates MUST be in ISO format (YYYY-MM-DD) with CURRENT_YEAR as the year
 
 IMPORTANT:
 - When logging interactions, always use one of these exact types: 'call', 'message', 'social', 'meeting'. These are the only valid interaction types in the database.
