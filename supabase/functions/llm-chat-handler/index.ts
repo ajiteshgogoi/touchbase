@@ -33,9 +33,9 @@ interface ChatResponse {
 async function isUserPremiumOrTrial(supabaseClient: SupabaseClient, userId: string): Promise<boolean> {
   const { data, error } = await supabaseClient
     .from('subscriptions')
-    .select('status, trial_ends_at')
+    .select('status, trial_end_date, valid_until')
     .eq('user_id', userId)
-    .in('status', ['active', 'trialing']) // Check for active or trialing status
+    .eq('plan_id', 'premium')
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116: No rows found (expected for free users)
@@ -44,24 +44,27 @@ async function isUserPremiumOrTrial(supabaseClient: SupabaseClient, userId: stri
   }
 
   if (!data) {
-    return false; // No active or trialing subscription found
+    return false; // No premium subscription found
   }
 
-  // If status is active, they are premium
-  if (data.status === 'active') {
+  const now = new Date();
+
+  // Check if subscription is active and not expired
+  if (data.status === 'active' && new Date(data.valid_until) > now) {
     return true;
   }
 
-  // If status is trialing, check if trial_ends_at is in the future
-  if (data.status === 'trialing' && data.trial_ends_at) {
-    const trialEndDate = new Date(data.trial_ends_at);
-    const now = new Date();
-    return trialEndDate > now;
+  // Check if trial is still valid
+  if (data.trial_end_date) {
+    const trialEndDate = new Date(data.trial_end_date);
+    if (trialEndDate > now) {
+      return true;
+    }
+  }
   }
 
   return false; // Otherwise, not premium or on active trial
 }
-
 
 // --- Main Handler ---
 serve(async (req) => {
@@ -123,7 +126,18 @@ serve(async (req) => {
         try {
           if (action === 'rpc_log_interaction') {
             if (!contact_id) throw new Error("Contact ID is required for log_interaction.");
-            const { error: rpcError } = await supabaseAdminClient.rpc('log_interaction_and_update_contact', {
+            
+            // Validate interaction type
+            if (!['call', 'message', 'social', 'meeting'].includes(params.type)) {
+              throw new Error("Invalid interaction type. Must be one of: 'call', 'message', 'social', 'meeting'");
+            }
+
+            // Validate sentiment if provided
+            if (params.sentiment && !['positive', 'neutral', 'negative'].includes(params.sentiment)) {
+              throw new Error("Invalid sentiment. Must be one of: 'positive', 'neutral', 'negative'");
+            }
+
+            const { data: result, error: rpcError } = await supabaseAdminClient.rpc('log_interaction_and_update_contact', {
               p_contact_id: contact_id,
               p_user_id: user.id,
               p_type: params.type,
@@ -131,37 +145,85 @@ serve(async (req) => {
               p_notes: params.notes || null,
               p_sentiment: params.sentiment || null
             });
+
             if (rpcError) throw rpcError;
-            return createResponse({ reply: "Interaction logged successfully." });
+            if (!result?.interaction_id) throw new Error("Failed to log interaction");
+
+            return createResponse({
+              reply: `Interaction logged successfully${result.contact_updated ? ' and contact updated' : ''}.`
+            });
 
           } else if (action === 'update_contact') {
             if (!contact_id) throw new Error("Contact ID is required for update_contact.");
             if (!params.field_to_update || params.new_value === undefined) throw new Error("Field and new value required for update_contact.");
+
+            // Validate field and value based on schema constraints
+            switch (params.field_to_update) {
+              case 'social_media_platform':
+                if (!['linkedin', 'instagram', 'twitter', null].includes(params.new_value)) {
+                  throw new Error("Invalid social media platform. Must be one of: 'linkedin', 'instagram', 'twitter'");
+                }
+                break;
+              case 'preferred_contact_method':
+                if (!['call', 'message', 'social', null].includes(params.new_value)) {
+                  throw new Error("Invalid contact method. Must be one of: 'call', 'message', 'social'");
+                }
+                break;
+              case 'contact_frequency':
+                if (!['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'].includes(params.new_value)) {
+                  throw new Error("Invalid contact frequency. Must be one of: 'every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'");
+                }
+                break;
+              case 'name':
+              case 'phone':
+              case 'social_media_handle':
+              case 'notes':
+                // These fields accept any string value
+                break;
+              default:
+                throw new Error(`Cannot update field: ${params.field_to_update}. Field not recognized or not updateable.`);
+            }
+
             const { error: updateError } = await supabaseAdminClient
               .from('contacts')
               .update({ [params.field_to_update]: params.new_value })
-              .eq('user_id', user.id) // RLS check
+              .eq('user_id', user.id)
               .eq('id', contact_id);
+
             if (updateError) throw updateError;
-             // TODO: Consider recalculating next_contact_due if relevant fields changed
+
             return createResponse({ reply: "Contact updated successfully." });
 
           } else if (action === 'create_reminder') {
              if (!contact_id) throw new Error("Contact ID is required for create_reminder.");
              if (!params.name || !params.due_date) throw new Error("Reminder name and due date are required.");
-             // Mimic logic from contactsService.addQuickReminder (inserts reminder, optionally adds important event)
+             
+             // Validate reminder type
+             const reminderType = params.type || 'message';
+             if (!['call', 'message', 'social'].includes(reminderType)) {
+               throw new Error("Invalid reminder type. Must be one of: 'call', 'message', 'social'");
+             }
+
+             // Parse and validate due_date
+             const dueDate = new Date(params.due_date);
+             if (isNaN(dueDate.getTime())) {
+               throw new Error("Invalid due date format. Please use ISO 8601 format.");
+             }
+
+             // Create reminder
              const { data: reminderData, error: reminderError } = await supabaseAdminClient
                .from('reminders')
                .insert({
                  contact_id: contact_id,
                  user_id: user.id,
-                 type: params.type || 'message',
+                 type: reminderType,
                  name: params.name,
-                 due_date: params.due_date,
+                 due_date: dueDate.toISOString(),
                  completed: false
                })
                .select()
                .single();
+
              if (reminderError) throw reminderError;
 
              if (params.is_important) {
@@ -236,6 +298,9 @@ serve(async (req) => {
       }
 
       const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database.
+
+IMPORTANT: When logging interactions, always use one of these exact types: 'call', 'message', 'social', 'meeting'. These are the only valid interaction types in the database.
+
 Available actions and their required parameters:
 - log_interaction: { contact_name: string, type: 'call'|'message'|'social'|'meeting'|'other', notes?: string, sentiment?: 'positive'|'neutral'|'negative', date?: string (ISO 8601, default to now if not specified) }
 - update_contact: { contact_name: string, field_to_update: string (e.g., 'phone', 'notes', 'contact_frequency', 'social_media_handle'), new_value: string }
