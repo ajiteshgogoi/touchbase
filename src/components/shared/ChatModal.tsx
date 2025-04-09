@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useStore } from '../../stores/useStore';
-import { useChatStore } from '../../stores/chatStore';
+import { useChatStore, type Message } from '../../stores/chatStore';
 import { supabase } from '../../lib/supabase/client';
 import { PaperAirplaneIcon, XMarkIcon, SparklesIcon, UserIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { Transition } from '@headlessui/react';
@@ -68,7 +68,7 @@ export const ChatModal = () => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const messages = getMessages(currentContext);
+  const greetingSentRef = useRef(false);
 
   // React Query Mutation for sending messages/confirmations
   const mutation = useMutation<ChatResponse, Error, ChatRequest>({
@@ -96,29 +96,39 @@ export const ChatModal = () => {
       requiresConfirmation: boolean = false,
       actionDetails?: any
     ) => {
-    addStoreMessage(currentContext, { sender, text, isError, requiresConfirmation, actionDetails });
+    addStoreMessage(currentContext, {
+      sender,
+      text,
+      isError,
+      requiresConfirmation,
+      actionDetails
+    });
   };
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [getMessages(currentContext)]);
 
   // Focus input when modal opens
-   useEffect(() => {
+  useEffect(() => {
     if (isChatOpen) {
       // Add a small delay to ensure the input is rendered and visible
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
-       // Add initial greeting if messages are empty
-      if (messages.length === 0) {
+      
+      // Check if we need to send a greeting
+      const messages = getMessages(currentContext);
+      if (messages.length === 0 && !greetingSentRef.current) {
+        greetingSentRef.current = true;
         addMessage('ai', "Hi! How can I help you manage your contacts today?");
       }
     } else {
       setInput('');
+      greetingSentRef.current = false; // Reset for next open
     }
-  }, [isChatOpen, messages.length]); // Added messages.length to ensure greeting shows when context changes
+  }, [isChatOpen, currentContext]); // Only depend on isChatOpen and currentContext
 
   const handleSend = () => {
     if (input.trim() === '' || mutation.isPending) return;
@@ -126,10 +136,11 @@ export const ChatModal = () => {
     addMessage('user', userMessage);
     setInput('');
 
+    const currentMessages = getMessages(currentContext);
     const payload: ChatRequest = {
       message: userMessage,
       context: {
-        previousMessages: messages.slice(-10).map(m => ({
+        previousMessages: currentMessages.slice(-10).map((m: Message) => ({
           role: m.sender,
           content: m.text
         })),
@@ -151,7 +162,8 @@ export const ChatModal = () => {
        }
      };
      // Remove the confirmation prompt message before sending confirmation
-     const filteredMessages = messages.filter(msg => msg.actionDetails !== actionDetails);
+     const currentMessages = getMessages(currentContext);
+     const filteredMessages = currentMessages.filter((msg: Message) => msg.actionDetails !== actionDetails);
      useChatStore.setState(state => ({
        ...state,
        contexts: {
@@ -221,7 +233,7 @@ export const ChatModal = () => {
 
             {/* Message List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50">
-              {messages.map((msg) => (
+              {getMessages(currentContext).map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex items-start gap-2 max-w-[80%] ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                      {/* Icon */}
