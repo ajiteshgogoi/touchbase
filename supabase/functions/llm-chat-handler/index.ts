@@ -659,6 +659,14 @@ Available actions and their required parameters:
       }> // Providing null or empty array here is ignored. Use delete_contact to remove events.
     }
   }
+- "check_events": {
+    timeframe: 'today' | 'tomorrow' | 'week' | 'month' | 'custom' | 'date',
+    date?: string, // Required for timeframe: 'date'
+    start_date?: string, // Required for timeframe: 'custom'
+    end_date?: string, // Required for timeframe: 'custom'
+    type?: 'birthday' | 'anniversary' | 'custom', // Filter by event type
+    contact_name?: string // Filter by contact
+  }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
 - add_quick_reminder: {
@@ -687,6 +695,11 @@ Rules:
   {"action": "check_reminders", "params": {"timeframe": "week"}}
   {"action": "check_reminders", "params": {"timeframe": "date", "date": "2025-04-15"}}
   {"action": "check_reminders", "params": {"timeframe": "custom", "start_date": "2025-04-10", "end_date": "2025-04-20"}}
+  {"action": "check_events", "params": {"timeframe": "month", "type": "birthday"}} // Birthdays this month
+  {"action": "check_events", "params": {"timeframe": "tomorrow"}} // All events tomorrow
+  {"action": "check_events", "params": {"timeframe": "date", "date": "2025-07-15"}} // Events on July 15th
+  {"action": "check_events", "params": {"timeframe": "custom", "start_date": "2025-07-01", "end_date": "2025-07-31", "type": "birthday"}} // Birthdays in July
+  {"action": "check_events", "params": {"timeframe": "week", "contact_name": "John"}} // John's events this week
   {"action": "add_quick_reminder", "params": {"contact_name": "Jane Doe", "name": "Follow up on proposal", "due_date": "2025-04-15"}}
   {"action": "add_quick_reminder", "params": {"contact_name": "John Smith", "name": "Send birthday gift", "due_date": "2025-05-10", "is_important": true}}
   {"reply": "Which contact do you want to update?"}
@@ -826,7 +839,185 @@ Rules:
         }
 
         // If it's a 'get_contact_info' or 'check_reminders' action, execute it directly without confirmation
-        if (action === 'check_reminders') {
+        // Helper function to get date range based on timeframe
+        const getDateRange = (timeframe: string, date?: string, startDate?: string, endDate?: string) => {
+           const now = new Date();
+           let start = now;
+           let end = now;
+
+           switch (timeframe) {
+             case 'today':
+               end.setHours(23, 59, 59, 999);
+               break;
+             case 'tomorrow':
+               start = new Date(now.setDate(now.getDate() + 1));
+               start.setHours(0, 0, 0, 0);
+               end = new Date(start);
+               end.setHours(23, 59, 59, 999);
+               break;
+             case 'week':
+               end = new Date(now);
+               end.setDate(end.getDate() + 7);
+               end.setHours(23, 59, 59, 999);
+               break;
+             case 'month':
+               end = new Date(now);
+               end.setMonth(end.getMonth() + 1);
+               end.setHours(23, 59, 59, 999);
+               break;
+             case 'date':
+               if (!date) {
+                 throw new Error("Date is required for timeframe 'date'");
+               }
+               start = new Date(date);
+               if (isNaN(start.getTime())) {
+                 throw new Error("Invalid date format provided");
+               }
+               start.setHours(0, 0, 0, 0);
+               end = new Date(start);
+               end.setHours(23, 59, 59, 999);
+               break;
+             case 'custom':
+               if (!startDate || !endDate) {
+                 throw new Error("Start date and end date are required for custom timeframe");
+               }
+               start = new Date(startDate);
+               end = new Date(endDate);
+               if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                 throw new Error("Invalid date format provided");
+               }
+               break;
+             default:
+               throw new Error("Invalid timeframe specified");
+           }
+
+           return { startDate: start, endDate: end };
+        };
+
+        if (action === 'check_events') {
+           try {
+             const { timeframe } = params;
+             const { startDate, endDate } = getDateRange(timeframe, params.date, params.start_date, params.end_date);
+
+             // Build the query
+             let query = supabaseAdminClient
+               .from('important_events')
+               .select(`
+                 id,
+                 type,
+                 name,
+                 date,
+                 contacts:contact_id (
+                   name
+                 )
+               `)
+               .eq('user_id', user.id);
+
+             // Filter by contact if specified
+             if (params.contact_name) {
+               const { data: contact } = await supabaseAdminClient
+                 .from('contacts')
+                 .select('id')
+                 .eq('user_id', user.id)
+                 .ilike('name', `%${params.contact_name}%`)
+                 .single();
+
+               if (!contact) {
+                 return createResponse({ reply: `Couldn't find contact "${params.contact_name}"` });
+               }
+               query = query.eq('contact_id', contact.id);
+             }
+
+             // Filter by event type if specified
+             if (params.type) {
+               query = query.eq('type', params.type);
+             }
+
+             // Get all events and filter those that occur in the date range
+             const { data: events, error: eventsError } = await query;
+
+             if (eventsError) {
+               console.error('Error fetching events:', eventsError);
+               return createResponse({ reply: "Sorry, I encountered an error fetching your events." });
+             }
+
+             if (!events || events.length === 0) {
+               const typeText = params.type ? `${params.type}s` : 'important events';
+               const timeframeText = timeframe === 'today' ? 'today' :
+                                   timeframe === 'tomorrow' ? 'tomorrow' :
+                                   timeframe === 'week' ? 'this week' :
+                                   timeframe === 'month' ? 'this month' :
+                                   timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
+                                   'in the specified period';
+               const contactText = params.contact_name ? ` for ${params.contact_name}` : '';
+               return createResponse({ reply: `You don't have any ${typeText} ${timeframeText}${contactText}.` });
+             }
+
+             // Filter events that occur in the date range considering yearly recurrence
+             const relevantEvents = events.filter(event => {
+               const eventDate = new Date(event.date);
+               const currentYear = startDate.getFullYear();
+               // Set the event to the current year
+               eventDate.setFullYear(currentYear);
+               
+               // If the event is before start date, try next year
+               if (eventDate < startDate) {
+                 eventDate.setFullYear(currentYear + 1);
+               }
+
+               return eventDate >= startDate && eventDate <= endDate;
+             });
+
+             if (relevantEvents.length === 0) {
+               const typeText = params.type ? `${params.type}s` : 'important events';
+               const timeframeText = timeframe === 'today' ? 'today' :
+                                   timeframe === 'tomorrow' ? 'tomorrow' :
+                                   timeframe === 'week' ? 'this week' :
+                                   timeframe === 'month' ? 'this month' :
+                                   timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
+                                   'in the specified period';
+               const contactText = params.contact_name ? ` for ${params.contact_name}` : '';
+               return createResponse({ reply: `You don't have any ${typeText} ${timeframeText}${contactText}.` });
+             }
+
+             // Sort events by date
+             relevantEvents.sort((a, b) => {
+               const dateA = new Date(a.date);
+               const dateB = new Date(b.date);
+               return dateA.getTime() - dateB.getTime();
+             });
+
+             // Format the response
+             const eventList = relevantEvents.map(event => {
+               const date = new Date(event.date).toLocaleDateString(undefined, {
+                 weekday: 'short',
+                 month: 'short',
+                 day: 'numeric'
+               });
+               const contactName = event.contacts?.name || 'Unknown contact';
+               const eventName = event.type === 'custom' ? event.name :
+                               event.type === 'birthday' ? 'Birthday' :
+                               'Anniversary';
+               return `- ${date}: ${contactName}'s ${eventName}`;
+             }).join('\n');
+
+             const typeText = params.type ? `${params.type} ` : '';
+             const timeframeText = timeframe === 'today' ? 'today' :
+                                 timeframe === 'tomorrow' ? 'tomorrow' :
+                                 timeframe === 'week' ? 'this week' :
+                                 timeframe === 'month' ? 'this month' :
+                                 timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
+                                 'in the specified period';
+             const headerText = `Here are the ${typeText}events ${timeframeText}:`;
+
+             return createResponse({
+               reply: `${headerText}\n\n${eventList}`
+             });
+           } catch (error) {
+             console.error('Error in check_events:', error);
+             return createResponse({ reply: error.message });
+           }
+        } else if (action === 'check_reminders') {
            const now = new Date();
            let startDate = now;
            let endDate = now;
