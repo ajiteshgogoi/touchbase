@@ -672,38 +672,6 @@ serve(async (req) => {
         });
       }
 
-      // Basic input filtering for CRM terms
-      const containsOnlyCRMTerms = (message: string): boolean => {
-        const crmTerms = ['contact', 'reminder', 'interaction', 'event', 'birthday',
-          'anniversary', 'call', 'message', 'social', 'meeting', 'update', 'create',
-          'delete', 'check', 'log', 'frequency', 'due', 'today', 'tomorrow', 'week',
-          'month', 'coming', 'upcoming'];
-        return crmTerms.some(term => message.toLowerCase().includes(term));
-      }
-
-      const isGeneralQuestion = (message: string): boolean => {
-        const generalPhrases = ['how are you', 'what can you do', 'who are you',
-          'help me', 'hello', 'hi', 'hey', 'what is', 'tell me about'];
-        return generalPhrases.some(phrase => message.toLowerCase().includes(phrase));
-      }
-       if (isGeneralQuestion(userMessage)) {
-         return createResponse({
-           reply: "I'm Base, your Personal CRM assistant! You can simply tell me what you want to do in plain english, like:\n" +
-                  "- 'I just had coffee with Alex. Talked about his new book. Log it.'\n" +
-                  "- 'Add Sarah as a new contact. She's a friend from college.'\n" +
-                  "- 'Do I have any reminders due this week?'\n" +
-                  "- 'When did I last talk to Tom?'\n\n" +
-                  "Just type your request and I'll help you manage your contacts and relationships."
-         });
-       }
-
-      if (!containsOnlyCRMTerms(userMessage)) {
-        return createResponse({
-          reply: "I can only help with Personal CRM-related actions like managing contacts, reminders and interactions. How can I help you with your contacts?",
-          suggestions: ["Create contact", "Log interaction", "Check reminders"]
-        });
-      }
-
       console.log(`Processing message for user ${user.id}: "${userMessage}"`, context);
 
       // 5. Call LLM (OpenRouter - Gemini Flash)
