@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabase } from '../lib/supabase/client';
 
 export interface Message {
   id: string;
@@ -30,6 +31,12 @@ interface ChatStore {
   _cleanMessages: (messages: Message[], limit?: number) => Message[];
   _cleanTimeBasedContext: (contextId: string) => boolean;
 }
+
+// Helper to get current user ID
+const getCurrentUserId = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || 'anonymous';
+};
 
 export const useChatStore = create<ChatStore>()(
   persist(
@@ -180,6 +187,24 @@ export const useChatStore = create<ChatStore>()(
     {
       name: 'chat-store',
       version: 1,
+      getStorage: () => ({
+        async getItem(name: string) {
+          const userId = await getCurrentUserId();
+          const key = `${name}-${userId}`;
+          const value = localStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        },
+        async setItem(name: string, value: string) {
+          const userId = await getCurrentUserId();
+          const key = `${name}-${userId}`;
+          localStorage.setItem(key, JSON.stringify(value));
+        },
+        async removeItem(name: string) {
+          const userId = await getCurrentUserId();
+          const key = `${name}-${userId}`;
+          localStorage.removeItem(key);
+        },
+      })
     }
   )
 );

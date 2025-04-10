@@ -78,8 +78,22 @@ export const signInWithGoogle = async () => {
   }
 };
 
+// Import the chat store
+import { useChatStore } from '../../stores/chatStore';
+
 export const signOut = async () => {
   try {
+    // Clear chat store before signing out
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (userId) {
+      // Remove all chat data for this user
+      const keys = Object.keys(localStorage).filter(key => key.startsWith('chat-store') && key.endsWith(userId));
+      keys.forEach(key => localStorage.removeItem(key));
+      
+      // Reset chat store state
+      useChatStore.getState().clearAllContexts();
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     
