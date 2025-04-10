@@ -711,8 +711,8 @@ Rules:
   {"action": "check_interactions", "params": {"contact_name": "John", "query_type": "topics"}} // Find common discussion topics
   {"action": "check_interactions", "params": {"contact_name": "Sarah", "query_type": "frequency"}} // Check how often you interact
   {"action": "check_interactions", "params": {"contact_name": "Tom", "query_type": "activity", "activity": "biking"}} // Find when you went biking
-  {"action": "check_interactions", "params": {"contact_name": "Alice", "query_type": "notes", "timeframe": "month"}} // Get recent interaction notes
-  {"action": "check_interactions", "params": {"contact_name": "Bob", "query_type": "notes", "timeframe": "custom", "start_date": "2025-01-01", "end_date": "2025-03-31"}} // Get Q1 interaction notes
+  {"action": "check_interactions", "params": {"contact_name": "Alice", "query_type": "notes", "timeframe": "month"}} // Search all notes from interactions and contact profile
+  {"action": "check_interactions", "params": {"contact_name": "Bob", "query_type": "notes", "timeframe": "custom", "start_date": "2025-01-01", "end_date": "2025-03-31"}} // Search all Q1 notes and details  
   {"action": "add_quick_reminder", "params": {"contact_name": "Jane Doe", "name": "Follow up on proposal", "due_date": "2025-04-15"}}
   {"action": "add_quick_reminder", "params": {"contact_name": "John Smith", "name": "Send birthday gift", "due_date": "2025-05-10", "is_important": true}}
   {"reply": "Which contact do you want to update?"}
@@ -1259,15 +1259,28 @@ Rules:
                break;
 
              case 'notes':
-               // Just return recent interactions with notes
+               // Get both contact details and interactions
+               const { data: contactDetails } = await supabaseAdminClient
+                 .from('contacts')
+                 .select('notes')
+                 .eq('id', resolvedContactId)
+                 .single();
+
+               // Get recent interactions with notes
                const notesInteractions = filteredInteractions
                  .filter(interaction => interaction.notes)
                  .slice(0, 5);
                
-               if (notesInteractions.length === 0) {
-                 reply = `No interaction notes found for ${params.contact_name}.`;
-               } else {
-                 reply = `Recent interactions with ${params.contact_name}:\n\n`;
+               reply = `Information about ${params.contact_name}:\n\n`;
+
+               // Add contact notes if they exist
+               if (contactDetails?.notes) {
+                 reply += `General Notes:\n${contactDetails.notes}\n\n`;
+               }
+
+               // Add interaction notes if they exist
+               if (notesInteractions.length > 0) {
+                 reply += `Recent Interactions:\n`;
                  notesInteractions.forEach(interaction => {
                    const date = new Date(interaction.date).toLocaleDateString(undefined, {
                      year: 'numeric',
