@@ -404,7 +404,7 @@ export const AdvancedContactInfo = ({
                   required
                   defaultValue={dayjs().format('YYYY-MM-DD')}
                   key={showNewEventForm ? 'new' : 'edit'}
-                  className="mt-1 block w-full rounded-lg border-gray-200 dark:border-gray-700 shadow-sm focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white [&::-webkit-calendar-picker-indicator]:text-gray-600 [&::-webkit-calendar-picker-indicator]:opacity-70 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                  className="mt-1 block w-full rounded-lg border-gray-200 dark:border-gray-700 shadow-sm focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert-[0.4] dark:[&::-webkit-calendar-picker-indicator]:invert-[0.65]"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Events will recur yearly on this date
