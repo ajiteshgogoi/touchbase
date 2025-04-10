@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 import { useStore } from '../../stores/useStore';
 import { useChatStore, type Message } from '../../stores/chatStore';
 import { supabase } from '../../lib/supabase/client';
@@ -82,17 +82,41 @@ export const ChatModal: React.FC = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const greetingSentRef = useRef(false);
 
+  const queryClient = useQueryClient(); // Get query client instance
+
   // React Query Mutation for sending messages/confirmations
   const mutation = useMutation<ChatResponse, Error, ChatRequest>({
     mutationFn: callChatHandler,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => { // Access variables to check if it was a confirmation
+      let isConfirmationResponse = !!variables.confirmation;
+
       // Add AI response or confirmation message to chat
       if (data.error) {
          addMessage('system', `Error: ${data.error}`, true);
       } else if (data.confirmation_required && data.message && data.action_details) {
-        addMessage('ai', data.message, false, true, data.action_details); // Mark as requiring confirmation
+        // This is the AI asking for confirmation
+        addMessage('ai', data.message, false, true, data.action_details);
+        isConfirmationResponse = false; // Reset flag, this isn't the *result* of a confirmation
       } else if (data.reply) {
+        // This is either a direct reply or the result of a confirmed action
         addMessage('ai', data.reply);
+      }
+
+      // If this 'onSuccess' is the result of a confirmed action, invalidate queries
+      if (isConfirmationResponse && !data.error && !data.confirmation_required) {
+        console.log('[ChatModal] Invalidating queries after confirmed action.');
+        queryClient.invalidateQueries({ queryKey: ['contacts'] });
+        queryClient.invalidateQueries({ queryKey: ['recent-contacts'] });
+        queryClient.invalidateQueries({ queryKey: ['total-contacts'] });
+        queryClient.invalidateQueries({ queryKey: ['reminders'] });
+        queryClient.invalidateQueries({ queryKey: ['total-reminders'] });
+        queryClient.invalidateQueries({ queryKey: ['important-events'] });
+        // Optionally invalidate specific contact details if context ID is available
+        const contactId = variables?.context?.contactId || useChatStore.getState().contexts[currentContext]?.currentContactId;
+        if (contactId) {
+          queryClient.invalidateQueries({ queryKey: ['contact', contactId] });
+          queryClient.invalidateQueries({ queryKey: ['contact-interactions', contactId] });
+        }
       }
     },
     onError: (error) => {
