@@ -602,7 +602,7 @@ serve(async (req) => {
         throw new Error("GROQ_API_KEY environment variable not set.");
       }
 
-      const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database.
+      const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database. You can analyze interaction history to understand contact relationships, topics discussed, and activities.
       
       VALID FREQUENCY VALUES: 'every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'
       
@@ -666,6 +666,14 @@ Available actions and their required parameters:
     end_date?: string, // Required for timeframe: 'custom'
     type?: 'birthday' | 'anniversary' | 'custom', // Filter by event type
     contact_name?: string // Filter by contact
+  }
+- check_interactions: {
+    contact_name: string,
+    query_type: 'topics'|'frequency'|'activity'|'notes',
+    activity?: string, // For finding specific activities e.g. "biking", "coffee"
+    timeframe?: 'all'|'recent'|'year'|'month'|'custom',
+    start_date?: string, // For custom timeframe
+    end_date?: string // For custom timeframe
   }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
@@ -791,7 +799,7 @@ Rules:
         const contactName = params.contact_name;
 
         // Check if contact name is required for this action
-        const actionsRequiringContact = ['log_interaction', 'update_contact', 'delete_contact', 'get_contact_info'];
+        const actionsRequiringContact = ['log_interaction', 'update_contact', 'delete_contact', 'get_contact_info', 'check_interactions'];
         const actionsNotRequiringContact = ['create_contact', 'check_reminders'];
         if (!contactName && actionsRequiringContact.includes(action)) {
            return createResponse({ reply: "Please specify which contact you're referring to." });
@@ -1115,6 +1123,159 @@ Rules:
            return createResponse({
              reply: `Here are your upcoming reminders:\n\n${reminderList}`
            });
+        }
+
+        if (action === 'check_interactions') {
+           if (!resolvedContactId) {
+             return createResponse({ reply: `Couldn't find contact "${contactName}" to check interactions.` });
+           }
+
+           // Get interactions for the contact
+           const { data: interactions, error: fetchError } = await supabaseAdminClient
+             .from('interactions')
+             .select(`
+               type,
+               date,
+               notes,
+               sentiment
+             `)
+             .eq('contact_id', resolvedContactId)
+             .order('date', { ascending: false });
+
+           if (fetchError) {
+             console.error('Error fetching interactions:', fetchError);
+             return createResponse({ reply: "Sorry, I couldn't fetch the interaction history." });
+           }
+
+           if (!interactions || interactions.length === 0) {
+             return createResponse({ reply: `No interactions recorded yet for ${params.contact_name}.` });
+           }
+
+           // Filter interactions by timeframe if specified
+           let filteredInteractions = [...interactions];
+           if (params.timeframe && params.timeframe !== 'all') {
+             const now = new Date();
+             const cutoffDate = new Date();
+             
+             switch (params.timeframe) {
+               case 'recent':
+                 cutoffDate.setMonth(now.getMonth() - 3); // Last 3 months
+                 break;
+               case 'year':
+                 cutoffDate.setFullYear(now.getFullYear() - 1);
+                 break;
+               case 'month':
+                 cutoffDate.setMonth(now.getMonth() - 1);
+                 break;
+               case 'custom':
+                 if (params.start_date && params.end_date) {
+                   const startDate = new Date(params.start_date);
+                   const endDate = new Date(params.end_date);
+                   filteredInteractions = filteredInteractions.filter(interaction => {
+                     const date = new Date(interaction.date);
+                     return date >= startDate && date <= endDate;
+                   });
+                 }
+                 break;
+             }
+             
+             if (params.timeframe !== 'custom') {
+               filteredInteractions = filteredInteractions.filter(interaction =>
+                 new Date(interaction.date) >= cutoffDate
+               );
+             }
+           }
+
+           let reply = '';
+           switch (params.query_type) {
+             case 'frequency':
+               // Calculate average time between interactions
+               if (filteredInteractions.length > 1) {
+                 const dates = filteredInteractions.map(i => new Date(i.date));
+                 let totalDays = 0;
+                 for (let i = 1; i < dates.length; i++) {
+                   const diffTime = Math.abs(dates[i-1].getTime() - dates[i].getTime());
+                   totalDays += Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                 }
+                 const avgDays = Math.round(totalDays / (dates.length - 1));
+                 reply = `You interact with ${params.contact_name} approximately every ${avgDays} days. `;
+               }
+               // Add interaction count
+               reply += `There have been ${filteredInteractions.length} interactions ${params.timeframe !== 'all' ? 'in the specified timeframe' : 'in total'}.`;
+               break;
+
+             case 'topics':
+               // Analyze notes to find common topics
+               const topics = new Map();
+               filteredInteractions.forEach(interaction => {
+                 if (interaction.notes) {
+                   // Split notes into words and identify potential topics
+                   const words = interaction.notes.toLowerCase().split(/\W+/);
+                   const skipWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'about']);
+                   words.forEach(word => {
+                     if (word.length > 3 && !skipWords.has(word)) {
+                       topics.set(word, (topics.get(word) || 0) + 1);
+                     }
+                   });
+                 }
+               });
+               
+               // Sort topics by frequency
+               const sortedTopics = [...topics.entries()]
+                 .sort((a, b) => b[1] - a[1])
+                 .slice(0, 5)
+                 .filter(([_, count]) => count > 1)
+                 .map(([topic, count]) => `${topic} (${count} times)`);
+
+               reply = sortedTopics.length > 0
+                 ? `Common topics discussed with ${params.contact_name}: ${sortedTopics.join(', ')}.`
+                 : `No common topics found in the interaction notes with ${params.contact_name}.`;
+               break;
+
+             case 'activity':
+               if (!params.activity) {
+                 return createResponse({ reply: "Please specify which activity you want to search for." });
+               }
+               // Search for specific activity in notes
+               const activityMatches = filteredInteractions.filter(interaction =>
+                 interaction.notes?.toLowerCase().includes(params.activity!.toLowerCase())
+               );
+               
+               if (activityMatches.length === 0) {
+                 reply = `No mentions of "${params.activity}" found in interactions with ${params.contact_name}.`;
+               } else {
+                 const latestMatch = new Date(activityMatches[0].date).toLocaleDateString(undefined, {
+                   year: 'numeric',
+                   month: 'long',
+                   day: 'numeric'
+                 });
+                 reply = `Found ${activityMatches.length} mentions of "${params.activity}" with ${params.contact_name}. Most recent was on ${latestMatch}.`;
+               }
+               break;
+
+             case 'notes':
+               // Just return recent interactions with notes
+               const notesInteractions = filteredInteractions
+                 .filter(interaction => interaction.notes)
+                 .slice(0, 5);
+               
+               if (notesInteractions.length === 0) {
+                 reply = `No interaction notes found for ${params.contact_name}.`;
+               } else {
+                 reply = `Recent interactions with ${params.contact_name}:\n\n`;
+                 notesInteractions.forEach(interaction => {
+                   const date = new Date(interaction.date).toLocaleDateString(undefined, {
+                     year: 'numeric',
+                     month: 'long',
+                     day: 'numeric'
+                   });
+                   reply += `${date} (${interaction.type}): ${interaction.notes}\n`;
+                 });
+               }
+               break;
+           }
+
+           return createResponse({ reply });
         }
 
         if (action === 'get_contact_info') {
