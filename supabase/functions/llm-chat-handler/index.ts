@@ -211,7 +211,7 @@ serve(async (req) => {
               // Validate each event
               params.important_events.forEach(event => {
                 if (!['birthday', 'anniversary', 'custom'].includes(event.type)) {
-                  throw new Error("Event type must be 'birthday', 'anniversary', or 'custom'");
+                  throw new Error("Event type must be 'birthday', 'anniversary' or 'custom'");
                 }
                 
                 if (!event.date || isNaN(new Date(event.date).getTime())) {
@@ -529,7 +529,7 @@ serve(async (req) => {
 
           } else if (action === 'delete_contact') {
              if (!contact_id) throw new Error("Contact ID is required for delete_contact.");
-             // Use service role to bypass RLS for cascade delete if needed, or ensure RLS allows delete
+             // Use service role to bypass RLS for cascade delete if needed or ensure RLS allows delete
              const { error: deleteError } = await supabaseAdminClient
                .from('contacts')
                .delete()
@@ -775,7 +775,8 @@ Available actions and their required parameters:
 
 Rules:
 - Always identify the contact by name using the 'contact_name' parameter. The backend will resolve the ID.
-- If the user request is ambiguous (e.g., missing required parameters like type for log_interaction, name/due_date for reminder), ask for clarification. DO NOT guess parameters.
+- If the user request is ambiguous (e.g., missing required parameters), ask for clarification. DO NOT guess parameters.
+  Specifically, if the user wants to log an interaction but doesn't specify the type, respond with: `{"reply": "Okay, I can log that interaction. What type was it (call, message, social or meeting)?"}`. If a reminder is requested without a name or due date, ask for the missing details.
 - If the request is a simple question not matching an action, provide a direct answer if possible or state you cannot perform that query. Use the 'reply' field for this.
 - Respond ONLY with a valid JSON object containing 'action' and 'params', OR 'reply' for direct answers/clarifications, OR 'error'.
 - Respond in raw JSON without markdown formatting
@@ -903,7 +904,7 @@ Rules:
 
         if (!validActions.has(llmJsonOutput.action)) {
           return createResponse({
-            reply: "That action is not supported. I can help you manage contacts, log interactions, set reminders, or check events.",
+            reply: "That action is not supported. I can help you manage contacts, log interactions, set reminders or check events.",
             suggestions: [
               "Create a new contact",
               "Log an interaction",
