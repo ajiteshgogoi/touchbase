@@ -1,6 +1,22 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase/client';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+// Custom middleware to handle user-specific storage
+const userStorage = (userId: string) => {
+  const prefix = `chat-store-${userId}`;
+  return {
+    getItem: (name: string) => {
+      const value = localStorage.getItem(`${prefix}-${name}`);
+      return value ? JSON.parse(value) : null;
+    },
+    setItem: (name: string, value: any) => {
+      localStorage.setItem(`${prefix}-${name}`, JSON.stringify(value));
+    },
+    removeItem: (name: string) => {
+      localStorage.removeItem(`${prefix}-${name}`);
+    },
+  };
+};
 
 export interface Message {
   id: string;
@@ -32,10 +48,16 @@ interface ChatStore {
   _cleanTimeBasedContext: (contextId: string) => boolean;
 }
 
-// Helper to get current user ID
-const getCurrentUserId = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id || 'anonymous';
+// Helper to get current user ID synchronously from localStorage
+const getCurrentUserId = () => {
+  const session = localStorage.getItem('sb-session');
+  if (!session) return 'anonymous';
+  try {
+    const { user } = JSON.parse(session);
+    return user?.id || 'anonymous';
+  } catch {
+    return 'anonymous';
+  }
 };
 
 export const useChatStore = create<ChatStore>()(
@@ -185,26 +207,9 @@ export const useChatStore = create<ChatStore>()(
       },
     }),
     {
-      name: 'chat-store',
+      name: 'state',
       version: 1,
-      getStorage: () => ({
-        async getItem(name: string) {
-          const userId = await getCurrentUserId();
-          const key = `${name}-${userId}`;
-          const value = localStorage.getItem(key);
-          return value ? JSON.parse(value) : null;
-        },
-        async setItem(name: string, value: string) {
-          const userId = await getCurrentUserId();
-          const key = `${name}-${userId}`;
-          localStorage.setItem(key, JSON.stringify(value));
-        },
-        async removeItem(name: string) {
-          const userId = await getCurrentUserId();
-          const key = `${name}-${userId}`;
-          localStorage.removeItem(key);
-        },
-      })
+      storage: createJSONStorage(() => userStorage(getCurrentUserId()))
     }
   )
 );
