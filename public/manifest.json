@@ -132,13 +132,20 @@
     },
     {
       "src": "/assets/7.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Personal ai assistant"
+    },
+    {
+      "src": "/assets/8.png",
       "sizes": "1920x1080",
       "type": "image/png",
       "platform": "wide",
       "label": "Login page"
     },
     {
-      "src": "/assets/8.png",
+      "src": "/assets/9.png",
       "sizes": "4096x3072",
       "type": "image/png",
       "platform": "wide",
