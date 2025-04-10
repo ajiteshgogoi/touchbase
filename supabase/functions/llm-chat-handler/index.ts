@@ -824,7 +824,7 @@ Rules:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
+          model: "google/gemini-2.0-flash-lite-001",
           messages: [
             { role: "user", content: systemPrompt + "\n\nPrevious conversation:\n" +
               (Array.isArray(context?.previousMessages) ?
