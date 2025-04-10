@@ -9,6 +9,7 @@ export interface Message {
   actionDetails?: any;
   isError?: boolean;
   timestamp: number;
+  confirmed?: boolean;
 }
 
 interface ChatContext {
