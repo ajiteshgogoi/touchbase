@@ -36,6 +36,59 @@ interface ChatResponse {
   suggestions?: string[]; // Suggested CRM actions when redirecting
 }
 
+// --- Rate Limiting Helper ---
+async function checkRateLimit(supabaseClient: SupabaseClient, userId: string): Promise<boolean> {
+  const windowMinutes = 5; // 5-minute window
+  const maxRequests = 10; // Maximum 10 requests per window
+
+  const windowStart = new Date();
+  windowStart.setMinutes(windowStart.getMinutes() - windowMinutes);
+
+  const { count } = await supabaseClient
+    .from('chat_log')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', windowStart.toISOString());
+
+  return count !== null && count >= maxRequests;
+}
+
+// --- Helper: Validate Action Parameters ---
+function validateActionParams(action: string, params: Record<string, any>): string | null {
+  switch (action) {
+    case 'create_contact':
+      if (!params.name?.trim()) return "Contact name is required";
+      if (!params.contact_frequency ||
+          !['every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'].includes(params.contact_frequency)) {
+        return "Valid contact frequency is required";
+      }
+      break;
+    
+    case 'log_interaction':
+      if (!params.contact_name?.trim()) return "Contact name is required";
+      if (!params.type || !['call', 'message', 'social', 'meeting'].includes(params.type)) {
+        return "Valid interaction type is required";
+      }
+      break;
+    
+    case 'update_contact':
+      if (!params.contact_name?.trim()) return "Contact name is required";
+      if (!params.updates || Object.keys(params.updates).length === 0) {
+        return "Updates object with fields to change is required";
+      }
+      break;
+    
+    case 'add_quick_reminder':
+      if (!params.contact_name?.trim()) return "Contact name is required";
+      if (!params.name?.trim()) return "Reminder name is required";
+      if (!params.due_date || isNaN(new Date(params.due_date).getTime())) {
+        return "Valid due date is required";
+      }
+      break;
+  }
+  return null;
+}
+
 // --- Helper: Check Premium/Trial Status ---
 async function isUserPremiumOrTrial(supabaseClient: SupabaseClient, userId: string): Promise<boolean> {
   const { data, error } = await supabaseClient
@@ -592,6 +645,23 @@ serve(async (req) => {
       }
 
     } else {
+      // --- Rate Limit Check ---
+      const isRateLimited = await checkRateLimit(supabaseAdminClient, user.id);
+      if (isRateLimited) {
+        return createResponse({
+          reply: "You've reached the maximum number of requests. Please wait a few minutes before trying again.",
+          error: "Rate limit exceeded"
+        }, { status: 429 });
+      }
+
+      // Log this request
+      await supabaseAdminClient
+        .from('chat_log')
+        .insert({
+          user_id: user.id,
+          message: requestBody.message.substring(0, 500) // Truncate long messages
+        });
+
       // --- Initial Request Processing ---
       const userMessage = requestBody.message;
       const context = requestBody.context; // e.g., { contactId: '...' }
