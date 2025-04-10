@@ -49,11 +49,25 @@ const callChatHandler = async (payload: ChatRequest): Promise<ChatResponse> => {
     // Try to parse Supabase Edge Function error response
     let errorMessage = response.error.message;
     try {
-        const errorJson = JSON.parse(response.error.context || '{}');
-        if (errorJson.error) {
-            errorMessage = errorJson.error;
+        // First try to parse the data directly from the response
+        if (response.data?.error) {
+            errorMessage = response.data.error;
+        } else if (response.data?.reply) {
+            errorMessage = response.data.reply;
+        } else {
+            // Fallback to parsing error context
+            const errorJson = JSON.parse(response.error.context || '{}');
+            if (errorJson.error) {
+                errorMessage = errorJson.error;
+            }
         }
     } catch (e) { /* Ignore parsing error */ }
+    
+    // Special handling for rate limit errors (429)
+    if (response.error.statusCode === 429) {
+        errorMessage = errorMessage || "You've reached the maximum number of requests. Please wait a few minutes before trying again.";
+    }
+
     throw new Error(errorMessage || 'Failed to call chat handler');
   }
 
