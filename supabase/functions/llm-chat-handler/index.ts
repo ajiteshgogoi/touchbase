@@ -776,7 +776,7 @@ Available actions and their required parameters:
 Rules:
 - Always identify the contact by name using the 'contact_name' parameter. The backend will resolve the ID.
 - If the user request is ambiguous (e.g., missing required parameters), ask for clarification. DO NOT guess parameters.
-  Specifically, if the user wants to log an interaction but doesn't specify the type, respond with: `{"reply": "Okay, I can log that interaction. What type was it (call, message, social or meeting)?"}`. If a reminder is requested without a name or due date, ask for the missing details.
+  Specifically, if the user wants to log an interaction but doesn't specify the type, respond with: '{"reply": "Okay, I can log that interaction. What type was it (call, message, social or meeting)?"}'. If a reminder is requested without a name or due date, ask for the missing details.
 - If the request is a simple question not matching an action, provide a direct answer if possible or state you cannot perform that query. Use the 'reply' field for this.
 - Respond ONLY with a valid JSON object containing 'action' and 'params', OR 'reply' for direct answers/clarifications, OR 'error'.
 - Respond in raw JSON without markdown formatting
