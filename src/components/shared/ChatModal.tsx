@@ -77,7 +77,6 @@ export const ChatModal: React.FC = () => {
   const { isChatOpen, closeChat } = useStore();
   const { currentContext, getMessages, addMessage: addStoreMessage } = useChatStore();
   const [input, setInput] = useState('');
-  const [confirmedAction, setConfirmedAction] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -149,9 +148,6 @@ useEffect(() => {
 
   // Focus input and set initial scroll position when modal opens
   useEffect(() => {
-   // Reset confirmed action when context changes or modal opens/closes
-   setConfirmedAction(null);
-
    if (isChatOpen && messagesContainerRef.current) {
      // Add a small delay to ensure elements are rendered
      setTimeout(() => {
@@ -229,9 +225,7 @@ useEffect(() => {
   };
 
   const handleConfirm = (actionDetails: any, confirm: boolean) => {
-    if (mutation.isPending || confirmedAction === actionDetails) return;
-    
-    setConfirmedAction(actionDetails);
+    if (mutation.isPending) return;
 
     const payload: ChatRequest = {
       confirmation: {
@@ -240,24 +234,27 @@ useEffect(() => {
       }
     };
 
-    if (confirm) {
-      // For confirmed actions, clear context (keeps last 4 messages)
-      useChatStore.getState().clearContext(currentContext);
-    } else {
-      // For cancelled actions, just remove the confirmation prompt
-      const currentMessages = getMessages(currentContext);
-      const filteredMessages = currentMessages.filter((msg: Message) => msg.actionDetails !== actionDetails);
-      useChatStore.setState(state => ({
-        ...state,
-        contexts: {
-          ...state.contexts,
-          [currentContext]: {
-            ...state.contexts[currentContext],
-            conversationHistory: filteredMessages
-          }
+    const currentMessages = getMessages(currentContext);
+    const updatedMessages = currentMessages.map(msg => {
+      if (msg.actionDetails === actionDetails) {
+        return { ...msg, confirmed: confirm };
+      }
+      return msg;
+    });
+
+    // Update messages in store
+    useChatStore.setState(state => ({
+      ...state,
+      contexts: {
+        ...state.contexts,
+        [currentContext]: {
+          ...state.contexts[currentContext],
+          conversationHistory: confirm
+            ? useChatStore.getState()._cleanMessages(updatedMessages, 4) // For confirmed actions, keep last 4 messages
+            : updatedMessages.filter(msg => msg.actionDetails !== actionDetails) // For cancelled actions, remove the prompt
         }
-      }));
-    }
+      }
+    }));
 
     // Add status message and send confirmation
     addMessage('system', confirm ? 'Processing action...' : 'Action cancelled');
@@ -336,7 +333,7 @@ useEffect(() => {
                      }`}>
                         <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                         {/* Confirmation Buttons */}
-                        {msg.requiresConfirmation && msg.actionDetails && confirmedAction !== msg.actionDetails && (
+                        {msg.requiresConfirmation && msg.actionDetails && !msg.confirmed && (
                           <div className="mt-3 flex gap-2">
                             <button
                               onClick={() => handleConfirm(msg.actionDetails, true)}
