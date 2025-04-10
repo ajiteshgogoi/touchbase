@@ -948,6 +948,16 @@ Rules:
           });
         }
 
+        // Validate action parameters
+        const validationError = validateActionParams(llmJsonOutput.action, llmJsonOutput.params);
+        if (validationError) {
+          return createResponse({
+            reply: validationError,
+            suggestions: ["Try again with complete information"]
+          });
+        }
+
+        // Extract action and params after validation
         const { action, params } = llmJsonOutput;
         const contactName = params.contact_name;
 
