@@ -48,7 +48,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Advanced AI suggestions',
       'Relationship insights',
       'Data export to CSV',
-      'AI Chat Assistant',
+      'AI chat assistant',
       'Priority support'
     ]
   }
