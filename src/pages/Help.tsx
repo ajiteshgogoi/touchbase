@@ -10,7 +10,8 @@ import {
   ChevronDownIcon,
   QuestionMarkCircleIcon,
   HashtagIcon,
-  ArrowUpTrayIcon
+  ArrowUpTrayIcon,
+  ChatBubbleOvalLeftEllipsisIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -178,6 +179,39 @@ export const Help = () => {
           </ol>
           <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
             <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Quick reminders are perfect for one-time events. Mark them as important to highlight key events in your timeline without affecting regular contact schedules.
+          </div>
+        </>
+      )
+    },
+    {
+      id: 'ai-assistant',
+      title: 'AI Chat Assistant',
+      icon: ChatBubbleOvalLeftEllipsisIcon,
+      description: 'Use Base to manage your contacts with natural language',
+      content: (
+        <>
+          <ol className="list-decimal list-inside space-y-2 ml-4">
+            <li>Click the chat bubble icon in the bottom right corner</li>
+            <li>Type your request in plain English, such as:
+              <ul className="list-disc list-inside ml-8 mt-1 space-y-1 text-gray-600 dark:text-gray-400">
+                <li>"I just had coffee with Alex. Log it."</li>
+                <li>"Add Sarah as a new contact. She's a friend from college."</li>
+                <li>"Do I have any reminders due this week?"</li>
+                <li>"When did I last talk to Tom?"</li>
+              </ul>
+            </li>
+            <li>Base will understand your request and help you:
+              <ul className="list-disc list-inside ml-8 mt-1 space-y-1 text-gray-600 dark:text-gray-400">
+                <li>Create and update contacts</li>
+                <li>Log interactions with context</li>
+                <li>Set up reminders and check events</li>
+                <li>Check your interaction history</li>
+              </ul>
+            </li>
+            <li>Confirm any actions when prompted</li>
+          </ol>
+          <div className="mt-4 text-[15px] leading-relaxed bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-900/50 shadow-sm text-gray-600 dark:text-gray-300">
+            <strong className="text-primary-700 dark:text-primary-400">Pro Tip:</strong> Base remembers your conversation context, so you can have natural back-and-forth interactions. Feel free to ask follow-up questions or provide additional details when needed.
           </div>
         </>
       )
