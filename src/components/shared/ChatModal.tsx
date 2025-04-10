@@ -154,7 +154,13 @@ useEffect(() => {
         greetingSentRef.current = true;
         // Store initial context message
         addMessage('system', 'Chat session started');
-        addMessage('ai', "Hi I'm Base, your Personal CRM Assistant! How can I help you manage your relationships today?");
+        addMessage('ai', "Hi I'm Base, your Personal CRM Assistant! You can simply tell me what you want to do in plain english, like:\n" +
+          "- 'I just had coffee with Alex. Talked about his new book. Log it.'\n" +
+          "- 'Add Sarah as a new contact. She's a friend from college.'\n" +
+          "- 'Do I have any reminders due this week?'\n" +
+          "- 'When did I last talk to Tom?'\n\n" +
+          "Just type your request and I'll help you manage your contacts and relationships.");
+        addMessage('ai', "How can I assist you today?");
       }
     } else {
       console.log('Resetting chat input');
