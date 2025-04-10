@@ -66,7 +66,7 @@ export const ChatModal: React.FC = () => {
   const [confirmedAction, setConfirmedAction] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const greetingSentRef = useRef(false);
 
   // React Query Mutation for sending messages/confirmations
@@ -242,11 +242,15 @@ useEffect(() => {
     mutation.mutate(payload);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
+    // Auto-resize the textarea up to max height
+    e.target.style.height = 'auto';
+    const newHeight = Math.min(e.target.scrollHeight, 120);
+    e.target.style.height = `${newHeight}px`;
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // Prevent newline
       handleSend();
@@ -352,15 +356,15 @@ useEffect(() => {
             {/* Input Area */}
             <div className="flex-shrink-0 p-4 border-t border-gray-100/75 dark:border-gray-800/75 bg-gray-50/80 dark:bg-gray-800/80 rounded-b-2xl">
               <div className="flex items-center space-x-2">
-                <input
+                <textarea
                   ref={inputRef}
-                  type="text"
                   value={input}
                   onChange={handleInputChange}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder="Ask to log interactions, check reminders..."
-                  className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none min-h-[40px] max-h-[120px] overflow-y-auto"
                   disabled={mutation.isPending}
+                  rows={1}
                 />
                 <button
                   onClick={handleSend}
