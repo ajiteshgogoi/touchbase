@@ -83,6 +83,11 @@ const publicPages = [
     priority: 0.9
   },
   {
+    url: '/features/ai-chat-assistant',
+    changefreq: 'monthly',
+    priority: 0.9
+  },
+  {
     url: '/features/relationship-insights',
     changefreq: 'monthly',
     priority: 0.9
