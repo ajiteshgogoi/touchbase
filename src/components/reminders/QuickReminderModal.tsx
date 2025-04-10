@@ -251,7 +251,7 @@ const QuickReminderModal = ({ isOpen, onClose }: QuickReminderModalProps) => {
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                         min={dayjs().add(1, 'day').format('YYYY-MM-DD')}
-                        className="block w-full rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 text-gray-900 dark:text-white"
+                        className="block w-full rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 transition-colors duration-200 text-gray-900 dark:text-white [&::-webkit-calendar-picker-indicator]:text-gray-600 [&::-webkit-calendar-picker-indicator]:opacity-70 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
                         required
                       />
                     </div>
