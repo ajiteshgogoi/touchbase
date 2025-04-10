@@ -308,7 +308,7 @@ useEffect(() => {
             <div className="flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
               <h3 className="text-lg font-medium text-gray-700 dark:text-white inline-flex items-center">
                  <img src="/base-512.png" alt="AI Assistant" className="h-10 w-10 mr-2 text-primary-500" loading="eager" />
-                 Chat with Base!
+                 Hi, I'm Base!
               </h3>
               <button
                 onClick={closeChat}
