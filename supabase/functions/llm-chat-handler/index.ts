@@ -708,6 +708,11 @@ Rules:
   {"action": "check_events", "params": {"timeframe": "date", "date": "2025-07-15"}} // Events on July 15th
   {"action": "check_events", "params": {"timeframe": "custom", "start_date": "2025-07-01", "end_date": "2025-07-31", "type": "birthday"}} // Birthdays in July
   {"action": "check_events", "params": {"timeframe": "week", "contact_name": "John"}} // John's events this week
+  {"action": "check_interactions", "params": {"contact_name": "John", "query_type": "topics"}} // Find common discussion topics
+  {"action": "check_interactions", "params": {"contact_name": "Sarah", "query_type": "frequency"}} // Check how often you interact
+  {"action": "check_interactions", "params": {"contact_name": "Tom", "query_type": "activity", "activity": "biking"}} // Find when you went biking
+  {"action": "check_interactions", "params": {"contact_name": "Alice", "query_type": "notes", "timeframe": "month"}} // Get recent interaction notes
+  {"action": "check_interactions", "params": {"contact_name": "Bob", "query_type": "notes", "timeframe": "custom", "start_date": "2025-01-01", "end_date": "2025-03-31"}} // Get Q1 interaction notes
   {"action": "add_quick_reminder", "params": {"contact_name": "Jane Doe", "name": "Follow up on proposal", "due_date": "2025-04-15"}}
   {"action": "add_quick_reminder", "params": {"contact_name": "John Smith", "name": "Send birthday gift", "due_date": "2025-05-10", "is_important": true}}
   {"reply": "Which contact do you want to update?"}
