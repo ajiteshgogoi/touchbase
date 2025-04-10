@@ -32,6 +32,8 @@ interface ChatResponse {
   message?: string; // Message to display for confirmation
   action_details?: ActionDetails; // Details needed for confirmation step
   error?: string;
+  redirect_to_crm?: boolean; // Indicates when response should redirect to CRM functionality
+  suggestions?: string[]; // Suggested CRM actions when redirecting
 }
 
 // --- Helper: Check Premium/Trial Status ---
@@ -594,6 +596,48 @@ serve(async (req) => {
       const userMessage = requestBody.message;
       const context = requestBody.context; // e.g., { contactId: '...' }
 
+      // Input validation
+      if (userMessage.length > 500) {
+        return createResponse({
+          reply: "Message too long. Please keep requests brief and focused on CRM actions.",
+          suggestions: ["Create contact", "Log interaction", "Check reminders"]
+        });
+      }
+
+      // Basic input filtering for CRM terms
+      const containsOnlyCRMTerms = (message: string): boolean => {
+        const crmTerms = ['contact', 'reminder', 'interaction', 'event', 'birthday',
+          'anniversary', 'call', 'message', 'social', 'meeting', 'update', 'create',
+          'delete', 'check', 'log', 'frequency', 'due'];
+        return crmTerms.some(term => message.toLowerCase().includes(term));
+      }
+
+      const isGeneralQuestion = (message: string): boolean => {
+        const generalPhrases = ['how are you', 'what can you do', 'who are you',
+          'help me', 'hello', 'hi', 'hey', 'what is', 'tell me about'];
+        return generalPhrases.some(phrase => message.toLowerCase().includes(phrase));
+      }
+
+      if (isGeneralQuestion(userMessage)) {
+        return createResponse({
+          reply: "I'm your CRM assistant focused on helping you manage contacts. Would you like to:",
+          redirect_to_crm: true,
+          suggestions: [
+            "Create a new contact",
+            "Check upcoming reminders",
+            "Log an interaction",
+            "View contact information"
+          ]
+        });
+      }
+
+      if (!containsOnlyCRMTerms(userMessage)) {
+        return createResponse({
+          reply: "I can only help with CRM-related actions like managing contacts, reminders, and interactions. How can I help you with your contacts?",
+          suggestions: ["Create contact", "Log interaction", "Check reminders"]
+        });
+      }
+
       console.log(`Processing message for user ${user.id}: "${userMessage}"`, context);
 
       // 5. Call LLM (OpenRouter - Gemini Flash)
@@ -602,7 +646,16 @@ serve(async (req) => {
         throw new Error("GROQ_API_KEY environment variable not set.");
       }
 
-      const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database. You can analyze interaction history to understand contact relationships, topics discussed, and activities.
+      const systemPrompt = `You are an AI assistant for the TouchBase CRM. Your goal is to understand user requests and identify the correct action and parameters to interact with the CRM database.
+      
+      STRICT CONVERSATION RULES:
+      - Only respond to CRM-related queries and actions
+      - No general chitchat or casual conversation
+      - No opinions or personal advice
+      - No discussion of topics outside contact management
+      - Immediately redirect non-CRM questions to CRM functionality
+      - Keep responses focused only on available actions and contact data
+      - Avoid open-ended questions or discussions
       
       VALID FREQUENCY VALUES: 'every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'
       
@@ -800,6 +853,31 @@ Rules:
       } else if (llmJsonOutput.reply) {
         return createResponse({ reply: llmJsonOutput.reply });
       } else if (llmJsonOutput.action && llmJsonOutput.params) {
+        // Strict action validation
+        const validActions = new Set([
+          'create_contact',
+          'log_interaction',
+          'update_contact',
+          'delete_contact',
+          'check_events',
+          'check_interactions',
+          'get_contact_info',
+          'add_quick_reminder',
+          'check_reminders'
+        ]);
+
+        if (!validActions.has(llmJsonOutput.action)) {
+          return createResponse({
+            reply: "That action is not supported. I can help you manage contacts, log interactions, set reminders, or check events.",
+            suggestions: [
+              "Create a new contact",
+              "Log an interaction",
+              "Set a reminder",
+              "Check upcoming events"
+            ]
+          });
+        }
+
         const { action, params } = llmJsonOutput;
         const contactName = params.contact_name;
 
