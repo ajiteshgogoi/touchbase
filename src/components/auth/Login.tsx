@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import type { User } from '@supabase/supabase-js';
 
 // Internal imports
-import { GoogleIcon, InstagramIcon, RedditIcon, LinkedInIcon } from './icons/AuthIcons';
+import { GoogleIcon, InstagramIcon, RedditIcon, LinkedInIcon, YoutubeIcon } from './icons/AuthIcons';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { UsersSocialProof } from './UsersSocialProof';
@@ -241,6 +241,15 @@ export const Login = () => {
             aria-label="Connect with us on LinkedIn"
           >
             <LinkedInIcon className="h-4 w-4" />
+          </a>
+          <a
+            href="https://www.youtube.com/@touchbase-site"
+            target="_blank"
+            rel="preconnect noopener noreferrer"
+            className="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
+            aria-label="Subscribe to our YouTube channel"
+          >
+            <YoutubeIcon className="h-4 w-4" />
           </a>
         </div>
       </main>
