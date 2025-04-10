@@ -154,7 +154,7 @@ useEffect(() => {
         greetingSentRef.current = true;
         // Store initial context message
         addMessage('system', 'Chat session started');
-        addMessage('ai', "Hi! How can I help you manage your contacts today?");
+        addMessage('ai', "Hi I'm Base, your Personal CRM Assistant! How can I help you manage your relationships today?");
       }
     } else {
       console.log('Resetting chat input');
@@ -284,8 +284,8 @@ useEffect(() => {
              {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100/75 dark:border-gray-800/75">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white inline-flex items-center">
-                 <img src="/icon.svg" alt="heart" className="h-8 w-8 mr-2 text-primary-500" loading="eager" />
-                 TouchBase Assistant
+                 <img src="/base-512.png" alt="AI Assistant" className="h-10 w-10 mr-2 text-primary-500" loading="eager" />
+                 Chat with Base!
               </h3>
               <button
                 onClick={closeChat}

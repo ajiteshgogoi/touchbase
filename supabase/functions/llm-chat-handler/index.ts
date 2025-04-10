@@ -690,7 +690,7 @@ serve(async (req) => {
 
       if (isGeneralQuestion(userMessage)) {
         return createResponse({
-          reply: "I'm Base, your Personal CRM assistant focused on helping you manage contacts. Would you like to:",
+          reply: "I'm Base, your Personal CRM assistant focused on helping you manage your relationships! Would you like to:",
           redirect_to_crm: true,
           suggestions: [
             "Create a new contact",
