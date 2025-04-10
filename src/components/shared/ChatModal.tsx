@@ -46,29 +46,68 @@ const callChatHandler = async (payload: ChatRequest): Promise<ChatResponse> => {
   });
 
   if (response.error) {
-    // Try to parse Supabase Edge Function error response
-    let errorMessage = response.error.message;
+    let specificErrorMessage: string | null = null;
+
     try {
-        // First try to parse the data directly from the response
-        if (response.data?.error) {
-            errorMessage = response.data.error;
-        } else if (response.data?.reply) {
-            errorMessage = response.data.reply;
-        } else {
-            // Fallback to parsing error context
-            const errorJson = JSON.parse(response.error.context || '{}');
-            if (errorJson.error) {
-                errorMessage = errorJson.error;
-            }
-        }
-    } catch (e) { /* Ignore parsing error */ }
-    
-    // Special handling for rate limit errors (429)
-    if (response.error.statusCode === 429) {
-        errorMessage = errorMessage || "You've reached the maximum number of requests. Please wait a few minutes before trying again.";
+      // 1. Check response.data first (Supabase might parse JSON body even on error)
+      if (response.data?.error) {
+        specificErrorMessage = response.data.error;
+      }
+      // 2. Check if error.context is an object with an 'error' property
+      else if (response.error.context && typeof response.error.context === 'object' && 'error' in response.error.context && response.error.context.error) {
+        specificErrorMessage = response.error.context.error;
+      }
+      // 3. Check if error.context is a string (potentially stringified JSON)
+      else if (response.error.context && typeof response.error.context === 'string') {
+         try {
+           const parsedContext = JSON.parse(response.error.context);
+           if (parsedContext.error) {
+              specificErrorMessage = parsedContext.error;
+           }
+         } catch (parseErr) {
+            console.warn("Could not parse stringified error.context:", parseErr);
+         }
+      }
+    } catch (e) {
+      console.warn("Error trying to parse specific error message from Edge Function response:", e);
     }
 
-    throw new Error(errorMessage || 'Failed to call chat handler');
+    // Determine the final error message
+    let finalErrorMessage = specificErrorMessage || response.error.message || 'Failed to call chat handler';
+
+    // Provide user-friendly messages for specific scenarios
+    if (specificErrorMessage) {
+        // Check for known DB error codes or specific messages from the backend
+        if (specificErrorMessage.includes('duplicate key value violates unique constraint')) {
+            if (specificErrorMessage.includes('"unique_user_contact_name"')) {
+                // Use generic message for duplicate contact name
+                finalErrorMessage = "A contact with this name already exists. Please use a different name.";
+            } else {
+                 // Add more specific messages for other unique constraints if needed
+                 finalErrorMessage = "This action violates a unique constraint. Please check your input.";
+            }
+        } else if (specificErrorMessage.includes('Failed to execute action:')) {
+           // Use the message part after "Failed to execute action:"
+           finalErrorMessage = specificErrorMessage.replace('Failed to execute action:', '').trim();
+           // Re-check if the extracted message is a duplicate key error
+           if (finalErrorMessage.includes('duplicate key value violates unique constraint') && finalErrorMessage.includes('"unique_user_contact_name"')) {
+               finalErrorMessage = "A contact with this name already exists. Please use a different name.";
+           }
+        }
+        // Add more checks for other specific error strings if needed
+    } else {
+        // Fallback to generic messages for HTTP status codes if no specific message was parsed
+        const httpStatusCode = (response.error.context as any)?.status; // Safely access status
+        if (httpStatusCode === 429) {
+           finalErrorMessage = "You've reached the maximum number of requests. Please wait a few minutes before trying again.";
+        } else if (httpStatusCode === 403) {
+           finalErrorMessage = "You don't have permission for this action. Please upgrade to Premium or check your trial status.";
+        } else if (httpStatusCode === 500) {
+            finalErrorMessage = "An internal server error occurred. Please try again later."; // Generic 500 if specific msg failed
+        }
+    }
+
+    throw new Error(finalErrorMessage);
   }
 
   return response.data as ChatResponse;
