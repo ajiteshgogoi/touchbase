@@ -676,7 +676,8 @@ serve(async (req) => {
       const containsOnlyCRMTerms = (message: string): boolean => {
         const crmTerms = ['contact', 'reminder', 'interaction', 'event', 'birthday',
           'anniversary', 'call', 'message', 'social', 'meeting', 'update', 'create',
-          'delete', 'check', 'log', 'frequency', 'due'];
+          'delete', 'check', 'log', 'frequency', 'due', 'today', 'tomorrow', 'week',
+          'month', 'coming', 'upcoming'];
         return crmTerms.some(term => message.toLowerCase().includes(term));
       }
 
