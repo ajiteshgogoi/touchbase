@@ -149,42 +149,40 @@ useEffect(() => {
 
   // Focus input and set initial scroll position when modal opens
   useEffect(() => {
-   // Reset confirmed action when context changes or modal opens/closes
-   setConfirmedAction(null);
-
-   if (isChatOpen && messagesContainerRef.current) {
-     // Add a small delay to ensure elements are rendered
-     setTimeout(() => {
-       inputRef.current?.focus();
-       // Set initial scroll position to bottom
-       if (messagesContainerRef.current) {
-         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-       }
-     }, 100);
-     
-     // Check if we need to send a greeting
-     const messages = getMessages(currentContext);
-     console.log('Initial messages:', messages);
-     
-     if (messages.length === 0 && !greetingSentRef.current) {
-       console.log('Sending initial greeting');
-       greetingSentRef.current = true;
-       // Store initial context message
-       addMessage('system', 'Chat session started');
-       addMessage('ai', "Hi I'm Base, your Personal CRM Assistant! You can simply tell me what you want to do in plain english, like:\n" +
-         "- 'I just had coffee with Alex. Talked about his new book. Log it.'\n" +
-         "- 'Add Sarah as a new contact. She's a friend from college.'\n" +
-         "- 'Do I have any reminders due this week?'\n" +
-         "- 'When did I last talk to Tom?'\n\n" +
-         "Just type your request and I'll help you manage your contacts and relationships.");
-       addMessage('ai', "How can I assist you today?");
-     }
-   } else {
-     console.log('Resetting chat input');
-     setInput('');
-     greetingSentRef.current = false; // Reset for next open
-   }
- }, [isChatOpen, currentContext]); // Only depend on isChatOpen and currentContext
+    if (isChatOpen && messagesContainerRef.current) {
+      // Add a small delay to ensure elements are rendered
+      setTimeout(() => {
+        inputRef.current?.focus();
+        // Set initial scroll position to bottom
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 100);
+      
+      // Check if we need to send a greeting
+      const messages = getMessages(currentContext);
+      console.log('Initial messages:', messages);
+      
+      if (messages.length === 0 && !greetingSentRef.current) {
+        console.log('Sending initial greeting');
+        greetingSentRef.current = true;
+        // Store initial context message
+        addMessage('system', 'Chat session started');
+        addMessage('ai', "Hi I'm Base, your Personal CRM Assistant! You can simply tell me what you want to do in plain english, like:\n" +
+          "- 'I just had coffee with Alex. Talked about his new book. Log it.'\n" +
+          "- 'Add Sarah as a new contact. She's a friend from college.'\n" +
+          "- 'Do I have any reminders due this week?'\n" +
+          "- 'When did I last talk to Tom?'\n\n" +
+          "Just type your request and I'll help you manage your contacts and relationships.");
+        addMessage('ai', "How can I assist you today?");
+      }
+    } else {
+      console.log('Resetting chat input');
+      setInput('');
+      greetingSentRef.current = false; // Reset for next open
+      setConfirmedAction(null); // Reset confirmed action when chat closes
+    }
+  }, [isChatOpen, currentContext]); // Only depend on isChatOpen and currentContext
 
   const handleSend = () => {
     if (input.trim() === '' || mutation.isPending) return;
