@@ -38,7 +38,7 @@ interface ChatResponse {
 
 // --- Rate Limiting Helper ---
 async function checkRateLimit(supabaseClient: SupabaseClient, userId: string): Promise<boolean> {
-  const windowMinutes = 5; // 5-minute window
+  const windowMinutes = 60; // 60-minute window
   const maxRequests = 10; // Maximum 10 requests per window
 
   const windowStart = new Date();
