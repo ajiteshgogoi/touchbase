@@ -1,13 +1,23 @@
-import { ReactNode, useEffect, lazy, Suspense } from 'react'; // Added lazy, Suspense
+import { ReactNode, useEffect, lazy, Suspense } from 'react';
 import { Navbar } from './Navbar';
 import { getFullVersion } from '../../../version/version';
 import { useStore } from '../../stores/useStore';
 import { supabase } from '../../lib/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { ChatFAB } from '../shared/ChatFAB'; // Import the FAB
+import { ChatFAB } from '../shared/ChatFAB';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 
 // Lazy load ChatModal
 const ChatModal = lazy(() => import('../shared/ChatModal').then(module => ({ default: module.ChatModal })));
+
+// Lazy loading component wrapper with error boundary
+const LazyComponent = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={null}>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
 interface LayoutProps {
   children: ReactNode;
 }
@@ -82,10 +92,12 @@ export const Layout = ({ children }: LayoutProps) => {
       </footer>
       {/* Add the Chat FAB here */}
       <ChatFAB />
-      {/* Conditionally render ChatModal using Suspense for lazy loading */}
-      <Suspense fallback={<div className="fixed inset-0 bg-gray-500/30 flex items-center justify-center z-[70]"><div className="text-white">Loading Chat...</div></div>}>
-        {isChatOpen && <ChatModal />}
-      </Suspense>
+      {/* Conditionally render ChatModal using LazyComponent */}
+      {isChatOpen && (
+        <LazyComponent>
+          <ChatModal />
+        </LazyComponent>
+      )}
     </div>
   );
 };
