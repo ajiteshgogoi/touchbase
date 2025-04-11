@@ -129,7 +129,7 @@ const handleResumeSubscription = () => {
             <div
               key={plan.id}
               className={`relative bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl p-6 transition-all ${
-                (selectedPlan === 'premium-annual' && plan.id === 'premium') || selectedPlan === plan.id
+                (useStore.getState().isOnTrial || isPremium) && plan.id === 'premium' || (!useStore.getState().isOnTrial && !isPremium && plan.id === 'free')
                   ? 'border-2 border-primary-400 dark:border-primary-500 shadow-soft dark:shadow-soft-dark'
                   : 'border border-gray-100/50 dark:border-gray-800/50 hover:border-primary-200 dark:hover:border-primary-700 shadow-soft dark:shadow-soft-dark'
               }`}
