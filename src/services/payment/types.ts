@@ -1,12 +1,12 @@
 export interface SubscriptionPlan {
   id: string;
-  name: 'free' | 'premium';
+  name: string;
   price: number;
   contactLimit: number;
   features: string[];
-  googlePlayProductId?: string;
-  billingPeriod?: 'monthly' | 'annual';
-  monthlyEquivalent?: number;
+  googlePlayProductId: string | null;
+  billingPeriod: 'monthly' | 'annual';
+  monthlyEquivalent: number;
 }
 
 export interface SubscriptionStatus {

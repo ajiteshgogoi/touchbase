@@ -24,7 +24,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
   const { user } = useStore();
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const selectedPlan = isPremium ? 'premium' : 'free';
+  const selectedPlan = subscription?.subscription_plan_id || (isPremium ? 'premium' : 'free');
 
   useEffect(() => {
     const handlePaymentFlowStart = () => {
@@ -84,7 +84,8 @@ const processCancellation = async () => {
     
     const optimisticSubscription: Subscription = {
       ...(currentSubscription as Subscription),
-      status: 'canceled'
+      status: 'canceled',
+      subscription_plan_id: currentSubscription?.subscription_plan_id || 'free'
     };
     
     queryClient.setQueryData(['subscription', user?.id], optimisticSubscription);

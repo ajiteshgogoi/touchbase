@@ -26,7 +26,7 @@ export class SubscriptionService {
         .from('subscriptions')
         .upsert({
           user_id: user.id,
-          plan_id: 'free',
+          subscription_plan_id: 'free',
           status: 'active',
           valid_until: trialEndDate.toISOString(),
           trial_start_date: trialStartDate.toISOString(),
@@ -57,7 +57,13 @@ export class SubscriptionService {
 
       const { data: subscription, error } = await supabase
         .from('subscriptions')
-        .select('plan_id, status, valid_until, trial_start_date, trial_end_date')
+        .select(`
+          subscription_plan_id,
+          status,
+          valid_until,
+          trial_start_date,
+          trial_end_date
+        `)
         .eq('user_id', user.id)
         .single();
 
@@ -67,7 +73,7 @@ export class SubscriptionService {
           .from('subscriptions')
           .insert({
             user_id: user.id,
-            plan_id: 'free',
+            subscription_plan_id: 'free',
             status: 'active',
             valid_until: new Date('2200-01-01').toISOString(), // Far future date for free plan
             trial_start_date: null,
@@ -86,7 +92,7 @@ export class SubscriptionService {
       }
 
       const currentPlan = SUBSCRIPTION_PLANS.find(plan =>
-        plan.id === subscription.plan_id
+        plan.id === subscription.subscription_plan_id
       ) ?? FREE_PLAN;
 
       const now = new Date();

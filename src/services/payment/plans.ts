@@ -8,6 +8,7 @@ export const FREE_PLAN: SubscriptionPlan = {
   billingPeriod: 'monthly',
   monthlyEquivalent: 0,
   contactLimit: 15,
+  googlePlayProductId: null,
   features: [
     'Up to 15 contacts',
     'Push notifications',
@@ -24,6 +25,9 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     name: 'free',
     price: 0,
     contactLimit: 15,
+    billingPeriod: 'monthly',
+    monthlyEquivalent: 0,
+    googlePlayProductId: null,
     features: [
       'Up to 15 contacts',
       'Push notifications',
