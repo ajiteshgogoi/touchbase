@@ -1408,16 +1408,72 @@ Rules:
                break;
 
              case 'notes':
-               // Get both contact details and interactions
+               // Fetch contact's general notes
                const { data: contactDetails } = await supabaseAdminClient
                  .from('contacts')
                  .select('notes')
                  .eq('id', resolvedContactId)
                  .single();
+               const generalNotes = contactDetails?.notes || '';
 
-               // Get recent interactions with notes
-               const notesInteractions = filteredInteractions
+               // Fetch recent interaction notes (limit to maybe 10-15 for context)
+               const interactionNotesList = filteredInteractions
                  .filter(interaction => interaction.notes)
+                 .slice(0, 15) // Limit number of interactions to keep context manageable
+                 .map(interaction => {
+                   const date = new Date(interaction.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                   return `Interaction on ${date} (${interaction.type}): ${interaction.notes}`;
+                 });
+               const interactionNotesText = interactionNotesList.join('\n');
+
+               // Combine all notes
+               const allNotesText = `General Notes:\n${generalNotes}\n\nRecent Interaction Notes:\n${interactionNotesText}`.trim();
+
+               if (!allNotesText || allNotesText === "General Notes:\n\n\nRecent Interaction Notes:") {
+                  reply = `No notes found for ${params.contact_name}.`;
+                  break;
+               }
+
+               // Limit total notes length
+               const maxNotesLengthForQuery = 8000; // Adjust as needed, leaving space for prompt+query+response
+               const truncatedAllNotes = allNotesText.length > maxNotesLengthForQuery
+                 ? allNotesText.substring(0, maxNotesLengthForQuery) + '... [truncated]'
+                 : allNotesText;
+
+               // Get the original user query that triggered this action
+               const originalUserQuery = requestBody.message; // Assuming requestBody is accessible here
+
+               const notesQueryPrompt = `Based ONLY on the following notes provided for ${params.contact_name}, answer the user's question: "${originalUserQuery}". Do not use any external knowledge. If the answer isn't in the notes, say you couldn't find the information in the notes.\n\nNotes:\n---\n${truncatedAllNotes}\n---\nAnswer:`;
+               const openRouterApiKey = Deno.env.get('GROQ_API_KEY'); // Ensure API key is available
+
+               try {
+                 const notesLlmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                   method: "POST",
+                   headers: {
+                     "Authorization": `Bearer ${openRouterApiKey}`,
+                     "Content-Type": "application/json"
+                   },
+                   body: JSON.stringify({
+                     model: "google/gemini-2.0-flash-lite-001",
+                     messages: [{ role: "user", content: notesQueryPrompt }],
+                     max_tokens: 250, // Allow for a reasonable answer length
+                     temperature: 0.3 // Lower temperature for factual answers from text
+                   })
+                 });
+
+                 if (!notesLlmResponse.ok) {
+                   const errorBody = await notesLlmResponse.text();
+                   console.error("Notes Query LLM API Error:", notesLlmResponse.status, errorBody);
+                   reply = `Sorry, I couldn't process the notes due to an internal error.`;
+                 } else {
+                   const notesResult = await notesLlmResponse.json();
+                   reply = notesResult?.choices?.[0]?.message?.content?.trim() || `Sorry, I couldn't get an answer from the notes.`;
+                 }
+               } catch (notesError) {
+                 console.error("Error calling LLM for notes query:", notesError);
+                 reply = `Sorry, I encountered an error while processing the notes for ${params.contact_name}.`;
+               }
+               break; // End of 'notes' case
                  .slice(0, 5);
                
                reply = `Information about ${params.contact_name}:\n\n`;
