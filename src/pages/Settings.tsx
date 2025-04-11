@@ -197,6 +197,7 @@ export const Settings = () => {
     // Handle PayPal redirect and subscription activation
     const params = new URLSearchParams(window.location.search);
     const subscriptionId = params.get('subscription_id') || params.get('token');
+    const planId = params.get('plan') || 'premium'; // Get selected plan from URL
     
     if (subscriptionId) {
       const activateSubscription = async () => {
@@ -206,10 +207,10 @@ export const Settings = () => {
 
           // Optimistically update the subscription in the cache
           const optimisticSubscription: Subscription = {
-            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+            valid_until: new Date(Date.now() + (planId === 'premium-annual' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
             status: 'active',
             trial_end_date: null,
-            subscription_plan_id: 'premium'
+            subscription_plan_id: planId
           };
 
           // Update React Query cache
