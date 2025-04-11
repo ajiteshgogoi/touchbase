@@ -1474,14 +1474,6 @@ Rules:
                  reply = `Sorry, I encountered an error while processing the notes for ${params.contact_name}.`;
                }
                break; // End of 'notes' case
-                 .slice(0, 5);
-               
-               reply = `Information about ${params.contact_name}:\n\n`;
-
-               // Add contact notes if they exist
-               if (contactDetails?.notes) {
-                 reply += `General Notes:\n${contactDetails.notes}\n\n`;
-               }
 
                // Add interaction notes if they exist
                if (notesInteractions.length > 0) {
