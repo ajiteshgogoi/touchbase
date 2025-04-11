@@ -192,7 +192,7 @@ export const analyticsService = {
         const response = await axios.post(
           GROQ_API_URL,
           {
-            model: 'google/gemini-2.0-flash-001', // Set LLM model here //
+            model: 'google/gemini-2.0-flash-lite-001', // Set LLM model here //
             messages: [
               {
                 role: 'system',

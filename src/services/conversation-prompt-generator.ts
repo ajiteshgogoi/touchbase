@@ -241,7 +241,7 @@ Example of a good question:
           axios.post(
             PROXY_API_URL,
             {
-              model: 'google/gemini-2.0-flash-001',
+              model: 'google/gemini-2.0-flash-lite-001',
               messages: [
                 {
                   role: 'system',
@@ -296,7 +296,7 @@ Example of a good question:
           const refinementResponse = await axios.post(
             PROXY_API_URL,
             {
-              model: 'google/gemini-2.0-flash-001',
+              model: 'google/gemini-2.0-flash-lite-001',
               messages: [
                 {
                   role: 'system',
