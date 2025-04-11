@@ -249,7 +249,7 @@ create policy "Anyone can read subscription plans"
 create table public.subscriptions (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid references auth.users not null unique,
-    plan_id text not null check (plan_id in ('free', 'premium')),
+    subscription_plan_id text references public.subscription_plans(id) not null,
     status text not null check (status in ('active', 'canceled', 'expired')),
     paypal_subscription_id text unique,
     google_play_token text unique,

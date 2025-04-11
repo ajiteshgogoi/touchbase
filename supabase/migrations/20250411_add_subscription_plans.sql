@@ -62,13 +62,11 @@ values
 
 -- Add foreign key to subscriptions table
 alter table if exists public.subscriptions
-    add column if not exists subscription_plan_id text references public.subscription_plans(id),
-    add column if not exists billing_period text;
+    add column if not exists subscription_plan_id text references public.subscription_plans(id);
 
 -- Update existing subscriptions
 update public.subscriptions
-set subscription_plan_id = plan_id,
-    billing_period = 'monthly'
+set subscription_plan_id = plan_id
 where subscription_plan_id is null;
 
 -- Create index for faster lookups
