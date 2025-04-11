@@ -1,6 +1,6 @@
-import { Fragment, useLayoutEffect } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Fragment, useLayoutEffect, useState } from 'react';
+import { Dialog, Transition, Disclosure } from '@headlessui/react';
+import { XMarkIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SUBSCRIPTION_PLANS } from '../../services/payment/plans';
 
@@ -45,7 +45,25 @@ const PAYMENT_METHODS: PaymentMethod[] = [
     id: 'paypal',
     name: 'PayPal',
     description: 'Pay securely using PayPal',
-    icon: '💳'
+    icon: '💳',
+    options: [
+      {
+        id: 'premium', // Use internal plan ID for PayPal flow
+        title: 'Monthly',
+        description: 'Flexible month-to-month billing',
+        price: monthlyPlan.price,
+        monthlyEquivalent: monthlyPlan.monthlyEquivalent
+      },
+      {
+        id: 'premium-annual', // Use internal plan ID for PayPal flow
+        title: 'Annual',
+        description: 'Save 25% with annual billing',
+        price: annualPlan.price,
+        monthlyEquivalent: annualPlan.monthlyEquivalent,
+        savings: 'Save $9/year',
+        highlight: true
+      }
+    ]
   },
   {
     id: 'google_play',
@@ -74,6 +92,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: Props) => {
+  const [openAccordion, setOpenAccordion] = useState<PaymentMethodId | null>(null);
   useLayoutEffect(() => {
     if (isOpen) {
       // Calculate scrollbar width
@@ -144,52 +163,57 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                       <p className="mt-4 text-primary-500 dark:text-primary-400">Processing payment...</p>
                     </div>
                   ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       {PAYMENT_METHODS.map((method) => (
-                        <div key={method.id} className="space-y-3">
-                          {!method.options ? (
-                            // Regular payment method button (PayPal)
-                            <button
-                              onClick={() => !method.disabled && onSelect(method.id)}
+                        <Disclosure as="div" key={method.id}>
+                          {/* Use a fragment to avoid unnecessary div */}
+                          <>
+                            <Disclosure.Button
+                              onClick={() => setOpenAccordion(openAccordion === method.id ? null : method.id)}
                               disabled={method.disabled}
-                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 bg-white dark:bg-gray-800 ${
+                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-center justify-between gap-4 ${
                                 method.disabled
-                                  ? 'border-gray-200/75 dark:border-gray-700/75 cursor-not-allowed opacity-60'
-                                  : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm dark:hover:shadow-soft-dark'
+                                  ? 'border-gray-200/75 dark:border-gray-700/75 bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
+                                  : `bg-white dark:bg-gray-800 border-gray-200/75 dark:border-gray-700/75 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm dark:hover:shadow-soft-dark` // Removed open state highlight
                               }`}
                             >
-                              <span className="text-2xl">{method.icon}</span>
-                              <div>
-                                <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
-                                <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
-                                  {method.disabled ? method.disabledReason : method.description}
-                                </p>
-                              </div>
-                            </button>
-                          ) : (
-                            // Payment method with options (Google Play)
-                            <div className="border rounded-xl p-4 bg-gray-50/50 dark:bg-gray-900/90">
-                              <div className="flex items-center gap-3 mb-4">
-                                <span className="text-2xl">{method.icon}</span>
+                              <div className="flex items-start gap-4">
+                                <span className="text-2xl mt-0.5">{method.icon}</span>
                                 <div>
                                   <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
-                                  <p className="text-sm text-gray-600/90 dark:text-gray-400">
-                                    {method.description}
+                                  <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
+                                    {method.disabled ? method.disabledReason : method.description}
                                   </p>
                                 </div>
                               </div>
-                              <div className="grid gap-3 mt-2">
-                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 px-1">
+                              <ChevronUpIcon className={`${openAccordion === method.id ? 'rotate-180 transform' : ''} h-5 w-5 text-primary-500 dark:text-primary-400 transition-transform duration-200`} />
+                            </Disclosure.Button>
+
+                            {/* Conditional rendering based on state */}
+                            {/* Use Transition for smooth open/close */}
+                            <Transition
+                              show={openAccordion === method.id}
+                              enter="transition duration-100 ease-out"
+                              enterFrom="transform scale-95 opacity-0"
+                              enterTo="transform scale-100 opacity-100"
+                              leave="transition duration-75 ease-out"
+                              leaveFrom="transform scale-100 opacity-100"
+                              leaveTo="transform scale-95 opacity-0"
+                            >
+                              {/* Seamless panel content */}
+                              <Disclosure.Panel className="px-4 pt-3 pb-4 text-sm text-gray-500 space-y-3 border-t border-gray-200/75 dark:border-gray-700/75 -mt-px">
+                                {/* Removed the extra container div */}
+                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 pt-1">
                                   Select a plan:
                                 </h5>
-                                {method.options.map((option) => (
+                                {method.options?.map((option) => (
                                   <button
                                     key={option.id}
-                                    onClick={() => !method.disabled && option.id && onSelect(option.id as SubscriptionProductId)}
+                                    onClick={() => !method.disabled && option.id && onSelect(option.id)}
                                     disabled={method.disabled}
                                     className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
                                       option.highlight
-                                        ? 'border-primary-500 dark:border-primary-400'
+                                        ? 'border-primary-500 dark:border-primary-400 ring-1 ring-primary-500 dark:ring-primary-400'
                                         : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500'
                                     } hover:shadow-sm dark:hover:shadow-soft-dark ${
                                       method.disabled ? 'cursor-not-allowed opacity-60' : ''
@@ -211,7 +235,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                         <div className="font-medium text-gray-900 dark:text-white">
                                           ${option.price}
                                         </div>
-                                        {option.monthlyEquivalent && (
+                                        {option.monthlyEquivalent && option.id !== 'premium' && (
                                           <div className="text-sm text-gray-600/90 dark:text-gray-400">
                                             ${option.monthlyEquivalent}/mo
                                           </div>
@@ -225,10 +249,10 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                     </div>
                                   </button>
                                 ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                              </Disclosure.Panel>
+                            </Transition>
+                          </>
+                        </Disclosure>
                       ))}
                     </div>
                   )}
