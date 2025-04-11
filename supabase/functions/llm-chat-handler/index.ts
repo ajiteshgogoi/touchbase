@@ -778,6 +778,7 @@ Available actions and their required parameters:
     due_date: string, // ISO 8601 format (YYYY-MM-DD)
     is_important?: boolean // Optional, defaults to false
   }
+- get_subscription_status: {} // Get user's subscription and trial status details
 - check_reminders: { timeframe: 'today'|'tomorrow'|'week'|'month'|'date'|'custom', date?: string, start_date?: string, end_date?: string }
 
 Rules:
@@ -907,7 +908,8 @@ Rules:
           'check_interactions',
           'get_contact_info',
           'add_quick_reminder',
-          'check_reminders'
+          'check_reminders',
+          'get_subscription_status'
         ]);
 
         if (!validActions.has(llmJsonOutput.action)) {
@@ -1499,6 +1501,57 @@ Rules:
            }
 
            return createResponse({ reply });
+        }
+
+        if (action === 'get_subscription_status') {
+           const { data: subscriptionData, error: subscriptionError } = await supabaseAdminClient
+             .from('subscriptions')
+             .select('valid_until, trial_end_date, subscription_plan_id, status')
+             .eq('user_id', user.id)
+             .single();
+
+           if (subscriptionError) {
+             console.error('Error fetching subscription:', subscriptionError);
+             return createResponse({ reply: "Sorry, I couldn't retrieve your subscription information." });
+           }
+
+           if (!subscriptionData) {
+             return createResponse({ reply: "You don't have an active subscription or trial." });
+           }
+
+           const now = new Date();
+           let messages = [];
+
+           if (subscriptionData.status === 'active' && subscriptionData.valid_until) {
+             const validUntil = new Date(subscriptionData.valid_until);
+             if (validUntil > now) {
+               messages.push(`Your ${subscriptionData.subscription_plan_id} subscription is active until ${validUntil.toLocaleDateString(undefined, {
+                 weekday: 'long',
+                 year: 'numeric',
+                 month: 'long',
+                 day: 'numeric'
+               })}`);
+             }
+           }
+
+           if (subscriptionData.trial_end_date) {
+             const trialEnd = new Date(subscriptionData.trial_end_date);
+             if (trialEnd > now) {
+               const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+               messages.push(`Your trial ends on ${trialEnd.toLocaleDateString(undefined, {
+                 weekday: 'long',
+                 year: 'numeric',
+                 month: 'long',
+                 day: 'numeric'
+               })} (${daysLeft} days remaining)`);
+             }
+           }
+
+           if (messages.length === 0) {
+             return createResponse({ reply: "You don't have an active subscription or trial." });
+           }
+
+           return createResponse({ reply: messages.join('. ') });
         }
 
         if (action === 'get_contact_info') {
