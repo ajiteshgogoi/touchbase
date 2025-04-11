@@ -216,7 +216,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                       disabled={method.disabled}
                                       className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
                                         option.highlight
-                                          ? 'bg-primary-50/60 dark:bg-primary-900/10 border-primary-400/75 dark:border-primary-400/50'
+                                          ? 'bg-gray-50/60 dark:bg-gray-800/60 border-primary-200/50 dark:border-primary-700/50 hover:bg-primary-50/60 dark:hover:bg-primary-900/10 hover:border-primary-400/75 dark:hover:border-primary-400/50'
                                           : 'bg-gray-50/60 dark:bg-gray-800/60 border-gray-200/50 dark:border-gray-700/50 hover:border-primary-400/50 dark:hover:border-primary-500/50'
                                       } ${
                                         method.disabled ? 'cursor-not-allowed opacity-60' : ''
