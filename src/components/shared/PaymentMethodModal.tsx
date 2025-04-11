@@ -212,7 +212,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                 <h5 className="text-[15px] font-medium text-gray-700 dark:text-gray-300 mb-4">
                                   Select a plan:
                                 </h5>
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                   {method.options?.map((option) => (
                                     <button
                                       key={option.id}
