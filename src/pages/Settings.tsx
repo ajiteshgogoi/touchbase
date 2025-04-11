@@ -60,18 +60,18 @@ export const Settings = () => {
 
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('valid_until, status, trial_end_date, plan_id')
+        .select('valid_until, status, trial_end_date, subscription_plan_id')
         .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
       
-      const subscriptionData = data as Subscription;
+      const subscriptionData = data as unknown as Subscription;
       
       // Sync with store
       const now = new Date();
       const isPremium = Boolean(
-        subscriptionData.plan_id === 'premium' &&
+        (subscriptionData.subscription_plan_id === 'premium' || subscriptionData.subscription_plan_id === 'premium-annual') &&
         subscriptionData.valid_until &&
         new Date(subscriptionData.valid_until) > now
       );
@@ -209,7 +209,7 @@ export const Settings = () => {
             valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
             status: 'active',
             trial_end_date: null,
-            plan_id: 'premium'
+            subscription_plan_id: 'premium'
           };
 
           // Update React Query cache

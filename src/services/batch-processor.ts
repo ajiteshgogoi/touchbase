@@ -238,7 +238,7 @@ export class BatchProcessor {
       const [subscriptionResult, preferencesResult] = await Promise.all([
         this.supabase
           .from('subscriptions')
-          .select('plan_id, valid_until, trial_end_date')
+          .select('subscription_plan_id, valid_until, trial_end_date')
           .eq('user_id', contact.user_id)
           .single(),
         this.supabase
@@ -255,7 +255,7 @@ export class BatchProcessor {
       const subscription = subscriptionResult.data;
       const preferences = preferencesResult.data;
 
-      const hasAccess = (subscription?.plan_id === 'premium' && subscription.valid_until && new Date(subscription.valid_until) > now) ||
+      const hasAccess = ((subscription?.subscription_plan_id === 'premium' || subscription?.subscription_plan_id === 'premium-annual') && subscription.valid_until && new Date(subscription.valid_until) > now) ||
         (subscription?.trial_end_date && new Date(subscription.trial_end_date) > now);
 
       // Process with LLM if premium/trial and AI suggestions enabled

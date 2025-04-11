@@ -184,7 +184,7 @@ export interface Feedback {
 export interface Subscription {
   id: string;
   user_id: string;
-  plan_id: 'free' | 'premium';
+  subscription_plan_id: string;
   status: 'active' | 'canceled' | 'expired';
   paypal_subscription_id: string | null;
   google_play_token: string | null;
@@ -285,6 +285,41 @@ export interface Database {
         Row: Subscription;
         Insert: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Subscription, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      subscription_plans: {
+        Row: {
+          id: string;
+          name: string;
+          price: number;
+          billing_period: 'monthly' | 'annual';
+          google_play_product_id: string | null;
+          monthly_equivalent: number;
+          contact_limit: number;
+          features: string[];
+          created_at: Timestamp;
+        };
+        Insert: Omit<{
+          id: string;
+          name: string;
+          price: number;
+          billing_period: 'monthly' | 'annual';
+          google_play_product_id: string | null;
+          monthly_equivalent: number;
+          contact_limit: number;
+          features: string[];
+          created_at: Timestamp;
+        }, 'created_at'>;
+        Update: Partial<Omit<{
+          id: string;
+          name: string;
+          price: number;
+          billing_period: 'monthly' | 'annual';
+          google_play_product_id: string | null;
+          monthly_equivalent: number;
+          contact_limit: number;
+          features: string[];
+          created_at: Timestamp;
+        }, 'created_at'>>;
       };
       notification_history: {
         Row: NotificationHistory;
