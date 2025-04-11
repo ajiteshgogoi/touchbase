@@ -152,10 +152,10 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                             <button
                               onClick={() => !method.disabled && onSelect(method.id)}
                               disabled={method.disabled}
-                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 ${
+                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 bg-white dark:bg-gray-900 ${
                                 method.disabled
-                                  ? 'border-gray-200/75 dark:border-gray-700/75 bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
-                                  : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50/90 dark:hover:bg-primary-900/30 hover:shadow-sm dark:hover:shadow-soft-dark'
+                                  ? 'border-gray-200/75 dark:border-gray-700/75 cursor-not-allowed opacity-60'
+                                  : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm dark:hover:shadow-soft-dark'
                               }`}
                             >
                               <span className="text-2xl">{method.icon}</span>
