@@ -47,9 +47,11 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
 
   const handleSubscribe = async (methodOrPlan: PaymentMethod | string) => {
     try {
-      if (methodOrPlan === 'paypal') {
-        await paymentService.createSubscription('premium', methodOrPlan);
+      if (methodOrPlan === 'premium' || methodOrPlan === 'premium-annual') {
+        // PayPal flow - plan ID is passed directly from modal
+        await paymentService.createSubscription(methodOrPlan, 'paypal');
       } else if (methodOrPlan.startsWith('touchbase_premium')) {
+        // Google Play flow
         await paymentService.createSubscription(methodOrPlan.includes('annual') ? 'premium-annual' : 'premium', 'google_play');
       }
     } catch (error: any) {
