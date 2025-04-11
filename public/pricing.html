@@ -29,53 +29,85 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebPage",
-      "name": "TouchBase | Pricing",
-      "description": "Explore TouchBase's affordable pricing plans. Start with our free plan or upgrade to Premium for unlimited contacts and advanced features.",
-      "url": "https://touchbase.site/pricing",
-      "publisher": {
-        "@type": "Organization",
-        "name": "TouchBase Technologies",
-        "url": "https://touchbase.site",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://touchbase.site/icon.svg"
-        }
-      },
-      "mainEntity": {
-        "@type": "ItemList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "item": {
-              "@type": "Product",
-              "name": "TouchBase Free",
-              "description": "Basic features for managing personal relationships.",
-              "offers": {
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://touchbase.site/pricing#webpage",
+          "url": "https://touchbase.site/pricing",
+          "name": "TouchBase | Pricing",
+          "description": "Explore TouchBase's affordable pricing plans. Start with our free plan or upgrade to Premium for unlimited contacts and advanced features.",
+          "datePublished": "2025-03-27T00:00:00+05:30",
+          "dateModified": "2025-04-11T00:00:00+05:30",
+          "isPartOf": {
+            "@type": "WebSite",
+            "@id": "https://touchbase.site/#website",
+            "url": "https://touchbase.site",
+            "name": "TouchBase",
+            "description": "Personal Relationship Manager"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://touchbase.site/#software",
+          "name": "TouchBase",
+          "applicationCategory": "UtilitiesApplication",
+          "operatingSystem": "Web, iOS, Android",
+          "offers": {
+            "@type": "AggregateOffer",
+            "offerCount": "2",
+            "lowPrice": "0",
+            "highPrice": "3",
+            "priceCurrency": "USD",
+            "offers": [
+              {
                 "@type": "Offer",
+                "name": "TouchBase Free",
                 "price": "0",
-                "priceCurrency": "USD"
-              }
-            }
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "item": {
-              "@type": "Product",
-              "name": "TouchBase Premium",
-              "description": "Unlimited contacts and advanced features for relationship management.",
-              "offers": {
+                "priceCurrency": "USD",
+                "description": "Basic features for managing personal relationships",
+                "availability": "https://schema.org/InStock"
+              },
+              {
                 "@type": "Offer",
+                "name": "TouchBase Premium",
                 "price": "3",
                 "priceCurrency": "USD",
-                "priceValidUntil": "2025-12-31"
+                "priceValidUntil": "2025-12-31",
+                "description": "Unlimited contacts and advanced features for relationship management",
+                "availability": "https://schema.org/InStock"
               }
-            }
+            ]
+          },
+          "featureList": [
+            "Smart Contact Management",
+            "Interaction History Tracking",
+            "Intelligent Reminders",
+            "Relationship Insights",
+            "Personalised Suggestions",
+            "AI Chat Assistant",
+            "Conversation Prompt Generator",
+            "Cross-Platform Support",
+            "Privacy-Focused Design"
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "261"
           }
-        ]
-      }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://touchbase.site/#organization",
+          "name": "TouchBase Technologies",
+          "url": "https://touchbase.site",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://touchbase.site/icon-512.png",
+            "width": "512",
+            "height": "512"
+          }
+        }
+      ]
     }
     </script>
     <style>
