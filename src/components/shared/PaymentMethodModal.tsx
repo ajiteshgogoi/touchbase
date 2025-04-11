@@ -44,7 +44,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: 'paypal',
     name: 'PayPal',
-    description: 'Pay securely using PayPal',
+    description: 'Pay securely using PayPal (credit/debit card or PayPal balance)',
     icon: '💳',
     options: [
       {
