@@ -42,30 +42,6 @@ interface Props {
 
 const PAYMENT_METHODS: PaymentMethod[] = [
   {
-    id: 'paypal',
-    name: 'PayPal',
-    description: 'Pay securely using PayPal (credit/debit card or PayPal balance)',
-    icon: '💳',
-    options: [
-      {
-        id: 'premium', // Use internal plan ID for PayPal flow
-        title: 'Monthly',
-        description: 'Flexible month-to-month billing',
-        price: monthlyPlan.price,
-        monthlyEquivalent: monthlyPlan.monthlyEquivalent
-      },
-      {
-        id: 'premium-annual', // Use internal plan ID for PayPal flow
-        title: 'Annual',
-        description: 'Save 25% with annual billing',
-        price: annualPlan.price,
-        monthlyEquivalent: annualPlan.monthlyEquivalent,
-        savings: 'Save $9/year',
-        highlight: true
-      }
-    ]
-  },
-  {
     id: 'google_play',
     name: 'Google Play',
     description: 'Pay through Google Play (only available if installed from Play Store)',
@@ -80,6 +56,30 @@ const PAYMENT_METHODS: PaymentMethod[] = [
       },
       {
         id: annualPlan.googlePlayProductId!,
+        title: 'Annual',
+        description: 'Save 25% with annual billing',
+        price: annualPlan.price,
+        monthlyEquivalent: annualPlan.monthlyEquivalent,
+        savings: 'Save $9/year',
+        highlight: true
+      }
+    ]
+  },
+  {
+    id: 'paypal',
+    name: 'PayPal',
+    description: 'Pay using PayPal (credit/debit card or PayPal balance)',
+    icon: '💳',
+    options: [
+      {
+        id: 'premium', // Use internal plan ID for PayPal flow
+        title: 'Monthly',
+        description: 'Flexible month-to-month billing',
+        price: monthlyPlan.price,
+        monthlyEquivalent: monthlyPlan.monthlyEquivalent
+      },
+      {
+        id: 'premium-annual', // Use internal plan ID for PayPal flow
         title: 'Annual',
         description: 'Save 25% with annual billing',
         price: annualPlan.price,
