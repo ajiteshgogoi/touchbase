@@ -207,7 +207,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                             leaveFrom="opacity-100"
                             leaveTo="opacity-0"
                           >
-                            <Disclosure.Panel className="px-5 pb-5 pt-1 animate-fadeIn">
+                            <Disclosure.Panel className="px-5 pb-5 pt-1 animate-fadeIn bg-white dark:bg-gray-900">
                               <div className="pt-3 border-t border-gray-200/75 dark:border-gray-700/75">
                                 <h5 className="text-[15px] font-medium text-gray-700 dark:text-gray-300 mb-4">
                                   Select a plan:
@@ -218,10 +218,10 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                       key={option.id}
                                       onClick={() => !method.disabled && option.id && onSelect(option.id)}
                                       disabled={method.disabled}
-                                      className={`relative w-full p-4 text-left border-2 rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
+                                      className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
                                         option.highlight
-                                          ? 'border-primary-500 dark:border-primary-400 shadow-sm'
-                                          : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400/75 dark:hover:border-primary-500/75 hover:shadow-sm'
+                                          ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-500 dark:border-primary-400'
+                                          : 'bg-gray-50 dark:bg-gray-800 border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400/75 dark:hover:border-primary-500/75'
                                       } ${
                                         method.disabled ? 'cursor-not-allowed opacity-60' : ''
                                       }`}
@@ -240,15 +240,15 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                         </div>
                                         <div className="text-right">
                                           <div className="font-[600] text-gray-900 dark:text-white">
-                                            ${option.price}
+                                            ${option.price}{option.title === 'Monthly' ? '/mo' : '/yr'}
                                           </div>
-                                          {option.monthlyEquivalent && option.id !== 'premium' && (
-                                            <div className="text-[15px] text-gray-600/90 dark:text-gray-400">
+                                          {option.title === 'Annual' && option.monthlyEquivalent && (
+                                            <div className="text-xs text-gray-600/90 dark:text-gray-400">
                                               ${option.monthlyEquivalent}/mo
                                             </div>
                                           )}
                                           {option.savings && (
-                                            <div className="text-[15px] font-medium text-primary-600 dark:text-primary-400 mt-1">
+                                            <div className="text-xs font-medium text-primary-600 dark:text-primary-400 mt-1">
                                               {option.savings}
                                             </div>
                                           )}
