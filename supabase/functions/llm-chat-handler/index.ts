@@ -1334,31 +1334,56 @@ Rules:
                break;
 
              case 'topics':
-               // Analyze notes to find common topics
-               const topics = new Map();
-               filteredInteractions.forEach(interaction => {
-                 if (interaction.notes) {
-                   // Split notes into words and identify potential topics
-                   const words = interaction.notes.toLowerCase().split(/\W+/);
-                   const skipWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'about']);
-                   words.forEach(word => {
-                     if (word.length > 3 && !skipWords.has(word)) {
-                       topics.set(word, (topics.get(word) || 0) + 1);
-                     }
-                   });
-                 }
-               });
-               
-               // Sort topics by frequency
-               const sortedTopics = [...topics.entries()]
-                 .sort((a, b) => b[1] - a[1])
-                 .slice(0, 5)
-                 .filter(([_, count]) => count > 1)
-                 .map(([topic, count]) => `${topic} (${count} times)`);
+               // Let the LLM analyze notes to find common topics
+               const interactionNotes = filteredInteractions
+                 .map(i => i.notes)
+                 .filter(Boolean) // Remove null/empty notes
+                 .join('\n---\n'); // Join notes with a separator
 
-               reply = sortedTopics.length > 0
-                 ? `Common topics discussed with ${params.contact_name}: ${sortedTopics.join(', ')}.`
-                 : `No common topics found in the interaction notes with ${params.contact_name}.`;
+               if (!interactionNotes.trim()) {
+                 reply = `No interaction notes found for ${params.contact_name} to analyze for topics.`;
+                 break;
+               }
+
+               // Limit notes length to avoid exceeding context limits (adjust limit as needed)
+               const maxNotesLength = 50000; // Example limit
+               const truncatedNotes = interactionNotes.length > maxNotesLength
+                 ? interactionNotes.substring(0, maxNotesLength) + '... [truncated]'
+                 : interactionNotes;
+
+               const topicPrompt = `Analyze the following interaction notes for contact "${params.contact_name}" and identify the top 3-5 common discussion topics. Respond with a brief summary of the topics. Notes:\n\n${truncatedNotes}`;
+               const openRouterApiKey = Deno.env.get('GROQ_API_KEY'); // Ensure API key is available
+
+               try {
+                 const topicLlmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                   method: "POST",
+                   headers: {
+                     "Authorization": `Bearer ${openRouterApiKey}`, // Reuse API key
+                     "Content-Type": "application/json"
+                   },
+                   body: JSON.stringify({
+                     model: "google/gemini-2.0-flash-lite-001", // Or another suitable model
+                     messages: [{ role: "user", content: topicPrompt }],
+                     max_tokens: 150, // Limit response length
+                     temperature: 0.5 // Adjust creativity
+                   })
+                 });
+
+                 if (!topicLlmResponse.ok) {
+                   const errorBody = await topicLlmResponse.text();
+                   console.error("Topic LLM API Error:", topicLlmResponse.status, errorBody);
+                   reply = `Sorry, I couldn't analyze the topics due to an internal error.`;
+                 } else {
+                   const topicResult = await topicLlmResponse.json();
+                   const llmTopics = topicResult?.choices?.[0]?.message?.content?.trim();
+                   reply = llmTopics
+                     ? `Based on your interactions with ${params.contact_name}, common topics seem to be:\n${llmTopics}`
+                     : `I analyzed the notes for ${params.contact_name}, but couldn't extract specific common topics.`;
+                 }
+               } catch (topicError) {
+                 console.error("Error calling LLM for topics:", topicError);
+                 reply = `Sorry, I encountered an error while analyzing topics for ${params.contact_name}.`;
+               }
                break;
 
              case 'activity':
