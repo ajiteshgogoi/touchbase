@@ -4,6 +4,7 @@ User-agent: *
 Allow: /
 Allow: /login
 Allow: /privacy
+Allow: /pricing
 Allow: /terms
 Allow: /support
 Allow: /features/
