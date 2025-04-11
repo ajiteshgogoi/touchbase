@@ -136,7 +136,7 @@ const handleResumeSubscription = () => {
             >
               {plan.id === 'premium' && (
                 <span className="absolute -top-3 -right-3 bg-accent-500 text-white text-[13px] font-[500] px-3 py-1 rounded-full shadow-soft">
-                  {(selectedPlan === 'premium' || selectedPlan === 'premium-annual')
+                  {isPremium
                     ? subscription?.status === 'canceled'
                       ? 'Cancelled'
                       : 'Active'
