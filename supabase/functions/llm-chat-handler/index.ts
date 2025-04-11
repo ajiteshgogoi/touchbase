@@ -91,9 +91,9 @@ function validateActionParams(action: string, params: Record<string, any>): stri
 async function isUserPremiumOrTrial(supabaseClient: SupabaseClient, userId: string): Promise<boolean> {
   const { data, error } = await supabaseClient
     .from('subscriptions')
-    .select('status, trial_end_date, valid_until')
+    .select('status, trial_end_date, valid_until, subscription_plan_id')
     .eq('user_id', userId)
-    .eq('subscription_plan_id', 'premium') // Check for monthly premium
+    .in('subscription_plan_id', ['premium', 'premium-annual']) // Check for monthly or annual premium
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116: No rows found (expected for free users)
