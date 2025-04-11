@@ -1352,7 +1352,7 @@ Rules:
                  : interactionNotes;
 
                const topicPrompt = `Analyze the following interaction notes for contact "${params.contact_name}" and identify the top 3-5 common discussion topics. Respond ONLY with the topics (including a brief summary for each), starting directly with the first topic. Do not include any introductory phrases like "Here are the topics..." or "Based on the notes...". Notes:\n\n${truncatedNotes}`;
-               const openRouterApiKey = Deno.env.get('GROQ_API_KEY'); // Ensure API key is available
+               // Use openRouterApiKey declared earlier (around line 678)
 
                try {
                  const topicLlmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -1444,7 +1444,7 @@ Rules:
                const originalUserQuery = requestBody.message; // Assuming requestBody is accessible here
 
                const notesQueryPrompt = `Based ONLY on the following notes provided for ${params.contact_name}, answer the user's question: "${originalUserQuery}". Do not use any external knowledge. If the answer isn't in the notes, say you couldn't find the information in the notes.\n\nNotes:\n---\n${truncatedAllNotes}\n---\nAnswer:`;
-               const openRouterApiKey = Deno.env.get('GROQ_API_KEY'); // Ensure API key is available
+               // Use openRouterApiKey declared earlier (around line 678)
 
                try {
                  const notesLlmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
