@@ -24,7 +24,7 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
   const { user } = useStore();
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const selectedPlan = subscription?.subscription_plan_id || (isPremium ? 'premium' : 'free');
+  const selectedPlan = subscription?.subscription_plan_id || (isPremium ? subscription?.subscription_plan_id?.includes('annual') ? 'premium-annual' : 'premium' : 'free');
 
   useEffect(() => {
     const handlePaymentFlowStart = () => {
@@ -125,7 +125,7 @@ const handleResumeSubscription = () => {
           Subscription Plan
         </h2>
         <div className="grid md:grid-cols-2 gap-8">
-          {SUBSCRIPTION_PLANS.filter(plan => !plan.id.includes('annual')).map((plan) => (
+          {SUBSCRIPTION_PLANS.filter(plan => plan.id === 'free' || plan.id === selectedPlan).map((plan) => (
             <div
               key={plan.id}
               className={`relative bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl p-6 transition-all ${
