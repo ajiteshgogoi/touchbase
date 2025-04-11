@@ -96,7 +96,7 @@ export class SubscriptionService {
       ) ?? FREE_PLAN;
 
       const now = new Date();
-      const isPremium = currentPlan.id === 'premium' &&
+      const isPremium = (currentPlan.id === 'premium' || currentPlan.id === 'premium-annual') &&
         subscription.valid_until &&
         new Date(subscription.valid_until) > now;
       
