@@ -1,4 +1,4 @@
-import { Fragment, useLayoutEffect, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useState } from 'react';
 import { Dialog, Transition, Disclosure } from '@headlessui/react';
 import { XMarkIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -93,6 +93,14 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 
 export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: Props) => {
   const [openAccordion, setOpenAccordion] = useState<PaymentMethodId | null>(null);
+  
+  // Reset accordion state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setOpenAccordion(null);
+    }
+  }, [isOpen]);
+
   useLayoutEffect(() => {
     if (isOpen) {
       // Calculate scrollbar width
@@ -165,99 +173,93 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                   ) : (
                     <div className="space-y-4">
                       {PAYMENT_METHODS.map((method) => (
-                        <Disclosure as="div" key={method.id}>
-                          {/* Use a fragment to avoid unnecessary div */}
-                          <>
-                            <Disclosure.Button
-                              onClick={() => setOpenAccordion(openAccordion === method.id ? null : method.id)}
-                              disabled={method.disabled}
-                              className={`w-full py-4 px-5 text-left border rounded-xl transition-all duration-200 flex items-center justify-between ${
-                                method.disabled
-                                  ? 'border-gray-200/75 dark:border-gray-700/75 bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
-                                  : `border-gray-200/75 dark:border-gray-700/75 hover:border-gray-300 dark:hover:border-gray-600 ${
-                                      openAccordion === method.id
-                                        ? 'bg-gray-50/80 dark:bg-gray-800/80'
-                                        : 'bg-white dark:bg-gray-800 hover:shadow-sm dark:hover:shadow-soft-dark'
-                                    }`
-                              }`}
-                            >
-                              <div className="flex items-start gap-5">
-                                <span className="text-2xl leading-none">{method.icon}</span>
-                                <div>
-                                  <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
-                                  <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1.5">
-                                    {method.disabled ? method.disabledReason : method.description}
-                                  </p>
-                                </div>
+                        <Disclosure as="div" key={method.id} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl shadow-sm dark:shadow-soft-dark border border-gray-100/50 dark:border-gray-800/50 overflow-hidden">
+                          <Disclosure.Button
+                            onClick={() => setOpenAccordion(openAccordion === method.id ? null : method.id)}
+                            disabled={method.disabled}
+                            className={`w-full p-5 text-left flex items-start justify-between gap-4 transition-all duration-200 ${
+                              method.disabled
+                                ? 'bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
+                                : `hover:bg-gray-50/80 dark:hover:bg-gray-800/80`
+                            }`}
+                          >
+                            <div className="flex items-start gap-4">
+                              <span className="text-2xl leading-none">{method.icon}</span>
+                              <div>
+                                <h4 className="font-[600] text-gray-900/90 dark:text-white">{method.name}</h4>
+                                <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mt-1">
+                                  {method.disabled ? method.disabledReason : method.description}
+                                </p>
                               </div>
-                              <ChevronUpIcon
-                                className={`${openAccordion === method.id ? 'rotate-180 transform' : ''} h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0 ml-4`}
-                                aria-hidden="true"
-                              />
-                            </Disclosure.Button>
-
-                            {/* Conditional rendering based on state */}
-                            {/* Use Transition for smooth open/close */}
-                            <Transition
-                              show={openAccordion === method.id}
-                              enter="transition duration-100 ease-out"
-                              enterFrom="transform scale-95 opacity-0"
-                              enterTo="transform scale-100 opacity-100"
-                              leave="transition duration-75 ease-out"
-                              leaveFrom="transform scale-100 opacity-100"
-                              leaveTo="transform scale-95 opacity-0"
-                            >
-                              {/* Seamless panel content */}
-                              <Disclosure.Panel className="px-5 pt-4 pb-5 text-sm text-gray-500 space-y-4 border-t border-gray-200/75 dark:border-gray-700/75 -mt-px">
-                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            </div>
+                            <ChevronUpIcon
+                              className={`${openAccordion === method.id ? 'rotate-180 transform' : ''} h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0`}
+                              aria-hidden="true"
+                            />
+                          </Disclosure.Button>
+                          
+                          <Transition
+                            show={openAccordion === method.id}
+                            enter="transition duration-100 ease-out"
+                            enterFrom="opacity-0"
+                            enterTo="opacity-100"
+                            leave="transition duration-75 ease-out"
+                            leaveFrom="opacity-100"
+                            leaveTo="opacity-0"
+                          >
+                            <Disclosure.Panel className="px-5 pb-5 pt-1 animate-fadeIn">
+                              <div className="pt-3 border-t border-gray-200/75 dark:border-gray-700/75">
+                                <h5 className="text-[15px] font-medium text-gray-700 dark:text-gray-300 mb-4">
                                   Select a plan:
                                 </h5>
-                                {method.options?.map((option) => (
-                                  <button
-                                    key={option.id}
-                                    onClick={() => !method.disabled && option.id && onSelect(option.id)}
-                                    disabled={method.disabled}
-                                    className={`relative w-full p-5 text-left border-2 rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
-                                      option.highlight
-                                        ? 'border-primary-500 dark:border-primary-400'
-                                        : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400/75 dark:hover:border-primary-500/75'
-                                    } hover:shadow-sm dark:hover:shadow-soft-dark ${
-                                      method.disabled ? 'cursor-not-allowed opacity-60' : ''
-                                    }`}
-                                  >
-                                    {option.highlight && (
-                                      <div className="absolute -top-3 right-4 bg-accent-500 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm">
-                                        Best Value
-                                      </div>
-                                    )}
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <h4 className="font-medium text-gray-900 dark:text-white">{option.title}</h4>
-                                        <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1.5">
-                                          {option.description}
-                                        </p>
-                                      </div>
-                                      <div className="text-right">
-                                        <div className="font-medium text-gray-900 dark:text-white">
-                                          ${option.price}
+                                <div className="space-y-3">
+                                  {method.options?.map((option) => (
+                                    <button
+                                      key={option.id}
+                                      onClick={() => !method.disabled && option.id && onSelect(option.id)}
+                                      disabled={method.disabled}
+                                      className={`relative w-full p-4 text-left border-2 rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
+                                        option.highlight
+                                          ? 'border-primary-500 dark:border-primary-400 shadow-sm'
+                                          : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400/75 dark:hover:border-primary-500/75 hover:shadow-sm'
+                                      } ${
+                                        method.disabled ? 'cursor-not-allowed opacity-60' : ''
+                                      }`}
+                                    >
+                                      {option.highlight && (
+                                        <div className="absolute -top-3 right-4 bg-accent-500 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                                          Best Value
                                         </div>
-                                        {option.monthlyEquivalent && option.id !== 'premium' && (
-                                          <div className="text-sm text-gray-600/90 dark:text-gray-400">
-                                            ${option.monthlyEquivalent}/mo
+                                      )}
+                                      <div className="flex justify-between items-start">
+                                        <div>
+                                          <h4 className="font-[600] text-gray-900 dark:text-white">{option.title}</h4>
+                                          <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mt-1">
+                                            {option.description}
+                                          </p>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="font-[600] text-gray-900 dark:text-white">
+                                            ${option.price}
                                           </div>
-                                        )}
-                                        {option.savings && (
-                                          <div className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1">
-                                            {option.savings}
-                                          </div>
-                                        )}
+                                          {option.monthlyEquivalent && option.id !== 'premium' && (
+                                            <div className="text-[15px] text-gray-600/90 dark:text-gray-400">
+                                              ${option.monthlyEquivalent}/mo
+                                            </div>
+                                          )}
+                                          {option.savings && (
+                                            <div className="text-[15px] font-medium text-primary-600 dark:text-primary-400 mt-1">
+                                              {option.savings}
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  </button>
-                                ))}
-                              </Disclosure.Panel>
-                            </Transition>
-                          </>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </Disclosure.Panel>
+                          </Transition>
                         </Disclosure>
                       ))}
                     </div>
