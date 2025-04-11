@@ -146,9 +146,14 @@ serve(async (req) => {
       throw new Error(`Invalid subscription status: ${subscriptionDetails.status}`);
     }
 
-    // Calculate valid_until date (1 month from now for monthly subscription)
-    const validUntil = new Date()
-    validUntil.setMonth(validUntil.getMonth() + 1)
+    // Calculate valid_until date based on the plan
+    const validUntil = new Date();
+    const isAnnual = subscriptionDetails.plan_id === Deno.env.get('PREMIUM_ANNUAL_PLAN_ID');
+    if (isAnnual) {
+      validUntil.setFullYear(validUntil.getFullYear() + 1); // Add 1 year for annual
+    } else {
+      validUntil.setMonth(validUntil.getMonth() + 1); // Add 1 month for monthly
+    }
     console.log('Calculated valid_until:', validUntil.toISOString());
 
     // Check if subscription exists
