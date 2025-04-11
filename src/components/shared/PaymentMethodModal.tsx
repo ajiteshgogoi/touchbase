@@ -57,10 +57,8 @@ const PAYMENT_METHODS: PaymentMethod[] = [
       {
         id: annualPlan.googlePlayProductId!,
         title: 'Annual',
-        description: 'Save 25% with annual billing',
+        description: 'Save 25% or $9/year with annual billing',
         price: annualPlan.price,
-        monthlyEquivalent: annualPlan.monthlyEquivalent,
-        savings: 'Save $9/year',
         highlight: true
       }
     ]
@@ -81,10 +79,8 @@ const PAYMENT_METHODS: PaymentMethod[] = [
       {
         id: 'premium-annual', // Use internal plan ID for PayPal flow
         title: 'Annual',
-        description: 'Save 25% with annual billing',
+        description: 'Save 25% or $9/year with annual billing',
         price: annualPlan.price,
-        monthlyEquivalent: annualPlan.monthlyEquivalent,
-        savings: 'Save $9/year',
         highlight: true
       }
     ]
@@ -239,19 +235,14 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                           </p>
                                         </div>
                                         <div className="text-right">
-                                          <div className="font-[600] text-gray-900 dark:text-white">
-                                            ${option.price}{option.title === 'Monthly' ? '/mo' : '/yr'}
+                                          <div>
+                                            <span className="font-[600] text-gray-900 dark:text-white">
+                                              ${option.price}
+                                            </span>
+                                            <span className="text-sm text-gray-600/90 dark:text-gray-400">
+                                              {option.title === 'Monthly' ? '/mo' : '/yr'}
+                                            </span>
                                           </div>
-                                          {option.title === 'Annual' && option.monthlyEquivalent && (
-                                            <div className="text-xs text-gray-600/90 dark:text-gray-400">
-                                              ${option.monthlyEquivalent}/mo
-                                            </div>
-                                          )}
-                                          {option.savings && (
-                                            <div className="text-xs font-medium text-primary-600 dark:text-primary-400 mt-1">
-                                              {option.savings}
-                                            </div>
-                                          )}
                                         </div>
                                       </div>
                                     </button>
