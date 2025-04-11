@@ -151,9 +151,11 @@ const handleResumeSubscription = () => {
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      ${plan.price}
+                      ${selectedPlan === 'premium-annual' && plan.id === 'premium' ? '27' : plan.price}
                     </span>
-                    <span className="text-gray-600/90 dark:text-gray-400">/mo</span>
+                    <span className="text-gray-600/90 dark:text-gray-400">
+                      {selectedPlan === 'premium-annual' && plan.id === 'premium' ? '/yr' : '/mo'}
+                    </span>
                   </div>
                 </div>
                 <ul className="space-y-4 mb-8 flex-grow">
