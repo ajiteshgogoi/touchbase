@@ -227,6 +227,25 @@ create trigger enforce_device_limit
 before insert on public.push_subscriptions
 for each row execute function check_device_limit();
 
+-- Create subscription plans table
+create table public.subscription_plans (
+    id text primary key,
+    name text not null,
+    price numeric not null,
+    billing_period text not null check (billing_period in ('monthly', 'annual')),
+    google_play_product_id text unique,
+    monthly_equivalent numeric,
+    contact_limit integer not null,
+    features jsonb not null,
+    created_at timestamp with time zone default now()
+);
+
+-- Add subscription plan policies
+create policy "Anyone can read subscription plans"
+    on public.subscription_plans for select
+    to public
+    using (true);
+
 create table public.subscriptions (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid references auth.users not null unique,
