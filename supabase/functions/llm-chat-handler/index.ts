@@ -758,10 +758,11 @@ Available actions and their required parameters:
 - check_interactions: {
     contact_name: string,
     query_type: 'topics'|'frequency'|'activity'|'notes',
-    activity?: string, // For finding specific activities e.g. "biking", "coffee"
-    timeframe?: 'all'|'recent'|'year'|'month'|'custom',
+    activity?: string, // For finding specific activities e.g. "biking", "coffee" (used with query_type: 'activity')
+    timeframe?: 'all'|'recent'|'year'|'month'|'custom', // Optional filter for all query_types
     start_date?: string, // For custom timeframe
     end_date?: string // For custom timeframe
+    // Use query_type: 'notes' when the user asks a specific question about a contact that might be answered in their general notes or interaction history (e.g., "Does Jane have kids?", "What is Bob's company?", "Tell me about Alice").
   }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
 - delete_contact: { contact_name: string }
@@ -777,7 +778,7 @@ Rules:
 - Always identify the contact by name using the 'contact_name' parameter. The backend will resolve the ID.
 - If the user request is ambiguous (e.g., missing required parameters), ask for clarification. DO NOT guess parameters.
   Specifically, if the user wants to log an interaction but doesn't specify the type, respond with: '{"reply": "Okay, I can log that interaction. What type was it (call, message, social or meeting)?"}'. If a reminder is requested without a name or due date, ask for the missing details.
-- If the request is a simple question not matching an action, provide a direct answer if possible or state you cannot perform that query. Use the 'reply' field for this.
+- If the request is a simple question not matching an action (AND it's not a question about details potentially found in contact notes, which should use \`check_interactions\` with \`query_type: 'notes'\`), provide a direct answer if possible or state you cannot perform that query. Use the 'reply' field for this.
 - Respond ONLY with a valid JSON object containing 'action' and 'params', OR 'reply' for direct answers/clarifications, OR 'error'.
 - Respond in raw JSON without markdown formatting
 - Examples:
@@ -801,7 +802,8 @@ Rules:
   {"action": "check_interactions", "params": {"contact_name": "Sarah", "query_type": "frequency"}} // Check how often you interact
   {"action": "check_interactions", "params": {"contact_name": "Tom", "query_type": "activity", "activity": "biking"}} // Find when you went biking
   {"action": "check_interactions", "params": {"contact_name": "Alice", "query_type": "notes", "timeframe": "month"}} // Search all notes from interactions and contact profile
-  {"action": "check_interactions", "params": {"contact_name": "Bob", "query_type": "notes", "timeframe": "custom", "start_date": "2025-01-01", "end_date": "2025-03-31"}} // Search all Q1 notes and details  
+  {"action": "check_interactions", "params": {"contact_name": "Bob", "query_type": "notes", "timeframe": "custom", "start_date": "2025-01-01", "end_date": "2025-03-31"}} // Search all Q1 notes and details
+  {"action": "check_interactions", "params": {"contact_name": "Jane Doe", "query_type": "notes"}} // User asked: "Does Jane have kids?" or "Tell me about Jane."
   {"action": "add_quick_reminder", "params": {"contact_name": "Jane Doe", "name": "Follow up on proposal", "due_date": "2025-04-15"}}
   {"action": "add_quick_reminder", "params": {"contact_name": "John Smith", "name": "Send birthday gift", "due_date": "2025-05-10", "is_important": true}}
   {"reply": "Which contact do you want to update?"}
