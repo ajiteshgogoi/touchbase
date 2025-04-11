@@ -51,6 +51,11 @@ const publicPages = [
     changefreq: 'monthly',
     priority: 0.8
   },
+  {
+    url: '/pricing',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
   // Feature pages
   {
     url: '/features/smart-contact-management',

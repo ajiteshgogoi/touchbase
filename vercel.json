@@ -63,7 +63,7 @@
       }
     },
     {
-      "src": "/(login|terms|privacy|support)",
+      "src": "/(login|terms|privacy|support|pricing)",
       "has": [
         {
           "type": "header",
@@ -118,7 +118,7 @@
       "dest": "/login.html"
     },
     {
-      "src": "/(login|terms|privacy|support)\\.html",
+      "src": "/(login|terms|privacy|support|pricing)\\.html",
       "headers": { "cache-control": "public, max-age=3600" }
     },
     {
@@ -144,6 +144,10 @@
    {
      "src": "/compare/(monica-personal-crm-vs-touchbase|dex-personal-crm-vs-touchbase|clay-personal-crm-vs-touchbase|cloze-personal-crm-vs-touchbase|notion-personal-crm-vs-touchbase|airtable-personal-crm-vs-touchbase)",
      "dest": "/compare/$1.html"
+   },
+   {
+     "src": "/pricing",
+     "dest": "/pricing.html"
    },
   {
      "src": "/blog/.*\\.html$",
