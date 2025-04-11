@@ -162,7 +162,7 @@ serve(async (req) => {
     // Create or update subscription
     const subscriptionData = {
       user_id: user.id,
-      plan_id: 'premium',
+      subscription_plan_id: 'premium',
       status: 'active',
       paypal_subscription_id: subscriptionDetails.id.trim(),
       valid_until: validUntil.toISOString()

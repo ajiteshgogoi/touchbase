@@ -31,7 +31,7 @@ serve(async (req) => {
 
     // Get request body
     const { planId: requestedPlanId } = await req.json()
-    if (requestedPlanId !== 'premium') throw new Error('Invalid plan ID')
+    if (requestedPlanId !== 'premium' && requestedPlanId !== 'premium-annual') throw new Error('Invalid plan ID')
 
     // Initialize PayPal client
     const clientId = Deno.env.get('PAYPAL_CLIENT_ID')
@@ -100,7 +100,9 @@ serve(async (req) => {
     const paypalToken = paypalAuthData.access_token;
 
     // Create subscription with PayPal
-    const paypalPlanId = Deno.env.get('PREMIUM_PLAN_ID')
+    const paypalPlanId = requestedPlanId === 'premium-annual'
+      ? Deno.env.get('PREMIUM_ANNUAL_PLAN_ID')
+      : Deno.env.get('PREMIUM_PLAN_ID')
     const appUrl = Deno.env.get('APP_URL')
 
     if (!paypalPlanId || !appUrl) {
