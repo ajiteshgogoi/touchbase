@@ -2,14 +2,35 @@ import { Fragment, useLayoutEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from './LoadingSpinner';
+import { SUBSCRIPTION_PLANS } from '../../services/payment/plans';
+
+// Get the monthly and annual plans
+const monthlyPlan = SUBSCRIPTION_PLANS.find(plan => plan.billingPeriod === 'monthly' && plan.id === 'premium');
+const annualPlan = SUBSCRIPTION_PLANS.find(plan => plan.billingPeriod === 'annual' && plan.id === 'premium-annual');
+
+if (!monthlyPlan || !annualPlan) {
+  throw new Error('Required subscription plans not found');
+}
+
+type PaymentMethodId = 'paypal' | 'google_play';
+type SubscriptionProductId = string;
 
 interface PaymentMethod {
-  id: 'paypal' | 'google_play';
+  id: PaymentMethodId;
   name: string;
   description: string;
   icon: string;
   disabled?: boolean;
   disabledReason?: string;
+  options?: {
+    id: SubscriptionProductId;
+    title: string;
+    description: string;
+    price: number;
+    monthlyEquivalent?: number;
+    savings?: string;
+    highlight?: boolean;
+  }[];
 }
 
 interface Props {
@@ -30,7 +51,25 @@ const PAYMENT_METHODS: PaymentMethod[] = [
     id: 'google_play',
     name: 'Google Play',
     description: 'Pay through Google Play (only available if installed from Play Store)',
-    icon: '🎮'
+    icon: '🎮',
+    options: [
+      {
+        id: monthlyPlan.googlePlayProductId!,
+        title: 'Monthly',
+        description: 'Flexible month-to-month billing',
+        price: monthlyPlan.price,
+        monthlyEquivalent: monthlyPlan.monthlyEquivalent
+      },
+      {
+        id: annualPlan.googlePlayProductId!,
+        title: 'Annual',
+        description: 'Save 25% with annual billing',
+        price: annualPlan.price,
+        monthlyEquivalent: annualPlan.monthlyEquivalent,
+        savings: 'Save $9/year',
+        highlight: true
+      }
+    ]
   }
 ];
 
@@ -105,26 +144,91 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                       <p className="mt-4 text-primary-500 dark:text-primary-400">Processing payment...</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {PAYMENT_METHODS.map((method) => (
-                        <button
-                          key={method.id}
-                          onClick={() => !method.disabled && onSelect(method.id)}
-                          disabled={method.disabled}
-                          className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 ${
-                            method.disabled
-                              ? 'border-gray-200/75 dark:border-gray-700/75 bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
-                              : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50/90 dark:hover:bg-primary-900/30 hover:shadow-sm dark:hover:shadow-soft-dark'
-                          }`}
-                        >
-                          <span className="text-2xl">{method.icon}</span>
-                          <div>
-                            <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
-                            <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
-                              {method.disabled ? method.disabledReason : method.description}
-                            </p>
-                          </div>
-                        </button>
+                        <div key={method.id} className="space-y-3">
+                          {!method.options ? (
+                            // Regular payment method button (PayPal)
+                            <button
+                              onClick={() => !method.disabled && onSelect(method.id)}
+                              disabled={method.disabled}
+                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 ${
+                                method.disabled
+                                  ? 'border-gray-200/75 dark:border-gray-700/75 bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
+                                  : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50/90 dark:hover:bg-primary-900/30 hover:shadow-sm dark:hover:shadow-soft-dark'
+                              }`}
+                            >
+                              <span className="text-2xl">{method.icon}</span>
+                              <div>
+                                <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
+                                <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
+                                  {method.disabled ? method.disabledReason : method.description}
+                                </p>
+                              </div>
+                            </button>
+                          ) : (
+                            // Payment method with options (Google Play)
+                            <div className="border rounded-xl p-4 bg-gray-50/50 dark:bg-gray-800/50">
+                              <div className="flex items-center gap-3 mb-4">
+                                <span className="text-2xl">{method.icon}</span>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
+                                  <p className="text-sm text-gray-600/90 dark:text-gray-400">
+                                    {method.description}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="grid gap-3 mt-2">
+                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 px-1">
+                                  Select a plan:
+                                </h5>
+                                {method.options.map((option) => (
+                                  <button
+                                    key={option.id}
+                                    onClick={() => !method.disabled && option.id && onSelect(method.id)}
+                                    disabled={method.disabled}
+                                    className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 ${
+                                      option.highlight
+                                        ? 'border-primary-500 dark:border-primary-400 bg-white dark:bg-gray-900'
+                                        : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-white dark:hover:bg-gray-900'
+                                    } hover:shadow-sm dark:hover:shadow-soft-dark ${
+                                      method.disabled ? 'cursor-not-allowed opacity-60' : ''
+                                    }`}
+                                  >
+                                    {option.highlight && (
+                                      <div className="absolute -top-3 -right-3 bg-accent-500 text-white text-[13px] font-[500] px-3 py-1 rounded-full shadow-soft">
+                                        Best Value
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <h4 className="font-medium text-gray-900 dark:text-white">{option.title}</h4>
+                                        <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
+                                          {option.description}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="font-medium text-gray-900 dark:text-white">
+                                          ${option.price}
+                                        </div>
+                                        {option.monthlyEquivalent && (
+                                          <div className="text-sm text-gray-600/90 dark:text-gray-400">
+                                            ${option.monthlyEquivalent}/mo
+                                          </div>
+                                        )}
+                                        {option.savings && (
+                                          <div className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1">
+                                            {option.savings}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   )}

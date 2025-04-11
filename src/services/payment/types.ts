@@ -5,6 +5,8 @@ export interface SubscriptionPlan {
   contactLimit: number;
   features: string[];
   googlePlayProductId?: string;
+  billingPeriod?: 'monthly' | 'annual';
+  monthlyEquivalent?: number;
 }
 
 export interface SubscriptionStatus {

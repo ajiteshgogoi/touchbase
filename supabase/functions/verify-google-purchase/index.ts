@@ -62,10 +62,13 @@ function validatePurchaseData(data: GooglePlayPurchase) {
 // Function to handle product ID transformation
 function getBaseProductId(productId: string): string {
   console.log('Transforming product ID:', productId);
-  // Default to touchbase_premium if the productId matches our known transformed pattern
+  // Handle both monthly and annual product IDs
   if (productId === 'touchbase.pro.premium.monthly') {
-    console.log('Found transformed product ID, using base product ID: touchbase_premium');
+    console.log('Found transformed monthly product ID, using base product ID: touchbase_premium');
     return 'touchbase_premium';
+  } else if (productId === 'touchbase.pro.premium.annual') {
+    console.log('Found transformed annual product ID, using base product ID: touchbase_premium_annual');
+    return 'touchbase_premium_annual';
   }
   // Otherwise return the original ID
   console.log('Using original product ID:', productId);
