@@ -611,7 +611,13 @@ serve(async (req) => {
                }
             }
 
-            return createResponse({ reply: `Quick reminder "${params.name}" added for ${params.contact_name} on ${params.due_date}.` });
+            // Use the existing dueDate variable (declared around line 547) which might have been adjusted
+            const formattedDate = dueDate.toLocaleDateString(undefined, {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric'
+            });
+            return createResponse({ reply: `Quick reminder "${params.name}" added for ${params.contact_name} on ${formattedDate}.` });
 
           } else if (action === 'get_contact_info') {
              // This action should ideally be handled in the initial request phase,
@@ -1569,7 +1575,9 @@ Rules:
                 if (params.important_events && params.important_events.length > 0) {
                     confirmationMessage += `\n- Important Events:`;
                     params.important_events.forEach(event => {
-                        confirmationMessage += `\n  - ${event.type} (${event.date})${event.name ? `: ${event.name}` : ''}`;
+                        const eventDate = new Date(event.date);
+                        const formattedEventDate = eventDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                        confirmationMessage += `\n  - ${event.type} (${formattedEventDate})${event.name ? `: ${event.name}` : ''}`;
                     });
                 }
                 break;
@@ -1589,7 +1597,9 @@ Rules:
                       if (Array.isArray(value) && value.length > 0) {
                          confirmationMessage += `\n- Add/Update Important Events:`;
                          value.forEach(event => {
-                            confirmationMessage += `\n  - ${event.type} (${event.date})${event.name ? `: ${event.name}` : ''}`;
+                            const eventDate = new Date(event.date);
+                            const formattedEventDate = eventDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                            confirmationMessage += `\n  - ${event.type} (${formattedEventDate})${event.name ? `: ${event.name}` : ''}`;
                          });
                       }
                       // Skip displaying if events array is empty or null as it's ignored now
@@ -1610,7 +1620,9 @@ Rules:
                 confirmationMessage = `Are you sure you want to delete ${contactDisplayName}? This cannot be undone.`;
                 break;
             case 'add_quick_reminder':
-                confirmationMessage = `Add quick reminder "${params.name}" for ${contactDisplayName} due on ${params.due_date}?`;
+                const dueDate = new Date(params.due_date);
+                const formattedDueDate = dueDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                confirmationMessage = `Add quick reminder "${params.name}" for ${contactDisplayName} due on ${formattedDueDate}?`;
                 if (params.is_important) {
                    confirmationMessage += `\n(Marked as important)`;
                 }
