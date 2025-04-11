@@ -1351,7 +1351,7 @@ Rules:
                  ? interactionNotes.substring(0, maxNotesLength) + '... [truncated]'
                  : interactionNotes;
 
-               const topicPrompt = `Analyze the following interaction notes for contact "${params.contact_name}" and identify the top 3-5 common discussion topics. Respond with a brief summary of the topics. Notes:\n\n${truncatedNotes}`;
+               const topicPrompt = `Analyze the following interaction notes for contact "${params.contact_name}" and identify the top 3-5 common discussion topics. Respond ONLY with the topics (including a brief summary for each), starting directly with the first topic. Do not include any introductory phrases like "Here are the topics..." or "Based on the notes...". Notes:\n\n${truncatedNotes}`;
                const openRouterApiKey = Deno.env.get('GROQ_API_KEY'); // Ensure API key is available
 
                try {
