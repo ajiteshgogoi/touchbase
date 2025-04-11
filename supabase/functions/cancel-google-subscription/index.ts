@@ -106,10 +106,13 @@ serve(async (req) => {
     const { token } = await req.json()
 
     // Get subscription details
-    console.log('Fetching subscription details for token:', token);
+    console.log('Fetching subscription details and subscription type for token:', token);
     const { data: subscription, error: fetchError } = await supabaseClient
       .from('subscriptions')
-      .select('*')
+      .select(`
+        *,
+        product_id:subscription_plans!inner(google_play_product_id)
+      `)
       .eq('google_play_token', token)
       .single()
 
@@ -149,21 +152,22 @@ serve(async (req) => {
     const accessToken = await getGoogleAccessToken();
     console.log('Got access token');
 
-    // Get the product ID from the premium plan
-    const premiumPlan = {
-      googlePlayProductId: 'touchbase_premium'
-    };
+    // Get the product ID from the subscription data
+    const productId = subscription.product_id;
+    if (!productId) {
+      throw new Error('Product ID not found for subscription');
+    }
 
     // Cancel subscription with Google Play API
     const packageName = Deno.env.get('ANDROID_PACKAGE_NAME')
     console.log('Initiating Google Play subscription cancellation...', {
       packageName,
-      productId: premiumPlan.googlePlayProductId,
-      token: token
+      productId,
+      token
     });
 
     const response = await fetch(
-      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${premiumPlan.googlePlayProductId}/tokens/${token}:cancel`,
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/subscriptions/${productId}/tokens/${token}:cancel`,
       {
         method: 'POST',
         headers: {
