@@ -162,7 +162,7 @@ serve(async (req) => {
     // Create or update subscription
     const subscriptionData = {
       user_id: user.id,
-      subscription_plan_id: 'premium',
+      subscription_plan_id: subscriptionDetails.plan_id === Deno.env.get('PREMIUM_ANNUAL_PLAN_ID') ? 'premium-annual' : 'premium',
       status: 'active',
       paypal_subscription_id: subscriptionDetails.id.trim(),
       valid_until: validUntil.toISOString()

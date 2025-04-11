@@ -301,7 +301,7 @@ serve(async (req) => {
         .from('subscriptions')
         .upsert({
           user_id: user.id,
-          plan_id: 'premium',
+          subscription_plan_id: baseProductId === 'touchbase_premium_annual' ? 'premium-annual' : 'premium',
           status: 'active',
           google_play_token: purchaseToken,
           valid_until: new Date(parseInt(purchaseData.expiryTimeMillis)).toISOString(),
