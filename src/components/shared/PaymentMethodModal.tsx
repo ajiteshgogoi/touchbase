@@ -171,22 +171,29 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                             <Disclosure.Button
                               onClick={() => setOpenAccordion(openAccordion === method.id ? null : method.id)}
                               disabled={method.disabled}
-                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-center justify-between gap-4 ${
+                              className={`w-full py-4 px-5 text-left border rounded-xl transition-all duration-200 flex items-center justify-between ${
                                 method.disabled
                                   ? 'border-gray-200/75 dark:border-gray-700/75 bg-gray-50/90 dark:bg-gray-800/90 cursor-not-allowed opacity-60'
-                                  : `bg-white dark:bg-gray-800 border-gray-200/75 dark:border-gray-700/75 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm dark:hover:shadow-soft-dark` // Removed open state highlight
+                                  : `border-gray-200/75 dark:border-gray-700/75 hover:border-gray-300 dark:hover:border-gray-600 ${
+                                      openAccordion === method.id
+                                        ? 'bg-gray-50/80 dark:bg-gray-800/80'
+                                        : 'bg-white dark:bg-gray-800 hover:shadow-sm dark:hover:shadow-soft-dark'
+                                    }`
                               }`}
                             >
-                              <div className="flex items-start gap-4">
-                                <span className="text-2xl mt-0.5">{method.icon}</span>
+                              <div className="flex items-start gap-5">
+                                <span className="text-2xl leading-none">{method.icon}</span>
                                 <div>
                                   <h4 className="font-medium text-gray-900 dark:text-white">{method.name}</h4>
-                                  <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
+                                  <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1.5">
                                     {method.disabled ? method.disabledReason : method.description}
                                   </p>
                                 </div>
                               </div>
-                              <ChevronUpIcon className={`${openAccordion === method.id ? 'rotate-180 transform' : ''} h-5 w-5 text-primary-500 dark:text-primary-400 transition-transform duration-200`} />
+                              <ChevronUpIcon
+                                className={`${openAccordion === method.id ? 'rotate-180 transform' : ''} h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0 ml-4`}
+                                aria-hidden="true"
+                              />
                             </Disclosure.Button>
 
                             {/* Conditional rendering based on state */}
@@ -201,9 +208,8 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                               leaveTo="transform scale-95 opacity-0"
                             >
                               {/* Seamless panel content */}
-                              <Disclosure.Panel className="px-4 pt-3 pb-4 text-sm text-gray-500 space-y-3 border-t border-gray-200/75 dark:border-gray-700/75 -mt-px">
-                                {/* Removed the extra container div */}
-                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 pt-1">
+                              <Disclosure.Panel className="px-5 pt-4 pb-5 text-sm text-gray-500 space-y-4 border-t border-gray-200/75 dark:border-gray-700/75 -mt-px">
+                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Select a plan:
                                 </h5>
                                 {method.options?.map((option) => (
@@ -211,23 +217,23 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                     key={option.id}
                                     onClick={() => !method.disabled && option.id && onSelect(option.id)}
                                     disabled={method.disabled}
-                                    className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
+                                    className={`relative w-full p-5 text-left border-2 rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
                                       option.highlight
-                                        ? 'border-primary-500 dark:border-primary-400 ring-1 ring-primary-500 dark:ring-primary-400'
-                                        : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500'
+                                        ? 'border-primary-500 dark:border-primary-400'
+                                        : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400/75 dark:hover:border-primary-500/75'
                                     } hover:shadow-sm dark:hover:shadow-soft-dark ${
                                       method.disabled ? 'cursor-not-allowed opacity-60' : ''
                                     }`}
                                   >
                                     {option.highlight && (
-                                      <div className="absolute -top-3 -right-3 bg-accent-500 text-white text-[13px] font-[500] px-3 py-1 rounded-full shadow-soft">
+                                      <div className="absolute -top-3 right-4 bg-accent-500 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm">
                                         Best Value
                                       </div>
                                     )}
                                     <div className="flex justify-between items-start">
                                       <div>
                                         <h4 className="font-medium text-gray-900 dark:text-white">{option.title}</h4>
-                                        <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1">
+                                        <p className="text-sm text-gray-600/90 dark:text-gray-400 mt-1.5">
                                           {option.description}
                                         </p>
                                       </div>
