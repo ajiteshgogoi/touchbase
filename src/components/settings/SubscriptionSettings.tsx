@@ -143,7 +143,7 @@ const handleResumeSubscription = () => {
                       {plan.name.charAt(0).toUpperCase() + plan.name.slice(1)}
                     </h3>
                     <p className="text-[15px] text-gray-600/90 dark:text-gray-400 mt-1">
-                      {plan.id === 'free' ? 'Basic features' : 'All premium features'}
+                      {plan.id === 'free' ? 'Essential features' : 'All premium features'}
                     </p>
                   </div>
                   <div className="text-right">
