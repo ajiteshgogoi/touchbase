@@ -36,7 +36,7 @@ interface PaymentMethod {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (method: PaymentMethod['id']) => void;
+  onSelect: (methodOrPlan: PaymentMethod['id'] | SubscriptionProductId) => void;
   isProcessing: boolean;
 }
 
@@ -185,7 +185,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                 {method.options.map((option) => (
                                   <button
                                     key={option.id}
-                                    onClick={() => !method.disabled && option.id && onSelect(method.id)}
+                                    onClick={() => !method.disabled && option.id && onSelect(option.id as SubscriptionProductId)}
                                     disabled={method.disabled}
                                     className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
                                       option.highlight

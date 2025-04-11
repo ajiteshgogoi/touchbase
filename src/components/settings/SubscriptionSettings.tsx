@@ -45,9 +45,13 @@ export const SubscriptionSettings = ({ isPremium, subscription, timezone }: Prop
     };
   }, []);
 
-  const handleSubscribe = async (paymentMethod: PaymentMethod) => {
+  const handleSubscribe = async (methodOrPlan: PaymentMethod | string) => {
     try {
-      await paymentService.createSubscription('premium', paymentMethod);
+      if (methodOrPlan === 'paypal') {
+        await paymentService.createSubscription('premium', methodOrPlan);
+      } else if (methodOrPlan.startsWith('touchbase_premium')) {
+        await paymentService.createSubscription(methodOrPlan.includes('annual') ? 'premium-annual' : 'premium', 'google_play');
+      }
     } catch (error: any) {
       console.error('Subscription error:', error);
       
@@ -208,7 +212,7 @@ const handleResumeSubscription = () => {
       <PaymentMethodModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSelect={(method) => handleSubscribe(method as PaymentMethod)}
+        onSelect={(methodOrPlan) => handleSubscribe(methodOrPlan)}
         isProcessing={isSubscribing}
       />
 
