@@ -125,7 +125,7 @@ const handleResumeSubscription = () => {
           Subscription Plan
         </h2>
         <div className="grid md:grid-cols-2 gap-8">
-          {SUBSCRIPTION_PLANS.filter(plan => plan.id === 'free' || plan.id === selectedPlan).map((plan) => (
+          {SUBSCRIPTION_PLANS.filter(plan => !plan.id.includes('annual')).map((plan) => (
             <div
               key={plan.id}
               className={`relative bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl p-6 transition-all ${
