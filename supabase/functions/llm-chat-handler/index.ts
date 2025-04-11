@@ -93,7 +93,7 @@ async function isUserPremiumOrTrial(supabaseClient: SupabaseClient, userId: stri
     .from('subscriptions')
     .select('status, trial_end_date, valid_until')
     .eq('user_id', userId)
-    .eq('plan_id', 'premium')
+    .eq('subscription_plan_id', 'premium') // Check for monthly premium
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116: No rows found (expected for free users)
