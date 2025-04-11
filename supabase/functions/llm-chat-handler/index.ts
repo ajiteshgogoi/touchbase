@@ -1348,7 +1348,7 @@ Rules:
                }
 
                // Limit notes length to avoid exceeding context limits (adjust limit as needed)
-               const maxNotesLength = 50000; // Example limit
+               const maxNotesLength = 50000; // Limit to 50000 characters
                const truncatedNotes = interactionNotes.length > maxNotesLength
                  ? interactionNotes.substring(0, maxNotesLength) + '... [truncated]'
                  : interactionNotes;
