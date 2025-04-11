@@ -152,7 +152,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                             <button
                               onClick={() => !method.disabled && onSelect(method.id)}
                               disabled={method.disabled}
-                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 bg-white dark:bg-gray-900 ${
+                              className={`w-full p-4 text-left border rounded-xl transition-all duration-200 flex items-start gap-4 bg-white dark:bg-gray-800 ${
                                 method.disabled
                                   ? 'border-gray-200/75 dark:border-gray-700/75 cursor-not-allowed opacity-60'
                                   : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-sm dark:hover:shadow-soft-dark'
@@ -168,7 +168,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                             </button>
                           ) : (
                             // Payment method with options (Google Play)
-                            <div className="border rounded-xl p-4 bg-gray-50/50 dark:bg-gray-800/50">
+                            <div className="border rounded-xl p-4 bg-gray-50/50 dark:bg-gray-900/90">
                               <div className="flex items-center gap-3 mb-4">
                                 <span className="text-2xl">{method.icon}</span>
                                 <div>
@@ -187,7 +187,7 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                     key={option.id}
                                     onClick={() => !method.disabled && option.id && onSelect(method.id)}
                                     disabled={method.disabled}
-                                    className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 bg-white dark:bg-gray-900 ${
+                                    className={`relative w-full p-4 text-left border rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 ${
                                       option.highlight
                                         ? 'border-primary-500 dark:border-primary-400'
                                         : 'border-gray-200/75 dark:border-gray-700/75 hover:border-primary-400 dark:hover:border-primary-500'
