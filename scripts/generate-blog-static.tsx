@@ -258,7 +258,21 @@ async function generateBlogPost(post: SanityPost) {
   const components: PortableTextComponents = {
     types: {
       span: ({ value }) => <span>{value.text}</span>,
-      rawHtml: ({ value }) => <div dangerouslySetInnerHTML={{ __html: value.html }} />
+      rawHtml: ({ value }) => <div dangerouslySetInnerHTML={{ __html: value.html }} />,
+      youtube: ({ value }) => {
+        const videoId = value.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+        return videoId ? (
+          <div className="aspect-w-16 aspect-h-9 my-8">
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="rounded-lg"
+            />
+          </div>
+        ) : null;
+      }
     },
     block: {
       normal: ({ children }) => <p>{children}</p>,

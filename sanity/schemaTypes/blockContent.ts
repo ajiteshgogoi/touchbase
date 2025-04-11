@@ -96,5 +96,36 @@ export default defineType({
         }
       ]
     }),
+    defineArrayMember({
+      title: 'YouTube',
+      name: 'youtube',
+      type: 'object',
+      fields: [
+        {
+          title: 'YouTube URL',
+          name: 'url',
+          type: 'url',
+          validation: Rule => Rule.required().custom((url: string) => {
+            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            if (!url) return true; // Let required handle empty
+            if (!youtubeRegex.test(url)) {
+              return 'Please enter a valid YouTube URL';
+            }
+            return true;
+          })
+        }
+      ],
+      preview: {
+        select: {
+          url: 'url'
+        },
+        prepare({url}) {
+          return {
+            title: 'YouTube Video',
+            subtitle: url
+          }
+        }
+      }
+    }),
   ],
 })
