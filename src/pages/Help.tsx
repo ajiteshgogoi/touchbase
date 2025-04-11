@@ -363,7 +363,7 @@ export const Help = () => {
           <div key={section.id} className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl shadow-lg dark:shadow-soft-dark border border-gray-100/50 dark:border-gray-800/50 overflow-hidden transition-all duration-300">
             <button
               onClick={() => toggleSection(section.id)}
-              className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200"
+              className="w-full text-left p-6 flex items-start justify-between gap-4 hover:bg-white/70 dark:hover:bg-gray-900/70 transition-all duration-200 group"
             >
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-primary-50/80 dark:bg-primary-900/30 rounded-xl">
@@ -374,9 +374,9 @@ export const Help = () => {
                   <p className="mt-1 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400">{section.description}</p>
                 </div>
               </div>
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 flex items-center">
                 <ChevronDownIcon
-                  className={`!h-6 !w-6 sm:!h-5 sm:!w-5 text-gray-400/80 transition-all duration-300 ${
+                  className={`h-5 w-5 text-gray-400/80 transition-transform duration-300 group-hover:text-gray-500/80 ${
                     expandedSection === section.id ? 'rotate-180' : ''
                   }`}
                 />

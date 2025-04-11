@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useState } from 'react';
 import { Dialog, Transition, Disclosure } from '@headlessui/react';
-import { XMarkIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SUBSCRIPTION_PLANS } from '../../services/payment/plans';
 
@@ -192,8 +192,8 @@ export const PaymentMethodModal = ({ isOpen, onClose, onSelect, isProcessing }: 
                                 </p>
                               </div>
                             </div>
-                            <ChevronUpIcon
-                              className={`${openAccordion === method.id ? 'rotate-180 transform' : ''} h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0`}
+                            <ChevronDownIcon
+                              className={`${openAccordion === method.id ? 'rotate-180' : ''} h-5 w-5 text-gray-400 dark:text-gray-500 transition-transform duration-200 flex-shrink-0`}
                               aria-hidden="true"
                             />
                           </Disclosure.Button>
