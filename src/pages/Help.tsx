@@ -374,11 +374,13 @@ export const Help = () => {
                   <p className="mt-1 text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400">{section.description}</p>
                 </div>
               </div>
-              <ChevronDownIcon
-                className={`h-5 w-5 text-gray-400/80 transition-all duration-300 ${
-                  expandedSection === section.id ? 'rotate-180' : ''
-                }`}
-              />
+              <div className="flex-shrink-0">
+                <ChevronDownIcon
+                  className={`!h-6 !w-6 sm:!h-5 sm:!w-5 text-gray-400/80 transition-all duration-300 ${
+                    expandedSection === section.id ? 'rotate-180' : ''
+                  }`}
+                />
+              </div>
             </button>
             {expandedSection === section.id && (
               <div className="px-6 pb-6 pt-2 text-gray-600/90 dark:text-gray-400 animate-fadeIn">
