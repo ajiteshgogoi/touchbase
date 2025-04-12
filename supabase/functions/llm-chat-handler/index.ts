@@ -769,6 +769,7 @@ serve(async (req) => {
      end_date?: string, // Required for timeframe: 'custom'
      type?: 'birthday' | 'anniversary' | 'custom', // Filter by event type
      contact_name?: string // Filter by contact
+     // IMPORTANT: Use this action to find birthdays or anniversaries. Set type to 'birthday' or 'anniversary'.
    }
  - check_interactions: {
      contact_name: string,
@@ -779,7 +780,7 @@ serve(async (req) => {
      end_date?: string // For custom timeframe
      // Use query_type: 'notes' when the user asks a specific question about a contact that might be answered in their general notes or interaction history (e.g., "Does Jane have kids?", "What is Bob's company?", "Tell me about Alice").
    }
- - get_contact_info: { contact_name: string, info_needed: string (e.g., 'email', 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') } // Add 'email'
+ - get_contact_info: { contact_name: string, info_needed: string (e.g., 'email', 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') } // Add 'email'. Use this for direct fields on the contact record. DO NOT use for birthdays/anniversaries (use check_events instead).
  - delete_contact: { contact_name: string }
  - add_quick_reminder: {
      contact_name: string,
@@ -1702,7 +1703,7 @@ serve(async (req) => {
               : formattedContext;
 
             // 3. Construct Second LLM Prompt
-            const contextualPrompt = `Based ONLY on the following context provided for contact "${params.contact_name}", provide a helpful, concise, and friendly response to the user's request: "${params.original_query}". Do not use any external knowledge or information not present in the context. If the context is insufficient to answer well, politely state that you don't have enough information from the notes/events/interactions to provide a specific suggestion/answer. Keep the response natural and conversational.\n\nContext:\n---\n${truncatedContext}\n---\nResponse:`;
+            const contextualPrompt = `Based ONLY on the following context provided for contact "${params.contact_name}", provide a helpful, concise and friendly response to the user's request: "${params.original_query}". Do not use any external knowledge or information not present in the context. If the context is insufficient to answer well, politely state that you don't have enough information from the notes/events/interactions to provide a helpful suggestion/answer. Keep the response natural, helpful and conversational.\n\nContext:\n---\n${truncatedContext}\n---\nResponse:`;
 
             // 4. Call LLM for Contextual Reply (Use openRouterApiKey from line 690)
             const contextualLlmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -1712,7 +1713,7 @@ serve(async (req) => {
                 "Content-Type": "application/json"
               },
               body: JSON.stringify({
-                model: "google/gemini-2.0-flash-lite-001", // Or another suitable model
+                model: "google/gemini-2.0-flash-001", // Or another suitable model
                 messages: [{ role: "user", content: contextualPrompt }],
                 max_tokens: 250, // Adjust as needed
                 temperature: 0.6 // Slightly more creative for advice/drafts
