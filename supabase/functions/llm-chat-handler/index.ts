@@ -763,13 +763,17 @@ serve(async (req) => {
      }
    }
  - "check_events": {
-     timeframe: 'today' | 'tomorrow' | 'week' | 'month' | 'custom' | 'date',
-     date?: string, // Required for timeframe: 'date'
-     start_date?: string, // Required for timeframe: 'custom'
-     end_date?: string, // Required for timeframe: 'custom'
+     timeframe?: 'today' | 'tomorrow' | 'week' | 'month' | 'custom' | 'date', // Optional timeframe
+     date?: string, // Required if timeframe is 'date'
+     start_date?: string, // Required if timeframe is 'custom'
+     end_date?: string, // Required if timeframe is 'custom'
      type?: 'birthday' | 'anniversary' | 'custom', // Filter by event type
-     contact_name?: string // Filter by contact
-     // IMPORTANT: Use this action to find birthdays or anniversaries. Set type to 'birthday' or 'anniversary'.
+     contact_name?: string, // Filter by contact
+     name?: string // Required if type is 'custom' and timeframe is not specified (e.g., "When is John's book launch?")
+     // IMPORTANT: Use this action to find specific dates.
+     // - For birthdays/anniversaries: Set 'type' to 'birthday'/'anniversary' and provide 'contact_name'. Timeframe is optional.
+     // - For named custom events (e.g., "book launch"): Set 'type' to 'custom', provide 'contact_name' and the event 'name'. Timeframe is optional.
+     // - For general events in a period: Provide 'timeframe' (defaults to 'week' if omitted). 'type' and 'contact_name' are optional filters.
    }
  - check_interactions: {
      contact_name: string,
@@ -1067,125 +1071,215 @@ serve(async (req) => {
 
         if (action === 'check_events') {
            try {
-             const { timeframe } = params;
-             const { startDate, endDate } = getDateRange(timeframe, params.date, params.start_date, params.end_date);
+             const { timeframe, type, contact_name: eventContactName } = params; // Use different var name to avoid conflict
 
-             // Build the query
-             let query = supabaseAdminClient
-               .from('important_events')
-               .select(`
-                 id,
-                 type,
-                 name,
-                 date,
-                 contacts:contact_id (
-                   name
-                 )
-               `)
-               .eq('user_id', user.id);
+             // --- Specific Birthday/Anniversary Query (No Timeframe) ---
+             if ((type === 'birthday' || type === 'anniversary') && !timeframe) {
+               if (!resolvedContactId) {
+                  return createResponse({ reply: `Couldn't find contact "${eventContactName}" to check their ${type}.` });
+               }
 
-             // Filter by contact if specified
-             if (params.contact_name) {
-               const { data: contact } = await supabaseAdminClient
-                 .from('contacts')
-                 .select('id')
+               const { data: specificEvent, error: eventError } = await supabaseAdminClient
+                 .from('important_events')
+                 .select('date')
                  .eq('user_id', user.id)
-                 .ilike('name', `%${params.contact_name}%`)
-                 .single();
+                 .eq('contact_id', resolvedContactId)
+                 .eq('type', type)
+                 .maybeSingle(); // Use maybeSingle as the event might not exist
 
-               if (!contact) {
-                 return createResponse({ reply: `Couldn't find contact "${params.contact_name}"` });
-               }
-               query = query.eq('contact_id', contact.id);
-             }
-
-             // Filter by event type if specified
-             if (params.type) {
-               query = query.eq('type', params.type);
-             }
-
-             // Get all events and filter those that occur in the date range
-             const { data: events, error: eventsError } = await query;
-
-             if (eventsError) {
-               console.error('Error fetching events:', eventsError);
-               return createResponse({ reply: "Sorry, I encountered an error fetching your events." });
-             }
-
-             if (!events || events.length === 0) {
-               const typeText = params.type ? `${params.type}s` : 'important events';
-               const timeframeText = timeframe === 'today' ? 'today' :
-                                   timeframe === 'tomorrow' ? 'tomorrow' :
-                                   timeframe === 'week' ? 'this week' :
-                                   timeframe === 'month' ? 'this month' :
-                                   timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
-                                   'in the specified period';
-               const contactText = params.contact_name ? ` for ${params.contact_name}` : '';
-               return createResponse({ reply: `You don't have any ${typeText} ${timeframeText}${contactText}.` });
-             }
-
-             // Filter events that occur in the date range considering yearly recurrence
-             const relevantEvents = events.filter(event => {
-               const eventDate = new Date(event.date);
-               const currentYear = startDate.getFullYear();
-               // Set the event to the current year
-               eventDate.setFullYear(currentYear);
-               
-               // If the event is before start date, try next year
-               if (eventDate < startDate) {
-                 eventDate.setFullYear(currentYear + 1);
+               if (eventError) {
+                 console.error(`Error fetching specific ${type}:`, eventError);
+                 return createResponse({ reply: `Sorry, I encountered an error fetching the ${type}.` });
                }
 
-               return eventDate >= startDate && eventDate <= endDate;
-             });
+               if (!specificEvent || !specificEvent.date) {
+                 return createResponse({ reply: `I couldn't find a ${type} listed for ${params.contact_name}.` }); // Use original resolved name
+               }
 
-             if (relevantEvents.length === 0) {
-               const typeText = params.type ? `${params.type}s` : 'important events';
-               const timeframeText = timeframe === 'today' ? 'today' :
-                                   timeframe === 'tomorrow' ? 'tomorrow' :
-                                   timeframe === 'week' ? 'this week' :
-                                   timeframe === 'month' ? 'this month' :
-                                   timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
-                                   'in the specified period';
-               const contactText = params.contact_name ? ` for ${params.contact_name}` : '';
-               return createResponse({ reply: `You don't have any ${typeText} ${timeframeText}${contactText}.` });
-             }
-
-             // Sort events by date
-             relevantEvents.sort((a, b) => {
-               const dateA = new Date(a.date);
-               const dateB = new Date(b.date);
-               return dateA.getTime() - dateB.getTime();
-             });
-
-             // Format the response
-             const eventList = relevantEvents.map(event => {
-               const date = new Date(event.date).toLocaleDateString(undefined, {
-                 weekday: 'short',
-                 month: 'short',
+               const eventDate = new Date(specificEvent.date);
+               const formattedDate = eventDate.toLocaleDateString(undefined, {
+                 month: 'long',
                  day: 'numeric'
                });
-               const contactName = event.contacts?.name || 'Unknown contact';
-               const eventName = event.type === 'custom' ? event.name :
-                               event.type === 'birthday' ? 'Birthday' :
-                               'Anniversary';
-               return `- ${date}: ${contactName}'s ${eventName}`;
-             }).join('\n');
+               // Add year only if it's meaningful (not 1900 etc.) - optional refinement
+               // const year = eventDate.getFullYear();
+               // if (year > 1900) formattedDate += `, ${year}`;
 
-             const typeText = params.type ? `${params.type} ` : '';
-             const timeframeText = timeframe === 'today' ? 'today' :
-                                 timeframe === 'tomorrow' ? 'tomorrow' :
-                                 timeframe === 'week' ? 'this week' :
-                                 timeframe === 'month' ? 'this month' :
-                                 timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
-                                 'in the specified period';
-             const headerText = `Here are the ${typeText}events ${timeframeText}:`;
+               return createResponse({ reply: `${params.contact_name}'s ${type} is on ${formattedDate}.` });
 
-             return createResponse({
-               reply: `${headerText}\n\n${eventList}`
-             });
+             // --- Specific Named Custom Event Query (No Timeframe) ---
+             } else if (type === 'custom' && params.name && !timeframe) {
+                if (!resolvedContactId) {
+                   return createResponse({ reply: `Couldn't find contact "${eventContactName}" to check for the event "${params.name}".` });
+                }
+                if (!params.name) { // Should be caught by LLM prompt, but double-check
+                   return createResponse({ reply: `Please specify the name of the custom event you're looking for.` });
+                }
+
+                const { data: specificCustomEvent, error: customEventError } = await supabaseAdminClient
+                  .from('important_events')
+                  .select('date, name') // Select name too for confirmation
+                  .eq('user_id', user.id)
+                  .eq('contact_id', resolvedContactId)
+                  .eq('type', 'custom')
+                  .ilike('name', params.name.trim()) // Case-insensitive match for the name
+                  .maybeSingle();
+
+                if (customEventError) {
+                  console.error(`Error fetching specific custom event "${params.name}":`, customEventError);
+                  return createResponse({ reply: `Sorry, I encountered an error fetching the event "${params.name}".` });
+                }
+
+                if (!specificCustomEvent || !specificCustomEvent.date) {
+                  return createResponse({ reply: `I couldn't find a custom event named "${params.name}" listed for ${params.contact_name}.` });
+                }
+
+                const eventDate = new Date(specificCustomEvent.date);
+                const formattedDate = eventDate.toLocaleDateString(undefined, {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric' // Include year for specific custom events
+                });
+
+                return createResponse({ reply: `The event "${specificCustomEvent.name}" for ${params.contact_name} is on ${formattedDate}.` });
+
+             } else {
+               // --- Timeframe-based or General Event Query ---
+               if (!timeframe) {
+                  // Default to 'week' if no timeframe and not a specific birthday/anniversary query
+                  params.timeframe = 'week';
+               }
+               const { startDate, endDate } = getDateRange(params.timeframe, params.date, params.start_date, params.end_date);
+
+               // Build the query
+               let query = supabaseAdminClient
+                 .from('important_events')
+                 .select(`
+                   id,
+                   type,
+                   name,
+                   date,
+                   contacts:contact_id (
+                     name
+                   )
+                 `)
+                 .eq('user_id', user.id);
+
+               // Filter by contact if specified (using resolvedContactId if available)
+               if (resolvedContactId) {
+                  query = query.eq('contact_id', resolvedContactId);
+               } else if (eventContactName) {
+                  // Attempt to resolve again if not already done (should be rare)
+                  const { data: contact } = await supabaseAdminClient
+                    .from('contacts')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .ilike('name', `%${eventContactName}%`)
+                    .single();
+                  if (!contact) {
+                     return createResponse({ reply: `Couldn't find contact "${eventContactName}"` });
+                  }
+                  query = query.eq('contact_id', contact.id);
+               }
+               // If no contact name/ID, query fetches for all user's contacts
+
+               // Filter by event type if specified
+               if (type) {
+                 query = query.eq('type', type);
+               }
+
+               // Get all matching events
+               const { data: events, error: eventsError } = await query;
+
+               if (eventsError) {
+                 console.error('Error fetching events:', eventsError);
+                 return createResponse({ reply: "Sorry, I encountered an error fetching your events." });
+               }
+
+               if (!events || events.length === 0) {
+                 const typeText = type ? `${type}s` : 'important events';
+                 const timeframeText = params.timeframe === 'today' ? 'today' :
+                                     params.timeframe === 'tomorrow' ? 'tomorrow' :
+                                     params.timeframe === 'week' ? 'this week' :
+                                     params.timeframe === 'month' ? 'this month' :
+                                     params.timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
+                                     'in the specified period';
+                 const contactText = params.contact_name ? ` for ${params.contact_name}` : ''; // Use original resolved name
+                 return createResponse({ reply: `You don't have any ${typeText} ${timeframeText}${contactText}.` });
+               }
+
+               // Filter events that occur in the date range considering yearly recurrence
+               const relevantEvents = events.filter(event => {
+                 const eventDate = new Date(event.date);
+                 const currentYear = startDate.getFullYear();
+                 // Set the event to the current year
+                 eventDate.setFullYear(currentYear);
+
+                 // If the event is before start date, try next year
+                 if (eventDate < startDate) {
+                   eventDate.setFullYear(currentYear + 1);
+                 }
+
+                 return eventDate >= startDate && eventDate <= endDate;
+               });
+
+               if (relevantEvents.length === 0) {
+                 const typeText = type ? `${type}s` : 'important events';
+                 const timeframeText = params.timeframe === 'today' ? 'today' :
+                                     params.timeframe === 'tomorrow' ? 'tomorrow' :
+                                     params.timeframe === 'week' ? 'this week' :
+                                     params.timeframe === 'month' ? 'this month' :
+                                     params.timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
+                                     'in the specified period';
+                 const contactText = params.contact_name ? ` for ${params.contact_name}` : ''; // Use original resolved name
+                 return createResponse({ reply: `You don't have any ${typeText} ${timeframeText}${contactText}.` });
+               }
+
+               // Sort events by date (using the adjusted year for sorting within the timeframe)
+               relevantEvents.sort((a, b) => {
+                  const dateA = new Date(a.date);
+                  const dateB = new Date(b.date);
+                  const currentYear = startDate.getFullYear();
+                  dateA.setFullYear(currentYear);
+                  if (dateA < startDate) dateA.setFullYear(currentYear + 1);
+                  dateB.setFullYear(currentYear);
+                  if (dateB < startDate) dateB.setFullYear(currentYear + 1);
+                  return dateA.getTime() - dateB.getTime();
+               });
+
+
+               // Format the response
+               const eventList = relevantEvents.map(event => {
+                 const date = new Date(event.date).toLocaleDateString(undefined, {
+                   month: 'short', // Show month/day for upcoming list
+                   day: 'numeric'
+                 });
+                 const contactName = event.contacts?.name || params.contact_name || 'Unknown contact'; // Use resolved name
+                 const eventName = event.type === 'custom' ? event.name :
+                                 event.type === 'birthday' ? 'Birthday' :
+                                 'Anniversary';
+                 return `- ${date}: ${contactName}'s ${eventName}`;
+               }).join('\n');
+
+               const typeText = type ? `${type} ` : '';
+               const timeframeText = params.timeframe === 'today' ? 'today' :
+                                   params.timeframe === 'tomorrow' ? 'tomorrow' :
+                                   params.timeframe === 'week' ? 'this week' :
+                                   params.timeframe === 'month' ? 'this month' :
+                                   params.timeframe === 'date' ? 'on ' + new Date(params.date).toLocaleDateString() :
+                                   'in the specified period';
+               const headerText = `Here are the ${typeText}events ${timeframeText}:`;
+
+               return createResponse({
+                 reply: `${headerText}\n\n${eventList}`
+               });
+             }
            } catch (error) {
              console.error('Error in check_events:', error);
+             // Check if it's the specific timeframe error and provide a clearer message
+             if (error.message === "Invalid timeframe specified") {
+                return createResponse({ reply: "Please specify a timeframe like 'today', 'this week', 'this month', or a specific date/range for checking events." });
+             }
              return createResponse({ reply: error.message });
            }
         } else if (action === 'check_reminders') {
