@@ -708,14 +708,14 @@ serve(async (req) => {
 
       VALID FREQUENCY VALUES: 'every_three_days', 'weekly', 'fortnightly', 'monthly', 'quarterly'. If the user says "twice a week" or "every few days" or "bi-weekly", use 'every_three_days'.
       DATE HANDLING - READ CAREFULLY:
-       - CURRENT_YEAR is 2025. DO NOT use any other year.
-       - ALWAYS use CURRENT_YEAR for ALL dates, including:
-          * When calculating "in X days" -> add X days to current date using CURRENT_YEAR as year
-            Example: if today is April 10 and user says "in 3 days", use "CURRENT_YEAR-04-13"
-          * When setting reminders for tomorrow -> use next day with CURRENT_YEAR as year
-          * When setting reminders for next week -> add 7 days using CURRENT_YEAR as year
-          * When setting reminders for next month -> add 30 days using CURRENT_YEAR as year
-       - All dates MUST be in ISO format (YYYY-MM-DD) with CURRENT_YEAR as the year
+       - The CURRENT YEAR is 2025.
+       - ALWAYS use the CURRENT YEAR (2025) when constructing dates. DO NOT use the literal string "CURRENT_YEAR".
+       - Examples using 2025:
+          * If today is April 10, 2025 and user says "in 3 days", use "2025-04-13".
+          * If today is Dec 30, 2025 and user says "in 3 days", use "2026-01-02".
+          * If user mentions a month and day (e.g., "June 15th") without a year, assume the CURRENT YEAR (2025). If that date has passed in 2025, use the NEXT year (2026).
+          * If user mentions only a day (e.g., "the 5th"), assume the current or next month within the CURRENT YEAR (2025) that makes sense contextually.
+       - All dates MUST be in ISO format (YYYY-MM-DD).
 
  IMPORTANT NOTES:
  - When logging interactions, always use one of these exact types: 'call', 'message', 'social', 'meeting', 'email'. These are the only valid interaction types.
