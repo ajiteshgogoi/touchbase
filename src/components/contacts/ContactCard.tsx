@@ -353,7 +353,7 @@ export const ContactCard = ({
             </div>
           ) : expandedDetails && (
             <div className="mt-4 space-y-4">
-              {(expandedDetails.phone || expandedDetails.social_media_handle) && (
+              {(expandedDetails.phone || expandedDetails.email || expandedDetails.social_media_handle) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
                   {expandedDetails.phone && (
                     <a
@@ -364,6 +364,20 @@ export const ContactCard = ({
                       <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 dark:text-green-400/90 flex-shrink-0 group-hover:text-green-600/90 dark:group-hover:text-green-300/90 transition-colors" />
                       <span className="truncate leading-5 font-[450] text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                         {expandedDetails.phone}
+                      </span>
+                    </a>
+                  )}
+                  {expandedDetails.email && (
+                    <a
+                      href={isDeleting ? '#' : `mailto:${expandedDetails.email}`}
+                      className={`flex items-center px-3 py-2.5 bg-gray-50 dark:bg-gray-800 ${!isDeleting && 'hover:bg-gray-100 dark:hover:bg-gray-700'} rounded-lg transition-colors group ${isDeleting ? 'cursor-not-allowed opacity-60' : ''}`}
+                      onClick={e => isDeleting && e.preventDefault()}
+                    >
+                      <svg className="h-4 w-4 mr-2 text-blue-500/90 dark:text-blue-400/90 flex-shrink-0 group-hover:text-blue-600/90 dark:group-hover:text-blue-300/90 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span className="truncate leading-5 font-[450] text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        {expandedDetails.email}
                       </span>
                     </a>
                   )}

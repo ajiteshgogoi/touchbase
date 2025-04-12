@@ -125,7 +125,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
               </div>
             </div>
             {/* Phone and Social Media section */}
-            {(contact?.phone || (contact?.social_media_handle && contact?.social_media_platform)) && (
+            {(contact?.phone || contact?.email || (contact?.social_media_handle && contact?.social_media_platform)) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm text-gray-600/90">
                 {contact?.phone && (
                   <a
@@ -135,6 +135,19 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
                     <PhoneIcon className="h-4 w-4 mr-2 text-green-500/90 flex-shrink-0 group-hover:text-green-600/90 transition-colors" />
                     <span className="truncate leading-5 font-[450] text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                       {contact.phone}
+                    </span>
+                  </a>
+                )}
+                {contact?.email && (
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="flex items-center px-3 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group"
+                  >
+                    <svg className="h-4 w-4 mr-2 text-blue-500/90 flex-shrink-0 group-hover:text-blue-600/90 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span className="truncate leading-5 font-[450] text-gray-700 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {contact.email}
                     </span>
                   </a>
                 )}
