@@ -1280,7 +1280,7 @@ serve(async (req) => {
                hour: '2-digit',
                minute: '2-digit'
              });
-             return `- ${date}: ${reminder.contacts?.name || 'Unknown contact'} - ${reminder.name} (${reminder.type})`;
+             return `- ${date}: ${reminder.contacts?.name || 'Unknown contact'} - ${reminder.name ? reminder.name + ' ' : ''}(${reminder.type})`;
            }).join('\n');
 
            return createResponse({
