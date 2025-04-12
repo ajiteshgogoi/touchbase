@@ -315,6 +315,7 @@ export const Help = () => {
             <li>Log interactions right after they happen for better tracking</li>
             <li>Check your dashboard regularly to see who you need to connect with</li>
             <li>Add personal context in your notes to make future interactions meaningful</li>
+            <li>To select multiple contacts for deletion, long-press a contact on mobile or right-click a contact on desktop to enter selection mode.</li>
           </ul>
           <div className="mt-4 space-y-4">
             <div className="text-[15px] leading-relaxed bg-gray-50/90 dark:bg-gray-800/60 backdrop-blur-sm p-4 rounded-xl border border-gray-100/50 dark:border-gray-700/50 shadow-sm text-gray-600 dark:text-gray-300">
