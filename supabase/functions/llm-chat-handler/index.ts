@@ -777,7 +777,6 @@ Available actions and their required parameters:
     start_date?: string, // For custom timeframe
     end_date?: string // For custom timeframe
     // Use query_type: 'notes' when the user asks a specific question about a contact that might be answered in their general notes or interaction history (e.g., "Does Jane have kids?", "What is Bob's company?", "Tell me about Alice").
-    // Also use query_type: 'notes' to gather context when the user asks for advice (gift ideas, conversation starters) or help drafting a message related to a contact. The backend will then use this context to generate a helpful reply.
   }
 - get_contact_info: { contact_name: string, info_needed: string (e.g., 'email', 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') } // Add 'email'
 - delete_contact: { contact_name: string }
@@ -794,8 +793,7 @@ Rules:
 - Always identify the contact by name using the 'contact_name' parameter. The backend will resolve the ID.
 - If the user request is ambiguous (e.g., missing required parameters), ask for clarification. DO NOT guess parameters.
   Specifically, if the user wants to log an interaction but doesn't specify the type, respond with: '{"reply": "Okay, I can log that interaction. What type was it (call, message, social or meeting)?"}'. If a reminder is requested without a name or due date, ask for the missing details.
-- If the request is a simple question not matching an action (AND it's not a question about details potentially found in contact notes, or a request for advice/drafting), provide a direct answer if possible or state you cannot perform that query. Use the 'reply' field for this.
-- For requests like "give me gift ideas for Sarah", "what can I talk about with John?", or "draft a message to Jane for her book launch", identify the intent and the contact. Use the 'check_interactions' action with 'query_type: "notes"' and the relevant 'contact_name'. The backend will handle fetching the context and generating the helpful reply. Example: {"action": "check_interactions", "params": {"contact_name": "Sarah", "query_type": "notes"}} - the backend will then use Sarah's notes to generate gift ideas in the final reply.
+- If the request is a simple question not matching an action (AND it's not a question about details potentially found in contact notes, which should use \`check_interactions\` with \`query_type: 'notes'\`), provide a direct answer if possible or state you cannot perform that query. Use the 'reply' field for this.
 - Respond ONLY with a valid JSON object containing 'action' and 'params', OR 'reply' for direct answers/clarifications, OR 'error'.
 - Respond in raw JSON without markdown formatting
 - Examples:
@@ -1427,107 +1425,73 @@ Rules:
                }
                break;
 
-             case 'notes': { // Wrap in block scope
-               // --- Context Gathering for Advice/Drafting/Questions ---
-               const originalUserQuery = requestBody.message; // Original user message
-
-               // Fetch contact's general notes and details
-               const { data: contactDetails, error: contactError } = await supabaseAdminClient
+             case 'notes':
+               // Fetch contact's general notes
+               const { data: contactDetails } = await supabaseAdminClient
                  .from('contacts')
-                 .select('notes, name, email, phone, social_media_platform, social_media_handle, preferred_contact_method')
+                 .select('notes')
                  .eq('id', resolvedContactId)
                  .single();
-
-               if (contactError) {
-                 console.error('Error fetching contact details:', contactError);
-                 return createResponse({ reply: `Sorry, I couldn't fetch details for ${params.contact_name}.` });
-               }
                const generalNotes = contactDetails?.notes || '';
-               const contactInfoText = `
-                 Contact Name: ${contactDetails?.name || params.contact_name}
-                 Email: ${contactDetails?.email || 'N/A'}
-                 Phone: ${contactDetails?.phone || 'N/A'}
-                 Social: ${contactDetails?.social_media_platform ? `${contactDetails.social_media_platform} (${contactDetails.social_media_handle || 'N/A'})` : 'N/A'}
-                 Preferred Method: ${contactDetails?.preferred_contact_method || 'N/A'}
-               `.trim();
 
-
-               // Fetch recent interaction notes (limit for context)
+               // Fetch recent interaction notes (limit to maybe 10-15 for context)
                const interactionNotesList = filteredInteractions
                  .filter(interaction => interaction.notes)
-                 .slice(0, 15) // Limit number of interactions
+                 .slice(0, 15) // Limit number of interactions to keep context manageable
                  .map(interaction => {
                    const date = new Date(interaction.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
                    return `Interaction on ${date} (${interaction.type}): ${interaction.notes}`;
                  });
                const interactionNotesText = interactionNotesList.join('\n');
 
-               // Combine all context
-               const contextText = `
-                 ${contactInfoText}
+               // Combine all notes
+               const allNotesText = `General Notes:\n${generalNotes}\n\nRecent Interaction Notes:\n${interactionNotesText}`.trim();
 
-                 General Notes:
-                 ${generalNotes}
-
-                 Recent Interaction Notes:
-                 ${interactionNotesText}
-               `.trim();
-
-               if (!contextText.replace(/N\/A/g, '').replace(/General Notes:/g, '').replace(/Recent Interaction Notes:/g, '').trim()) {
-                  reply = `No notes or significant details found for ${params.contact_name} to help with your request.`;
+               if (!allNotesText || allNotesText === "General Notes:\n\n\nRecent Interaction Notes:") {
+                  reply = `No notes found for ${params.contact_name}.`;
                   break;
                }
 
-               // Limit total context length
-               const maxContextLength = 8000; // Adjust as needed
-               const truncatedContext = contextText.length > maxContextLength
-                 ? contextText.substring(0, maxContextLength) + '... [truncated]'
-                 : contextText;
+               // Limit total notes length
+               const maxNotesLengthForQuery = 8000; // Adjust as needed, leaving space for prompt+query+response
+               const truncatedAllNotes = allNotesText.length > maxNotesLengthForQuery
+                 ? allNotesText.substring(0, maxNotesLengthForQuery) + '... [truncated]'
+                 : allNotesText;
 
-               // --- LLM Call for Help/Answer ---
-               // Determine the task based on the original query
-               let helpPrompt = '';
-               if (originalUserQuery.toLowerCase().includes('gift idea')) {
-                 helpPrompt = `Based ONLY on the following context for ${params.contact_name}, suggest 2-3 thoughtful gift ideas. Explain briefly why each might be suitable based on the notes. If the context is insufficient, say so.\n\nContext:\n---\n${truncatedContext}\n---\nGift Ideas:`;
-               } else if (originalUserQuery.toLowerCase().includes('talk about')) {
-                 helpPrompt = `Based ONLY on the following context for ${params.contact_name}, suggest 2-3 conversation starters or topics to discuss. Focus on recent interactions or notes. If the context is insufficient, say so.\n\nContext:\n---\n${truncatedContext}\n---\nConversation Starters:`;
-               } else if (originalUserQuery.toLowerCase().includes('draft') && (originalUserQuery.toLowerCase().includes('message') || originalUserQuery.toLowerCase().includes('email') || originalUserQuery.toLowerCase().includes('text'))) {
-                 const messageType = originalUserQuery.toLowerCase().includes('email') ? 'email' : (originalUserQuery.toLowerCase().includes('text') ? 'text message' : 'message');
-                 helpPrompt = `Based ONLY on the following context for ${params.contact_name}, draft a short, friendly ${messageType} for the user's request: "${originalUserQuery}". Use the context to make it relevant. If the context is insufficient, say so.\n\nContext:\n---\n${truncatedContext}\n---\nDraft:`;
-               } else {
-                 // Default to answering a question based on notes
-                 helpPrompt = `Based ONLY on the following context provided for ${params.contact_name}, answer the user's question: "${originalUserQuery}". Do not use any external knowledge. If the answer isn't in the context, say you couldn't find the information.\n\nContext:\n---\n${truncatedContext}\n---\nAnswer:`;
-               }
+               // Get the original user query that triggered this action
+               const originalUserQuery = requestBody.message; // Assuming requestBody is accessible here
+
+               const notesQueryPrompt = `Based ONLY on the following notes provided for ${params.contact_name}, answer the user's question: "${originalUserQuery}". Do not use any external knowledge. If the answer isn't in the notes, say you couldn't find the information in the notes.\n\nNotes:\n---\n${truncatedAllNotes}\n---\nAnswer:`;
+               // Use openRouterApiKey declared earlier (around line 678)
 
                try {
-                 const helpLlmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                 const notesLlmResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                    method: "POST",
                    headers: {
                      "Authorization": `Bearer ${openRouterApiKey}`,
                      "Content-Type": "application/json"
                    },
                    body: JSON.stringify({
-                     model: "google/gemini-2.0-flash-lite-001", // Or a more capable model if needed
-                     messages: [{ role: "user", content: helpPrompt }],
-                     max_tokens: 300, // Allow for longer suggestions/drafts
-                     temperature: 0.6 // Slightly more creative for suggestions/drafts
+                     model: "google/gemini-2.0-flash-lite-001",
+                     messages: [{ role: "user", content: notesQueryPrompt }],
+                     max_tokens: 250, // Allow for a reasonable answer length
+                     temperature: 0.3 // Lower temperature for factual answers from text
                    })
                  });
 
-                 if (!helpLlmResponse.ok) {
-                   const errorBody = await helpLlmResponse.text();
-                   console.error("Help/Notes Query LLM API Error:", helpLlmResponse.status, errorBody);
-                   reply = `Sorry, I couldn't process your request due to an internal error.`;
+                 if (!notesLlmResponse.ok) {
+                   const errorBody = await notesLlmResponse.text();
+                   console.error("Notes Query LLM API Error:", notesLlmResponse.status, errorBody);
+                   reply = `Sorry, I couldn't process the notes due to an internal error.`;
                  } else {
-                   const helpResult = await helpLlmResponse.json();
-                   reply = helpResult?.choices?.[0]?.message?.content?.trim() || `Sorry, I couldn't generate a helpful response based on the available information.`;
+                   const notesResult = await notesLlmResponse.json();
+                   reply = notesResult?.choices?.[0]?.message?.content?.trim() || `Sorry, I couldn't get an answer from the notes.`;
                  }
-               } catch (helpError) {
-                 console.error("Error calling LLM for help/notes query:", helpError);
-                 reply = `Sorry, I encountered an error while processing your request for ${params.contact_name}.`;
+               } catch (notesError) {
+                 console.error("Error calling LLM for notes query:", notesError);
+                 reply = `Sorry, I encountered an error while processing the notes for ${params.contact_name}.`;
                }
-               break; // End of 'notes' case scope
-             } // End of 'notes' case
+               break; // End of 'notes' case
 
                // Add interaction notes if they exist
                if (notesInteractions.length > 0) {
