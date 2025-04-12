@@ -26,9 +26,9 @@ Think about the difference between reading "Thinking of you" in an email versus 
 
 ### Asynchronous and Delayed
 
-Email is asynchronous, meaning there's a delay between sending and receiving, and often a further delay before a response. This kills the spontaneity and natural back-and-forth that characterises real conversation. It prevents the shared laughter, the immediate follow-up questions, the collaborative brainstorming that happens in real-time interactions.
+Email is asynchronous, meaning there's a delay between sending and receiving and often a further delay before a response. This kills the spontaneity and natural back-and-forth that characterises real conversation. It prevents the shared laughter, the immediate follow-up questions, the collaborative brainstorming that happens in real-time interactions.
 
-Furthermore, the delayed nature can make responses feel obligatory rather than driven by genuine interest or enthusiasm. That email check-in you sent might sit in their inbox for days, and the eventual reply might feel like just another task being checked off their list. The common phrase "Sorry for the delayed response" highlights how email interactions are often fitted in around other priorities, rather than being the priority themselves.
+Furthermore, the delayed nature can make responses feel obligatory rather than driven by genuine interest or enthusiasm. That email check-in you sent might sit in their inbox for days and the eventual reply might feel like just another task being checked off their list. The common phrase "Sorry for the delayed response" highlights how email interactions are often fitted in around other priorities, rather than being the priority themselves.
 
 ### Formal and Impersonal
 
