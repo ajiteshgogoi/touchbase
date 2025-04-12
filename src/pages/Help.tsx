@@ -191,7 +191,7 @@ export const Help = () => {
       content: (
         <>
           <ol className="list-decimal list-inside space-y-2 ml-4">
-            <li>Click the chat bubble icon in the bottom right corner</li>
+            <li>Click the chat bubble icon in the bottom right corner (Premium users only)</li>
             <li>Type your request in plain English, such as:
               <ul className="list-disc list-inside ml-8 mt-1 space-y-1 text-gray-600 dark:text-gray-400">
                 <li>"I just had coffee with Alex. Log it."</li>
