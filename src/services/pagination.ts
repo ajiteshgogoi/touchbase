@@ -29,6 +29,7 @@ export const contactsPaginationService = {
       .select(`
         id,
         user_id,
+        email,
         phone,
         social_media_handle,
         social_media_platform,
@@ -102,7 +103,7 @@ export const contactsPaginationService = {
       
       // Build AND conditions for name search (each term must match)
       searchTerms.forEach(term => {
-        query = query.or(`name.ilike.%${term}%,phone.ilike.%${term}%,social_media_handle.ilike.%${term}%`);
+        query = query.or(`name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%,social_media_handle.ilike.%${term}%`);
       });
     }
 
@@ -130,14 +131,16 @@ export const contactsPaginationService = {
         const searchTerms = filters.search!.toLowerCase().replace(/[()]/g, '').split(/\s+/);
         filteredContacts = filteredContacts.filter(contact => {
           const cleanName = contact.name.toLowerCase().replace(/[()]/g, '');
+          const email = (contact.email || '').toLowerCase();
           const phone = (contact.phone || '').toLowerCase();
           const socialHandle = (contact.social_media_handle || '').toLowerCase();
           
           return searchTerms.every(term => {
             const matchesName = cleanName.includes(term);
+            const matchesEmail = email.includes(term);
             const matchesPhone = phone.includes(term);
             const matchesHandle = socialHandle.includes(term);
-            return matchesName || matchesPhone || matchesHandle;
+            return matchesName || matchesEmail || matchesPhone || matchesHandle;
           });
         });
       }

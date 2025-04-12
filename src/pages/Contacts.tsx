@@ -128,7 +128,7 @@ export const Contacts = () => {
             .range(page * pageSize, (page + 1) * pageSize - 1);
           
           if (debouncedSearchQuery) {
-            query = query.or(`name.ilike.%${debouncedSearchQuery}%,phone.ilike.%${debouncedSearchQuery}%,social_media_handle.ilike.%${debouncedSearchQuery}%`);
+            query = query.or(`name.ilike.%${debouncedSearchQuery}%,email.ilike.%${debouncedSearchQuery}%,phone.ilike.%${debouncedSearchQuery}%,social_media_handle.ilike.%${debouncedSearchQuery}%`);
           }
 
           if (selectedCategories.length > 0) {

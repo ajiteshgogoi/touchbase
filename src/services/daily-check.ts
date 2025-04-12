@@ -187,6 +187,7 @@ export async function runDailyCheckV2() {
         id,
         user_id,
         name,
+        email,
         last_contacted,
         next_contact_due,
         preferred_contact_method,

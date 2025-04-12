@@ -5,6 +5,7 @@ import { CalendarIcon, PlusIcon, XMarkIcon, CakeIcon, HeartIcon, StarIcon } from
 import { ContactFormProps } from './types';
 import {
   isValidPhoneNumber,
+  isValidEmail,
   isValidSocialHandle,
   isValidEventName,
   formatEventDate,
@@ -181,6 +182,37 @@ export const AdvancedContactInfo = ({
         <h3 className="text-lg font-[600] text-gray-900/90 dark:text-white mb-6">Contact Methods</h3>
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  onChange({ email: value });
+                }}
+                onInput={(e) => {
+                  const value = (e.target as HTMLInputElement).value;
+                  if (value && !isValidEmail(value)) {
+                    onError({
+                      email: 'Please enter a valid email address'
+                    });
+                  } else {
+                    onError({ email: '' });
+                  }
+                }}
+                className="mt-1 block w-full rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                placeholder="Enter email address"
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              )}
+            </div>
+
             {/* Phone Number Field */}
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -292,6 +324,7 @@ export const AdvancedContactInfo = ({
               className="mt-1 block w-full rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
               <option value="">No preference</option>
+              <option value="email">Email</option>
               <option value="call">Call</option>
               <option value="message">Message</option>
               <option value="social">Social Media</option>

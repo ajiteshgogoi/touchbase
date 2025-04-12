@@ -59,6 +59,7 @@ export const ContactForm = () => {
       const contact = contactData.contact;
       setFormData({
         name: contact.name,
+        email: contact.email || '',
         phone: contact.phone || '',
         social_media_platform: contact.social_media_platform || null,
         social_media_handle: contact.social_media_handle || '',
@@ -577,10 +578,11 @@ export const ContactForm = () => {
             </button>
           </div>
           {/* Error Messages Section */}
-          {(errors.name || errors.frequency || errors.phone || errors.social_media_handle) && (
+          {(errors.name || errors.frequency || errors.email || errors.phone || errors.social_media_handle) && (
             <div className="px-4 py-2 bg-red-50 dark:bg-red-900/30 rounded-lg space-y-1">
               {errors.name && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.name}</p>}
               {errors.frequency && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.frequency}</p>}
+              {errors.email && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.email}</p>}
               {errors.phone && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.phone}</p>}
               {errors.social_media_handle && <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.social_media_handle}</p>}
             </div>

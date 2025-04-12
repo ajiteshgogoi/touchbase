@@ -17,6 +17,8 @@ export interface ImportantEventFormData {
 export interface ContactFormData {
   /** Full name of the contact */
   name: string;
+  /** Contact's email address (optional) */
+  email: string;
   /** Contact's phone number (optional) */
   phone: string;
   /** Social media platform (optional) */
@@ -24,7 +26,7 @@ export interface ContactFormData {
   /** Social media username without @ (optional) */
   social_media_handle: string;
   /** Preferred method of communication */
-  preferred_contact_method: 'call' | 'message' | 'social' | null;
+  preferred_contact_method: 'call' | 'message' | 'social' | 'email' | null;
   /** Personal notes about the contact */
   notes: string;
   /** How often to maintain contact */
@@ -51,6 +53,8 @@ export interface ContactFormData {
 export interface FormErrors {
   /** Name validation error message */
   name: string;
+  /** Email validation error message */
+  email: string;
   /** Phone number validation error message */
   phone: string;
   /** Social media handle validation error message */

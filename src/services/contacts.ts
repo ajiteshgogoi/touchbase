@@ -41,6 +41,7 @@ export const contactsService = {
         id,
         user_id,
         name,
+        email,
         phone,
         social_media_platform,
         social_media_handle,
@@ -83,6 +84,7 @@ export const contactsService = {
         id,
         user_id,
         name,
+        email,
         phone,
         social_media_platform,
         social_media_handle,
@@ -117,6 +119,7 @@ export const contactsService = {
         id,
         user_id,
         name,
+        email,
         phone,
         social_media_platform,
         social_media_handle,
@@ -159,6 +162,7 @@ export const contactsService = {
         id,
         user_id,
         name,
+        email,
         phone,
         social_media_platform,
         social_media_handle,
@@ -214,6 +218,7 @@ export const contactsService = {
       .from('contacts')
       .insert({
         ...contact,
+        email: contact.email || null, // Ensure email is included
         next_contact_due: now.toISOString(), // Temporary date, will be recalculated
         last_contacted: now.toISOString(), // Set initial last_contacted in user's timezone
         missed_interactions: 0

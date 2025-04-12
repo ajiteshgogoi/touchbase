@@ -56,6 +56,7 @@ export const OnboardingStep3 = ({ onComplete, onBack }: OnboardingStep3Props) =>
         contact_frequency: form.frequency,
         preferred_contact_method: null,
         notes: null,
+        email: null,
         phone: null,
         social_media_platform: null,
         social_media_handle: null,

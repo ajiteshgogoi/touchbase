@@ -33,6 +33,7 @@ export const freeContactsService = {
         id,
         user_id,
         name,
+        email,
         phone,
         social_media_platform,
         social_media_handle,

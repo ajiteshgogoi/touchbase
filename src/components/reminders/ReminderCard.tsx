@@ -27,7 +27,7 @@ interface ReminderCardProps {
   onLogInteraction: (data: {
     contactId: string;
     contactName: string;
-    type: "call" | "message" | "social" | "meeting";
+    type: "call" | "message" | "social" | "meeting" | "email";
   }) => void;
   onReportContent: (contactId: string, content: string) => void;
 }

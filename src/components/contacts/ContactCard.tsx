@@ -543,7 +543,7 @@ export const ContactCard = ({
               } else if (!isDeleting) {
                 onQuickInteraction({
                   contactId: contact.id,
-                  type: contact.preferred_contact_method || 'message',
+                  type: contact.preferred_contact_method === 'email' ? 'message' : (contact.preferred_contact_method || 'message'),
                   contactName: contact.name
                 });
               }

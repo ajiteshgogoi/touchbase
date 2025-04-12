@@ -19,12 +19,13 @@ export interface BasicContact {
   next_contact_due: Timestamp | null;
   contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly';
   missed_interactions: number;
-  preferred_contact_method: 'call' | 'message' | 'social' | null;
+  preferred_contact_method: 'call' | 'message' | 'social' | 'email' | null;
 }
 
 /** Full contact information */
 export interface Contact extends BasicContact {
   user_id: string;
+  email: string | null;
   phone: string | null;
   social_media_platform: 'linkedin' | 'instagram' | 'twitter' | null;
   social_media_handle: string | null;
@@ -53,7 +54,7 @@ export interface Interaction {
   id: string;
   user_id: string;
   contact_id: string;
-  type: 'call' | 'message' | 'social' | 'meeting';
+  type: 'call' | 'message' | 'social' | 'meeting' | 'email';
   date: Timestamp;
   notes: string | null;
   sentiment: 'positive' | 'neutral' | 'negative' | null;
@@ -65,7 +66,7 @@ export interface Reminder {
   id: string;
   contact_id: string;
   user_id: string;
-  type: 'call' | 'message' | 'social';
+  type: 'call' | 'message' | 'social' | 'email';
   name: string | null;  // Optional name for quick reminders
   due_date: Timestamp;
   completed: boolean;
@@ -84,7 +85,7 @@ export interface QuickReminderInput {
   contact_id: string;
   name: string;
   due_date: Timestamp;
-  type: 'call' | 'message' | 'social';
+  type: 'call' | 'message' | 'social' | 'email';
   is_important?: boolean;
 }
 

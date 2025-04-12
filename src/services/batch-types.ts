@@ -8,9 +8,10 @@ interface Contact {
   id: string;
   user_id: string;
   name: string;
+  email: string | null; // Add email field
   last_contacted: string | null;
   next_contact_due: string | null;
-  preferred_contact_method: 'call' | 'message' | 'social' | null;
+  preferred_contact_method: 'call' | 'message' | 'social' | 'email' | null; // Add 'email'
   notes: string | null;
   social_media_handle: string | null;
   contact_frequency: 'every_three_days' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | null;

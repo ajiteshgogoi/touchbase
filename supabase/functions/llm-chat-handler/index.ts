@@ -64,7 +64,7 @@ function validateActionParams(action: string, params: Record<string, any>): stri
     
     case 'log_interaction':
       if (!params.contact_name?.trim()) return "Contact name is required";
-      if (!params.type || !['call', 'message', 'social', 'meeting'].includes(params.type)) {
+      if (!params.type || !['call', 'message', 'social', 'meeting', 'email'].includes(params.type)) { // Add 'email'
         return "Valid interaction type is required";
       }
       break;
@@ -230,8 +230,8 @@ serve(async (req) => {
             }
 
             // Validate preferred contact method if provided
-            if (params.preferred_contact_method && !['call', 'message', 'social'].includes(params.preferred_contact_method)) {
-              throw new Error("Invalid preferred contact method. Must be one of: 'call', 'message', 'social'");
+            if (params.preferred_contact_method && !['call', 'message', 'social', 'email'].includes(params.preferred_contact_method)) { // Add 'email'
+              throw new Error("Invalid preferred contact method. Must be one of: 'call', 'message', 'social', 'email'");
             }
 
             const { data: contact, error: createError } = await supabaseAdminClient
@@ -240,6 +240,7 @@ serve(async (req) => {
                 user_id: user.id,
                 name: params.name,
                 contact_frequency: params.contact_frequency,
+                email: params.email || null, // Add email
                 phone: params.phone || null,
                 social_media_platform: params.social_media_platform || null,
                 social_media_handle: params.social_media_handle || null,
@@ -316,7 +317,7 @@ serve(async (req) => {
               .insert({
                 contact_id: contact.id,
                 user_id: user.id,
-                type: params.preferred_contact_method || 'message',
+                type: params.preferred_contact_method || 'message', // Use updated preferred method
                 due_date: nextDueDate.toISOString(),
                 completed: false
               });
@@ -332,8 +333,8 @@ serve(async (req) => {
             if (!contact_id) throw new Error("Contact ID is required for log_interaction.");
             
             // Validate interaction type
-            if (!['call', 'message', 'social', 'meeting'].includes(params.type)) {
-              throw new Error("Invalid interaction type. Must be one of: 'call', 'message', 'social', 'meeting'");
+            if (!['call', 'message', 'social', 'meeting', 'email'].includes(params.type)) { // Add 'email'
+              throw new Error("Invalid interaction type. Must be one of: 'call', 'message', 'social', 'meeting', 'email'");
             }
 
             // Validate sentiment if provided
@@ -382,6 +383,11 @@ serve(async (req) => {
                   contactUpdates[field] = value;
                   requiresRecalculation = true; // Frequency change requires recalculation
                   break;
+                case 'email': // Add email validation
+                  // Allow null or valid email format
+                  if (value !== null && (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))) throw new Error("Invalid email format.");
+                  contactUpdates[field] = value;
+                  break;
                 case 'phone':
                   // Allow null or valid phone format
                   if (value !== null && (typeof value !== 'string' /* Basic validation, refine if needed */)) throw new Error("Invalid phone format.");
@@ -401,7 +407,7 @@ serve(async (req) => {
                   contactUpdates[field] = value;
                   break;
                 case 'preferred_contact_method':
-                  if (value !== null && !['call', 'message', 'social'].includes(value)) throw new Error("Invalid preferred contact method.");
+                  if (value !== null && !['call', 'message', 'social', 'email'].includes(value)) throw new Error("Invalid preferred contact method."); // Add 'email'
                   contactUpdates[field] = value;
                   break;
                 case 'notes':
@@ -718,10 +724,11 @@ Available actions and their required parameters:
 - create_contact: {
     name: string,
     contact_frequency: string,
+    email?: string, // Add email
     phone?: string,
     social_media_platform?: 'linkedin'|'instagram'|'twitter',
     social_media_handle?: string,
-    preferred_contact_method?: 'call'|'message'|'social',
+    preferred_contact_method?: 'call'|'message'|'social'|'email', // Add 'email'
     notes?: string,
     important_events?: Array<{
       type: 'birthday'|'anniversary'|'custom',
@@ -731,7 +738,7 @@ Available actions and their required parameters:
   }
 - log_interaction: {
     contact_name: string,
-    type: 'call'|'message'|'social'|'meeting'|'other',
+    type: 'call'|'message'|'social'|'meeting'|'email', // Add 'email'
     notes?: string,
     sentiment?: 'positive'|'neutral'|'negative',
     date?: string // ISO 8601, default to now if not specified
@@ -741,10 +748,11 @@ Available actions and their required parameters:
     updates: { // Object containing fields to update
       name?: string,
       contact_frequency?: string,
-      phone?: string,
+      email?: string|null, // Add email
+      phone?: string|null,
       social_media_platform?: 'linkedin'|'instagram'|'twitter'|null,
       social_media_handle?: string|null,
-      preferred_contact_method?: 'call'|'message'|'social'|null,
+      preferred_contact_method?: 'call'|'message'|'social'|'email'|null, // Add 'email'
       notes?: string|null,
       important_events?: Array<{ // Adds or Updates events. Does NOT replace the list unless explicitly requested.
         type: 'birthday'|'anniversary'|'custom',
@@ -770,7 +778,7 @@ Available actions and their required parameters:
     end_date?: string // For custom timeframe
     // Use query_type: 'notes' when the user asks a specific question about a contact that might be answered in their general notes or interaction history (e.g., "Does Jane have kids?", "What is Bob's company?", "Tell me about Alice").
   }
-- get_contact_info: { contact_name: string, info_needed: string (e.g., 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') }
+- get_contact_info: { contact_name: string, info_needed: string (e.g., 'email', 'phone', 'last_contacted', 'notes', 'next_contact_due', 'contact_frequency') } // Add 'email'
 - delete_contact: { contact_name: string }
 - add_quick_reminder: {
     contact_name: string,
@@ -1559,7 +1567,7 @@ Rules:
            if (!params.info_needed) return createResponse({ reply: "What information do you need?" });
 
            // Validate requested field exists in contacts table
-           const validFields = ['name', 'phone', 'social_media_platform', 'social_media_handle',
+           const validFields = ['name', 'email', 'phone', 'social_media_platform', 'social_media_handle', // Add 'email'
                               'last_contacted', 'next_contact_due', 'preferred_contact_method',
                               'notes', 'contact_frequency', 'missed_interactions'];
            if (!validFields.includes(params.info_needed)) {
@@ -1619,6 +1627,7 @@ Rules:
                 confirmationMessage = `Create new contact with the following details?`;
                 confirmationMessage += `\n- Name: ${params.name}`;
                 confirmationMessage += `\n- Frequency: ${params.contact_frequency}`;
+                if (params.email) confirmationMessage += `\n- Email: ${params.email}`; // Add email display
                 if (params.phone) confirmationMessage += `\n- Phone: ${params.phone}`;
                 if (params.social_media_platform) {
                     confirmationMessage += `\n- Social: ${params.social_media_platform}${params.social_media_handle ? ` - ${params.social_media_handle}` : ''}`;
@@ -1657,10 +1666,13 @@ Rules:
                       }
                       // Skip displaying if events array is empty or null as it's ignored now
                    } else {
-                      if (value === null) {
-                         value = '(clear value)';
-                      }
-                      confirmationMessage += `\n- ${displayField}: ${value}`;
+                     if (value === null) {
+                        value = '(clear value)';
+                     }
+                     // Don't display empty email/phone if clearing
+                     if (!((field === 'email' || field === 'phone') && value === null)) {
+                        confirmationMessage += `\n- ${displayField}: ${value}`;
+                     }
                    }
                 }
                 // Remove the last newline if nothing was added (e.g., only empty events array provided)

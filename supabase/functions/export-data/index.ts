@@ -95,9 +95,9 @@ serve(async (req) => {
 
     // Create CSV content for each type
     const contactsCSV = [
-      'name,phone,social_media_platform,social_media_handle,last_contacted,next_contact_due,preferred_contact_method,notes,contact_frequency',
+      'name,email,phone,social_media_platform,social_media_handle,last_contacted,next_contact_due,preferred_contact_method,notes,contact_frequency', // Add email header
       ...contacts.map(c =>
-        `"${c.name}","${c.phone || ''}","${c.social_media_platform || ''}","${c.social_media_handle || ''}","${new Date(c.last_contacted).toLocaleString('en-US', { timeZone: timezone })}","${new Date(c.next_contact_due).toLocaleString('en-US', { timeZone: timezone })}","${c.preferred_contact_method || ''}","${(c.notes || '').replace(/"/g, '""')}","${c.contact_frequency}"`
+        `"${c.name}","${c.email || ''}","${c.phone || ''}","${c.social_media_platform || ''}","${c.social_media_handle || ''}","${new Date(c.last_contacted).toLocaleString('en-US', { timeZone: timezone })}","${new Date(c.next_contact_due).toLocaleString('en-US', { timeZone: timezone })}","${c.preferred_contact_method || ''}","${(c.notes || '').replace(/"/g, '""')}","${c.contact_frequency}"` // Add email data
       )
     ].join('\n')
 

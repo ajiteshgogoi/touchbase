@@ -60,6 +60,7 @@ function calculateNextContactDate(
 interface Contact {
   name: string
   contact_frequency: string
+  email?: string // Add email field
   phone?: string
   social_media_platform?: string
   social_media_handle?: string
@@ -107,6 +108,11 @@ function validateContact(contact: any, rowIndex: number): { isValid: boolean; er
     errors.push('Invalid phone number format. Must be a valid international phone number with optional country code')
   }
 
+  // Validate email if provided (basic format check)
+  if (contact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
+    errors.push('Invalid email format')
+  }
+
   // Validate social media fields
   const hasPlatform = Boolean(contact.social_media_platform)
   const hasHandle = Boolean(contact.social_media_handle)
@@ -121,7 +127,7 @@ function validateContact(contact: any, rowIndex: number): { isValid: boolean; er
   }
 
   // Validate preferred contact method
-  const validContactMethods = ['call', 'message', 'social']
+  const validContactMethods = ['call', 'message', 'social', 'email'] // Add 'email'
   if (contact.preferred_contact_method && !validContactMethods.includes(contact.preferred_contact_method)) {
     errors.push(`Invalid preferred contact method. Must be one of: ${validContactMethods.join(', ')}`)
   }
@@ -333,6 +339,7 @@ serve(async (req) => {
           user_id: user.id,
           name: record.name.trim(),
           contact_frequency: record.contact_frequency,
+          email: record.email || null, // Add email
           phone: record.phone || null,
           social_media_platform: record.social_media_platform || null,
           social_media_handle: record.social_media_handle || null,

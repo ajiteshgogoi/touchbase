@@ -384,7 +384,7 @@ const QuickInteraction = ({
                       Type
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {(['call', 'message', 'social', 'meeting'] as const).map((t) => (
+                      {(['call', 'message', 'social', 'meeting', 'email'] as const).map((t) => (
                         <button
                           key={t}
                           onClick={() => setType(t)}

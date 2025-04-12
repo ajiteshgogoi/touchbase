@@ -58,6 +58,7 @@ function calculateNextContactDate(
 
 interface Contact {
   name: string
+  email?: string // Add email field
   phone?: string
   social_media_platform?: string
   social_media_handle?: string
@@ -90,6 +91,16 @@ function validateSocialMediaPlatform(platform: string): string | null {
 function processVCardLine(line: string, contact: Contact, timezone: string): void {
   if (line.startsWith('FN:')) {
     contact.name = line.substring(3).trim();
+  } else if (line.startsWith('EMAIL')) {
+    // Extract email address
+    const email = line.substring(line.indexOf(':') + 1).trim();
+    // Basic validation
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      // Prefer 'INTERNET' type if available, otherwise take the first valid one
+      if (!contact.email || line.toLowerCase().includes('type=internet')) {
+        contact.email = email;
+      }
+    }
   } else if (line.startsWith('TEL')) {
     // Get the full line for type checking
     const telLine = line.toLowerCase();
@@ -371,10 +382,11 @@ serve(async (req) => {
       const contactsToUpsert = validContacts.map(contact => ({
         user_id: user.id,
         name: contact.name.trim(),
+        email: contact.email || null, // Add email
         phone: contact.phone || null,
         social_media_platform: contact.social_media_platform || null,
         social_media_handle: contact.social_media_handle || null,
-        preferred_contact_method: null,
+        preferred_contact_method: contact.email ? 'email' : (contact.phone ? 'message' : null), // Set preferred method based on available info
         contact_frequency: 'monthly',
         // Set next_contact_due and last_contacted in user's timezone
         next_contact_due: new Date(new Date().toLocaleString('en-US', { timeZone: timezone })).toISOString(),
@@ -461,7 +473,7 @@ serve(async (req) => {
         allReminders.push({
           contact_id: newContact.id,
           user_id: user.id,
-          type: newContact.preferred_contact_method || 'message',
+          type: newContact.preferred_contact_method || 'message', // Use updated preferred method
           due_date: nextDueDate.toISOString(),
           completed: false
         });

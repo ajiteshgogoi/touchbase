@@ -10,6 +10,12 @@ dayjs.extend(utc);
  * @param phone - The phone number to validate
  * @returns boolean indicating if the phone number is valid
  */
+export const isValidEmail = (email: string): boolean => {
+  // Basic email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+};
+
 export const isValidPhoneNumber = (phone: string): boolean => {
   // Matches international phone numbers with flexible formats
   // Allows:
@@ -216,6 +222,7 @@ export const formatStoredEventForInput = (storedDate: string): string => {
  */
 export const initialFormData = {
   name: '',
+  email: '',
   phone: '',
   social_media_platform: null,
   social_media_handle: '',
@@ -236,6 +243,7 @@ export const initialFormData = {
  */
 export const initialErrors = {
   name: '',
+  email: '',
   phone: '',
   social_media_handle: '',
   important_events: [], // Array of error messages for each event
