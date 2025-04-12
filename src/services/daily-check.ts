@@ -192,6 +192,7 @@ export async function runDailyCheckV2() {
         next_contact_due,
         preferred_contact_method,
         contact_frequency,
+        social_media_platform,
         social_media_handle,
         notes,
         missed_interactions,
