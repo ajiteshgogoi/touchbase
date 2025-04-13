@@ -1830,7 +1830,7 @@ serve(async (req) => {
                 "Content-Type": "application/json"
               },
               body: JSON.stringify({
-                model: "google/gemini-2.0-flash-001", // Or another suitable model
+                model: "google/gemini-2.0-flash-lite-001", // Or another suitable model
                 messages: [{ role: "user", content: contextualPrompt }],
                 max_tokens: 250, // Adjust as needed
                 temperature: 0.6 // Slightly more creative for advice/drafts
