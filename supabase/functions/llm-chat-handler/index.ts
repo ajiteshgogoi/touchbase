@@ -1328,30 +1328,7 @@ serve(async (req) => {
                endDate.setUTCMonth(endDate.getUTCMonth() + 1); // Go forward 1 month
                endDate.setUTCHours(23, 59, 59, 999); // End at the end of that day
                break;
-             case 'date':
-               if (!params.date) {
-                 return createResponse({ reply: "Please specify which date you want to check reminders for (YYYY-MM-DD)" });
-               }
-               startDate = parseDateUTC(params.date);
-               if (!startDate) {
-                  return createResponse({ reply: "Invalid date format provided. Please use YYYY-MM-DD." });
-               }
-               endDate = new Date(startDate); // Copy start date
-               endDate.setUTCHours(23, 59, 59, 999);
-               break;
-             case 'custom':
-               if (!params.start_date || !params.end_date) {
-                 return createResponse({ reply: "For custom timeframe, please specify both start_date and end_date (YYYY-MM-DD)" });
-               }
-               startDate = parseDateUTC(params.start_date);
-               const parsedEndDate = parseDateUTC(params.end_date); // Parse end date first
-               if (!startDate || !parsedEndDate) {
-                  return createResponse({ reply: "Invalid date format provided. Please use YYYY-MM-DD for start and end dates." });
-               }
-               // Set end date to the end of the specified day
-               endDate = new Date(parsedEndDate);
-               endDate.setUTCMonth(endDate.getUTCMonth() + 1);
-               endDate.setUTCHours(23, 59, 59, 999);
+             // Removed duplicated case 'date' and case 'custom' blocks here
                break;
              case 'date':
                if (!params.date) {
