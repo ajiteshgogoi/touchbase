@@ -1289,7 +1289,7 @@ serve(async (req) => {
 
            switch (params.timeframe) {
              case 'today':
-               // Keep default startDate and endDate as today
+               startDate.setHours(0, 0, 0, 0); // Set start to beginning of the day
                endDate.setHours(23, 59, 59, 999);
                break;
              case 'tomorrow':
