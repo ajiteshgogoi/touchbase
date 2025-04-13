@@ -1283,52 +1283,76 @@ serve(async (req) => {
              return createResponse({ reply: error.message });
            }
         } else if (action === 'check_reminders') {
-           const now = new Date();
-           let startDate = now;
-           let endDate = now;
+           const now = new Date(); // Server time, assumed UTC
+           let startDate: Date;
+           let endDate: Date;
+
+           // Helper to parse YYYY-MM-DD as UTC date
+           const parseDateUTC = (dateString: string): Date | null => {
+              const parts = dateString.split('-').map(Number);
+              if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+                 // Month is 0-indexed in Date.UTC
+                 const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0));
+                 if (!isNaN(date.getTime())) {
+                    return date;
+                 }
+              }
+              return null;
+           };
 
            switch (params.timeframe) {
              case 'today':
-               startDate.setHours(0, 0, 0, 0); // Set start to beginning of the day
-               endDate.setHours(23, 59, 59, 999);
+               startDate = new Date(now); // Create copy
+               startDate.setUTCHours(0, 0, 0, 0); // Use UTC methods
+               endDate = new Date(now);   // Create copy
+               endDate.setUTCHours(23, 59, 59, 999); // Use UTC methods
                break;
              case 'tomorrow':
-               startDate = new Date(now.setDate(now.getDate() + 1));
-               startDate.setHours(0, 0, 0, 0);
-               endDate = new Date(startDate);
-               endDate.setHours(23, 59, 59, 999);
+               startDate = new Date(now);
+               startDate.setUTCDate(startDate.getUTCDate() + 1); // Use UTC date methods
+               startDate.setUTCHours(0, 0, 0, 0);
+               endDate = new Date(startDate); // Copy start date
+               endDate.setUTCHours(23, 59, 59, 999);
                break;
              case 'week':
+               startDate = new Date(now); // Start from now UTC
+               // Optional: Set to start of today UTC
+               // startDate.setUTCHours(0, 0, 0, 0);
                endDate = new Date(now);
-               endDate.setDate(endDate.getDate() + 7);
-               endDate.setHours(23, 59, 59, 999);
+               endDate.setUTCDate(endDate.getUTCDate() + 7);
+               endDate.setUTCHours(23, 59, 59, 999);
                break;
              case 'month':
+               startDate = new Date(now); // Start from now UTC
+               // Optional: Set to start of today UTC
+               // startDate.setUTCHours(0, 0, 0, 0);
                endDate = new Date(now);
-               endDate.setMonth(endDate.getMonth() + 1);
-               endDate.setHours(23, 59, 59, 999);
+               endDate.setUTCMonth(endDate.getUTCMonth() + 1);
+               endDate.setUTCHours(23, 59, 59, 999);
                break;
              case 'date':
                if (!params.date) {
-                 return createResponse({ reply: "Please specify which date you want to check reminders for" });
+                 return createResponse({ reply: "Please specify which date you want to check reminders for (YYYY-MM-DD)" });
                }
-               startDate = new Date(params.date);
-               if (isNaN(startDate.getTime())) {
-                 return createResponse({ reply: "Invalid date format provided" });
+               startDate = parseDateUTC(params.date);
+               if (!startDate) {
+                  return createResponse({ reply: "Invalid date format provided. Please use YYYY-MM-DD." });
                }
-               startDate.setHours(0, 0, 0, 0);
-               endDate = new Date(startDate);
-               endDate.setHours(23, 59, 59, 999);
+               endDate = new Date(startDate); // Copy start date
+               endDate.setUTCHours(23, 59, 59, 999);
                break;
              case 'custom':
                if (!params.start_date || !params.end_date) {
-                 return createResponse({ reply: "For custom timeframe, please specify both start_date and end_date" });
+                 return createResponse({ reply: "For custom timeframe, please specify both start_date and end_date (YYYY-MM-DD)" });
                }
-               startDate = new Date(params.start_date);
-               endDate = new Date(params.end_date);
-               if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                 return createResponse({ reply: "Invalid date format provided" });
+               startDate = parseDateUTC(params.start_date);
+               const parsedEndDate = parseDateUTC(params.end_date); // Parse end date first
+               if (!startDate || !parsedEndDate) {
+                  return createResponse({ reply: "Invalid date format provided. Please use YYYY-MM-DD for start and end dates." });
                }
+               // Set end date to the end of the specified day
+               endDate = new Date(parsedEndDate);
+               endDate.setUTCHours(23, 59, 59, 999);
                break;
              default:
                return createResponse({ reply: "Invalid timeframe specified" });
@@ -1370,9 +1394,8 @@ serve(async (req) => {
              const date = new Date(reminder.due_date).toLocaleDateString(undefined, {
                weekday: 'short',
                month: 'short',
-               day: 'numeric',
-               hour: '2-digit',
-               minute: '2-digit'
+               day: 'numeric'
+               // Removed hour and minute
              });
              return `- ${date}: ${reminder.contacts?.name || 'Unknown contact'} - ${reminder.name ? reminder.name + ' ' : ''}(${reminder.type})`;
            }).join('\n');
