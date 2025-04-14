@@ -332,7 +332,9 @@ let html = template
   .replace(/POST_OG_TITLE/g, escapeHtml(post.ogTitle || post.title))
   .replace(/POST_OG_DESCRIPTION/g, escapeHtml(post.ogDescription || post.description || post.excerpt || ''))
   .replace(/POST_OG_IMAGE/g, encodeURI(post.ogImage ? urlFor(post.ogImage).width(1200).height(630).auto('format').url() : mainImage))
-  .replace(/POST_IMAGE/g, encodeURI(mainImage))
+  .replace(/POST_IMAGE/g, encodeURI(post.ogImage ? urlFor(post.ogImage).width(1200).height(630).auto('format').url()
+    : post.mainImage ? urlFor(post.mainImage).width(1200).auto('format').url()
+    : `${getSiteUrl()}/og.png`))
   .replace(/POST_DATE_FORMATTED/g, formattedDate)  // Use pre-formatted date
   .replace(/POST_DATE/g, post.publishedAt)
   .replace(/POST_MODIFIED_DATE/g, post._updatedAt)
