@@ -258,7 +258,7 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    // Save the attempted location 
+    // Save the attempted location
     return <Navigate to="/login" state={{ from: location }} />;
   }
 
