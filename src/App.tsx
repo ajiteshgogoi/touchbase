@@ -268,7 +268,7 @@ const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   const { setUser, setIsLoading, setIsPremium, setTrialStatus, setPreferences } = useStore();
 
-  // Separate premium status check
+  // Separate premium status check 
   const checkPremiumStatus = async () => {
     try {
       const status = await paymentService.getSubscriptionStatus();
