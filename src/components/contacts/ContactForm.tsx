@@ -512,7 +512,7 @@ export const ContactForm = () => {
             <label htmlFor="showAdvanced" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:cursor-pointer">
               Add more information (optional)
             </label>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Add details only if it helps improve your relationship</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Add details like contact info, important dates and notes</p>
           </div>
         </div>
 
