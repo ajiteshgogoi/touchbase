@@ -260,7 +260,7 @@ export const AdvancedContactInfo = ({
                         social_media_handle: '' // Reset handle when platform changes
                       });
                     }}
-                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white [&>option]:w-full [&>optgroup]:w-full [&>optgroup>option]:w-full [&>optgroup>option]:whitespace-nowrap [&>option]:whitespace-nowrap"
                   >
                     <option value="">Select Platform</option>
                     <option value="linkedin">LinkedIn</option>
@@ -294,7 +294,7 @@ export const AdvancedContactInfo = ({
                         onError({ social_media_handle: '' });
                       } else {
                         onError({
-                          social_media_handle: 'Username can only contain letters, numbers, dots, and underscores'
+                          social_media_handle: 'Username can only contain letters, numbers, dots and underscores'
                         });
                       }
                     }}
