@@ -181,9 +181,10 @@ export const AdvancedContactInfo = ({
       <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl rounded-xl border border-gray-100/50 dark:border-gray-800/50 shadow-soft dark:shadow-soft p-6 hover:bg-white/70 dark:hover:bg-gray-900/70 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
         <h3 className="text-lg font-[600] text-gray-900/90 dark:text-white mb-6">Contact Methods</h3>
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Email Field */}
-            <div>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Email Field */}
+              <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email Address
               </label>
@@ -242,62 +243,67 @@ export const AdvancedContactInfo = ({
               {errors.phone && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone}</p>
               )}
+              </div>
             </div>
 
             {/* Social Media Fields */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Social Media</label>
-              <div className="mt-1 flex gap-3">
-                <select
-                  value={formData.social_media_platform || ''}
-                  onChange={(e) => {
-                    const platform = e.target.value || null;
-                    onChange({
-                      social_media_platform: platform as any,
-                      social_media_handle: '' // Reset handle when platform changes
-                    });
-                  }}
-                  className="w-1/3 rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  <option value="">Select Platform</option>
-                  <option value="linkedin">LinkedIn</option>
-                  <option value="instagram">Instagram</option>
-                  <option value="twitter">Twitter</option>
-                </select>
-                <input
-                  type="text"
-                  value={formData.social_media_handle}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/^@+/, ''); // Remove leading @ symbols
-                    onChange({ social_media_handle: value });
-                  }}
-                  onInput={(e) => {
-                    const value = (e.target as HTMLInputElement).value.replace(/^@+/, '');
-                    
-                    // Clear error if value is empty
-                    if (!value) {
-                      onError({ social_media_handle: '' });
-                      return;
-                    }
+              <div className="mt-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-1">
+                  <select
+                    value={formData.social_media_platform || ''}
+                    onChange={(e) => {
+                      const platform = e.target.value || null;
+                      onChange({
+                        social_media_platform: platform as any,
+                        social_media_handle: '' // Reset handle when platform changes
+                      });
+                    }}
+                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="">Select Platform</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="twitter">Twitter</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <input
+                    type="text"
+                    value={formData.social_media_handle}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/^@+/, ''); // Remove leading @ symbols
+                      onChange({ social_media_handle: value });
+                    }}
+                    onInput={(e) => {
+                      const value = (e.target as HTMLInputElement).value.replace(/^@+/, '');
+                      
+                      // Clear error if value is empty
+                      if (!value) {
+                        onError({ social_media_handle: '' });
+                        return;
+                      }
 
-                    // Validate based on platform selection
-                    if (!formData.social_media_platform) {
-                      onError({
-                        social_media_handle: 'Please select a platform first'
-                      });
-                    } else if (isValidSocialHandle(value, formData.social_media_platform)) {
-                      onError({ social_media_handle: '' });
-                    } else {
-                      onError({
-                        social_media_handle: 'Username can only contain letters, numbers, dots, and underscores'
-                      });
-                    }
-                  }}
-                  placeholder={formData.social_media_platform
-                    ? "Enter username (e.g., johndoe)"
-                    : "Select a platform first"}
-                  className="w-2/3 rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                />
+                      // Validate based on platform selection
+                      if (!formData.social_media_platform) {
+                        onError({
+                          social_media_handle: 'Please select a platform first'
+                        });
+                      } else if (isValidSocialHandle(value, formData.social_media_platform)) {
+                        onError({ social_media_handle: '' });
+                      } else {
+                        onError({
+                          social_media_handle: 'Username can only contain letters, numbers, dots, and underscores'
+                        });
+                      }
+                    }}
+                    placeholder={formData.social_media_platform
+                      ? "Enter username (e.g., johndoe)"
+                      : "Select a platform first"}
+                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 px-4 py-2.5 focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  />
+                </div>
               </div>
               {errors.social_media_handle && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.social_media_handle}</p>
@@ -310,8 +316,8 @@ export const AdvancedContactInfo = ({
             </div>
           </div>
 
-          {/* Preferred Contact Method */}
-          <div>
+            {/* Preferred Contact Method */}
+            <div>
             <label htmlFor="preferred_contact_method" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Preferred Contact Method
             </label>
