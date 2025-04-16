@@ -33,6 +33,9 @@ const rules = {
         // Don't modify markdown formatting
         if (match.match(/[*_`].*[*_`]/)) return match;
         
+        // Don't modify if it contains a colon
+        if (content.includes(':')) return match;
+        
         // Don't modify if it's a technical term, title, or contains special formatting
         if (content.match(/^[A-Z].*:|^\*\*.*\*\*$|^`.*`$|^_.*_$/)) return match;
         
@@ -41,8 +44,12 @@ const rules = {
         
         // Don't change if it's a complete sentence
         if (content.match(/^[A-Z].*[.!?]$/)) return match;
-        
-        return `"${content}"` + '.';
+
+        // If the suggested fix would be identical to the original, return the original
+        const suggested = `"${content}"` + '.';
+        if (suggested === match) return match;
+
+        return suggested;
       });
     }
   },
@@ -111,12 +118,16 @@ async function validateFile(filePath) {
               }
               const message = typeof rule.message === 'function' ?
                 rule.message(match[0]) : rule.message;
-              issues.push({
-                line,
-                message,
-                original: match[0],
-                suggested: rule.fix(match[0])
-              });
+              const suggested = rule.fix(match[0]);
+              // Only push if the suggested fix is different from the original
+              if (suggested !== match[0]) {
+                issues.push({
+                  line,
+                  message,
+                  original: match[0],
+                  suggested
+                });
+              }
             }
           }
         });
