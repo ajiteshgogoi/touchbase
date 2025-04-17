@@ -255,7 +255,7 @@ async function validateBlogContent() {
       }
     } else {
       console.log(chalk.green('\nAll blog posts follow British English conventions!'));
-      // Don't exit when running as a module
+      // Don't exit when running as a module 
       if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(0);
       }
