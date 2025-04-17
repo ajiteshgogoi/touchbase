@@ -198,6 +198,11 @@ const publicPages = [
     url: '/compare/airtable-personal-crm-vs-touchbase',
     changefreq: 'monthly',
     priority: 0.9
+  },
+  {
+    url: '/compare/free-vs-paid-personal-crm',
+    changefreq: 'monthly',
+    priority: 0.9
   }
 ];
 
