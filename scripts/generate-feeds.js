@@ -63,72 +63,72 @@ const publicPages = [
   {
     url: '/alternatives/best-personal-crm',
     title: 'Best Personal CRM',
-    description: 'Compare the best personal CRM solutions'
+    description: "Looking for the best personal CRM? Compare TouchBase with other CRMs and discover how it helps you manage relationships."
   },
   {
     url: '/alternatives/best-relationship-manager',
     title: 'Best Relationship Manager',
-    description: 'Find the best relationship management tools'
+    description: "Looking for the best relationship manager? Compare TouchBase with other tools and discover how it helps you nurture connections."
   },
   {
     url: '/alternatives/best-contact-organizer',
     title: 'Best Contact Organizer',
-    description: 'Compare top contact organization solutions'
+    description: "Looking for the best contact organizer? Compare TouchBase with other tools and discover how it helps you manage contacts."
   },
   {
     url: '/alternatives/best-relationship-management-app',
     title: 'Best Relationship Management App',
-    description: 'Discover the best apps for managing relationships'
+    description: "Looking for the best relationship management app? Compare TouchBase with other alternatives and discover how it helps you manage relationships."
   },
   {
     url: '/alternatives/personal-crm-tool',
     title: 'Personal CRM Tool',
-    description: 'Learn about personal CRM tools and options'
+    description: "Looking for the best personal CRM tool? Compare TouchBase with other tools to find the perfect solution for managing your relationships."
   },
   {
     url: '/alternatives/contact-management-software',
     title: 'Contact Management Software',
-    description: 'Compare contact management software solutions'
+    description: "Looking for the best contact management software? Compare TouchBase with other solutions to find the perfect fit for organizing your contacts."
   },
   {
     url: '/alternatives/relationship-tracking-tool',
     title: 'Relationship Tracking Tool',
-    description: 'Find the best tools for tracking relationships'
+    description: "Looking for the best relationship tracking tool? Compare TouchBase with other solutions to find the perfect way to maintain your connections."
   },
   {
     url: '/alternatives/networking-management-software',
     title: 'Networking Management Software',
-    description: 'Compare networking management software options'
+    description: "Looking for the best networking management software? Compare TouchBase with other solutions to find the perfect tool for managing your network."
   },
   {
     url: '/alternatives/best-crm-for-friends',
     title: 'Best CRM for Friends',
-    description: 'Find the perfect CRM for managing friendships'
+    description: "Looking for the best CRM to manage friendships? Compare TouchBase with other tools and discover how it helps you stay connected with friends."
   },
   {
     url: '/alternatives/best-crm-for-personal-use',
     title: 'Best CRM for Personal Use',
-    description: 'Compare CRMs designed for personal use'
+    description: "Looking for the best personal-use CRM? Compare TouchBase with other tools and discover how it helps you manage your personal connections effectively."
   },
   {
     url: '/alternatives/best-personal-relationship-crm',
     title: 'Best Personal Relationship CRM',
-    description: 'Discover the best CRMs for personal relationships'
+    description: "Discover the best personal relationship CRM. Compare TouchBase with alternatives and learn how to effectively manage your relationships."
   },
   {
     url: '/alternatives/personal-crm-system',
     title: 'Personal CRM System',
-    description: 'Learn about personal CRM systems and options'
+    description: "Discover how TouchBase's personal CRM system helps you manage relationships effectively. Compare features, pricing and capabilities with other CRM systems."
   },
   {
     url: '/alternatives/best-crm-for-personal-life',
     title: 'Best CRM for Personal Life',
-    description: 'Find the ideal CRM for your personal life'
+    description: "Discover the best CRM for your personal life. Compare TouchBase with alternatives to find the perfect tool for organizing your personal relationships."
   },
   {
     url: '/alternatives/best-personal-crm-for-networking',
     title: 'Best Personal CRM for Networking',
-    description: 'Compare CRMs optimized for networking'
+    description: "Looking for the best personal CRM for professional networking? Compare TouchBase with alternative Personal CRMs to find the right one for yourself."
   },
   // Comparison pages
   {
