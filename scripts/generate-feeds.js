@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@sanity/client';
+import imageUrlBuilder from '@sanity/image-url';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -15,6 +16,10 @@ const client = createClient({
   useCdn: true,
   apiVersion: '2024-04-03',
 });
+
+// Initialize image URL builder
+const builder = imageUrlBuilder(client);
+const urlFor = (source) => builder.image(source).url();
 
 // Define all public pages
 const publicPages = [
@@ -175,6 +180,7 @@ async function getBlogPosts() {
       title,
       slug,
       description,
+      mainImage,
       _createdAt,
       _updatedAt
     } | order(_createdAt desc)
@@ -190,11 +196,14 @@ function generateRSSFeed(items, title, description) {
       <guid>${item.link}</guid>
       <description><![CDATA[${item.description}]]></description>
       <pubDate>${new Date(item.pubDate).toUTCString()}</pubDate>
+      ${item.image ? `
+      <media:content url="${item.image}" medium="image" />
+      <enclosure url="${item.image}" type="image/jpeg" length="0" />` : ''}
     </item>
   `).join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>${title}</title>
     <link>${baseUrl}</link>
@@ -222,7 +231,8 @@ async function generateFeeds() {
       title: post.title,
       link: `${baseUrl}/blog/${post.slug.current}`,
       description: post.description || '',
-      pubDate: post._createdAt
+      pubDate: post._createdAt,
+      image: post.mainImage ? urlFor(post.mainImage) : null
     }));
     
     fs.writeFileSync(
