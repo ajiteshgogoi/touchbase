@@ -21,6 +21,9 @@
     <meta name="twitter:description" content="Latest posts and updates from TouchBase: Your Personal CRM for meaningful relationships. Start improving your real-life relationships today.">
     <meta name="twitter:image" content="https://touchbase.site/og.png">
     
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="TouchBase Blog RSS Feed" href="/feeds/blog.xml">
+    
     <link href="/static.css" rel="stylesheet">
 
     <!-- Schema.org JSON-LD structured data -->
@@ -109,9 +112,18 @@
                 
                 <div class="text-center mb-12">
                     <h1 class="text-4xl sm:text-5xl font-[650] bg-gradient-to-r from-primary-600/90 to-primary-400/90 bg-clip-text text-transparent tracking-[-0.02em] py-2">TouchBase Blog</h1>
-                    <p class="mt-3 text-xl text-gray-600/90">
-                        Latest posts and updates
-                    </p>
+                    <div class="relative">
+                        <p class="mt-3 text-xl text-gray-600/90">
+                            Latest posts and updates
+                        </p>
+                        <a href="/feeds/blog.xml" class="absolute -right-12 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200" title="RSS Feed" aria-label="RSS Feed">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500">
+                                <path d="M4 11a9 9 0 0 1 9 9"></path>
+                                <path d="M4 4a16 16 0 0 1 16 16"></path>
+                                <circle cx="5" cy="19" r="1"></circle>
+                            </svg>
+                        </a>
+                    </div>
                 </div>
                 <div class="mb-8 max-w-2xl mx-auto">
                     <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
