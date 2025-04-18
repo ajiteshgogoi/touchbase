@@ -206,6 +206,30 @@ const publicPages = [
   }
 ];
 
+// Add RSS feeds to public pages
+publicPages.push(
+  {
+    url: '/feeds/blog.xml',
+    changefreq: 'daily',
+    priority: 0.8
+  },
+  {
+    url: '/feeds/features.xml',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/feeds/alternatives.xml',
+    changefreq: 'monthly',
+    priority: 0.8
+  },
+  {
+    url: '/feeds/comparisons.xml',
+    changefreq: 'monthly',
+    priority: 0.8
+  }
+);
+
 // Add blog to public pages
 publicPages.push({
   url: '/blog',
