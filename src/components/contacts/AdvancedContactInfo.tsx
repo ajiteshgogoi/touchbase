@@ -549,7 +549,7 @@ export const AdvancedContactInfo = ({
               onChange={handleNotesChange}
               maxLength={500}
               className="mt-1 block w-full rounded-lg border-gray-200 dark:border-gray-700 px-[14px] py-[9px] focus:outline-none focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400 dark:focus:ring-primary-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              placeholder="E.g., #Friend from school. We #workout together. Works in #tech. Has 2 kids: Gloria and Tom."
+              placeholder="E.g., #Friend from school. Works in #tech. Has 2 kids: Gloria and Tom."
             />
             <HashtagHighlighter
               text={formData.notes}
