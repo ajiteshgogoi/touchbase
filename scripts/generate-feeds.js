@@ -227,7 +227,7 @@ async function generateFeeds() {
     
     fs.writeFileSync(
       path.join(feedsDir, 'blog.xml'),
-      generateRSSFeed(blogItems, 'Touchbase Blog', 'Latest articles from Touchbase')
+      generateRSSFeed(blogItems, 'Touchbase Blog', 'Latest posts and updates from Touchbase Personal CRM')
     );
 
     // Generate features feed
@@ -242,7 +242,7 @@ async function generateFeeds() {
 
     fs.writeFileSync(
       path.join(feedsDir, 'features.xml'),
-      generateRSSFeed(featureItems, 'Touchbase Features', 'Latest features from Touchbase')
+      generateRSSFeed(featureItems, 'Touchbase Features', 'Latest features from Touchbase Personal CRM')
     );
 
     // Generate alternatives feed
