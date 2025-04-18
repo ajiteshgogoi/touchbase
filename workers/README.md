@@ -1,6 +1,6 @@
-# Touchbase Workers
+# TouchBase Workers
 
-This directory contains Cloudflare Workers that handle various proxy and authentication tasks for Touchbase.
+This directory contains Cloudflare Workers that handle various proxy and authentication tasks for TouchBase.
 
 ## Project Structure
 
@@ -20,7 +20,7 @@ workers/
 
 ## Workers
 
-### Touchbase OAuth (oauth.touchbase.site)
+### TouchBase OAuth (oauth.touchbase.site)
 - Handles secure token exchange for Google OAuth
 - Protects client secrets
 - Custom domain setup to maintain branding
@@ -29,7 +29,7 @@ workers/
   - GOOGLE_CLIENT_SECRET
   - WORKER_API_KEY
 
-### Touchbase Proxy (api.touchbase.site)
+### TouchBase Proxy (api.touchbase.site)
 - Proxies requests to Supabase
 - Handles caching and security
 - Environment variables needed:

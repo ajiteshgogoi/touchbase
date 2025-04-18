@@ -138,32 +138,32 @@ const publicPages = [
   // Comparison pages
   {
     url: '/compare/monica-personal-crm-vs-touchbase',
-    title: 'Monica Personal CRM vs Touchbase',
+    title: 'Monica Personal CRM vs TouchBase',
     description: "Compare TouchBase vs Monica Personal CRM features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/dex-personal-crm-vs-touchbase',
-    title: 'Dex Personal CRM vs Touchbase',
+    title: 'Dex Personal CRM vs TouchBase',
     description: "Compare TouchBase vs Dex Personal CRM features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/clay-personal-crm-vs-touchbase',
-    title: 'Clay Personal CRM vs Touchbase',
+    title: 'Clay Personal CRM vs TouchBase',
     description: "Compare TouchBase vs Clay CRM features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/cloze-personal-crm-vs-touchbase',
-    title: 'Cloze Personal CRM vs Touchbase',
+    title: 'Cloze Personal CRM vs TouchBase',
     description: "Compare TouchBase vs Cloze features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/notion-personal-crm-vs-touchbase',
-    title: 'Notion Personal CRM vs Touchbase',
+    title: 'Notion Personal CRM vs TouchBase',
     description: "Compare TouchBase vs Notion as a personal CRM. Find out which relationship management solution offers better features, pricing and usability in 2025."
   },
   {
     url: '/compare/airtable-personal-crm-vs-touchbase',
-    title: 'Airtable Personal CRM vs Touchbase',
+    title: 'Airtable Personal CRM vs TouchBase',
     description: "Compare TouchBase vs Airtable for personal CRM needs. See how a dedicated relationship management tool stacks up against a database platform in 2025."
   },
   {
@@ -237,7 +237,7 @@ async function generateFeeds() {
     
     fs.writeFileSync(
       path.join(feedsDir, 'blog.xml'),
-      generateRSSFeed(blogItems, 'Touchbase Blog', 'Latest posts and updates from Touchbase Personal CRM')
+      generateRSSFeed(blogItems, 'TouchBase Blog', 'Latest posts and updates from TouchBase Personal CRM')
     );
 
     // Generate features feed
@@ -253,7 +253,7 @@ async function generateFeeds() {
 
     fs.writeFileSync(
       path.join(feedsDir, 'features.xml'),
-      generateRSSFeed(featureItems, 'Touchbase Features', 'Latest features from Touchbase Personal CRM')
+      generateRSSFeed(featureItems, 'TouchBase Features', 'Latest features from TouchBase Personal CRM')
     );
 
     // Generate alternatives feed
@@ -269,7 +269,7 @@ async function generateFeeds() {
 
     fs.writeFileSync(
       path.join(feedsDir, 'alternatives.xml'),
-      generateRSSFeed(alternativeItems, 'Touchbase Alternatives', 'Personal CRM alternatives and comparisons')
+      generateRSSFeed(alternativeItems, 'TouchBase Alternatives', 'Personal CRM alternatives and comparisons')
     );
 
     // Generate comparisons feed
@@ -285,7 +285,7 @@ async function generateFeeds() {
 
     fs.writeFileSync(
       path.join(feedsDir, 'comparisons.xml'),
-      generateRSSFeed(comparisonItems, 'Touchbase Comparisons', 'Compare Touchbase with other personal CRM solutions')
+      generateRSSFeed(comparisonItems, 'TouchBase Comparisons', 'Compare TouchBase with other personal CRM solutions')
     );
 
     console.log('RSS feeds generated successfully!');
