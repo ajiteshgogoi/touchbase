@@ -5,7 +5,7 @@
     <link>https://touchbase.site</link>
     <description>Latest features from Touchbase Personal CRM</description>
     <language>en-US</language>
-    <lastBuildDate>Fri, 18 Apr 2025 05:53:01 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 18 Apr 2025 05:56:44 GMT</lastBuildDate>
     <atom:link href="https://touchbase.site/feeds/touchbase-features.xml" rel="self" type="application/rss+xml"/>
     
     <item>
@@ -13,8 +13,10 @@
       <link>https://touchbase.site/features/smart-contact-management</link>
       <guid>https://touchbase.site/features/smart-contact-management</guid>
       <description><![CDATA[Track and manage your relationships with custom closeness levels, detailed notes and smart organization. TouchBase helps you nurture meaningful connections.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -23,8 +25,10 @@
       <link>https://touchbase.site/features/intelligent-reminders</link>
       <guid>https://touchbase.site/features/intelligent-reminders</guid>
       <description><![CDATA[Never miss important connections with TouchBase's smart reminder system. Get timely notifications and intelligent rescheduling.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -33,8 +37,10 @@
       <link>https://touchbase.site/features/personalized-suggestions</link>
       <guid>https://touchbase.site/features/personalized-suggestions</guid>
       <description><![CDATA[Get thoughtful interaction suggestions tailored to each relationship. TouchBase's smart assistant helps you maintain more meaningful connections.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -43,8 +49,10 @@
       <link>https://touchbase.site/features/conversation-prompts</link>
       <guid>https://touchbase.site/features/conversation-prompts</guid>
       <description><![CDATA[Get thoughtful, meaningful conversation starters that spark deeper connections. TouchBase helps you have more engaging discussions with your loved ones.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -53,8 +61,10 @@
       <link>https://touchbase.site/features/bulk-import-export</link>
       <guid>https://touchbase.site/features/bulk-import-export</guid>
       <description><![CDATA[Easily import and export your contacts with TouchBase's bulk tools.Import from Google Contacts, CSV or VCF files and export all your data.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -63,8 +73,10 @@
       <link>https://touchbase.site/features/important-events</link>
       <guid>https://touchbase.site/features/important-events</guid>
       <description><![CDATA[Never miss important moments with TouchBase's event tracking. Keep track of birthdays, anniversaries and special occasions with smart reminders.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -73,8 +85,10 @@
       <link>https://touchbase.site/features/ai-chat-assistant</link>
       <guid>https://touchbase.site/features/ai-chat-assistant</guid>
       <description><![CDATA[Meet Base, your personal CRM AI assistant. Manage your contacts and relationships with natural language commands.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -83,8 +97,10 @@
       <link>https://touchbase.site/features/relationship-insights</link>
       <guid>https://touchbase.site/features/relationship-insights</guid>
       <description><![CDATA[Gain deeper understanding of your relationships with TouchBase's AI-powered analytics. Get personalized insights and maintain healthier connections.]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:53:01 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:56:44 GMT</pubDate>
       
+      <media:content url="https://touchbase.site/og.png" medium="image" />
+      <enclosure url="https://touchbase.site/og.png" type="image/jpeg" length="0" />
     </item>
   
   </channel>
