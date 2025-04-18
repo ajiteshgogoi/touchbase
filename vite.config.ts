@@ -34,10 +34,10 @@ export default defineConfig({
         background_color: '#ffffff'
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,xml}'],
         globIgnores: ['**/firebase-messaging-sw.js'],  // Don't let Workbox handle Firebase SW
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/blog\//, /firebase-messaging-sw\.js/], // Exclude API, Blog, and Firebase SW URLs
+        navigateFallbackDenylist: [/^\/api\//, /^\/blog\//, /firebase-messaging-sw\.js/, /^\/feeds\//], // Exclude API, Blog, Firebase SW, and Feed URLs
         runtimeCaching: [
           {
             urlPattern: /manifest\.json$/i,
@@ -110,7 +110,13 @@ export default defineConfig({
           }
         ],
         skipWaiting: true,
-        clientsClaim: true
+        clientsClaim: true,
+        additionalManifestEntries: [
+          { url: '/feeds/blog.xml', revision: null },
+          { url: '/feeds/features.xml', revision: null },
+          { url: '/feeds/alternatives.xml', revision: null },
+          { url: '/feeds/comparisons.xml', revision: null }
+        ]
       }
     }),
     {
@@ -122,6 +128,9 @@ export default defineConfig({
           }
           if (req.url?.endsWith('manifest.json')) {
             res.setHeader('Content-Type', 'application/manifest+json');
+          }
+          if (req.url?.endsWith('.xml') && req.url?.includes('/feeds/')) {
+            res.setHeader('Content-Type', 'application/rss+xml');
           }
           // Serve static blog files in development
           // Handle both /blog and /dist/blog paths
