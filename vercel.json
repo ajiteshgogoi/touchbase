@@ -180,7 +180,15 @@
   {
     "src": "/blog/([^/]+)/?$",
     "dest": "/blog/$1.html"
-   },    
+   },
+   {
+     "src": "/feeds/.*\\.xml$",
+     "headers": {
+       "content-type": "application/rss+xml",
+       "cache-control": "public, max-age=3600",
+       "X-Content-Type-Options": "nosniff"
+     }
+   },
     {
        "src": "/404",
        "dest": "/404.html",
