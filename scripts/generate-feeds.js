@@ -134,37 +134,37 @@ const publicPages = [
   {
     url: '/compare/monica-personal-crm-vs-touchbase',
     title: 'Monica Personal CRM vs Touchbase',
-    description: 'Detailed comparison between Monica Personal CRM and Touchbase'
+    description: "Compare TouchBase vs Monica Personal CRM features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/dex-personal-crm-vs-touchbase',
     title: 'Dex Personal CRM vs Touchbase',
-    description: 'Compare Dex Personal CRM with Touchbase'
+    description: "Compare TouchBase vs Dex Personal CRM features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/clay-personal-crm-vs-touchbase',
     title: 'Clay Personal CRM vs Touchbase',
-    description: 'Compare Clay Personal CRM with Touchbase'
+    description: "Compare TouchBase vs Clay CRM features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/cloze-personal-crm-vs-touchbase',
     title: 'Cloze Personal CRM vs Touchbase',
-    description: 'Compare Cloze Personal CRM with Touchbase'
+    description: "Compare TouchBase vs Cloze features, pricing and capabilities. Find out which relationship management tool best fits your needs in 2025."
   },
   {
     url: '/compare/notion-personal-crm-vs-touchbase',
     title: 'Notion Personal CRM vs Touchbase',
-    description: 'Compare Notion Personal CRM with Touchbase'
+    description: "Compare TouchBase vs Notion as a personal CRM. Find out which relationship management solution offers better features, pricing and usability in 2025."
   },
   {
     url: '/compare/airtable-personal-crm-vs-touchbase',
     title: 'Airtable Personal CRM vs Touchbase',
-    description: 'Compare Airtable Personal CRM with Touchbase'
+    description: "Compare TouchBase vs Airtable for personal CRM needs. See how a dedicated relationship management tool stacks up against a database platform in 2025."
   },
   {
     url: '/compare/free-vs-paid-personal-crm',
     title: 'Free vs Paid Personal CRM',
-    description: 'Compare free and paid personal CRM options'
+    description: "Detailed comparison between free and paid personal CRM options, helping readers make an informed decision based on their needs and budget constraints in 2025."
   }
 ];
 
