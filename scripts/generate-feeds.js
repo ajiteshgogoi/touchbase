@@ -22,42 +22,42 @@ const publicPages = [
   {
     url: '/features/smart-contact-management',
     title: 'Smart Contact Management',
-    description: 'Efficiently manage your contacts with smart organization features'
+    description: "Track and manage your relationships with custom closeness levels, detailed notes and smart organization. TouchBase helps you nurture meaningful connections."
   },
   {
     url: '/features/intelligent-reminders',
     title: 'Intelligent Reminders',
-    description: 'Never miss important connections with intelligent reminder system'
+    description: "Never miss important connections with TouchBase's smart reminder system. Get timely notifications and intelligent rescheduling."
   },
   {
     url: '/features/personalized-suggestions',
     title: 'Personalized Suggestions',
-    description: 'Get AI-powered suggestions for maintaining relationships'
+    description: "Get thoughtful interaction suggestions tailored to each relationship. TouchBase's smart assistant helps you maintain more meaningful connections."
   },
   {
     url: '/features/conversation-prompts',
     title: 'Conversation Prompts',
-    description: 'Smart conversation starters and reminders for meaningful interactions'
+    description: "Get thoughtful, meaningful conversation starters that spark deeper connections. TouchBase helps you have more engaging discussions with your loved ones."
   },
   {
     url: '/features/bulk-import-export',
     title: 'Bulk Import Export',
-    description: 'Easily import and export your contacts and data'
+    description: "Easily import and export your contacts with TouchBase's bulk tools.Import from Google Contacts, CSV or VCF files and export all your data."
   },
   {
     url: '/features/important-events',
     title: 'Important Events',
-    description: 'Track and remember important events in your relationships'
+    description: "Never miss important moments with TouchBase's event tracking. Keep track of birthdays, anniversaries and special occasions with smart reminders."
   },
   {
     url: '/features/ai-chat-assistant',
     title: 'AI Chat Assistant',
-    description: 'Get help managing your relationships with AI assistance'
+    description: "Meet Base, your personal CRM AI assistant. Manage your contacts and relationships with natural language commands."
   },
   {
     url: '/features/relationship-insights',
     title: 'Relationship Insights',
-    description: 'Gain valuable insights into your relationships'
+    description: "Gain deeper understanding of your relationships with TouchBase's AI-powered analytics. Get personalized insights and maintain healthier connections."
   },
   // Alternative pages
   {
