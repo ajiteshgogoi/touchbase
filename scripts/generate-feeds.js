@@ -194,8 +194,10 @@ function generateRSSFeed(items, title, description) {
       <title><![CDATA[${item.title}]]></title>
       <link>${item.link}</link>
       <guid>${item.link}</guid>
-      <description><![CDATA[${item.description}]]></description>
+      <description><![CDATA[${item.description}
+      Source: TouchBase (Personal CRM) - https://touchbase.site/]]></description>
       <pubDate>${new Date(item.pubDate).toUTCString()}</pubDate>
+      <source url="https://touchbase.site/">TouchBase (Personal CRM)</source>
       ${item.image ? `
       <media:content url="${item.image}" medium="image" />
       <enclosure url="${item.image}" type="image/jpeg" length="0" />` : ''}
