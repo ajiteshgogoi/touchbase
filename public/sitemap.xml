@@ -2,217 +2,259 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://touchbase.site/</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1</priority>
   </url>
   <url>
     <loc>https://touchbase.site/login</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1</priority>
   </url>
   <url>
     <loc>https://touchbase.site/privacy</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/terms</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/support</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/pricing</loc>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/features/smart-contact-management</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/features/intelligent-reminders</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/features/personalized-suggestions</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/features/conversation-prompts</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/features/bulk-import-export</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/features/important-events</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/features/ai-chat-assistant</loc>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/features/relationship-insights</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-personal-crm</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-relationship-manager</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-contact-organizer</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-relationship-management-app</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/personal-crm-tool</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/contact-management-software</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/relationship-tracking-tool</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/networking-management-software</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-crm-for-friends</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-crm-for-personal-use</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-personal-relationship-crm</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/personal-crm-system</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-crm-for-personal-life</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/alternatives/best-personal-crm-for-networking</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/compare/monica-personal-crm-vs-touchbase</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/compare/dex-personal-crm-vs-touchbase</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/compare/clay-personal-crm-vs-touchbase</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/compare/cloze-personal-crm-vs-touchbase</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/compare/notion-personal-crm-vs-touchbase</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/compare/airtable-personal-crm-vs-touchbase</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://touchbase.site/compare/free-vs-paid-personal-crm</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/feeds/blog.xml</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/feeds/features.xml</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/feeds/alternatives.xml</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/feeds/comparisons.xml</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://touchbase.site/blog</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/ultimate-personal-crm-guide</loc>
-    <lastmod>2025-04-07</lastmod>
+    <lastmod>2025-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/work-life-harmony</loc>
-    <lastmod>2025-04-05</lastmod>
+    <lastmod>2025-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/introvert-personal-crm</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -224,7 +266,7 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/stay-connected-with-college-friends</loc>
-    <lastmod>2025-04-05</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -236,7 +278,7 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/why-a-personal-crm</loc>
-    <lastmod>2025-04-05</lastmod>
+    <lastmod>2025-04-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -248,31 +290,31 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/nurturing-close-relationships</loc>
-    <lastmod>2025-04-05</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/overcoming-obstacles-in-maintaining-relationships</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/building-stronger-personal-relationships</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/how-to-maintain-friendships</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/relationship-management-tips-for-busy-professionals</loc>
-    <lastmod>2025-04-06</lastmod>
+    <lastmod>2025-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -284,19 +326,19 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/support-friends-and-family-through-difficult-times</loc>
-    <lastmod>2025-04-06</lastmod>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/keep-track-of-important-details</loc>
-    <lastmod>2025-04-05</lastmod>
+    <lastmod>2025-04-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/meaningful-relationships-in-a-busy-world</loc>
-    <lastmod>2025-04-06</lastmod>
+    <lastmod>2025-04-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -314,7 +356,7 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/importance-of-vulnerability-in-building-trust</loc>
-    <lastmod>2025-04-04</lastmod>
+    <lastmod>2025-04-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -338,19 +380,19 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/impact-of-social-media-on-relationships</loc>
-    <lastmod>2025-04-07</lastmod>
+    <lastmod>2025-04-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/adhd-strategies-for-personal-relationships</loc>
-    <lastmod>2025-04-05</lastmod>
+    <lastmod>2025-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/personal-crm-for-real-life</loc>
-    <lastmod>2025-04-05</lastmod>
+    <lastmod>2025-04-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -362,13 +404,13 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/building-meaningful-relationships-in-a-new-city-or-country</loc>
-    <lastmod>2025-04-06</lastmod>
+    <lastmod>2025-04-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/friendship-crm-the-anti-social-network</loc>
-    <lastmod>2025-04-07</lastmod>
+    <lastmod>2025-04-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -386,13 +428,127 @@
   </url>
   <url>
     <loc>https://touchbase.site/blog/managing-your-social-battery</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://touchbase.site/blog/building-stronger-relationships-without-overcomplicating-your-life</loc>
-    <lastmod>2025-04-09</lastmod>
+    <lastmod>2025-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/what-is-touchbase</loc>
+    <lastmod>2025-04-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/emails-dont-maintain-relationships</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/importance-of-interpersonal-relationships</loc>
+    <lastmod>2025-04-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/be-a-more-thoughtful-friend</loc>
+    <lastmod>2025-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/digital-detox-for-relationships</loc>
+    <lastmod>2025-04-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/maintaining-friendships-with-adhd</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/reduce-social-anxiety-around-staying-in-touch</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/turn-networking-into-lasting-connections-for-the-entp</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/beating-relationship-analysis-paralysis-for-intps</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/istj-playbook-for-dependable-friendships</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/managing-your-social-life-with-touchbase</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/proactive-steps-to-stay-connected</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/personal-crm-to-power-professional-networking</loc>
+    <lastmod>2025-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/enfj-companion-for-consistent-connection</loc>
+    <lastmod>2025-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/how-touchbase-streamlines-relationship-management-for-entjs</loc>
+    <lastmod>2025-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/intj-guide-to-efficient-relationship-management</loc>
+    <lastmod>2025-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/how-touchbase-helps-enfp-nurture-connections</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/how-touchbase-supports-infp-values</loc>
+    <lastmod>2025-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://touchbase.site/blog/how-touchbase-can-help-isfj</loc>
+    <lastmod>2025-04-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
