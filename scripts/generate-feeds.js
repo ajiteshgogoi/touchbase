@@ -181,9 +181,9 @@ async function getBlogPosts() {
       slug,
       description,
       mainImage,
-      _createdAt,
+      publishedAt,
       _updatedAt
-    } | order(_createdAt desc)
+    } | order(publishedAt desc)
   `);
 }
 
@@ -232,7 +232,7 @@ async function generateFeeds() {
       title: post.title,
       link: `${baseUrl}/blog/${post.slug.current}`,
       description: post.description || '',
-      pubDate: post._createdAt,
+      pubDate: post.publishedAt,
       image: post.mainImage ? urlFor(post.mainImage) : null
     }));
     
