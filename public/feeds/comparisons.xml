@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Touchbase Comparisons</title>
+    <link>https://touchbase.site</link>
+    <description>Compare Touchbase with other personal CRM solutions</description>
+    <language>en-US</language>
+    <lastBuildDate>Fri, 18 Apr 2025 05:06:40 GMT</lastBuildDate>
+    <atom:link href="https://touchbase.site/feeds/touchbase-comparisons.xml" rel="self" type="application/rss+xml"/>
+    
+    <item>
+      <title><![CDATA[Monica Personal CRM vs Touchbase]]></title>
+      <link>https://touchbase.site/compare/monica-personal-crm-vs-touchbase</link>
+      <guid>https://touchbase.site/compare/monica-personal-crm-vs-touchbase</guid>
+      <description><![CDATA[Detailed comparison between Monica Personal CRM and Touchbase]]></description>
+      <pubDate>Fri, 18 Apr 2025 05:06:40 GMT</pubDate>
+    </item>
+  
+  </channel>
+</rss>

@@ -12,6 +12,7 @@ Allow: /alternatives/
 Allow: /compare/
 Allow: /assets/
 Allow: /blog/
+Allow: /feeds/
 Allow: /*.css
 Allow: /*.js
 Allow: /*.png
@@ -37,3 +38,9 @@ Crawl-delay: 10
 
 # Sitemap location
 Sitemap: https://touchbase.site/sitemap.xml
+
+# RSS Feed locations
+Allow: /feeds/blog.xml
+Allow: /feeds/features.xml
+Allow: /feeds/alternatives.xml
+Allow: /feeds/comparisons.xml

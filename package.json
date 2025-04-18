@@ -6,7 +6,7 @@
   "scripts": {
     "predev": "node scripts/update-version.js && npm run build:scripts && node dist/scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
     "dev": "vite",
-    "prebuild": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && npm run build:scripts && node dist/scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
+    "prebuild": "node scripts/update-version.js && node scripts/generate-sw-config.js && node scripts/generate-sitemap.js && node scripts/generate-feeds.js && npm run build:scripts && node dist/scripts/generate-blog-static.js && node scripts/import-blog-to-sanity.js",
     "build": "tsc && vite build",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -20,7 +20,8 @@
     "daily-check": "node dist/services/daily-check.js",
     "sync-users-to-brevo": "node scripts/sync-existing-users-to-brevo.js",
     "generate:blog": "npm run build:scripts && node dist/scripts/generate-blog-static.js",
-    "import:blog": "node scripts/import-blog-to-sanity.js"
+    "import:blog": "node scripts/import-blog-to-sanity.js",
+    "generate:feeds": "node scripts/generate-feeds.js"
   },
   "dependencies": {
     "@babel/runtime": ">=7.26.10",
