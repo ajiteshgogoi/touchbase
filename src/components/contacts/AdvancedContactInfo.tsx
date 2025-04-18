@@ -285,7 +285,7 @@ export const AdvancedContactInfo = ({
                         return;
                       }
 
-                      // Validate based on platform selection
+                      // Validate based on platform selection 
                       if (!formData.social_media_platform) {
                         onError({
                           social_media_handle: 'Please select a platform first'
