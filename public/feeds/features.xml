@@ -5,7 +5,7 @@
     <link>https://touchbase.site</link>
     <description>Latest features from Touchbase</description>
     <language>en-US</language>
-    <lastBuildDate>Fri, 18 Apr 2025 05:06:40 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 18 Apr 2025 05:10:28 GMT</lastBuildDate>
     <atom:link href="https://touchbase.site/feeds/touchbase-features.xml" rel="self" type="application/rss+xml"/>
     
     <item>
@@ -13,7 +13,7 @@
       <link>https://touchbase.site/features/smart-contact-management</link>
       <guid>https://touchbase.site/features/smart-contact-management</guid>
       <description><![CDATA[Efficiently manage your contacts with smart organization features]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:06:40 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
     </item>
   
 
@@ -22,7 +22,61 @@
       <link>https://touchbase.site/features/intelligent-reminders</link>
       <guid>https://touchbase.site/features/intelligent-reminders</guid>
       <description><![CDATA[Never miss important connections with intelligent reminder system]]></description>
-      <pubDate>Fri, 18 Apr 2025 05:06:40 GMT</pubDate>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
+    </item>
+  
+
+    <item>
+      <title><![CDATA[Personalized Suggestions]]></title>
+      <link>https://touchbase.site/features/personalized-suggestions</link>
+      <guid>https://touchbase.site/features/personalized-suggestions</guid>
+      <description><![CDATA[Get AI-powered suggestions for maintaining relationships]]></description>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
+    </item>
+  
+
+    <item>
+      <title><![CDATA[Conversation Prompts]]></title>
+      <link>https://touchbase.site/features/conversation-prompts</link>
+      <guid>https://touchbase.site/features/conversation-prompts</guid>
+      <description><![CDATA[Smart conversation starters and reminders for meaningful interactions]]></description>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
+    </item>
+  
+
+    <item>
+      <title><![CDATA[Bulk Import Export]]></title>
+      <link>https://touchbase.site/features/bulk-import-export</link>
+      <guid>https://touchbase.site/features/bulk-import-export</guid>
+      <description><![CDATA[Easily import and export your contacts and data]]></description>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
+    </item>
+  
+
+    <item>
+      <title><![CDATA[Important Events]]></title>
+      <link>https://touchbase.site/features/important-events</link>
+      <guid>https://touchbase.site/features/important-events</guid>
+      <description><![CDATA[Track and remember important events in your relationships]]></description>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
+    </item>
+  
+
+    <item>
+      <title><![CDATA[AI Chat Assistant]]></title>
+      <link>https://touchbase.site/features/ai-chat-assistant</link>
+      <guid>https://touchbase.site/features/ai-chat-assistant</guid>
+      <description><![CDATA[Get help managing your relationships with AI assistance]]></description>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
+    </item>
+  
+
+    <item>
+      <title><![CDATA[Relationship Insights]]></title>
+      <link>https://touchbase.site/features/relationship-insights</link>
+      <guid>https://touchbase.site/features/relationship-insights</guid>
+      <description><![CDATA[Gain valuable insights into your relationships]]></description>
+      <pubDate>Fri, 18 Apr 2025 05:10:28 GMT</pubDate>
     </item>
   
   </channel>

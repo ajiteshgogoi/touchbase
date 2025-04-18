@@ -16,6 +16,158 @@ const client = createClient({
   apiVersion: '2024-04-03',
 });
 
+// Define all public pages
+const publicPages = [
+  // Feature pages
+  {
+    url: '/features/smart-contact-management',
+    title: 'Smart Contact Management',
+    description: 'Efficiently manage your contacts with smart organization features'
+  },
+  {
+    url: '/features/intelligent-reminders',
+    title: 'Intelligent Reminders',
+    description: 'Never miss important connections with intelligent reminder system'
+  },
+  {
+    url: '/features/personalized-suggestions',
+    title: 'Personalized Suggestions',
+    description: 'Get AI-powered suggestions for maintaining relationships'
+  },
+  {
+    url: '/features/conversation-prompts',
+    title: 'Conversation Prompts',
+    description: 'Smart conversation starters and reminders for meaningful interactions'
+  },
+  {
+    url: '/features/bulk-import-export',
+    title: 'Bulk Import Export',
+    description: 'Easily import and export your contacts and data'
+  },
+  {
+    url: '/features/important-events',
+    title: 'Important Events',
+    description: 'Track and remember important events in your relationships'
+  },
+  {
+    url: '/features/ai-chat-assistant',
+    title: 'AI Chat Assistant',
+    description: 'Get help managing your relationships with AI assistance'
+  },
+  {
+    url: '/features/relationship-insights',
+    title: 'Relationship Insights',
+    description: 'Gain valuable insights into your relationships'
+  },
+  // Alternative pages
+  {
+    url: '/alternatives/best-personal-crm',
+    title: 'Best Personal CRM',
+    description: 'Compare the best personal CRM solutions'
+  },
+  {
+    url: '/alternatives/best-relationship-manager',
+    title: 'Best Relationship Manager',
+    description: 'Find the best relationship management tools'
+  },
+  {
+    url: '/alternatives/best-contact-organizer',
+    title: 'Best Contact Organizer',
+    description: 'Compare top contact organization solutions'
+  },
+  {
+    url: '/alternatives/best-relationship-management-app',
+    title: 'Best Relationship Management App',
+    description: 'Discover the best apps for managing relationships'
+  },
+  {
+    url: '/alternatives/personal-crm-tool',
+    title: 'Personal CRM Tool',
+    description: 'Learn about personal CRM tools and options'
+  },
+  {
+    url: '/alternatives/contact-management-software',
+    title: 'Contact Management Software',
+    description: 'Compare contact management software solutions'
+  },
+  {
+    url: '/alternatives/relationship-tracking-tool',
+    title: 'Relationship Tracking Tool',
+    description: 'Find the best tools for tracking relationships'
+  },
+  {
+    url: '/alternatives/networking-management-software',
+    title: 'Networking Management Software',
+    description: 'Compare networking management software options'
+  },
+  {
+    url: '/alternatives/best-crm-for-friends',
+    title: 'Best CRM for Friends',
+    description: 'Find the perfect CRM for managing friendships'
+  },
+  {
+    url: '/alternatives/best-crm-for-personal-use',
+    title: 'Best CRM for Personal Use',
+    description: 'Compare CRMs designed for personal use'
+  },
+  {
+    url: '/alternatives/best-personal-relationship-crm',
+    title: 'Best Personal Relationship CRM',
+    description: 'Discover the best CRMs for personal relationships'
+  },
+  {
+    url: '/alternatives/personal-crm-system',
+    title: 'Personal CRM System',
+    description: 'Learn about personal CRM systems and options'
+  },
+  {
+    url: '/alternatives/best-crm-for-personal-life',
+    title: 'Best CRM for Personal Life',
+    description: 'Find the ideal CRM for your personal life'
+  },
+  {
+    url: '/alternatives/best-personal-crm-for-networking',
+    title: 'Best Personal CRM for Networking',
+    description: 'Compare CRMs optimized for networking'
+  },
+  // Comparison pages
+  {
+    url: '/compare/monica-personal-crm-vs-touchbase',
+    title: 'Monica Personal CRM vs Touchbase',
+    description: 'Detailed comparison between Monica Personal CRM and Touchbase'
+  },
+  {
+    url: '/compare/dex-personal-crm-vs-touchbase',
+    title: 'Dex Personal CRM vs Touchbase',
+    description: 'Compare Dex Personal CRM with Touchbase'
+  },
+  {
+    url: '/compare/clay-personal-crm-vs-touchbase',
+    title: 'Clay Personal CRM vs Touchbase',
+    description: 'Compare Clay Personal CRM with Touchbase'
+  },
+  {
+    url: '/compare/cloze-personal-crm-vs-touchbase',
+    title: 'Cloze Personal CRM vs Touchbase',
+    description: 'Compare Cloze Personal CRM with Touchbase'
+  },
+  {
+    url: '/compare/notion-personal-crm-vs-touchbase',
+    title: 'Notion Personal CRM vs Touchbase',
+    description: 'Compare Notion Personal CRM with Touchbase'
+  },
+  {
+    url: '/compare/airtable-personal-crm-vs-touchbase',
+    title: 'Airtable Personal CRM vs Touchbase',
+    description: 'Compare Airtable Personal CRM with Touchbase'
+  },
+  {
+    url: '/compare/free-vs-paid-personal-crm',
+    title: 'Free vs Paid Personal CRM',
+    description: 'Compare free and paid personal CRM options'
+  }
+];
+
 // Fetch all blog posts from Sanity with full content
 async function getBlogPosts() {
   return client.fetch(`
@@ -79,21 +231,14 @@ async function generateFeeds() {
     );
 
     // Generate features feed
-    const featureItems = [
-      {
-        title: 'Smart Contact Management',
-        link: `${baseUrl}/features/smart-contact-management`,
-        description: 'Efficiently manage your contacts with smart organization features',
+    const featureItems = publicPages
+      .filter(page => page.url.startsWith('/features/'))
+      .map(page => ({
+        title: page.title,
+        link: `${baseUrl}${page.url}`,
+        description: page.description,
         pubDate: new Date()
-      },
-      {
-        title: 'Intelligent Reminders',
-        link: `${baseUrl}/features/intelligent-reminders`,
-        description: 'Never miss important connections with intelligent reminder system',
-        pubDate: new Date()
-      },
-      // Add other features here
-    ];
+      }));
 
     fs.writeFileSync(
       path.join(feedsDir, 'features.xml'),
@@ -101,15 +246,14 @@ async function generateFeeds() {
     );
 
     // Generate alternatives feed
-    const alternativeItems = [
-      {
-        title: 'Best Personal CRM Alternatives',
-        link: `${baseUrl}/alternatives/best-personal-crm`,
-        description: 'Compare the best personal CRM alternatives',
+    const alternativeItems = publicPages
+      .filter(page => page.url.startsWith('/alternatives/'))
+      .map(page => ({
+        title: page.title,
+        link: `${baseUrl}${page.url}`,
+        description: page.description,
         pubDate: new Date()
-      },
-      // Add other alternatives here
-    ];
+      }));
 
     fs.writeFileSync(
       path.join(feedsDir, 'alternatives.xml'),
@@ -117,15 +261,14 @@ async function generateFeeds() {
     );
 
     // Generate comparisons feed
-    const comparisonItems = [
-      {
-        title: 'Monica Personal CRM vs Touchbase',
-        link: `${baseUrl}/compare/monica-personal-crm-vs-touchbase`,
-        description: 'Detailed comparison between Monica Personal CRM and Touchbase',
+    const comparisonItems = publicPages
+      .filter(page => page.url.startsWith('/compare/'))
+      .map(page => ({
+        title: page.title,
+        link: `${baseUrl}${page.url}`,
+        description: page.description,
         pubDate: new Date()
-      },
-      // Add other comparisons here
-    ];
+      }));
 
     fs.writeFileSync(
       path.join(feedsDir, 'comparisons.xml'),
