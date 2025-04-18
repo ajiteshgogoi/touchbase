@@ -22,6 +22,10 @@
     <meta name="twitter:title" content="POST_OG_TITLE">
     <meta name="twitter:description" content="POST_OG_DESCRIPTION">
     <meta name="twitter:image" content="POST_OG_IMAGE">
+    
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="TouchBase Blog RSS Feed" href="/feeds/blog.xml">
+    
     <link href="/static.css" rel="stylesheet">
 
     <!-- Schema.org JSON-LD structured data -->
@@ -158,6 +162,11 @@
 
                 <div id="categories">
                   CATEGORIES_SECTION
+                </div>
+                <div class="mt-4 flex items-center justify-center">
+                  <a href="/feeds/blog.xml" class="inline-flex items-center hover:opacity-80 transition-opacity duration-200" title="RSS Feed" aria-label="RSS Feed">
+                    <img src="/rss.png" alt="RSS Feed" class="w-5 h-5" width="20" height="20" />
+                  </a>
                 </div>
               </div>
               <div class="bg-white/60 backdrop-blur-xl rounded-xl border border-gray-100/50 shadow-soft" id="post-content" itemprop="articleBody">
