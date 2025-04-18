@@ -247,7 +247,8 @@ async function generateFeeds() {
         title: page.title,
         link: `${baseUrl}${page.url}`,
         description: page.description,
-        pubDate: new Date()
+        pubDate: new Date(),
+        image: `${baseUrl}/og.png`
       }));
 
     fs.writeFileSync(
@@ -262,7 +263,8 @@ async function generateFeeds() {
         title: page.title,
         link: `${baseUrl}${page.url}`,
         description: page.description,
-        pubDate: new Date()
+        pubDate: new Date(),
+        image: `${baseUrl}/og.png`
       }));
 
     fs.writeFileSync(
@@ -277,7 +279,8 @@ async function generateFeeds() {
         title: page.title,
         link: `${baseUrl}${page.url}`,
         description: page.description,
-        pubDate: new Date()
+        pubDate: new Date(),
+        image: `${baseUrl}/og.png`
       }));
 
     fs.writeFileSync(

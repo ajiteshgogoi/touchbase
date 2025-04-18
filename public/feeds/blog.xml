@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>Touchbase Blog</title>
     <link>https://touchbase.site</link>
-    <description>Latest articles from Touchbase</description>
+    <description>Latest posts and updates from Touchbase Personal CRM</description>
     <language>en-US</language>
-    <lastBuildDate>Fri, 18 Apr 2025 05:10:28 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 18 Apr 2025 05:53:01 GMT</lastBuildDate>
     <atom:link href="https://touchbase.site/feeds/touchbase-blog.xml" rel="self" type="application/rss+xml"/>
     
     <item>
@@ -14,6 +14,9 @@
       <guid>https://touchbase.site/blog/how-touchbase-can-help-isfj</guid>
       <description><![CDATA[For an ISFJ, who thrives on order and values deep, authentic connections, Touchbase can feel like a natural extension of their caring nature.]]></description>
       <pubDate>Fri, 18 Apr 2025 02:14:14 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/0239c5af3c870449832dedd222c8dad87eb563fb-3648x2736.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/0239c5af3c870449832dedd222c8dad87eb563fb-3648x2736.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -23,6 +26,9 @@
       <guid>https://touchbase.site/blog/how-touchbase-supports-infp-values</guid>
       <description><![CDATA[The INFP's desire for authentic connection is paramount, but the practicalities of nurturing those connections can feel at odds with their natural tendencies.]]></description>
       <pubDate>Fri, 18 Apr 2025 02:14:13 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/25dc5e9769f11d6940f8ab70e21b83ba371d72ae-5184x3456.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/25dc5e9769f11d6940f8ab70e21b83ba371d72ae-5184x3456.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -32,6 +38,9 @@
       <guid>https://touchbase.site/blog/how-touchbase-helps-enfp-nurture-connections</guid>
       <description><![CDATA[While making acquaintances is easy, nurturing those relationships into strong bonds can sometimes be a challenge, even for the most socially adept ENFP.]]></description>
       <pubDate>Fri, 18 Apr 2025 02:14:11 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/ee9d734858d8d7caba9b0914a912ccc8b5a906ca-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/ee9d734858d8d7caba9b0914a912ccc8b5a906ca-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -41,6 +50,9 @@
       <guid>https://touchbase.site/blog/intj-guide-to-efficient-relationship-management</guid>
       <description><![CDATA[Many INTJs grapple with balancing their need for autonomy with the requirements of nurturing personal bonds. The good news? There is a better system.]]></description>
       <pubDate>Thu, 17 Apr 2025 09:09:42 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/0d0303331f29c2d294406991b98385c15287fe9f-4630x3087.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/0d0303331f29c2d294406991b98385c15287fe9f-4630x3087.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -50,6 +62,9 @@
       <guid>https://touchbase.site/blog/how-touchbase-streamlines-relationship-management-for-entjs</guid>
       <description><![CDATA[In the complex world of personal relationships, even the most capable commander can find themselves wishing for a better system.]]></description>
       <pubDate>Thu, 17 Apr 2025 09:09:41 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/a2bdd8e384225cf718d46ba2564df777c3f467ed-5938x3964.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/a2bdd8e384225cf718d46ba2564df777c3f467ed-5938x3964.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -59,6 +74,9 @@
       <guid>https://touchbase.site/blog/enfj-companion-for-consistent-connection</guid>
       <description><![CDATA[Even for the most people-oriented, managing the intricate web of modern relationships can sometimes feel like juggling plates while riding a unicycle.]]></description>
       <pubDate>Thu, 17 Apr 2025 09:09:39 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/55ada86e250074b76a89a04055f852cff3e7dd27-5184x3456.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/55ada86e250074b76a89a04055f852cff3e7dd27-5184x3456.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -68,6 +86,9 @@
       <guid>https://touchbase.site/blog/personal-crm-to-power-professional-networking</guid>
       <description><![CDATA[Relying on memory, a chaotic spreadsheet or your phone's contact list simply isn't enough to cultivate meaningful professional connections in the long run.]]></description>
       <pubDate>Wed, 16 Apr 2025 03:23:16 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/0de41cee6adab27d9cbbd2eeb7284b4783bd4019-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/0de41cee6adab27d9cbbd2eeb7284b4783bd4019-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -77,6 +98,9 @@
       <guid>https://touchbase.site/blog/proactive-steps-to-stay-connected</guid>
       <description><![CDATA[Life speeds up, new priorities emerge and suddenly months have passed since you last had a meaningful conversation with someone you care about.]]></description>
       <pubDate>Wed, 16 Apr 2025 03:23:14 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/b11006d0c0159f7e4ed67b365351784e729ac762-4032x3024.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/b11006d0c0159f7e4ed67b365351784e729ac762-4032x3024.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -86,6 +110,9 @@
       <guid>https://touchbase.site/blog/managing-your-social-life-with-touchbase</guid>
       <description><![CDATA[The pace of modern life can make managing relationships feel like another demanding job. What if you could trade that feeling of overwhelm for a sense of calm?]]></description>
       <pubDate>Wed, 16 Apr 2025 03:23:12 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/700a353a8d3568bfda8dfe744783291ab8d15d3b-5184x3456.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/700a353a8d3568bfda8dfe744783291ab8d15d3b-5184x3456.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -95,6 +122,9 @@
       <guid>https://touchbase.site/blog/istj-playbook-for-dependable-friendships</guid>
       <description><![CDATA[While your dependability as an ISTJ is legendary, actively maintaining numerous connections in a fast-paced world can feel like another demanding project.]]></description>
       <pubDate>Wed, 16 Apr 2025 03:23:11 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/c0771e89c4fc71a283623984a4436f9542d3001c-5316x3543.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/c0771e89c4fc71a283623984a4436f9542d3001c-5316x3543.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -104,6 +134,9 @@
       <guid>https://touchbase.site/blog/beating-relationship-analysis-paralysis-for-intps</guid>
       <description><![CDATA[INTPs often want relationships to run on logic. When faced with unwritten social rules that govern human connection, the analytical mind can stall.]]></description>
       <pubDate>Wed, 16 Apr 2025 03:23:09 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/d17aacf567716c8848937f6861e8e57cc9343709-3960x2640.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/d17aacf567716c8848937f6861e8e57cc9343709-3960x2640.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -113,6 +146,9 @@
       <guid>https://touchbase.site/blog/turn-networking-into-lasting-connections-for-the-entp</guid>
       <description><![CDATA[Your ENTP mind is constantly seeking novelty. The routine task of consistent follow-up can feel less stimulating than chasing the next breakthrough.]]></description>
       <pubDate>Wed, 16 Apr 2025 03:23:08 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/bc3b8db127804fd0f7774d45cf302dcec487aca4-5278x3519.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/bc3b8db127804fd0f7774d45cf302dcec487aca4-5278x3519.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -122,6 +158,9 @@
       <guid>https://touchbase.site/blog/reduce-social-anxiety-around-staying-in-touch</guid>
       <description><![CDATA[That little knot in your stomach when you realise it’s been weeks since you replied to a message? You're not alone.]]></description>
       <pubDate>Wed, 16 Apr 2025 03:23:06 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/51e207fbe322f1e0d4d1814b9aae06ddc8c23505-4896x3264.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/51e207fbe322f1e0d4d1814b9aae06ddc8c23505-4896x3264.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -131,6 +170,9 @@
       <guid>https://touchbase.site/blog/maintaining-friendships-with-adhd</guid>
       <description><![CDATA[You value your friends deeply, but the executive function challenges inherent in ADHD can create persistent hurdles in maintaining those bonds.]]></description>
       <pubDate>Tue, 15 Apr 2025 10:26:57 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/44dd8676db5940162154734d629e21e2c1c00dc6-3668x2737.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/44dd8676db5940162154734d629e21e2c1c00dc6-3668x2737.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -140,6 +182,9 @@
       <guid>https://touchbase.site/blog/digital-detox-for-relationships</guid>
       <description><![CDATA[If you're feeling overwhelmed by digital demands and yearning for more meaningful interactions, perhaps it's time for a different approach.]]></description>
       <pubDate>Mon, 14 Apr 2025 09:50:57 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/5e1bb51bed4a7ff4ab17357eab2ef6a17cd5b85f-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/5e1bb51bed4a7ff4ab17357eab2ef6a17cd5b85f-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -149,6 +194,9 @@
       <guid>https://touchbase.site/blog/be-a-more-thoughtful-friend</guid>
       <description><![CDATA[TouchBase helps you bridge the gap between wanting to be a thoughtful friend and actually being one, effortlessly.]]></description>
       <pubDate>Mon, 14 Apr 2025 02:44:50 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/d32fe0947c6a74079de678259a3d99a4ffc8d4c1-11720x8376.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/d32fe0947c6a74079de678259a3d99a4ffc8d4c1-11720x8376.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -158,6 +206,9 @@
       <guid>https://touchbase.site/blog/importance-of-interpersonal-relationships</guid>
       <description><![CDATA[It's easy to take our relationships for granted or assume they'll just be there. But like a garden, relationships need tending. ]]></description>
       <pubDate>Sat, 12 Apr 2025 04:55:18 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/a0bfbd3780f2a49f3b6ff0233672724ab7d1d456-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/a0bfbd3780f2a49f3b6ff0233672724ab7d1d456-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -167,6 +218,9 @@
       <guid>https://touchbase.site/blog/emails-dont-maintain-relationships</guid>
       <description><![CDATA[It feels productive, efficient even. But when was the last time an email truly deepened a friendship or fostered genuine warmth with a professional contact?]]></description>
       <pubDate>Sat, 12 Apr 2025 02:16:52 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/85cce5406683a7e2f1cf208f206a1138abfe516e-5184x3888.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/85cce5406683a7e2f1cf208f206a1138abfe516e-5184x3888.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -176,6 +230,9 @@
       <guid>https://touchbase.site/blog/what-is-touchbase</guid>
       <description><![CDATA[Explore what TouchBase is, how it works and how it can help you build and maintain the meaningful connections you cherish.]]></description>
       <pubDate>Fri, 11 Apr 2025 05:29:50 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/f839197a39ab058053515fc1478548a55e069029-1200x630.png" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/f839197a39ab058053515fc1478548a55e069029-1200x630.png" type="image/jpeg" length="0" />
     </item>
   
 
@@ -185,6 +242,9 @@
       <guid>https://touchbase.site/blog/building-stronger-relationships-without-overcomplicating-your-life</guid>
       <description><![CDATA[This guide provides practical, actionable strategies to strengthen your relationships without adding unnecessary complexity to your already busy life.]]></description>
       <pubDate>Wed, 09 Apr 2025 04:41:42 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/775aa4f3f27950949de9fee806a63ebf813ce0c2-5237x3200.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/775aa4f3f27950949de9fee806a63ebf813ce0c2-5237x3200.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -194,6 +254,9 @@
       <guid>https://touchbase.site/blog/managing-your-social-battery</guid>
       <description><![CDATA[In this guide we'll explore practical strategies for managing your social battery, so you can thrive in all aspects of your life.]]></description>
       <pubDate>Wed, 09 Apr 2025 04:41:41 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/43467252d8f27073e93589655046e63fbac64432-5375x3272.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/43467252d8f27073e93589655046e63fbac64432-5375x3272.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -203,6 +266,9 @@
       <guid>https://touchbase.site/blog/relationship-maintenance-for-istps</guid>
       <description><![CDATA[This guide offers a no-nonsense approach to relationship maintenance tailored specifically for the ISTP personality.]]></description>
       <pubDate>Wed, 09 Apr 2025 04:41:39 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/66b8df9bd10a65870c11d55fa6213f0182836b59-3829x2411.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/66b8df9bd10a65870c11d55fa6213f0182836b59-3829x2411.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -212,6 +278,9 @@
       <guid>https://touchbase.site/blog/how-to-remember-birthdays</guid>
       <description><![CDATA[This comprehensive guide provides a range of practical strategies and tools to help you remember birthdays and become a birthday-remembering superstar.]]></description>
       <pubDate>Wed, 09 Apr 2025 04:41:37 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/19aa823a88991451fd2a39bd5ab8a5615d5b9c48-4774x3437.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/19aa823a88991451fd2a39bd5ab8a5615d5b9c48-4774x3437.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -221,6 +290,9 @@
       <guid>https://touchbase.site/blog/friendship-crm-the-anti-social-network</guid>
       <description><![CDATA[Social media platforms often leave us feeling more isolated than ever. Enter the Friendship CRM, a tool designed to nurture your real-life relationships.]]></description>
       <pubDate>Mon, 07 Apr 2025 20:13:01 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/6de5abc8891276e5f7b01393452275988b5ebbc7-5472x3648.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/6de5abc8891276e5f7b01393452275988b5ebbc7-5472x3648.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -230,6 +302,9 @@
       <guid>https://touchbase.site/blog/building-meaningful-relationships-in-a-new-city-or-country</guid>
       <description><![CDATA[Moving to a new city or country is an exciting adventure, filled with opportunities for growth and discovery. However, it can also be a daunting experience.]]></description>
       <pubDate>Sun, 06 Apr 2025 00:03:13 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/329b439c3f83a1d844c809c54a8bb29b9a0a38d3-5590x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/329b439c3f83a1d844c809c54a8bb29b9a0a38d3-5590x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -239,6 +314,9 @@
       <guid>https://touchbase.site/blog/supporting-someone-struggling-with-mental-health</guid>
       <description><![CDATA[Supporting a friend or family member struggling with mental health is a delicate but crucial act of love and compassion.]]></description>
       <pubDate>Sat, 05 Apr 2025 23:54:29 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/adefa1ee210800fe2dbf2e47390531fd31ef42a3-7952x5304.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/adefa1ee210800fe2dbf2e47390531fd31ef42a3-7952x5304.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -248,6 +326,9 @@
       <guid>https://touchbase.site/blog/personal-crm-for-real-life</guid>
       <description><![CDATA[We're bombarded with information, constantly juggling commitments and often find ourselves struggling to maintain meaningful relationships amidst the chaos.]]></description>
       <pubDate>Sat, 05 Apr 2025 23:41:32 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/6a85730332eae78f7091779bf0f5bdfc5daf6e6d-4032x3024.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/6a85730332eae78f7091779bf0f5bdfc5daf6e6d-4032x3024.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -257,6 +338,9 @@
       <guid>https://touchbase.site/blog/adhd-strategies-for-personal-relationships</guid>
       <description><![CDATA[With the right strategies and a little understanding, you can nurture and strengthen your relationships while working with your ADHD brain, not against it.]]></description>
       <pubDate>Sat, 05 Apr 2025 22:50:06 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/10fc3eb24563920387e2f15f5fa0246a9a218fbe-3088x2316.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/10fc3eb24563920387e2f15f5fa0246a9a218fbe-3088x2316.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -266,6 +350,9 @@
       <guid>https://touchbase.site/blog/impact-of-social-media-on-relationships</guid>
       <description><![CDATA[While social media offers numerous benefits for building and maintaining connections, it also presents unique challenges that can strain relationships.]]></description>
       <pubDate>Sat, 05 Apr 2025 12:34:53 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/588bb8f01cf8f0afe460ce06d1595119e09095e6-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/588bb8f01cf8f0afe460ce06d1595119e09095e6-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -275,6 +362,9 @@
       <guid>https://touchbase.site/blog/how-to-identify-and-address-toxic-relationships</guid>
       <description><![CDATA[This post will guide you through the process of recognising the signs of a toxic relationship and practical steps you can take to address these relationships.]]></description>
       <pubDate>Sat, 05 Apr 2025 12:34:52 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/4ca93921ab91c5fea52f68ce47990a7ef97f5e3f-5472x3648.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/4ca93921ab91c5fea52f68ce47990a7ef97f5e3f-5472x3648.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -284,6 +374,9 @@
       <guid>https://touchbase.site/blog/how-to-communicate-your-needs</guid>
       <description><![CDATA[This post will provide you with practical strategies to communicate your needs effectively and strengthen your personal relationships.]]></description>
       <pubDate>Sat, 05 Apr 2025 12:34:50 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/71a4111578cfb4dbff4ae1689583127eb6bc3703-4608x3072.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/71a4111578cfb4dbff4ae1689583127eb6bc3703-4608x3072.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -293,6 +386,9 @@
       <guid>https://touchbase.site/blog/how-to-resolve-conflicts</guid>
       <description><![CDATA[This post will explore strategies and techniques for navigating conflict effectively, turning potential flashpoints into opportunities for growth.]]></description>
       <pubDate>Sat, 05 Apr 2025 11:09:59 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/7fb5e31199053f02306fae7f167a7be0b072e2ad-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/7fb5e31199053f02306fae7f167a7be0b072e2ad-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -302,6 +398,9 @@
       <guid>https://touchbase.site/blog/building-stronger-personal-relationships</guid>
       <description><![CDATA[This guide will explore practical, actionable strategies to cultivate and nurture deeper, more meaningful connections with the people who matter most.]]></description>
       <pubDate>Sat, 05 Apr 2025 04:53:56 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/4c1ceb98cc5e43e5dc7a10f3aa93e58cd54d2684-4926x3284.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/4c1ceb98cc5e43e5dc7a10f3aa93e58cd54d2684-4926x3284.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -311,6 +410,9 @@
       <guid>https://touchbase.site/blog/setting-healthy-boundaries</guid>
       <description><![CDATA[Boundaries are essential for maintaining healthy relationships, preserving our sense of self and living a fulfilling life.]]></description>
       <pubDate>Fri, 04 Apr 2025 23:55:18 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/7a148568331dd8957ea37b33e927b17cd9e245c1-5184x3888.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/7a148568331dd8957ea37b33e927b17cd9e245c1-5184x3888.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -320,6 +422,9 @@
       <guid>https://touchbase.site/blog/importance-of-vulnerability-in-building-trust</guid>
       <description><![CDATA[In this post, we'll explore the crucial role that vulnerability plays in building trust, both in our personal and professional lives. ]]></description>
       <pubDate>Fri, 04 Apr 2025 23:29:43 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/5e32ad3b0863899083c676830e6b71e7b0f74f88-5805x3875.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/5e32ad3b0863899083c676830e6b71e7b0f74f88-5805x3875.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -329,6 +434,9 @@
       <guid>https://touchbase.site/blog/how-to-maintain-friendships</guid>
       <description><![CDATA[This guide provides practical tips to help you stay connected with your friends even when time is tight. It's about quality over quantity.]]></description>
       <pubDate>Fri, 04 Apr 2025 23:12:38 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/e77a2b5661acf6e33e35aac24df7ba49ed388032-5184x3456.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/e77a2b5661acf6e33e35aac24df7ba49ed388032-5184x3456.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -338,6 +446,9 @@
       <guid>https://touchbase.site/blog/being-a-people-person</guid>
       <description><![CDATA[Whether you're looking to improve your relationships or simply feel more connected, this guide will provide you with the tools and insights you need to succeed.]]></description>
       <pubDate>Fri, 04 Apr 2025 09:11:51 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/86f13b457e5c17cba2dd1c1e0ae414ff0d72182a-5090x3393.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/86f13b457e5c17cba2dd1c1e0ae414ff0d72182a-5090x3393.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -347,6 +458,9 @@
       <guid>https://touchbase.site/blog/art-of-meaningful-conversation</guid>
       <description><![CDATA[This article will explore the nuances of meaningful conversation, providing practical tips and actionable strategies to help you foster deeper connections.]]></description>
       <pubDate>Fri, 04 Apr 2025 04:08:08 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/b1601666ede6236d429712b38719a73cab2736d3-5889x3931.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/b1601666ede6236d429712b38719a73cab2736d3-5889x3931.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -356,6 +470,9 @@
       <guid>https://touchbase.site/blog/relationship-management-tips-for-busy-professionals</guid>
       <description><![CDATA[This guide provides ten essential relationship management tips, helping you prioritise connection without sacrificing your career goals.]]></description>
       <pubDate>Fri, 04 Apr 2025 03:11:04 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/dd18f95d1b36d09ae77f74876ff6524c351abf49-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/dd18f95d1b36d09ae77f74876ff6524c351abf49-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -365,6 +482,9 @@
       <guid>https://touchbase.site/blog/overcoming-obstacles-in-maintaining-relationships</guid>
       <description><![CDATA[This guide dives deep into the common challenges we face in maintaining relationships, offering practical advice and actionable steps to help you overcome them.]]></description>
       <pubDate>Fri, 04 Apr 2025 01:51:21 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/3608b7b22bfbd3f6ce3157e2224cae39bb9c6588-5472x3648.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/3608b7b22bfbd3f6ce3157e2224cae39bb9c6588-5472x3648.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -374,6 +494,9 @@
       <guid>https://touchbase.site/blog/support-friends-and-family-through-difficult-times</guid>
       <description><![CDATA[This guide offers practical tips and heartfelt advice on how to be a true source of comfort and strength for your loved ones.]]></description>
       <pubDate>Fri, 04 Apr 2025 01:31:57 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/8ef02749ede7a22c5aadac6bbb82799b2ca8824f-6720x4480.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/8ef02749ede7a22c5aadac6bbb82799b2ca8824f-6720x4480.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -383,6 +506,9 @@
       <guid>https://touchbase.site/blog/stay-connected-with-college-friends</guid>
       <description><![CDATA[Explore practical tips, creative ideas and the importance of intentionality in nurturing college friendships.]]></description>
       <pubDate>Fri, 04 Apr 2025 00:19:09 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/502b46ac252c807467df2cd7b731ac2a3c9c481e-6016x4016.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/502b46ac252c807467df2cd7b731ac2a3c9c481e-6016x4016.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -392,6 +518,9 @@
       <guid>https://touchbase.site/blog/best-apps-for-remembering-birthdays</guid>
       <description><![CDATA[This guide explores the best apps available to help you stay on top of important dates and strengthen your relationships.]]></description>
       <pubDate>Thu, 03 Apr 2025 23:17:07 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/38168116dd5f4a95ed92456b9d70dd1dc8d9eaa7-4096x3072.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/38168116dd5f4a95ed92456b9d70dd1dc8d9eaa7-4096x3072.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -401,6 +530,9 @@
       <guid>https://touchbase.site/blog/nurturing-close-relationships</guid>
       <description><![CDATA[This guide explores actionable habits you can integrate into your daily life to cultivate stronger, more meaningful relationships with the people you cherish.]]></description>
       <pubDate>Thu, 03 Apr 2025 22:34:07 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/446cdd996830fea2f7efa0a221c60c0c704ba1d2-5472x3648.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/446cdd996830fea2f7efa0a221c60c0c704ba1d2-5472x3648.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -410,6 +542,9 @@
       <guid>https://touchbase.site/blog/ultimate-personal-crm-guide</guid>
       <description><![CDATA[Maintaining strong connections with friends and family requires effort, but what if there was a way to streamline the process?]]></description>
       <pubDate>Thu, 03 Apr 2025 22:15:44 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/5f95b37d2108e4a9ca77b5e82d6065066ecc8dd6-7360x4912.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/5f95b37d2108e4a9ca77b5e82d6065066ecc8dd6-7360x4912.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -419,6 +554,9 @@
       <guid>https://touchbase.site/blog/how-to-use-personal-crm</guid>
       <description><![CDATA[This guide will walk you through the basics of using a personal CRM, from understanding its benefits to choosing the right tool.]]></description>
       <pubDate>Thu, 03 Apr 2025 20:54:55 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/cb0070e8e3b77f32bb3c170140aa1ae9f493832d-5472x3648.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/cb0070e8e3b77f32bb3c170140aa1ae9f493832d-5472x3648.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -428,6 +566,9 @@
       <guid>https://touchbase.site/blog/keep-track-of-important-details</guid>
       <description><![CDATA[What if you could effortlessly remember the important details about your loved ones, strengthening your bonds and making them feel truly seen and valued?]]></description>
       <pubDate>Thu, 03 Apr 2025 19:28:10 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/96fd00213ff5730e6fd4ea3003c702273dd2724a-6000x4000.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/96fd00213ff5730e6fd4ea3003c702273dd2724a-6000x4000.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -437,6 +578,9 @@
       <guid>https://touchbase.site/blog/art-of-active-listening</guid>
       <description><![CDATA[This blog post will explore the profound impact of active listening on your relationships, providing practical tips and techniques to hone your skills.]]></description>
       <pubDate>Thu, 03 Apr 2025 18:26:15 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/16a59eda5b932ed7882fdea57f7d44d1c56077e1-5607x3738.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/16a59eda5b932ed7882fdea57f7d44d1c56077e1-5607x3738.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -446,6 +590,9 @@
       <guid>https://touchbase.site/blog/introvert-personal-crm</guid>
       <description><![CDATA[A tool traditionally used by sales teams to manage clients can be a game-changer for introverts looking to cultivate meaningful relationships.]]></description>
       <pubDate>Thu, 03 Apr 2025 17:46:02 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/b0127c90adc54bf946423c534caa5c2f5506fb44-7008x4672.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/b0127c90adc54bf946423c534caa5c2f5506fb44-7008x4672.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -455,6 +602,9 @@
       <guid>https://touchbase.site/blog/work-life-harmony</guid>
       <description><![CDATA[Explore how focusing on relationship management can be the secret weapon you need to rediscover joy in both your professional and personal life.]]></description>
       <pubDate>Thu, 03 Apr 2025 17:27:39 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/41a9e08c0eaed7546a995bd3362a67ab4eff6878-3872x2592.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/41a9e08c0eaed7546a995bd3362a67ab4eff6878-3872x2592.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -464,6 +614,9 @@
       <guid>https://touchbase.site/blog/meaningful-relationships-in-a-busy-world</guid>
       <description><![CDATA[It's easy to let friendships fade and family bonds weaken. But strong, meaningful relationships are the bedrock of a happy and fulfilling life.]]></description>
       <pubDate>Thu, 03 Apr 2025 08:49:00 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/b71cf2fa7298b4ac5be4ccbf5b6fc76bf1600736-4500x3003.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/b71cf2fa7298b4ac5be4ccbf5b6fc76bf1600736-4500x3003.jpg" type="image/jpeg" length="0" />
     </item>
   
 
@@ -473,6 +626,9 @@
       <guid>https://touchbase.site/blog/why-a-personal-crm</guid>
       <description><![CDATA[If you're thinking, "CRM? Isn't that for businesses?" you're not wrong. But core principles of relationship management are as valuable in our personal lives.]]></description>
       <pubDate>Thu, 03 Apr 2025 04:00:25 GMT</pubDate>
+      
+      <media:content url="https://cdn.sanity.io/images/p0u3uh48/production/1e73b4e686618e33a8558bbae793b2b4018fd0e6-3723x2792.jpg" medium="image" />
+      <enclosure url="https://cdn.sanity.io/images/p0u3uh48/production/1e73b4e686618e33a8558bbae793b2b4018fd0e6-3723x2792.jpg" type="image/jpeg" length="0" />
     </item>
   
   </channel>
