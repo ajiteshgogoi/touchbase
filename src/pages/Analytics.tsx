@@ -275,7 +275,8 @@ export const Analytics = () => {
               )}
             </span>
           </button>
-          {analytics && !canGenerate && (
+          {/* Show cooldown message only if analytics exist, generation isn't allowed yet, AND the reason is the cooldown period */}
+          {analytics && !canGenerate && dayjs().isBefore(dayjs(analytics.nextGenerationAllowed)) && (
             <p className="text-[15px] text-primary-500 dark:text-primary-400 font-[500] text-center sm:text-right">
               New insights available {dayjs(analytics.nextGenerationAllowed).fromNow()}
             </p>
