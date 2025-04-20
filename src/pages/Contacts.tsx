@@ -121,7 +121,7 @@ export const Contacts = () => {
         const pageSize = 950; // Process in chunks of 950
         
         while (true) {
-          // Get contact IDs in chunks
+          // Get contact IDs in chunks 
           let query = supabase
             .from('contacts')
             .select('id')
