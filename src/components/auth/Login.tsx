@@ -101,7 +101,7 @@ export const Login = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-700/90 dark:text-gray-100 mb-2">Simple & Personal</h3>
-              <p className="text-gray-600/90 dark:text-gray-400 leading-relaxed">Track important interactions with your loved ones in one space</p>
+              <p className="text-gray-600/90 dark:text-gray-400 leading-relaxed">Track all your important interactions inside a personal crm</p>
             </div>
             
             <div className="p-6 rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-md border border-gray-100/50 dark:border-gray-800/50 shadow-sm dark:shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300">
