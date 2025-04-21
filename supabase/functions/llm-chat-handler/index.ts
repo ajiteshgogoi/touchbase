@@ -573,14 +573,97 @@ serve(async (req) => {
             }
 
             // 3. Recalculate next due date if needed (frequency or events changed)
-            // Note: contacts.ts service handles this more robustly.
-            // Here, we'll rely on the next interaction to trigger recalculation via log_interaction_and_update_contact
-            // or potentially add a direct recalculate call if strictly necessary.
-            // For now, we skip explicit recalculation here to avoid complexity.
-            // if (requiresRecalculation) {
-            //    // Consider calling a recalculate RPC or function if available/needed
-            // }
+            if (requiresRecalculation) {
+              console.log(`Recalculating next due date for contact ${contact_id} due to update.`);
+              try {
+                // Fetch full contact details needed for recalculation
+                const { data: contact, error: fetchContactError } = await supabaseAdminClient
+                  .from('contacts')
+                  .select('id, user_id, last_contacted, contact_frequency, preferred_contact_method') // Removed missed_interactions as it's reset on interaction, not here
+                  .eq('id', contact_id)
+                  .single();
 
+                if (fetchContactError) throw fetchContactError;
+                if (!contact) throw new Error('Contact not found for recalculation.');
+
+                // Fetch user timezone
+                const { data: userPref } = await supabaseAdminClient
+                  .from('user_preferences')
+                  .select('timezone')
+                  .eq('user_id', contact.user_id)
+                  .single();
+                const timezone = userPref?.timezone || 'UTC';
+
+                // Fetch important events
+                const { data: importantEventsData, error: fetchEventsError } = await supabaseAdminClient
+                  .from('important_events')
+                  .select('date')
+                  .eq('contact_id', contact_id);
+
+                if (fetchEventsError) throw fetchEventsError;
+                const importantEvents = importantEventsData || [];
+
+                // Calculate regular due date using helper
+                // Pass the potentially updated frequency from contactUpdates or fallback to fetched contact data
+                const currentFrequency = contactUpdates.contact_frequency || contact.contact_frequency;
+                // Use the contact's last_contacted date as the base for calculation
+                const regularDueDate = calculateNextDueDateEdge(currentFrequency, contact.last_contacted, timezone);
+
+                // Find next important event date (UTC)
+                const now = new Date();
+                const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+                const nextImportantEventDate = importantEvents
+                  .map(event => getNextOccurrenceUTC(event.date)) // Use UTC helper
+                  .filter(date => date >= todayUTC) // Only consider future occurrences in UTC
+                  .sort((a, b) => a.getTime() - b.getTime())[0]; // Get the soonest one
+
+                // Determine final next due date (compare UTC dates)
+                let finalNextDueDate = regularDueDate; // Already calculated in UTC
+                if (nextImportantEventDate && nextImportantEventDate < finalNextDueDate) {
+                   finalNextDueDate = nextImportantEventDate;
+                }
+
+                // Update contact with the final calculated date
+                const { error: updateNextDueError } = await supabaseAdminClient
+                  .from('contacts')
+                  .update({ next_contact_due: finalNextDueDate.toISOString() })
+                  .eq('id', contact_id);
+
+                if (updateNextDueError) throw updateNextDueError;
+
+                // --- Manage Reminders ---
+                // Delete existing regular reminder (name is null)
+                const { error: deleteError } = await supabaseAdminClient
+                  .from('reminders')
+                  .delete()
+                  .eq('contact_id', contact_id)
+                  .is('name', null);
+
+                if (deleteError) console.error(`Error deleting old reminder during update for contact ${contact_id}:`, deleteError);
+
+                // Create new regular reminder
+                const { error: reminderError } = await supabaseAdminClient
+                  .from('reminders')
+                  .insert({
+                    contact_id: contact_id,
+                    user_id: contact.user_id,
+                    // Use the potentially updated preferred method from contactUpdates, or fallback to fetched contact data, or default
+                    type: contactUpdates.preferred_contact_method || contact.preferred_contact_method || 'message',
+                    due_date: finalNextDueDate.toISOString(),
+                    completed: false,
+                    name: null
+                  });
+
+                if (reminderError) console.error(`Error creating new reminder during update for contact ${contact_id}:`, reminderError);
+
+                console.log(`Successfully recalculated next due date and updated reminder for contact ${contact_id}.`);
+
+              } catch (recalcError) {
+                console.error(`Error during next due date recalculation for contact ${contact_id}:`, recalcError);
+                // Log error but don't fail the entire update operation
+              }
+            }
 
             return createResponse({ reply: `Contact "${params.contact_name}" updated successfully.` });
 
