@@ -34,6 +34,85 @@ interface ChatResponse {
   error?: string;
 }
 
+// --- Helper function to replicate calculateNextContactDate logic (corrected) ---
+// Includes check against current time to ensure due date is always in the future.
+const calculateNextDueDateEdge = (
+  frequency: string,
+  lastContacted: string | null,
+  timezone: string = 'UTC' // Default to UTC if not provided
+): Date => {
+  // Helper to get current time normalized to start of day in the specified timezone
+  const getNormalizedNow = (tz: string): Date => {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+    now.setHours(0, 0, 0, 0); // Normalize to start of day in that timezone
+    return now;
+  };
+
+  // Helper to normalize a given date to start of day in the specified timezone
+  const normalizeDate = (date: Date, tz: string): Date => {
+    const normalized = new Date(date.toLocaleString('en-US', { timeZone: tz }));
+    normalized.setHours(0, 0, 0, 0);
+    return normalized;
+  };
+
+  // Determine the reference date: use lastContacted if available, otherwise use normalized 'now'
+  const referenceDate = lastContacted
+    ? normalizeDate(new Date(lastContacted), timezone)
+    : getNormalizedNow(timezone);
+
+  // Frequency intervals in days
+  const frequencyMap = {
+    every_three_days: 3,
+    weekly: 7,
+    fortnightly: 14,
+    monthly: 30, // Approximation
+    quarterly: 90 // Approximation
+  };
+  const intervalDays = frequencyMap[frequency] || 30; // Default monthly
+
+  // Calculate the initial next date based on the reference date
+  const calculatedNextDate = new Date(referenceDate);
+  calculatedNextDate.setDate(calculatedNextDate.getDate() + intervalDays);
+
+  // Get normalized 'now' for comparison
+  const nowNormalized = getNormalizedNow(timezone);
+
+  // Check if the calculated date is in the past or today
+  if (calculatedNextDate <= nowNormalized) {
+    // If it's in the past/today, calculate the next due date based on 'now' instead
+    const futureDate = new Date(nowNormalized);
+    futureDate.setDate(futureDate.getDate() + intervalDays);
+    // Ensure time is set to start of day (should be already due to normalization)
+    futureDate.setHours(0, 0, 0, 0);
+    return futureDate;
+  } else {
+    // If the calculated date is already in the future, use it
+    // Ensure time is set to start of day
+     calculatedNextDate.setHours(0, 0, 0, 0);
+    return calculatedNextDate;
+  }
+};
+
+// --- Helper function to get next occurrence of an event date in UTC ---
+const getNextOccurrenceUTC = (eventDateStr: string): Date => {
+    const eventDate = new Date(eventDateStr);
+    const now = new Date(); // Current UTC time
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    // Create event date in UTC
+    const eventDateUTC = new Date(Date.UTC(eventDate.getUTCFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate()));
+
+    // Set event to current year (UTC)
+    eventDateUTC.setUTCFullYear(todayUTC.getUTCFullYear());
+
+    // If it already passed this year, set to next year
+    if (eventDateUTC < todayUTC) {
+        eventDateUTC.setUTCFullYear(todayUTC.getUTCFullYear() + 1);
+    }
+    return eventDateUTC;
+};
+
+
 // --- Rate Limiting Helper ---
 async function checkRateLimit(supabaseClient: SupabaseClient, userId: string): Promise<boolean> {
   const windowMinutes = 15; // 15-minute window
