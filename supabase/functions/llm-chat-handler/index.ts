@@ -36,6 +36,7 @@ interface ChatResponse {
 
 // --- Helper function to replicate calculateNextContactDate logic (corrected) ---
 // Includes check against current time to ensure due date is always in the future.
+// Doesn't include missed interactions in the calculation.
 const calculateNextDueDateEdge = (
   frequency: string,
   lastContacted: string | null,
