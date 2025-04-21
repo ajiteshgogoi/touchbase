@@ -352,10 +352,61 @@ serve(async (req) => {
             });
 
             if (rpcError) throw rpcError;
-            if (!result || !result[0]?.interaction_id) throw new Error("Failed to log interaction");
+            const interactionResult = result?.[0]; // Use optional chaining
+            if (!interactionResult?.interaction_id) throw new Error("Failed to log interaction");
+
+            // --- BEGIN: Add reminder update logic ---
+            if (interactionResult.contact_updated) {
+              try {
+                // Fetch the updated contact details needed for the new reminder
+                const { data: updatedContact, error: fetchContactError } = await supabaseAdminClient
+                  .from('contacts')
+                  .select('next_contact_due, preferred_contact_method')
+                  .eq('id', contact_id)
+                  .single();
+
+                if (fetchContactError) throw fetchContactError;
+                if (!updatedContact?.next_contact_due) throw new Error("Failed to fetch updated contact details for reminder.");
+
+                // Delete existing regular reminder (name is null)
+                const { error: deleteError } = await supabaseAdminClient
+                  .from('reminders')
+                  .delete()
+                  .eq('contact_id', contact_id)
+                  .is('name', null); // Only delete regular reminders
+
+                if (deleteError) {
+                   console.error(`Error deleting old reminder for contact ${contact_id}:`, deleteError);
+                   // Decide if this should be a fatal error or just logged
+                }
+
+                // Create new regular reminder
+                const { error: reminderError } = await supabaseAdminClient
+                  .from('reminders')
+                  .insert({
+                    contact_id: contact_id,
+                    user_id: user.id, // user object is available in this scope
+                    type: updatedContact.preferred_contact_method || 'message', // Use contact's preference or default
+                    due_date: updatedContact.next_contact_due,
+                    completed: false,
+                    name: null // Ensure name is null for regular reminders
+                  });
+
+                if (reminderError) {
+                   console.error(`Error creating new reminder for contact ${contact_id}:`, reminderError);
+                   // Decide if this should be a fatal error or just logged
+                }
+                 console.log(`Reminder updated successfully for contact ${contact_id}`);
+
+              } catch (reminderUpdateError) {
+                 console.error(`Failed to update reminder after interaction log for contact ${contact_id}:`, reminderUpdateError);
+                 // Log the error but don't fail the entire interaction logging process
+              }
+            }
+            // --- END: Add reminder update logic ---
 
             return createResponse({
-              reply: `Interaction logged successfully${result.contact_updated ? ' and contact updated' : ''}.`
+              reply: `Interaction logged successfully${interactionResult.contact_updated ? ' and contact/reminder updated' : ''}.` // Updated reply message
             });
 
           } else if (action === 'update_contact') {
