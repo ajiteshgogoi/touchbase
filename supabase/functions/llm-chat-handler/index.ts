@@ -742,7 +742,7 @@ serve(async (req) => {
      type: 'call'|'message'|'social'|'meeting'|'email', // Add 'email'
      notes?: string,
      sentiment?: 'positive'|'neutral'|'negative',
-     date?: string // ISO 8601, default to now if not specified
+     date?: string // ISO 8601 (YYYY-MM-DD). **CRITICAL**: If the user mentions ANY time reference (e.g., "yesterday", "last week", "2 days ago", "on Tuesday"), you MUST parse it and include the ISO date here. Only omit this field if NO time reference is given, in which case it defaults to the current time.
    }
  - update_contact: {
      contact_name: string,
@@ -818,7 +818,9 @@ serve(async (req) => {
    {"action": "create_contact", "params": {"name": "Jane Doe", "contact_frequency": "weekly", "phone": "+1-555-0123", "preferred_contact_method": "call"}}
    {"action": "create_contact", "params": {"name": "John Smith", "contact_frequency": "monthly", "important_events": [{"type": "birthday", "date": "1990-04-07", "name": null}]}}
    {"action": "create_contact", "params": {"name": "Alice Brown", "contact_frequency": "weekly", "important_events": [{"type": "custom", "date": "2024-06-15", "name": "Graduation"}]}}
-   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}}
+   {"action": "log_interaction", "params": {"contact_name": "Jane Doe", "type": "call", "notes": "Discussed project"}} // No date mentioned, defaults to now
+   {"action": "log_interaction", "params": {"contact_name": "Bob", "type": "call", "notes": "Quick chat", "date": "2025-04-19"}} // User said: "Called Bob 2 days ago" (assuming today is 2025-04-21)
+   {"action": "log_interaction", "params": {"contact_name": "Alice", "type": "meeting", "notes": "Project discussion", "date": "2025-04-14"}} // User said: "Met Alice last week" (assuming today is 2025-04-21)
    {"action": "update_contact", "params": {"contact_name": "Jane Doe", "updates": {"phone": "+1-555-9876", "notes": "Updated notes here"}}}
    {"action": "update_contact", "params": {"contact_name": "John Smith", "updates": {"contact_frequency": "fortnightly"}}}
    {"action": "update_contact", "params": {"contact_name": "Alice Brown", "updates": {"important_events": [{"type": "birthday", "date": "1995-11-20", "name": null}]}}} // Replaces existing events
