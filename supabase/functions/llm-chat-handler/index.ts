@@ -1895,8 +1895,20 @@ serve(async (req) => {
                 break;
             case 'log_interaction':
                 confirmationMessage = `Log ${params.type || 'interaction'} for ${contactDisplayName}?`;
-                if (params.notes) confirmationMessage += ` Notes: "${params.notes}"`;
-                if (params.sentiment) confirmationMessage += ` Sentiment: ${params.sentiment}`;
+                if (params.date) {
+                    try {
+                        const interactionDate = new Date(params.date);
+                        const formattedInteractionDate = interactionDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                        confirmationMessage += `\n- Date: ${formattedInteractionDate}`;
+                    } catch (e) {
+                        console.error("Error formatting interaction date for confirmation:", e);
+                        confirmationMessage += `\n- Date: ${params.date} (Could not format)`;
+                    }
+                } else {
+                    confirmationMessage += `\n- Date: Now (default)`;
+                }
+                if (params.notes) confirmationMessage += `\n- Notes: "${params.notes}"`;
+                if (params.sentiment) confirmationMessage += `\n- Sentiment: ${params.sentiment}`;
                 break;
             case 'update_contact':
                 confirmationMessage = `Update ${contactDisplayName} with the following changes?`;
