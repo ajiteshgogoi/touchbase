@@ -292,8 +292,8 @@ async function generateBlogPost(post: SanityPost) {
   const createComponents = (post: SanityPost): PortableTextComponents => {
     return {
       types: {
-      span: ({ value }) => <span>{value.text}</span>,
-      rawHtml: ({ value }) => {
+        span: ({ value }) => <span>{value.text}</span>,
+        rawHtml: ({ value }) => {
         // Process HTML content to add UTM parameters to external links
         let processedHtml = value.html.replace(
           /<a\s+(?:[^>]*?\s+)?href="(http[s]?:\/\/[^"]+)"([^>]*)>/gi,
@@ -363,7 +363,7 @@ async function generateBlogPost(post: SanityPost) {
         bullet: ({ children }) => <ul className="prose ul">{children}</ul>,
         number: ({ children }) => <ol className="prose ol">{children}</ol>
       }
-    };
+    }
   };
 
   // Convert Portable Text to HTML with post-specific components
