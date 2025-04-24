@@ -271,7 +271,24 @@ async function generateBlogPost(post: SanityPost) {
   const components: PortableTextComponents = {
     types: {
       span: ({ value }) => <span>{value.text}</span>,
-      rawHtml: ({ value }) => <div dangerouslySetInnerHTML={{ __html: value.html }} />,
+      rawHtml: ({ value }) => {
+        // Process HTML content to add UTM parameters to external links
+        let processedHtml = value.html.replace(
+          /<a\s+(?:[^>]*?\s+)?href="(http[s]?:\/\/[^"]+)"([^>]*)>/gi,
+          (match: string, href: string, rest: string) => {
+            try {
+              const url = new URL(href);
+              url.searchParams.set('utm_source', 'touchbase');
+              url.searchParams.set('utm_medium', 'link');
+              url.searchParams.set('utm_campaign', 'apps');
+              return `<a href="${url.toString()}"${rest}>`;
+            } catch (e) {
+              return match; // Return original if URL parsing fails
+            }
+          }
+        );
+        return <div dangerouslySetInnerHTML={{ __html: processedHtml }} />;
+      },
       youtube: ({ value }) => {
         const videoId = value.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
         return videoId ? (
@@ -298,11 +315,22 @@ async function generateBlogPost(post: SanityPost) {
       strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
       em: ({ children }) => <em>{children}</em>,
       code: ({ children }) => <code className="bg-gray-100/80 px-1.5 py-0.5 rounded text-[14px] text-gray-800">{children}</code>,
-      link: ({ value, children }) => (
-        <a href={value?.href} className="text-primary-500 hover:text-primary-600 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-          {children}
-        </a>
-      ),
+      link: ({ value, children }) => {
+        let href = value?.href || '';
+        // Add UTM parameters to external links
+        if (href.startsWith('http')) {
+          const url = new URL(href);
+          url.searchParams.set('utm_source', 'touchbase');
+          url.searchParams.set('utm_medium', 'link');
+          url.searchParams.set('utm_campaign', 'apps');
+          href = url.toString();
+        }
+        return (
+          <a href={href} className="text-primary-500 hover:text-primary-600 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
+            {children}
+          </a>
+        );
+      },
       internalLink: ({ value, children }) => (
         <a href={`/blog/${value?.slug}`} className="text-primary-500 hover:text-primary-600 transition-colors duration-200">
           {children}
