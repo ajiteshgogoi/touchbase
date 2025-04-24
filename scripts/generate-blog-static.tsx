@@ -386,7 +386,7 @@ async function main() {
         console.log(`Generated: ${post.slug.current}`);
       } catch (error) {
         console.error(`Error generating post ${post.slug.current}:`, error);
-        // Continue with other posts even if one fails
+        // Continue with other posts even if one fails 
       }
     }
 
