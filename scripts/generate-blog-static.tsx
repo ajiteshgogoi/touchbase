@@ -229,7 +229,7 @@ async function generateBlogPost(post: SanityPost) {
   const plainTextContent = processPortableText(post.body);
   const readingTime = calculateReadingTime(plainTextContent);
 
-  // Add progress bar script
+  // Add progress bar script 
   const progressBarScript =
     '<script>' +
     'document.addEventListener("DOMContentLoaded", () => {' +
