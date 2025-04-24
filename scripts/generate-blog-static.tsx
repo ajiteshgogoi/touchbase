@@ -250,12 +250,23 @@ async function generateBlogPost(post: SanityPost) {
     '});' +
     '</script>';
 
-  const authorSection = post.author ? `
-    <img src="${encodeURI(authorImage)}" alt="${escapeHtml(post.author.name)}" class="rounded-full w-10 h-10 mr-3" />
-    <a href="${encodeURI(post.author.url || 'https://touchbase.site')}" class="font-medium hover:text-primary-600 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
-      <span itemprop="name">${escapeHtml(post.author.name)}</span>
-    </a>
-  ` : '';
+  const authorSection = post.author ? (() => {
+    let authorUrl = post.author.url || 'https://touchbase.site';
+    // Add UTM parameters to author URL
+    if (authorUrl.startsWith('http')) {
+      const url = new URL(authorUrl);
+      url.searchParams.set('utm_source', 'touchbase');
+      url.searchParams.set('utm_medium', 'link');
+      url.searchParams.set('utm_campaign', 'apps');
+      authorUrl = url.toString();
+    }
+    return `
+      <img src="${encodeURI(authorImage)}" alt="${escapeHtml(post.author.name)}" class="rounded-full w-10 h-10 mr-3" />
+      <a href="${encodeURI(authorUrl)}" class="font-medium hover:text-primary-600 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
+        <span itemprop="name">${escapeHtml(post.author.name)}</span>
+      </a>
+    `;
+  })() : '';
 
   const categoriesSection = post.categories?.length ? post.categories.map(category => `
     <a href="/blog?category=${encodeURIComponent(category)}" class="blog-post-tag">
