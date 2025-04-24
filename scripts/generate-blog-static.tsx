@@ -219,8 +219,8 @@ async function generateBlogPost(post: SanityPost) {
   const postUrl = `${getSiteUrl()}/blog/${post.slug.current}`;
   const mainImage = post.mainImage ? urlFor(post.mainImage).width(1200).height(675).auto('format').url() : '';
   const authorImage = post.author?.image ? urlFor(post.author.image)
-    .width(40)
-    .height(40)
+    .width(100)
+    .height(100)
     .auto('format')
     .quality(100)
     .fit('crop')
