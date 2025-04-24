@@ -245,7 +245,9 @@ async function generateBlogPost(post: SanityPost) {
 
   const authorSection = post.author ? `
     <img src="${encodeURI(authorImage)}" alt="${escapeHtml(post.author.name)}" class="rounded-full w-10 h-10 mr-3" />
-    <span itemprop="name" class="font-medium">${escapeHtml(post.author.name)}</span>
+    <a href="${encodeURI(post.author.url || 'https://touchbase.site')}" class="font-medium hover:text-primary-600 transition-colors duration-200" target="_blank" rel="noopener noreferrer">
+      <span itemprop="name">${escapeHtml(post.author.name)}</span>
+    </a>
   ` : '';
 
   const categoriesSection = post.categories?.length ? post.categories.map(category => `
