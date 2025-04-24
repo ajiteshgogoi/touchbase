@@ -44,7 +44,6 @@ export const Support = () => {
                 <h3 className="text-lg font-[600] text-gray-900/90 dark:text-white mb-2">Company Address</h3>
                 <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400">
                   TouchBase Technologies<br />
-                  24, Lane 2, Basisthapur<br />
                   Guwahati, Assam<br />
                   781028<br />
                   India
