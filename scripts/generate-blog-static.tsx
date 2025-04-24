@@ -169,8 +169,8 @@ async function generateBlogList(posts: SanityPost[]) {
       "url": post.canonicalUrl || `${getSiteUrl()}/blog/${post.slug.current}`,
       "author": post.author ? {
         "@type": post.author.type || "Organization",
-        "url": post.author.url || "https://touchbase.site",
-        "name": post.author.name
+        "name": post.author.name,
+        "url": post.author.url || "https://touchbase.site"
       } : {
         "@type": "Organization",
         "name": "TouchBase Technologies",
@@ -343,8 +343,8 @@ let html = template
   .replace(/POST_DATE/g, post.publishedAt)
   .replace(/POST_MODIFIED_DATE/g, post._updatedAt)
   .replace(/POST_AUTHOR/g, escapeHtml(post.author?.name || ''))
-  .replace(/POST_AUTHOR_TYPE/g, post.author?.type || 'Organization')
-  .replace(/POST_AUTHOR_URL/g, encodeURI(post.author?.url || 'https://touchbase.site'))
+  .replace(/AUTHOR_TYPE/g, post.author?.type || 'Organization')
+  .replace(/AUTHOR_URL/g, encodeURI(post.author?.url || 'https://touchbase.site'))
   .replace(/AUTHOR_IMAGE/g, encodeURI(authorImage))
   .replace(/POST_URL/g, encodeURI(postUrl))
   .replace(/POST_CATEGORY/g, escapeHtml(post.categories?.[0] || ''))
