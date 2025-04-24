@@ -50,6 +50,8 @@ interface SanitySlug {
 interface SanityAuthor {
   name: string;
   image?: SanityImageSource;
+  url?: string;
+  type?: 'Person' | 'Organization';
 }
 
 interface SanityPost {
@@ -93,7 +95,9 @@ async function getAllPosts(): Promise<SanityPost[]> {
       "categories": categories[]->title,
       "author": author->{
         name,
-        image
+        image,
+        url,
+        type
       },
       description,
       keywords,
@@ -164,8 +168,8 @@ async function generateBlogList(posts: SanityPost[]) {
               : `${getSiteUrl()}/og.png`,
       "url": post.canonicalUrl || `${getSiteUrl()}/blog/${post.slug.current}`,
       "author": post.author ? {
-        "@type": "Organization",
-        "url": "https://touchbase.site",
+        "@type": post.author.type || "Organization",
+        "url": post.author.url || "https://touchbase.site",
         "name": post.author.name
       } : {
         "@type": "Organization",
@@ -339,6 +343,8 @@ let html = template
   .replace(/POST_DATE/g, post.publishedAt)
   .replace(/POST_MODIFIED_DATE/g, post._updatedAt)
   .replace(/POST_AUTHOR/g, escapeHtml(post.author?.name || ''))
+  .replace(/POST_AUTHOR_TYPE/g, post.author?.type || 'Organization')
+  .replace(/POST_AUTHOR_URL/g, encodeURI(post.author?.url || 'https://touchbase.site'))
   .replace(/AUTHOR_IMAGE/g, encodeURI(authorImage))
   .replace(/POST_URL/g, encodeURI(postUrl))
   .replace(/POST_CATEGORY/g, escapeHtml(post.categories?.[0] || ''))

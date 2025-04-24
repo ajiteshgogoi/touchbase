@@ -40,6 +40,25 @@ export default defineType({
         },
       ],
     }),
+    defineField({
+      name: 'url',
+      title: 'URL',
+      type: 'url',
+      description: 'Author website or social media profile URL',
+    }),
+    defineField({
+      name: 'type',
+      title: 'Type',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Person', value: 'Person' },
+          { title: 'Organization', value: 'Organization' }
+        ],
+        layout: 'radio'
+      },
+      initialValue: 'Organization'
+    }),
   ],
   preview: {
     select: {
