@@ -209,6 +209,16 @@ async function generateBlogList(posts: SanityPost[]) {
   await fs.writeFile(path.join(BLOG_DIR, 'index.html'), html);
 }
 
+// Helper function to escape HTML content
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 async function generateBlogPost(post: SanityPost) {
   let template = await fs.readFile(
     path.join('src', 'templates', 'blog-post.html'),
@@ -255,7 +265,7 @@ async function generateBlogPost(post: SanityPost) {
     // Add UTM parameters to author URL
     if (authorUrl.startsWith('http')) {
       const url = new URL(authorUrl);
-      url.searchParams.set('utm_source', 'touchbase');
+      url.searchParams.set('utm_source', `touchbase_${post.slug.current}`);
       url.searchParams.set('utm_medium', 'link');
       url.searchParams.set('utm_campaign', 'apps');
       authorUrl = url.toString();
@@ -278,9 +288,10 @@ async function generateBlogPost(post: SanityPost) {
     <img src="${encodeURI(mainImage)}" alt="${escapeHtml(post.title)}" class="rounded-lg object-cover w-full h-full" />
   ` : '';
 
-  // Configure PortableText components
-  const components: PortableTextComponents = {
-    types: {
+  // Configure PortableText components with post context
+  const createComponents = (post: SanityPost): PortableTextComponents => {
+    return {
+      types: {
       span: ({ value }) => <span>{value.text}</span>,
       rawHtml: ({ value }) => {
         // Process HTML content to add UTM parameters to external links
@@ -289,7 +300,7 @@ async function generateBlogPost(post: SanityPost) {
           (match: string, href: string, rest: string) => {
             try {
               const url = new URL(href);
-              url.searchParams.set('utm_source', 'touchbase');
+              url.searchParams.set('utm_source', `touchbase_${post.slug.current}`);
               url.searchParams.set('utm_medium', 'link');
               url.searchParams.set('utm_campaign', 'apps');
               return `<a href="${url.toString()}"${rest}>`;
@@ -331,7 +342,7 @@ async function generateBlogPost(post: SanityPost) {
         // Add UTM parameters to external links
         if (href.startsWith('http')) {
           const url = new URL(href);
-          url.searchParams.set('utm_source', 'touchbase');
+          url.searchParams.set('utm_source', `touchbase_${post.slug.current}`);
           url.searchParams.set('utm_medium', 'link');
           url.searchParams.set('utm_campaign', 'apps');
           href = url.toString();
@@ -348,23 +359,16 @@ async function generateBlogPost(post: SanityPost) {
         </a>
       )
     },
-    list: {
-      bullet: ({ children }) => <ul className="prose ul">{children}</ul>,
-      number: ({ children }) => <ol className="prose ol">{children}</ol>
-    }
+      list: {
+        bullet: ({ children }) => <ul className="prose ul">{children}</ul>,
+        number: ({ children }) => <ol className="prose ol">{children}</ol>
+      }
+    };
   };
 
-  // Convert Portable Text to HTML
+  // Convert Portable Text to HTML with post-specific components
+  const components = createComponents(post);
   const portableTextHtml = renderToString(<PortableText value={post.body} components={components} />);
-// Helper function to escape HTML content
-function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
 // Debug logging
 const formattedDate = new Date(post.publishedAt).toLocaleString('en-US', {
   year: 'numeric',
