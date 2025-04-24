@@ -218,7 +218,14 @@ async function generateBlogPost(post: SanityPost) {
 
   const postUrl = `${getSiteUrl()}/blog/${post.slug.current}`;
   const mainImage = post.mainImage ? urlFor(post.mainImage).width(1200).height(675).auto('format').url() : '';
-  const authorImage = post.author?.image ? urlFor(post.author.image).width(40).height(40).auto('format').url() : '';
+  const authorImage = post.author?.image ? urlFor(post.author.image)
+    .width(40)
+    .height(40)
+    .auto('format')
+    .quality(100)
+    .fit('crop')
+    .crop('center')
+    .url() : '';
   const plainTextContent = processPortableText(post.body);
   const readingTime = calculateReadingTime(plainTextContent);
 
