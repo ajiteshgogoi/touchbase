@@ -209,7 +209,7 @@ async function generateBlogList(posts: SanityPost[]) {
   await fs.writeFile(path.join(BLOG_DIR, 'index.html'), html);
 }
 
-// Helper function to escape HTML content 
+// Helper function to escape HTML content
 function escapeHtml(unsafe: string): string {
   return unsafe
     .replace(/&/g, '&amp;')
