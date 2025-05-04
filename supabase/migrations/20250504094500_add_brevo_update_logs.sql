@@ -16,6 +16,10 @@ create table public.brevo_update_logs (
     created_at timestamp with time zone default now() -- When the log entry was initially created (pending)
 );
 
+-- Add unique constraint for upsert
+alter table public.brevo_update_logs
+  add constraint brevo_update_logs_run_id_email_key unique (run_id, email);
+
 -- Add indexes for querying
 create index idx_brevo_update_logs_run_id on public.brevo_update_logs(run_id);
 create index idx_brevo_update_logs_user_id on public.brevo_update_logs(user_id);
