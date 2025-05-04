@@ -12,8 +12,9 @@ import { paymentService } from './services/payment';
 import { notificationService } from './services/notifications';
 import { platform } from './utils/platform';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { initializeAnalytics } from './lib/firebase'; // Added import
 
-// Eagerly load critical components 
+// Eagerly load critical components
 import { Login } from './components/auth/Login';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
@@ -402,20 +403,19 @@ function App() {
   useEffect(() => {
     let mounted = true;
 
-    // Initialize analytics immediately for all users
-    requestIdleCallback(() => {
-      import('./lib/firebase').then(({ initializeAnalytics }) => {
-        initializeAnalytics().catch(error => {
-          console.error('Error initializing analytics:', error);
-        });
-      });
-    });
-
+    // Analytics initialization moved to after initial auth check
     // Initialize auth state //
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
+
+        // Initialize analytics after getting session, regardless of auth state
+        requestIdleCallback(() => {
+          initializeAnalytics().catch((error: any) => { // Added type annotation
+            console.error('Error initializing analytics during auth init:', error);
+          });
+        });
 
         if (!mounted) return;
 
@@ -477,6 +477,13 @@ function App() {
         if (!mounted) return;
 
         console.log('Auth state changed:', event);
+
+        // Initialize analytics on auth state change
+        requestIdleCallback(() => {
+          initializeAnalytics().catch((error: any) => { // Added type annotation
+            console.error('Error initializing analytics on auth change:', error);
+          });
+        });
 
         // Update user state immediately
         setUser(session?.user ?? null);
