@@ -558,6 +558,12 @@ export const Settings = () => {
             {' '}and{' '}
             <a href="/privacy" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">Privacy Policy</a>
           </div>
+          <div>
+            Need help? Email us at{' '}
+            <a href="mailto:help@touchbase.site" className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300">
+              help@touchbase.site
+            </a>
+          </div>
         </div>
 
         <Suspense fallback={null}>
