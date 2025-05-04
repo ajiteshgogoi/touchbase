@@ -402,31 +402,60 @@ function App() {
   useEffect(() => {
     let mounted = true;
 
+    // Initialize analytics immediately for all users
+    requestIdleCallback(() => {
+      import('./lib/firebase').then(({ initializeAnalytics }) => {
+        initializeAnalytics().catch(error => {
+          console.error('Error initializing analytics:', error);
+        });
+      });
+    });
+
     // Initialize auth state //
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (!mounted) return;
 
         // Check premium status first if user exists
         if (session?.user) {
           await checkPremiumStatus();
           await checkNotificationsAndTimezone(session.user.id);
-          
-          // Initialize analytics after auth and critical features
+
+          // Set User ID in Analytics for authenticated sessions
           requestIdleCallback(() => {
-            import('./lib/firebase').then(({ initializeAnalytics }) => {
-              initializeAnalytics().catch(error => {
-                console.error('Error initializing analytics:', error);
-              });
+            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
+              try {
+                const analytics = await initializeAnalytics(); // Ensure analytics is initialized
+                const { setUserId } = await import('firebase/analytics');
+                setUserId(analytics, session.user.id);
+                console.log('[Analytics] User ID set:', session.user.id.substring(0, 8));
+              } catch (error) {
+                console.error('Error setting analytics user ID:', error);
+              }
             });
           });
+
         } else {
+          // User is not authenticated
           setIsPremium(false);
+          // Clear User ID for anonymous sessions
+          requestIdleCallback(() => {
+            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
+              try {
+                const analytics = await initializeAnalytics(); // Ensure analytics is initialized
+                const { setUserId } = await import('firebase/analytics');
+                setUserId(analytics, null);
+                console.log('[Analytics] User ID cleared for anonymous session.');
+              } catch (error) {
+                console.error('Error clearing analytics user ID:', error);
+              }
+            });
+          });
         }
-        
+
         // Set user after premium status is checked
         setUser(session?.user ?? null);
       } catch (error) {
@@ -448,16 +477,42 @@ function App() {
         if (!mounted) return;
 
         console.log('Auth state changed:', event);
-        
+
         // Update user state immediately
         setUser(session?.user ?? null);
 
-        // Handle user state changes
+        // Handle user state changes and set/clear analytics user ID
         if (session?.user) {
           checkNotificationsAndTimezone(session.user.id);
           checkPremiumStatus();
+          // Set User ID on auth state change
+          requestIdleCallback(() => {
+            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
+              try {
+                const analytics = await initializeAnalytics();
+                const { setUserId } = await import('firebase/analytics');
+                setUserId(analytics, session.user.id);
+                console.log('[Analytics] User ID set on auth change:', session.user.id.substring(0, 8));
+              } catch (error) {
+                console.error('Error setting analytics user ID on auth change:', error);
+              }
+            });
+          });
         } else {
           setIsPremium(false);
+          // Clear User ID on sign out
+          requestIdleCallback(() => {
+            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
+              try {
+                const analytics = await initializeAnalytics();
+                const { setUserId } = await import('firebase/analytics');
+                setUserId(analytics, null);
+                console.log('[Analytics] User ID cleared on auth change (sign out).');
+              } catch (error) {
+                console.error('Error clearing analytics user ID on auth change:', error);
+              }
+            });
+          });
         }
       }
     );
@@ -469,7 +524,7 @@ function App() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [setUser, setIsLoading, setIsPremium]);
+  }, [setUser, setIsLoading, setIsPremium, setTrialStatus, setPreferences]); // Added potentially missing dependencies
 
   return (
     <ErrorBoundary
