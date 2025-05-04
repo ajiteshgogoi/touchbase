@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { v4 as uuidv4 } from "https://deno.land/std@0.168.0/uuid/mod.ts"; // Import UUID generator
+// No UUID import needed, using Web Crypto API
 import { createResponse, handleOptions } from '../_shared/headers.ts';
 
 // Environment variables
@@ -264,7 +264,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 // --- Main Handler ---
 
 serve(async (req) => {
-  const runId = uuidv4(); // Generate unique ID for this execution run
+  const runId = crypto.randomUUID(); // Use Web Crypto API
   console.log(`Starting daily Brevo update run ID: ${runId}`);
   console.log(`Received ${req.method} request for ${req.url}`);
 
