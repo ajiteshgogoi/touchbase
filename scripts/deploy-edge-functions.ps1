@@ -40,6 +40,7 @@ $functions = @(
     "paypal-webhooks",
     "push-notifications",
     "sync-to-brevo",
+    "update-brevo",
     "users",
     "verify-google-purchase"
 )

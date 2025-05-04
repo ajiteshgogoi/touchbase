@@ -258,6 +258,9 @@ verify_jwt = false
 [functions.sync-to-brevo]
 verify_jwt = false
 
+[functions.update-brevo]
+verify_jwt = false
+
 # Use these configurations to customize your Edge Function.
 # [functions.MY_FUNCTION_NAME]
 # enabled = true

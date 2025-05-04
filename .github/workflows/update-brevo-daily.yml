@@ -1,0 +1,71 @@
+name: Update Brevo Daily
+
+on:
+  schedule:
+    # Runs daily at midnight UTC (00:00)
+    - cron: '0 0 * * *'
+  # Allow manual triggers for testing
+  workflow_dispatch:
+
+# Add concurrency control
+concurrency:
+  group: update-brevo-daily
+  cancel-in-progress: false
+
+# Security controls
+permissions:
+  contents: read
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  FUNCTION_NAME: update-brevo
+
+jobs:
+  verify-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository check
+        if: github.repository != 'ajiteshgogoi/touchbase'
+        run: |
+          echo "This workflow can only run in ajiteshgogoi/touchbase repository"
+          exit 1
+
+      - name: Fork check
+        if: github.event_name == 'workflow_dispatch' && github.repository_owner != 'ajiteshgogoi'
+        run: |
+          echo "Manual workflow execution is only allowed by repository owner ajiteshgogoi"
+          exit 1
+
+  trigger-update-brevo:
+    needs: verify-security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15 # Set a reasonable timeout
+
+    steps:
+      - name: Trigger Supabase Function - update-brevo
+        run: |
+          echo "Triggering Supabase function: $FUNCTION_NAME"
+          
+          response=$(curl --request POST \
+            --url "$SUPABASE_URL/functions/v1/$FUNCTION_NAME" \
+            --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            --header "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            --header "Content-Type: application/json" \
+            --fail-with-body \
+            --silent)
+          
+          # Check if curl command failed (non-zero exit code)
+          if [ $? -ne 0 ]; then
+            echo "::error::Failed to trigger Supabase function. Response:"
+            echo "$response"
+            exit 1
+          fi
+          
+          echo "Supabase function triggered successfully."
+          echo "Response:"
+          echo "$response" | jq . # Pretty print JSON response if available
+        env:
+          SUPABASE_URL: ${{ env.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}
+          FUNCTION_NAME: ${{ env.FUNCTION_NAME }}
