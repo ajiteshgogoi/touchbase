@@ -411,10 +411,8 @@ function App() {
         const { data: { session } } = await supabase.auth.getSession();
 
         // Initialize analytics after getting session, regardless of auth state
-        requestIdleCallback(() => {
-          initializeAnalytics().catch((error: any) => { // Added type annotation
-            console.error('Error initializing analytics during auth init:', error);
-          });
+        initializeAnalytics().catch((error: any) => {
+          console.error('Error initializing analytics during auth init:', error);
         });
 
         if (!mounted) return;
@@ -479,10 +477,8 @@ function App() {
         console.log('Auth state changed:', event);
 
         // Initialize analytics on auth state change
-        requestIdleCallback(() => {
-          initializeAnalytics().catch((error: any) => { // Added type annotation
-            console.error('Error initializing analytics on auth change:', error);
-          });
+        initializeAnalytics().catch((error: any) => {
+          console.error('Error initializing analytics on auth change:', error);
         });
 
         // Update user state immediately
