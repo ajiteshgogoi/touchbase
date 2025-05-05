@@ -36,50 +36,47 @@ const LazyComponent = ({ children }: { children: React.ReactNode }) => (
 const Dashboard = lazy(() => {
   const module = import('./pages/Dashboard');
   // Prefetch related routes and components while main route loads
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./pages/Contacts');
-      void import('./pages/Reminders');
-      void import('./pages/Settings');
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./pages/Contacts');
+      await import('./pages/Reminders');
+      await import('./pages/Settings');
       void import('./pages/Help');
       void import('./pages/ImportantEvents');
       void import('./pages/InteractionHistory');
       void import('./components/contacts/QuickInteraction');
-      void import('./components/contacts/ContactForm');
-      void import('./components/layout/ProfileMenu'); // Added ProfileMenu prefetch
-    });
-  }
+      await import('./components/contacts/ContactForm');
+      await import('./components/layout/ProfileMenu'); // Added ProfileMenu prefetch
+  })();
   return module.then(m => ({ default: m.Dashboard }));
 });
 
 const Contacts = lazy(() => {
   const module = import('./pages/Contacts');
   // Prefetch contact form, interaction modal and history
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./components/contacts/ContactForm');
-      void import('./pages/InteractionHistory');
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./components/contacts/ContactForm');
+      await import('./pages/InteractionHistory');
       // Prefetch contact data while loading component
       void queryClient.prefetchQuery({
         queryKey: ['contacts'],
         queryFn: () => import('./services/contacts').then(m => m.contactsService.getContacts()),
         staleTime: 1000 * 60 * 5 // 5 minutes
       });
-    });
-  }
+  })();
   return module.then(m => ({ default: m.Contacts }));
 });
 
 const Settings = lazy(() => {
   const module = import('./pages/Settings');
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./components/shared/FeedbackModal');
-      void import('./components/shared/PaymentMethodModal');
-      void import('./pages/Terms');
-      void import('./pages/Privacy');
-    });
-  }
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./components/shared/FeedbackModal');
+      await import('./components/shared/PaymentMethodModal');
+      await import('./pages/Terms');
+      await import('./pages/Privacy');
+  })();
   return module.then(m => ({ default: m.Settings }));
 });
 
@@ -87,41 +84,38 @@ const Settings = lazy(() => {
 const Reminders = lazy(() => {
   const module = import('./pages/Reminders');
   // Prefetch quick reminder modal, interaction history and data
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./components/reminders/QuickReminderModal');
-      void import('./pages/InteractionHistory');
-      void import('./pages/Contacts');
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./components/reminders/QuickReminderModal');
+      await import('./pages/InteractionHistory');
+      await import('./pages/Contacts');
       void queryClient.prefetchQuery({
         queryKey: ['reminders'],
         queryFn: () => import('./services/contacts')
           .then(m => m.contactsService.getReminders()),
         staleTime: 1000 * 60 * 5 // 5 minutes
       });
-    });
-  }
+  })();
   return module.then(m => ({ default: m.Reminders }));
 });
 
 // Other lazy loaded components
 const Help = lazy(() => {
   const module = import('./pages/Help');
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./pages/Terms');
-      void import('./pages/Privacy');
-    });
-  }
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./pages/Terms');
+      await import('./pages/Privacy');
+  })();
   return module.then(m => ({ default: m.Help }));
 });
 
 const Analytics = lazy(() => {
   const module = import('./pages/Analytics');
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./pages/Contacts');
-    });
-  }
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./pages/Contacts');
+  })();
   return module.then(m => ({ default: m.Analytics }));
 });
 
@@ -132,23 +126,21 @@ const ConversationPrompts = lazy(async () => {
 
 const Terms = lazy(() => {
   const module = import('./pages/Terms');
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./pages/Privacy');
-      void import('./pages/Support');
-    });
-  }
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./pages/Privacy');
+      await import('./pages/Support');
+  })();
   return module.then(m => ({ default: m.Terms }));
 });
 
 const Privacy = lazy(() => {
   const module = import('./pages/Privacy');
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
-      void import('./pages/Terms');
-      void import('./pages/Support');
-    });
-  }
+  // Removed requestIdleCallback for compatibility
+  (async () => {
+      await import('./pages/Terms');
+      await import('./pages/Support');
+  })();
   return module.then(m => ({ default: m.Privacy }));
 });
 
@@ -169,17 +161,16 @@ const InteractionHistory = lazy(async () => {
 
 const ImportantEvents = lazy(() => {
   const module = import('./pages/ImportantEvents');
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => {
+  // Removed requestIdleCallback for compatibility
+  (async () => {
       // Prefetch important events data
-      void queryClient.prefetchQuery({
+      await queryClient.prefetchQuery({
         queryKey: ['important-events'],
         queryFn: () => import('./services/contacts')
           .then(m => m.contactsService.getImportantEvents()),
         staleTime: 1000 * 60 * 5 // 5 minutes
       });
-    });
-  }
+  })();
   return module.then(m => ({ default: m.ImportantEventsPage }));
 });
 
@@ -423,35 +414,35 @@ function App() {
           await checkNotificationsAndTimezone(session.user.id);
 
           // Set User ID in Analytics for authenticated sessions
-          requestIdleCallback(() => {
-            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
-              try {
-                const analytics = await initializeAnalytics(); // Ensure analytics is initialized
+          // Removed requestIdleCallback for compatibility
+          (async () => {
+            try {
+              const { initializeAnalytics } = await import('./lib/firebase');
+              const analytics = await initializeAnalytics(); // Ensure analytics is initialized
                 const { setUserId } = await import('firebase/analytics');
                 setUserId(analytics, session.user.id);
                 console.log('[Analytics] User ID set:', session.user.id.substring(0, 8));
               } catch (error) {
                 console.error('Error setting analytics user ID:', error);
               }
-            });
-          });
+          })();
 
         } else {
           // User is not authenticated
           setIsPremium(false);
           // Clear User ID for anonymous sessions
-          requestIdleCallback(() => {
-            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
-              try {
-                const analytics = await initializeAnalytics(); // Ensure analytics is initialized
+          // Removed requestIdleCallback for compatibility
+          (async () => {
+            try {
+              const { initializeAnalytics } = await import('./lib/firebase');
+              const analytics = await initializeAnalytics(); // Ensure analytics is initialized
                 const { setUserId } = await import('firebase/analytics');
                 setUserId(analytics, null);
                 console.log('[Analytics] User ID cleared for anonymous session.');
               } catch (error) {
                 console.error('Error clearing analytics user ID:', error);
               }
-            });
-          });
+          })();
         }
 
         // Set user after premium status is checked
@@ -489,33 +480,33 @@ function App() {
           checkNotificationsAndTimezone(session.user.id);
           checkPremiumStatus();
           // Set User ID on auth state change
-          requestIdleCallback(() => {
-            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
-              try {
-                const analytics = await initializeAnalytics();
+          // Removed requestIdleCallback for compatibility
+          (async () => {
+            try {
+              const { initializeAnalytics } = await import('./lib/firebase');
+              const analytics = await initializeAnalytics();
                 const { setUserId } = await import('firebase/analytics');
                 setUserId(analytics, session.user.id);
                 console.log('[Analytics] User ID set on auth change:', session.user.id.substring(0, 8));
               } catch (error) {
                 console.error('Error setting analytics user ID on auth change:', error);
               }
-            });
-          });
+          })();
         } else {
           setIsPremium(false);
           // Clear User ID on sign out
-          requestIdleCallback(() => {
-            import('./lib/firebase').then(async ({ initializeAnalytics }) => {
-              try {
-                const analytics = await initializeAnalytics();
+          // Removed requestIdleCallback for compatibility
+          (async () => {
+            try {
+              const { initializeAnalytics } = await import('./lib/firebase');
+              const analytics = await initializeAnalytics();
                 const { setUserId } = await import('firebase/analytics');
                 setUserId(analytics, null);
                 console.log('[Analytics] User ID cleared on auth change (sign out).');
               } catch (error) {
                 console.error('Error clearing analytics user ID on auth change:', error);
               }
-            });
-          });
+          })();
         }
       }
     );
