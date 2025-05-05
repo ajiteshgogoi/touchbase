@@ -38,15 +38,15 @@ const Dashboard = lazy(() => {
   // Prefetch related routes and components while main route loads
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./pages/Contacts');
-      await import('./pages/Reminders');
-      await import('./pages/Settings');
+      void import('./pages/Contacts');
+      void import('./pages/Reminders');
+      void import('./pages/Settings');
       void import('./pages/Help');
       void import('./pages/ImportantEvents');
       void import('./pages/InteractionHistory');
       void import('./components/contacts/QuickInteraction');
-      await import('./components/contacts/ContactForm');
-      await import('./components/layout/ProfileMenu'); // Added ProfileMenu prefetch
+      void import('./components/contacts/ContactForm');
+      void import('./components/layout/ProfileMenu'); // Added ProfileMenu prefetch
   })();
   return module.then(m => ({ default: m.Dashboard }));
 });
@@ -56,8 +56,8 @@ const Contacts = lazy(() => {
   // Prefetch contact form, interaction modal and history
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./components/contacts/ContactForm');
-      await import('./pages/InteractionHistory');
+      void import('./components/contacts/ContactForm');
+      void import('./pages/InteractionHistory');
       // Prefetch contact data while loading component
       void queryClient.prefetchQuery({
         queryKey: ['contacts'],
@@ -72,10 +72,10 @@ const Settings = lazy(() => {
   const module = import('./pages/Settings');
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./components/shared/FeedbackModal');
-      await import('./components/shared/PaymentMethodModal');
-      await import('./pages/Terms');
-      await import('./pages/Privacy');
+      void import('./components/shared/FeedbackModal');
+      void import('./components/shared/PaymentMethodModal');
+      void import('./pages/Terms');
+      void import('./pages/Privacy');
   })();
   return module.then(m => ({ default: m.Settings }));
 });
@@ -86,9 +86,9 @@ const Reminders = lazy(() => {
   // Prefetch quick reminder modal, interaction history and data
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./components/reminders/QuickReminderModal');
-      await import('./pages/InteractionHistory');
-      await import('./pages/Contacts');
+      void import('./components/reminders/QuickReminderModal');
+      void import('./pages/InteractionHistory');
+      void import('./pages/Contacts');
       void queryClient.prefetchQuery({
         queryKey: ['reminders'],
         queryFn: () => import('./services/contacts')
@@ -104,8 +104,8 @@ const Help = lazy(() => {
   const module = import('./pages/Help');
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./pages/Terms');
-      await import('./pages/Privacy');
+      void import('./pages/Terms');
+      void import('./pages/Privacy');
   })();
   return module.then(m => ({ default: m.Help }));
 });
@@ -114,7 +114,7 @@ const Analytics = lazy(() => {
   const module = import('./pages/Analytics');
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./pages/Contacts');
+      void import('./pages/Contacts');
   })();
   return module.then(m => ({ default: m.Analytics }));
 });
@@ -128,8 +128,8 @@ const Terms = lazy(() => {
   const module = import('./pages/Terms');
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./pages/Privacy');
-      await import('./pages/Support');
+      void import('./pages/Privacy');
+      void import('./pages/Support');
   })();
   return module.then(m => ({ default: m.Terms }));
 });
@@ -138,8 +138,8 @@ const Privacy = lazy(() => {
   const module = import('./pages/Privacy');
   // Removed requestIdleCallback for compatibility
   (async () => {
-      await import('./pages/Terms');
-      await import('./pages/Support');
+      void import('./pages/Terms');
+      void import('./pages/Support');
   })();
   return module.then(m => ({ default: m.Privacy }));
 });
@@ -164,7 +164,7 @@ const ImportantEvents = lazy(() => {
   // Removed requestIdleCallback for compatibility
   (async () => {
       // Prefetch important events data
-      await queryClient.prefetchQuery({
+      void queryClient.prefetchQuery({
         queryKey: ['important-events'],
         queryFn: () => import('./services/contacts')
           .then(m => m.contactsService.getImportantEvents()),
