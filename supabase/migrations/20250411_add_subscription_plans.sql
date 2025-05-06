@@ -28,7 +28,7 @@ values
         "Push notifications",
         "Smart reminder system",
         "1-tap interaction logging",
-        "Conversation prompt generator",
+        "Conversation starters",
         "Intelligent rescheduling for missed interactions"
     ]'),
     ('premium', 'Premium', 3, 'monthly', 'touchbase_premium', 3, 2147483647, '[
@@ -36,7 +36,7 @@ values
         "Push notifications",
         "Smart reminder system",
         "1-tap interaction logging",
-        "Conversation prompt generator",
+        "Conversation starters",
         "Intelligent rescheduling for missed interactions",
         "Contact interaction history",
         "Advanced AI suggestions",
@@ -50,7 +50,7 @@ values
         "Push notifications",
         "Smart reminder system",
         "1-tap interaction logging",
-        "Conversation prompt generator",
+        "Conversation starters",
         "Intelligent rescheduling for missed interactions",
         "Contact interaction history",
         "Advanced AI suggestions",

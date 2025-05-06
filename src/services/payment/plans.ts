@@ -14,7 +14,7 @@ export const FREE_PLAN: SubscriptionPlan = {
     'Push notifications',
     'Smart reminder system',
     '1-tap interaction logging',
-    'Conversation prompt generator',
+    'Conversation starters',
     'Intelligent rescheduling for missed interactions'
   ]
 };
@@ -33,7 +33,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Push notifications',
       'Smart reminder system',
       '1-tap interaction logging',
-      'Conversation prompt generator',
+      'Conversation starters',
       'Intelligent rescheduling for missed interactions'
     ]
   },
@@ -50,7 +50,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Push notifications',
       'Smart reminder system',
       '1-tap interaction logging',
-      'Conversation prompt generator',
+      'Conversation starters',
       'Intelligent rescheduling for missed interactions',
       'Contact interaction history',
       'Advanced AI suggestions',
@@ -73,7 +73,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Push notifications',
       'Smart reminder system',
       '1-tap interaction logging',
-      'Conversation prompt generator',
+      'Conversation starters',
       'Intelligent rescheduling for missed interactions',
       'Contact interaction history',
       'Advanced AI suggestions',
