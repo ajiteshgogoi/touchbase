@@ -185,11 +185,11 @@ const ConversationPrompts: React.FC = () => {
                   Click the <span className="text-primary-600 dark:text-primary-400 font-[500]">Generate a Question</span> button to get a thoughtful conversation starter.
                 </p>
                 <p>
-                  Each prompt is carefully crafted to encourage sharing and meaningful dialogue.
+                  Each starter is carefully crafted to encourage sharing and meaningful dialogue.
                 </p>
                 <div className="bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-800/50 shadow-sm dark:shadow-soft-dark text-gray-600 dark:text-gray-400">
                   <p className="text-[15px] leading-relaxed">
-                    <strong className="text-primary-700 dark:text-primary-300">Note:</strong> Conversation starters are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
+                    <strong className="text-primary-700 dark:text-primary-300">Note:</strong> Conversation starters are generated independently and do not use your contacts' information or interaction history. They are designed to be universal and can be used with anyone.
                   </p>
                 </div>
               </div>
