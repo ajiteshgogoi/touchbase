@@ -96,7 +96,7 @@ const ConversationPrompts: React.FC = () => {
               Conversation Starters
             </h1>
             <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
-              Meaningful starters for heartfelt conversations.
+              Go beyond small talk
             </p>
           </div>
         </div>
