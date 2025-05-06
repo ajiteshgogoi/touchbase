@@ -157,7 +157,7 @@ export const ProfileMenu = () => {
               <Suspense fallback={<IconFallback />}>
                 <ChatBubbleIcon className="h-5 w-5 mr-2 text-primary-500" />
               </Suspense>
-              Conversation Prompts
+              Conversation Starters
             </MenuItem>
             <MenuItem to="/analytics">
               <Suspense fallback={<IconFallback />}>

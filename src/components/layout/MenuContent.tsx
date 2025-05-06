@@ -27,7 +27,7 @@ export const MenuContent: FC<MenuContentProps> = ({
               className={`${menuItemBaseStyle} ${active ? menuItemActiveStyle : menuItemInactiveStyle}`}
             >
               <ChatBubbleOvalLeftEllipsisIcon className="h-5 w-5 mr-2 text-primary-500" />
-              Conversation Prompts
+              Conversation Starters
             </Link>
           )}
         </Menu.Item>

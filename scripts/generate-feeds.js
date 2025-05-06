@@ -41,7 +41,7 @@ const publicPages = [
   },
   {
     url: '/features/conversation-prompts',
-    title: 'Conversation Prompts',
+    title: 'Conversation Starters',
     description: "Get thoughtful, meaningful conversation starters that spark deeper connections. TouchBase helps you have more engaging discussions with your loved ones."
   },
   {

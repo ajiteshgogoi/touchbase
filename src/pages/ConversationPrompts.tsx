@@ -36,7 +36,7 @@ const ConversationPrompts: React.FC = () => {
 
   const generateQuestion = async () => {
     if (!user) {
-      setError('Please sign in to generate conversation prompts.');
+      setError('Please sign in to generate conversation starters.');
       return;
     }
 
@@ -93,10 +93,10 @@ const ConversationPrompts: React.FC = () => {
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent py-3 leading-tight flex flex-col sm:flex-row items-center">
               <ChatBubbleOvalLeftEllipsisIcon className="h-11 w-11 mb-3 sm:mb-0 sm:mr-2 text-primary-500" style={{ marginTop: '0.1em' }} />
-              Conversation Prompts
+              Conversation Starters
             </h1>
             <p className="mt-1.5 text-[15px] text-gray-600/90 dark:text-gray-400">
-              Meaningful prompts for heartfelt conversations.
+              Meaningful starters for heartfelt conversations.
             </p>
           </div>
         </div>
@@ -158,7 +158,7 @@ const ConversationPrompts: React.FC = () => {
             <div className="space-y-8">
               <div>
                 <p className="text-[15px] leading-relaxed text-gray-600/90 dark:text-gray-400 mb-4">
-                  These conversation prompts are designed to spark meaningful discussions and help you:
+                  These conversation starters are designed to spark meaningful discussions and help you:
                 </p>
                 <ul className="space-y-3">
                   <li className="flex items-start text-[15px] text-gray-700/90 dark:text-gray-300">
@@ -189,7 +189,7 @@ const ConversationPrompts: React.FC = () => {
                 </p>
                 <div className="bg-primary-50/90 dark:bg-primary-900/30 backdrop-blur-sm p-4 rounded-xl border border-primary-100/50 dark:border-primary-800/50 shadow-sm dark:shadow-soft-dark text-gray-600 dark:text-gray-400">
                   <p className="text-[15px] leading-relaxed">
-                    <strong className="text-primary-700 dark:text-primary-300">Note:</strong> Conversation prompts are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
+                    <strong className="text-primary-700 dark:text-primary-300">Note:</strong> Conversation starters are generated independently and do not use your contacts' information or interaction history. They are designed to be universal conversation starters that can be used with anyone.
                   </p>
                 </div>
               </div>

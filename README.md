@@ -12,7 +12,7 @@ TouchBase is an intelligent relationship management tool that helps you maintain
 - **Contact Frequency**: Set preferred contact intervals for each relationship
 - **Push Notifications**: Never miss an important interaction
 - **AI Suggestions**: Get personalised interaction suggestions based on your history
-- **Conversation Prompts**: Generate thoughtful conversation starters for meaningful discussions
+- **Conversation Starters**: Generate thoughtful conversation starters for meaningful discussions
 - **Mobile-First Design**: Access your network from any device
 
 ## How It Works

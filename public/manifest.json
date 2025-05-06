@@ -61,9 +61,9 @@
       ]
     },
     {
-      "name": "Conversation Prompts",
-      "short_name": "Prompts",
-      "description": "Get conversation prompts",
+      "name": "Conversation Starters",
+      "short_name": "Starters",
+      "description": "Generate conversation starters",
       "url": "/conversation-prompts",
       "icons": [
         {
