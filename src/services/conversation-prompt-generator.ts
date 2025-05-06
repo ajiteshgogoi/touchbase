@@ -16,6 +16,7 @@ interface GeneratedPrompt {
     subtheme: string;
     perspective: string;
     modifier: string;
+    intent: string; // Added for logging/metadata if needed in future
   };
 }
 
@@ -149,7 +150,38 @@ const emotionalModifiers: string[] = [
   'perspective-shifting'
 ];
 
+const questionIntents: string[] = [
+  'Reflective', // prompting deep thought on past experiences
+  'Imaginative', // "What if..." scenarios
+  'Story-sharing', // directly asking for a story
+  'Advice-seeking', // phrased as seeking advice on a topic
+  'Open-ended exploration' // general open-ended
+];
+
 const defaultStarters = ['how', 'what'];
+
+type PromptTemplateFunction = (params: {
+  emotionalModifier: string;
+  selectedTheme: Theme;
+  selectedSubtheme: string;
+  randomPerspective: string;
+  randomStarter: string;
+  selectedIntent: string;
+}) => string;
+
+const promptTemplates: PromptTemplateFunction[] = [
+  // Template A (current-like)
+  ({ emotionalModifier, selectedTheme, selectedSubtheme, randomPerspective, randomStarter, selectedIntent }) =>
+    `Generate a ${emotionalModifier} and ${selectedIntent.toLowerCase()} open-ended question about the theme: "${selectedTheme.main}" (subtheme: "${selectedSubtheme}"), from the perspective of "${randomPerspective}". Start the question with "${randomStarter}".`,
+
+  // Template B
+  ({ emotionalModifier, selectedTheme, selectedSubtheme, randomPerspective, randomStarter, selectedIntent }) =>
+    `Imagine you're discussing ${selectedTheme.main} with a friend. What ${emotionalModifier}, ${selectedIntent.toLowerCase()} question, starting with '${randomStarter}', could you ask about ${selectedSubtheme} when considering it from ${randomPerspective}?`,
+
+  // Template C
+  ({ emotionalModifier, selectedTheme, selectedSubtheme, randomPerspective, randomStarter, selectedIntent }) =>
+    `Craft a ${selectedIntent.toLowerCase()} question about ${selectedSubtheme} (related to the broader theme of ${selectedTheme.main}). The question should evoke a ${emotionalModifier} feeling, be framed from ${randomPerspective}, and begin with '${randomStarter}'.`
+];
 
 export class ConversationPromptGenerator {
   constructor() {}
@@ -207,16 +239,30 @@ if ((promptLogs?.length || 0) >= 5) {
     const startersList = questionStarters[selectedTheme.main] || defaultStarters;
     const randomStarter = this.getRandomElement(startersList);
     const emotionalModifier = this.getRandomElement(emotionalModifiers);
+    const selectedIntent = this.getRandomElement(questionIntents); // Select a random intent
 
     // Random word limit between 20-30
     const wordLimit = Math.floor(Math.random() * 11) + 20;
 
-    const prompt = `Generate a ${emotionalModifier} and thought-provoking open-ended question about the theme: "${selectedTheme.main}" (subtheme: "${selectedSubtheme}"), from the perspective of "${randomPerspective}". Start the question with "${randomStarter}".
+    // Select a random prompt template function
+    const selectedPromptTemplate = this.getRandomElement(promptTemplates);
+
+    // Generate the prompt using the selected template
+    const basePrompt = selectedPromptTemplate({
+      emotionalModifier,
+      selectedTheme,
+      selectedSubtheme,
+      randomPerspective,
+      randomStarter,
+      selectedIntent
+    });
+
+    const prompt = `${basePrompt}
 
 MUST BE:
 - Personal and conversational (like a question from a friend)
 - Under ${wordLimit} words
-- Encourage sharing of a story, experience, insight or opinion
+- Encourage sharing of a story, experience, insight or opinion (especially aligning with the "${selectedIntent}" intent)
 AVOID:
 - Trivial or overly simple questions
 - Abstract or overly philosophical phrasing
@@ -226,7 +272,7 @@ AVOID:
 - Addressing to self using words like 'I' and 'My'
 - Questions that are too broad
 
-Example of a good question:
+Example of a good question (for a 'Reflective' intent on 'trust'):
 - What moment from your childhood taught you about trust?`;
 
     // Generate and refine question using OpenRouter API
@@ -347,7 +393,8 @@ Example of a good question:
         theme: selectedTheme.main,
         subtheme: selectedSubtheme,
         perspective: randomPerspective,
-        emotional_modifier: emotionalModifier
+        emotional_modifier: emotionalModifier,
+        intent: selectedIntent // Log the selected intent
       });
 
     if (logError) throw new Error('Error while generating your question. Please try again.');
@@ -358,7 +405,8 @@ Example of a good question:
         theme: selectedTheme.main,
         subtheme: selectedSubtheme,
         perspective: randomPerspective,
-        modifier: emotionalModifier
+        modifier: emotionalModifier,
+        intent: selectedIntent
       }
     };
   }
