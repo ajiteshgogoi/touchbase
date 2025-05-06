@@ -118,7 +118,7 @@ const ConversationPrompts: React.FC = () => {
                 ) : (
                   <div className="max-w-xl mx-auto w-full">
                     <p className={`text-base sm:text-lg font-medium text-primary-700 dark:text-primary-300 text-center transition-opacity duration-200 leading-relaxed ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
-                      {isFirstQuestion ? "Click 'Generate a Question' to get a prompt..." : question}
+                      {isFirstQuestion ? "Click 'Generate a Question' to get a starter..." : question}
                     </p>
                   </div>
                 )}
