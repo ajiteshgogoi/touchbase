@@ -393,8 +393,7 @@ Example of a good question (for a 'Reflective' intent on 'trust'):
         theme: selectedTheme.main,
         subtheme: selectedSubtheme,
         perspective: randomPerspective,
-        emotional_modifier: emotionalModifier,
-        intent: selectedIntent // Log the selected intent
+        emotional_modifier: emotionalModifier
       });
 
     if (logError) throw new Error('Error while generating your question. Please try again.');
