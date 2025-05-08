@@ -162,7 +162,9 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocIHTXaWAorXs9PokcdwZgomxx_lOMIgvrdC962pGfIdxQGDz4N4=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocLahbZStkVAm59Sw8BKxGPATPMJmaGABjF8-Klgjcj3NS9kpM8=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocJ-v2AZtiRcC0GhbZAXIQzl0TjfAv8gcT1Jhjp5nMnsomzicAk=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocJqyuiSUgJYAwYgls6uTKqPQIk1n0A_hgUNg26sRNLiqOohzg=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocJqyuiSUgJYAwYgls6uTKqPQIk1n0A_hgUNg26sRNLiqOohzg=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocKzHEg3eC6H5wK1CyT7uR1NYp87t-mJFXo86bLVWl26vICuFA=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJcb2dCN7NSy41FczYWQu0OdM-uRY_PrbvHmDzPZUtk05NeYw=s96-c'
 
     ];
 
