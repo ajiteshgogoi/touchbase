@@ -5,5 +5,5 @@ import category from './categorySchema';
 // Export all schemas
 export const schemaTypes = [post, author, category];
 
-// Export individual schemas for direct use
+// Export individual schemas for direct use 
 export { post, author, category };
