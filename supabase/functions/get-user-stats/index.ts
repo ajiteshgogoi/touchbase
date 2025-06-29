@@ -180,7 +180,9 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocJ7KhZPwlqqFwLO4FMpDh3zttFTS80RBftPZCDY7UmeDjklb5A=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocKJO--BRTx-u2JShV3PNn6tmHjb5qzjGO-hjSozn1iS-yUMOA=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocInn7tHMs-rmXrpYn8Rh3xwlvFaccgg_RCTxSxY71UkLfrvyQ=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocLiEmXOKlcV5oFWvdhK6mKRRU4BrGRU4zWyROhWepwFPwFO8Q=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocLiEmXOKlcV5oFWvdhK6mKRRU4BrGRU4zWyROhWepwFPwFO8Q=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocKouCQNF3UV0CfidWq1gt_ePmg0_ZSitttnjJWNXeOCh3xMLw=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocLE2hTLTUO5HACHs7__j1PO3pKn5VshBSXrLm6ZJ3bbIGxcC9E=s96-c'
 
     ];
 
