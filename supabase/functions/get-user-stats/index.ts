@@ -182,7 +182,13 @@ serve(async (req) => {
       'https://lh3.googleusercontent.com/a/ACg8ocInn7tHMs-rmXrpYn8Rh3xwlvFaccgg_RCTxSxY71UkLfrvyQ=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocLiEmXOKlcV5oFWvdhK6mKRRU4BrGRU4zWyROhWepwFPwFO8Q=s96-c',
       'https://lh3.googleusercontent.com/a/ACg8ocKouCQNF3UV0CfidWq1gt_ePmg0_ZSitttnjJWNXeOCh3xMLw=s96-c',
-      'https://lh3.googleusercontent.com/a/ACg8ocLE2hTLTUO5HACHs7__j1PO3pKn5VshBSXrLm6ZJ3bbIGxcC9E=s96-c'
+      'https://lh3.googleusercontent.com/a/ACg8ocLE2hTLTUO5HACHs7__j1PO3pKn5VshBSXrLm6ZJ3bbIGxcC9E=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJCiS5pxyDq8Gi2JLkvqQnPvwsBaxuMq3jXAW886GVJfJ-etXU=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocIpYBSJgtEzBjA0IskZGT9E5S8vVK3SNYIj6YiTNMVUcnSERw=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocIUQS5cnlSGwShQBl-bQnLmTZNGzBvgUENnQTbcYghQAMwlYw=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocIaY0gQpAAMnJdsoeeAEWivAcSuFAeuPBDQrywI2twKwyik9Q=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJqoFc1xtlMjHpyBKCDc_Iv7mQut5-T98YzhLjea7y3bpGLtG6w=s96-c',
+      'https://lh3.googleusercontent.com/a/ACg8ocJiPyohs7RZuAott0WV4NQdw3npqsbsVHeLjcZQ7IY6Y4EP2hHdDA=s96-c'
 
     ];
 
