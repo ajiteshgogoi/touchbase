@@ -56,13 +56,13 @@ def twaManifest = [
 
 android {
     namespace "app.touchbase.site.twa"
-    compileSdk 34
+    compileSdk 35
     defaultConfig {
         applicationId "app.touchbase.site.twa"
         minSdk 21
-        targetSdk 34
-        versionCode 43  // Increment this number for each new release
-        versionName "2.2.1" // Version name for users to see
+        targetSdk 35
+        versionCode 44  // Increment this number for each new release
+        versionName "2.2.2" // Version name for users to see
 
         // Enable vector drawable support for older Android versions
         vectorDrawables.useSupportLibrary = true
