@@ -61,8 +61,8 @@ android {
         applicationId "app.touchbase.site.twa"
         minSdk 21
         targetSdk 35
-        versionCode 45  // Increment this number for each new release
-        versionName "2.2.3" // Version name for users to see
+        versionCode 46  // Increment this number for each new release
+        versionName "2.2.4" // Version name for users to see
 
         // Enable vector drawable support for older Android versions
         vectorDrawables.useSupportLibrary = true
@@ -240,7 +240,7 @@ dependencies {
     implementation 'com.google.androidbrowserhelper:locationdelegation:1.1.1'
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
     implementation 'com.google.androidbrowserhelper:billing:1.0.0-alpha11'
-    implementation 'com.android.billingclient:billing:7.0.0'
+    implementation 'com.android.billingclient:billing:8.0.0'
     // Using newer browser library for modern system bar appearance APIs
     implementation 'androidx.browser:browser:1.8.0'
     implementation 'androidx.core:core:1.12.0'
