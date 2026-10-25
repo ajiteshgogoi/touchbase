@@ -22,7 +22,7 @@ async function bumpVersion(newVersion) {
     await fs.writeFile(versionPath, content);
     console.log(`✓ Updated version.ts`);
 
-    // Run the update-version script 
+    // Run the update-version script
     console.log('\nRunning version update script...');
     execSync('node scripts/update-version.js', { stdio: 'inherit' });
 
